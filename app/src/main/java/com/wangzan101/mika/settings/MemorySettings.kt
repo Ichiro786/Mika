@@ -12,7 +12,7 @@ import kotlinx.serialization.json.put
 import java.io.File
 
 /**
- * 「记忆与技能」的三个开关:[useMemory] 总开关(关 = 不检索、不注入、不提取、不提供记忆工具);
+ * 「记忆与技能」的开关:[useMemory] 总开关(关 = 不检索、不注入、不提取、不提供记忆工具);
  * [autoRemember]「自动记住我说过的事」;[learnSkills]「从办成的任务里学技能」(默认开,学到的要用户收下才用)。
  */
 data class MemorySwitches(
@@ -26,7 +26,9 @@ data class MemorySwitches(
      * 来源另标成 Mika 归纳的。默认关:只记用户亲口说的,别的不收。
      */
     val inferMemories: Boolean = false,
-)
+) {
+    val taskMemoryEnabled: Boolean get() = useMemory && rememberTasks
+}
 
 /**
  * 开关存成一个小 JSON 文件;读不懂按默认值。
