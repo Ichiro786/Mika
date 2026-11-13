@@ -53,6 +53,7 @@ def main() -> None:
     output.mkdir(parents=True, exist_ok=True)
     adb("install", "-r", str(apk))
     adb("shell", "pm", "clear", "com.wangzan101.mika")
+    adb("shell", "pm", "grant", "com.wangzan101.mika", "android.permission.POST_NOTIFICATIONS")
     adb("shell", "settings", "put", "system", "font_scale", "1.0")
     adb("shell", "wm", "dismiss-keyguard")
     for theme, night in (("dark", "yes"), ("light", "no")):

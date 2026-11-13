@@ -144,3 +144,5 @@ Rollback: remove only the newly added program documents/references and root prog
 - This pass requires GitHub CI on its own commit. New device tests, updated Android screenshots and actual light/dark visual, voice, accessibility and motion checks remain **UNVERIFIED** until run on Android. No Android build or emulator was run in Muse.
 
 - GitHub Actions run 43446704262 **passed** for visual correction commit `2deec4cea1fbae5b5ff676a734a092d1a36a1ef0`: core and app unit tests, debug APK assembly, device-test compilation, CLI/localization and relay. The device tests were compiled, not run. A manual-only GitHub CI option has been prepared to run focused Android interaction tests and capture the three primary screens on a clean emulator; it has not yet been run.
+
+- Manual capture run 43448333615 built the APK and passed core, app unit tests, CLI/localization and relay, but the run **failed** at emulator creation: the selected device profile could not be loaded, and no virtual device or screenshots were produced. Removed that optional profile for a retry. Device tests and updated renders remain unverified.
