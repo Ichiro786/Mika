@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -121,6 +122,7 @@ private val hubSections = listOf(
 @Composable
 internal fun OrbitHub(
     state: PresenceState,
+    expansion: Float,
     ready: Boolean,
     personal: PersonalRuntime,
     taskState: TaskCenterState,
@@ -155,7 +157,15 @@ internal fun OrbitHub(
             HubIconButton(MikaIcons.Gear, stringResource(R.string.orbit_hub_personalization), onPersonalization)
         }
         Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            MikaPresenceAvatar(Modifier.size(128.dp), state = state, framed = true)
+            // The compact header mark is centered in a 56 dp bar; the expanded mark is
+            // centered 102 dp lower. Keep a fixed layout box while the presence travels.
+            Box(Modifier.size(128.dp), contentAlignment = Alignment.Center) {
+                MikaPresenceAvatar(
+                    Modifier.size(52.dp + 76.dp * expansion).graphicsLayer {
+                        translationY = -102.dp.toPx() * (1f - expansion)
+                    }, state = state, framed = true,
+                )
+            }
             Text(stringResource(R.string.app_name), Modifier.padding(top = 14.dp), style = MikaType.Title, color = c.ink)
             Text(stringResource(presenceLabel(state, ready)), Modifier.padding(top = 5.dp), style = MikaType.Caption, color = c.ink2)
         }

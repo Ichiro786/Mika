@@ -3,13 +3,14 @@ package com.wangzan101.mika.ui
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -676,11 +677,16 @@ private fun MikaRoot(
                     val still = MikaTheme.reduceMotion
                     AnimatedVisibility(
                         visible = orbitHubOpen,
-                        enter = if (still) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.94f, transformOrigin = TransformOrigin(0.5f, 0.12f)),
-                        exit = if (still) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.94f, transformOrigin = TransformOrigin(0.5f, 0.12f)),
+                        enter = if (still) EnterTransition.None else fadeIn(tween(220)),
+                        exit = if (still) ExitTransition.None else fadeOut(tween(220)),
                     ) {
+                        // Keep the presence synchronized with the panel in both directions.
+                        val expansion by transition.animateFloat(
+                            transitionSpec = { if (still) snap() else tween(220) },
+                            label = "orbit-hub-presence",
+                        ) { if (it == EnterExitState.Visible) 1f else 0f }
                         OrbitHub(
-                            state = orbitPresence, ready = check.canStartTask, personal = app.personal, taskState = app.taskState,
+                            state = orbitPresence, expansion = expansion, ready = check.canStartTask, personal = app.personal, taskState = app.taskState,
                             runStore = app.runStore, memory = memoryRuntime,
                             onClose = { orbitHubOpen = false },
                             onTasks = { orbitHubOpen = false; nav.show(Route.Tasks) },

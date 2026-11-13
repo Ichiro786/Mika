@@ -170,3 +170,5 @@ Rollback: remove only the newly added program documents/references and root prog
 - Latest local checks: localization validation **PASS** (2,845 resources across 11 UI languages), workflow actionlint **PASS**, translation tool tests **PASS** (12), XML parsing **PASS** (548 resources) and `git diff --check` **PASS**.
 
 - GitHub Actions run 43496124615 **PASSED** for commit `5b228d3b2fb49ea09bb3d7216080fbe92a494ea4`: core unit tests, Android app unit tests, debug APK assembly and Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-5b228d3b2fb49ea09bb3d7216080fbe92a494ea4` (artifact 14073090446). The Android device tests were compiled, not executed; visual and device verification remain open.
+
+- Hub transition follow-up: the presence now grows and moves between its compact header and expanded hub positions in sync with the panel fade; reduced motion snaps to the target. This source change requires its own CI and Android motion review.
