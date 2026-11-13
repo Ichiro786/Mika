@@ -7,11 +7,13 @@ import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -38,6 +40,12 @@ object MikaMotion {
     const val SWITCH_MS = 200
     /** 减速曲线:起步快、落地慢。 */
     val Decelerate: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
+
+    // Expressive spatial and effects springs; keep existing page transitions unchanged.
+    fun <T> spatial(reduceMotion: Boolean): AnimationSpec<T> =
+        if (reduceMotion) snap() else spring(dampingRatio = 0.8f, stiffness = 380f)
+    fun <T> effects(reduceMotion: Boolean): AnimationSpec<T> =
+        if (reduceMotion) snap() else spring(dampingRatio = 1f, stiffness = 1600f)
 
     fun <T> page(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(PAGE_MS, easing = Decelerate)
     fun <T> switch(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(SWITCH_MS, easing = Decelerate)
@@ -122,11 +130,20 @@ fun MikaTheme(
         LocalMikaColors provides colors,
         LocalReduceMotion provides reduceMotion,
     ) {
-        MaterialTheme(colorScheme = materialColors) {
+        MaterialTheme(colorScheme = materialColors, typography = MikaTypography) {
             CompositionLocalProvider(LocalContentColor provides colors.ink, content = content)
         }
     }
 }
+
+private val MikaTypography = Typography(
+    headlineLarge = MikaType.LargeTitle,
+    titleMedium = MikaType.Title,
+    bodyLarge = MikaType.Body,
+    bodyMedium = MikaType.Caption,
+    labelLarge = MikaType.Label,
+    labelSmall = MikaType.Hint,
+)
 
 private fun scheme(c: MikaColors): ColorScheme {
     val base = if (c.isDark) darkColorScheme() else lightColorScheme()
@@ -134,7 +151,7 @@ private fun scheme(c: MikaColors): ColorScheme {
         primary = c.accent, onPrimary = c.onAccent, primaryContainer = c.accentSoft, onPrimaryContainer = c.accent,
         secondary = c.accent, onSecondary = c.onAccent,
         background = c.bg, onBackground = c.ink,
-        surface = c.surface, onSurface = c.ink, surfaceVariant = c.fill, onSurfaceVariant = c.ink2,
+        surface = c.surface, onSurface = c.ink, surfaceVariant = c.answer, onSurfaceVariant = c.ink2,
         surfaceContainerLowest = c.surface, surfaceContainerLow = c.surface, surfaceContainer = c.surface,
         surfaceContainerHigh = c.surface, surfaceContainerHighest = c.surface, surfaceTint = c.surface,
         outline = c.ink3, outlineVariant = c.hair,
