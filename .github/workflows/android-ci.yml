@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      capture_screenshots:
+        description: Run focused device tests and capture Android screens
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -45,3 +50,5 @@ jobs:
     needs: find-pr
     if: ${{ !cancelled() && (github.event_name != 'push' || needs.find-pr.outputs.open != 'true') }}
     uses: ./.github/workflows/ci.yml
+    with:
+      capture_screenshots: ${{ inputs.capture_screenshots || false }}
