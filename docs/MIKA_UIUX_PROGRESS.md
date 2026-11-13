@@ -98,3 +98,10 @@ Rollback: remove only the newly added program documents/references and root prog
 - Validation: actionlint 1.7.12 passed on both workflow files; a PyYAML structural check passed for triggers, reusable inputs, JDK, SDK, cache, test commands, localization and APK upload. `python3 tools/i18n/translations.py check` passed (2,808 resources, 11 UI languages). These are static/local checks, not an Actions execution.
 - Before the user designated GitHub Actions as the sole Android build environment, a project-local JDK 17 and Android command-line tools were downloaded and checksum-verified under ignored `build/`; SDK package and Gradle downloads failed with a Java proxy handshake error. Local toolchain setup stopped at the user's direction. GitHub authentication remains invalid, so CI has not been dispatched or verified and no screenshots exist.
 - Next gate: restore GitHub authentication, push the committed branch only when authorized, inspect the Android CI run and download its APK. Fix any compilation/test failures and verify actual Android renders before implementing the Tasks/navigation/approval milestone.
+
+
+## CI trigger consolidation — 2026-11-13
+
+- `android-ci.yml` is the only automatic entry point among the two workflows. It calls the full `ci.yml` suite on pushes and pull requests; both workflows retain manual dispatch and the debug APK upload remains in the app job. Core, app, instrumentation compilation, localization, CLI and relay checks remain enabled.
+- A branch push with a known mergeable open PR yields to the PR run. Default-branch pushes, tags, manual runs and PR events run the full suite. PR lookup errors, unknown mergeability and conflicts fall back to running the push suite to avoid losing validation; an occasional duplicate is possible in those fallback cases. Existing specialized dev-APK workflows for their own named branches remain separate.
+- `actionlint` 1.7.12 and static workflow structure checks passed. Mocked PR lookup checks covered no PR, open PR and API failure; GitHub authentication now succeeds. Android build/test and actual CI outcomes remain unverified until the pushed commit finishes on GitHub.
