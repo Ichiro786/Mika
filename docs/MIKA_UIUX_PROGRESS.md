@@ -4,7 +4,7 @@
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
 - Current phase: **Orbit Spark and chat milestone — implementation awaiting Android verification**
-- Baseline compile/tests: **Blocked: JDK unavailable**
+- Baseline compile/tests: **UNVERIFIED — awaiting GitHub Actions**
 - Device test: **Unverified: no device/emulator**
 - Overall status: **Phase 00 and Phase 01 gates open: build and device verification unavailable**
 
@@ -89,3 +89,12 @@ Rollback: remove only the newly added program documents/references and root prog
 - `python3 tools/i18n/translations.py check`: **PASS**, 2,808 resources across 11 UI languages. `python3 -m unittest discover -s tools/i18n -p 'test_*.py'`: **PASS**, 12 tests. `git diff --check`: **PASS**. New user-message text/background contrast calculated at 11.56:1 light and 9.39:1 dark; this is not a complete accessibility audit.
 - `./gradlew :app:testDebugUnitTest --tests com.wangzan101.mika.ui.PresenceStateTest` and `./gradlew :core:test :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin`: **NOT RUN**, wrapper stopped because Java/JAVA_HOME is unavailable. The new unit tests and all Android compilation remain unverified. GitHub authentication was invalid; no remote CI run was dispatched or verified. No actual before/after screenshots, animations, emulator or physical-device tests were captured.
 - Before shipping: run the listed Gradle and existing device regressions in CI/on Android; inspect the six states and reduced-motion/background behavior; compare light/dark renders to the boards at multiple sizes and 200% font; exercise voice, attachments, streaming, approval, long-press actions and IME/insets. In particular, validate live-step expand/collapse and the home briefing in real UI. Roll back this milestone with its single commit if regressions arise.
+
+
+## GitHub Actions Android build gate — 2026-11-13
+
+- `.github/workflows/android-ci.yml` runs on pushes, pull requests and manual dispatch. It calls the existing `ci.yml` with `android_only: true`, reusing its Ubuntu runners, Temurin 17, SDK 36/build tools 35.0.0, Gradle cache, core tests, app unit tests, debug build and localization checks. The reusable path skips the unrelated CLI and relay integration tests; the original CI keeps those tests and its original triggers.
+- The existing app job now uploads `app/build/outputs/apk/debug/*.apk` as `Mika-debug-<commit>` after a successful build. No APK has been generated or uploaded yet. The existing and Android entry points both run on pull requests and main pushes; this preserves existing checks at the cost of duplicate runs on those events.
+- Validation: actionlint 1.7.12 passed on both workflow files; a PyYAML structural check passed for triggers, reusable inputs, JDK, SDK, cache, test commands, localization and APK upload. `python3 tools/i18n/translations.py check` passed (2,808 resources, 11 UI languages). These are static/local checks, not an Actions execution.
+- Before the user designated GitHub Actions as the sole Android build environment, a project-local JDK 17 and Android command-line tools were downloaded and checksum-verified under ignored `build/`; SDK package and Gradle downloads failed with a Java proxy handshake error. Local toolchain setup stopped at the user's direction. GitHub authentication remains invalid, so CI has not been dispatched or verified and no screenshots exist.
+- Next gate: restore GitHub authentication, push the committed branch only when authorized, inspect the Android CI run and download its APK. Fix any compilation/test failures and verify actual Android renders before implementing the Tasks/navigation/approval milestone.
