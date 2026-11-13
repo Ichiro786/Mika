@@ -1267,7 +1267,7 @@ private fun StatusCard(
 
 /** Shows only the request fields supplied by the existing confirmation flow. */
 @Composable
-private fun ApprovalCard(
+internal fun ApprovalCard(
     status: ExchangeStatus.NeedsConfirmation,
     submission: ApprovalSubmission,
     onApprove: () -> Unit,
@@ -1299,16 +1299,16 @@ private fun ApprovalCard(
                 if (LocalConfiguration.current.fontScale >= 1.5f) {
                     Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
-                            Modifier.fillMaxWidth(), enabled = !submission.pending)
+                            Modifier.fillMaxWidth().testTag("confirmation-decline"), enabled = !submission.pending)
                         ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.fillMaxWidth(), primary = true, enabled = !submission.pending)
+                            Modifier.fillMaxWidth().testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
                     }
                 } else {
                     Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
-                            Modifier.weight(1f), enabled = !submission.pending)
+                            Modifier.weight(1f).testTag("confirmation-decline"), enabled = !submission.pending)
                         ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.weight(1f), primary = true, enabled = !submission.pending)
+                            Modifier.weight(1f).testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
                     }
                 }
             }

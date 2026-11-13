@@ -29,6 +29,10 @@ internal fun taskSection(task: PersonalTask, live: TaskState?): TaskSection =
         else -> TaskSection.Waiting
     }
 
+/** Streamed answer text is rendered in chat, not in task rows. */
+internal fun taskDisplayState(state: TaskState): TaskState =
+    if (state is TaskState.Running && state.preview != null) state.copy(preview = null) else state
+
 /** Only the runtime's explicit done/total pair represents completed work. */
 internal fun taskProgress(state: TaskState): Float? {
     val progress = (state as? TaskState.Running)?.progress as? RunProgress.Task ?: return null

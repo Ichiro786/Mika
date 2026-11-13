@@ -33,6 +33,13 @@ class TasksPresentationTest {
         assertEquals(TaskSection.Waiting, taskSection(task.copy(status = "unknown"), null))
     }
 
+    @Test fun streamingTextDoesNotChangeTaskPresentation() {
+        val first = TaskState.Running(1, "working", preview = "first")
+        val next = first.copy(preview = "first and more")
+        assertEquals(taskDisplayState(first), taskDisplayState(next))
+        assertEquals(TaskSection.Working, taskSection(taskDisplayState(next)))
+    }
+
     @Test fun fractionOnlyUsesReportedCompletedWork() {
         fun state(progress: RunProgress) = TaskState.Running(1, "", progress = progress)
         assertEquals(0.25f, taskProgress(state(RunProgress.Task("", 1, 4, null)))!!, 0f)

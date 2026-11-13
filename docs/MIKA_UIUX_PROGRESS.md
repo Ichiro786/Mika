@@ -3,10 +3,10 @@
 - Repository: `Ichiro786/Mika`
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
-- Current phase: **Tasks, navigation and approvals — implementation awaiting CI and device verification**
-- Baseline compile/tests: **PASS in GitHub Actions at 68d06720; milestone commit 3b7c83e6 also passed**
+- Current phase: **Tasks, navigation and approvals — device verification open**
+- Baseline compile/tests: **PASS in GitHub Actions; most recent recorded passing source commit 27ca52eb**
 - Device test: **Unverified: no device/emulator**
-- Overall status: **Baseline suite passed; current milestone and device verification gates remain open**
+- Overall status: **CI results recorded by commit below; device verification remains open**
 
 | Phase | Workstream | Status | Commit | Evidence / blockers |
 |---|---|---|---|---|
@@ -14,11 +14,11 @@
 | 01 | Theme and design tokens | In progress | — | Foundation implemented; build and visual verification open |
 | 02 | Orbit Spark vector | In progress | — | Reused scalable mark; actual visual verification open |
 | 03 | Agent presence animations | In progress | — | Runtime state adapter and motion added; device verification open |
-| 04 | App shell and navigation | In progress | — | Primary navigation implemented; CI and device checks pending |
+| 04 | App shell and navigation | In progress | — | Primary navigation implemented; CI passed at 27ca52eb; device checks pending |
 | 05 | Home and composer | In progress | — | Chat presentation added; device verification open |
 | 06 | Chat and activity | In progress | — | Message and activity styling added; device verification open |
-| 07 | Tasks and schedules | In progress | — | Real task and schedule views implemented; CI and device checks pending |
-| 08 | Approval cards | In progress | — | Keyed confirmation card implemented; CI and device checks pending |
+| 07 | Tasks and schedules | In progress | — | Real task and schedule views implemented; CI passed at 27ca52eb; device checks pending |
+| 08 | Approval cards | In progress | — | Keyed confirmation card implemented; CI passed at 27ca52eb; device checks pending |
 | 09 | Make and skills | Pending | — | — |
 | 10 | Capsule, voice and system assets | Pending | — | — |
 | 11 | Secondary screens and accessibility | Pending | — | — |
@@ -126,3 +126,9 @@ Rollback: remove only the newly added program documents/references and root prog
 - Review follow-up: the existing UI adapter for opening a personal task rebuilt the composer and could discard drafts. It now keeps and restores per-conversation text, attachments and quotes, with a regression test. New light-theme attention text measures 6.12:1 on the page and 6.44:1 on the card; approval button text measures 14.99:1 light and 18.45:1 dark. These are limited static color checks, not a device accessibility audit. The follow-up changes also await CI.
 
 - GitHub Actions run 43405454116 **passed** for milestone commit `3b7c83e696a4b92200d54c3ae75288f87d5a11ba`: core, Android unit tests, debug APK and Android-test compilation, CLI/localization, and relay. Its APK artifact is `Mika-debug-3b7c83e696a4b92200d54c3ae75288f87d5a11ba`. The subsequent draft-preservation and contrast follow-up is not covered by this run and requires its own CI result.
+
+- Task rows ignore changes that only add streamed reply text; chat still receives the original stream. A presentation regression test covers this mapping. Consult GitHub Actions for the result on the commit containing this change.
+
+- Added instrumentation tests for primary-navigation selection and for approval/decline card behavior; GitHub CI compiles device tests but does not run them.
+
+- GitHub Actions run 43406406518 **passed** for commit `27ca52eb874c43784c6fe087da48e3c188f31211`, including the draft/quote/attachment preservation regression, core and app unit tests, Android debug build and device-test compilation, CLI/localization and relay. Its APK artifact is `Mika-debug-27ca52eb874c43784c6fe087da48e3c188f31211`. The later streaming and device-test additions require the Actions result for their own commit.

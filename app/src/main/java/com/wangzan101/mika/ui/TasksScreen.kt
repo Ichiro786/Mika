@@ -80,6 +80,8 @@ import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -114,7 +116,8 @@ internal fun TasksScreen(
     val error by runtime.error.collectAsState()
     val runs by taskState.runs.collectAsState()
     val live = runs.map { run -> key(run.key) {
-        val state by run.state.collectAsState()
+        val displayStates = remember(run) { run.state.map(::taskDisplayState).distinctUntilChanged() }
+        val state by displayStates.collectAsState(initial = taskDisplayState(run.state.value))
         val recordId by run.runId.collectAsState()
         LiveTask(run, state, recordId)
     } }

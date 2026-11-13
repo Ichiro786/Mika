@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
@@ -46,7 +47,7 @@ internal fun PrimaryNavigation(current: Route, onSelect: (Route) -> Unit) {
         tabs.forEach { (route, label, icon) ->
             val active = selected == route
             Column(
-                Modifier.weight(1f).heightIn(min = 56.dp).clip(MikaShapes.Pill)
+                Modifier.weight(1f).heightIn(min = 56.dp).testTag("primary-nav-${route.name}").clip(MikaShapes.Pill)
                     .background(if (active) c.answer else c.surface)
                     .selectable(selected = active, role = Role.Tab, onClick = { onSelect(route) })
                     .padding(horizontal = 4.dp, vertical = 6.dp),
