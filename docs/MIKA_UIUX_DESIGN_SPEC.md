@@ -1,5 +1,7 @@
 # Mika visual and motion specification (draft v1)
 
+> Proposed and Android-provided identifiers use HTML code formatting; verify their availability before implementation.
+
 ## Direction
 
 Original native Android personal agent. Quiet, editorial, tactile, highly legible. The design references are **aspirational visual targets**. Keep Mika's name and identity. Duet-inspired interaction patterns are references, not assets to copy. The original symbol is **Orbit Spark**, showing a warm coral orb crossed by a flowing orbit/wave. Do not substitute a generic sparkles icon or the Claude logo.
@@ -63,7 +65,7 @@ UI presence must be driven by **real application state** and a deterministic, te
 | Success | A real task completed | Short, one-shot settle/halo, then return to idle when appropriate |
 | Error | An actual error is surfaced | Short shift + label/status affordance; no color-only error and no strong shake |
 
-Implement `AgentPresenceState` as UI presentation state, not as a new authority for agent execution. Determine priority and transitions from existing Task/Voice/Confirmation/Provider sources after inspecting them. Document ambiguous or unsupported mappings. Use Compose Canvas + transitions, animation state keyed to current lifecycle. Pause off-screen or background infinite animations; respect system animator settings and reduced-motion behavior. Prefer 60/120Hz-friendly lightweight draw operations, minimal invalidation and no per-frame bitmap generation. `AnimatedVectorDrawable` is also acceptable for simple path animations. Only add Lottie if justified and approved.
+Implement <code>AgentPresenceState</code> as UI presentation state, not as a new authority for agent execution. Determine priority and transitions from existing Task/Voice/Confirmation/Provider sources after inspecting them. Document ambiguous or unsupported mappings. Use Compose Canvas + transitions, animation state keyed to current lifecycle. Pause off-screen or background infinite animations; respect system animator settings and reduced-motion behavior. Prefer 60/120Hz-friendly lightweight draw operations, minimal invalidation and no per-frame bitmap generation. <code>AnimatedVectorDrawable</code> is also acceptable for simple path animations. Only add Lottie if justified and approved.
 
 ## Surface applications
 

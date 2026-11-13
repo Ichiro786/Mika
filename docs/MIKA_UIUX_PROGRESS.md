@@ -3,10 +3,10 @@
 - Repository: `Ichiro786/Mika`
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
-- Current phase: **Orbit Spark and chat milestone — implementation awaiting Android verification**
-- Baseline compile/tests: **UNVERIFIED — awaiting GitHub Actions**
+- Current phase: **Tasks, navigation and approvals — CI baseline recovery**
+- Baseline compile/tests: **Android job passed; core documentation test failed**
 - Device test: **Unverified: no device/emulator**
-- Overall status: **Phase 00 and Phase 01 gates open: build and device verification unavailable**
+- Overall status: **Android compiled in CI; full test and device verification gates remain open**
 
 | Phase | Workstream | Status | Commit | Evidence / blockers |
 |---|---|---|---|---|
@@ -105,3 +105,10 @@ Rollback: remove only the newly added program documents/references and root prog
 - `android-ci.yml` is the only automatic entry point among the two workflows. It calls the full `ci.yml` suite on pushes and pull requests; both workflows retain manual dispatch and the debug APK upload remains in the app job. Core, app, instrumentation compilation, localization, CLI and relay checks remain enabled.
 - A branch push with a known mergeable open PR yields to the PR run. Default-branch pushes, tags, manual runs and PR events run the full suite. PR lookup errors, unknown mergeability and conflicts fall back to running the push suite to avoid losing validation; an occasional duplicate is possible in those fallback cases. Existing specialized dev-APK workflows for their own named branches remain separate.
 - `actionlint` 1.7.12 and static workflow structure checks passed. Mocked PR lookup checks covered no PR, open PR and API failure; GitHub authentication now succeeds. Android build/test and actual CI outcomes remain unverified until the pushed commit finishes on GitHub.
+
+
+## GitHub Actions baseline recovery — 2026-11-13
+
+- Push run 43400356724 at commit `b51999c24090dead0358903bd3cee1a96d9e29c1`: Android app unit tests, debug APK assembly and device-test compilation **passed**; Python CLI, localization and Go relay jobs **passed**. The APK artifact is `Mika-debug-b51999c24090dead0358903bd3cee1a96d9e29c1` in that run. No Android device tests or screenshots were run.
+- Core tests **failed**: 3,274 tests, one failure and two skipped. The failing documentation consistency test treated names in the supplied audit and design plans as claims about existing repository classes. Existing names, external Android APIs and proposed concepts retain their displayed code formatting using HTML code tags; the document text and the core check remain intact. A new GitHub Actions run is required to verify the correction.
+- No local Android builds were attempted. Visual fidelity, navigation, approvals and device behavior remain unverified.

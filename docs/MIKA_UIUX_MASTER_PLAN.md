@@ -1,5 +1,7 @@
 # Mika Duet-inspired UI/UX implementation program
 
+> Proposed component names use HTML code formatting; they are not claims about classes already present in Mika.
+
 ## Purpose
 
 Transform the user's fork `Ichiro786/Mika` from its current utilitarian UI into an original, native Kotlin + Jetpack Compose personal agent with a calm Duet-inspired layout and the Orbit Spark identity system. **Protect existing agent reliability first.** This is a phased UI/UX project, not a backend rewrite.
@@ -35,7 +37,7 @@ Transform the user's fork `Ichiro786/Mika` from its current utilitarian UI into 
 
 ## Phase 03 — Agent presence animations and state adapter
 
-**Scope:** build `AgentPresenceState` and **one** `MikaPresenceAvatar` component. Use real UI-derived execution, voice, confirmation and error states. Animation should be low-overhead; idle/listening/thinking/working/needs-you/success/error transitions; reduced-motion static fallback and lifecycle pause. Provide deterministic animation test/previews before integrating globally.
+**Scope:** build <code>AgentPresenceState</code> and **one** `MikaPresenceAvatar` component. Use real UI-derived execution, voice, confirmation and error states. Animation should be low-overhead; idle/listening/thinking/working/needs-you/success/error transitions; reduced-motion static fallback and lifecycle pause. Provide deterministic animation test/previews before integrating globally.
 
 **Exit:** mapping of all states to real code/events documented, screenshots or short motion clips captured, no indefinite rendering while offscreen, no fake listening/working activity, no changes to agent runtime.
 
@@ -53,7 +55,7 @@ Transform the user's fork `Ichiro786/Mika` from its current utilitarian UI into 
 
 ## Phase 06 — Conversation, Markdown and live activity
 
-**Scope:** user and assistant message hierarchy, context actions, collapsed `AgentActivityCard`, source/trace access and live PiP placement. Preserve streaming Markdown, code, tables, branch/quote, queued messages, source citations, cancel/retry and auto-scroll. Profile only if jank exists before changing parser/flow architecture.
+**Scope:** user and assistant message hierarchy, context actions, collapsed <code>AgentActivityCard</code>, source/trace access and live PiP placement. Preserve streaming Markdown, code, tables, branch/quote, queued messages, source citations, cancel/retry and auto-scroll. Profile only if jank exists before changing parser/flow architecture.
 
 **Exit:** snapshot and runtime testing for long chat, active streaming, markdown table/code, scroll-up during streaming, history/branch/retry and full run inspector; regression evidence included.
 
