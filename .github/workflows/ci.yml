@@ -3,7 +3,16 @@ name: CI
 # 只做 CI：单元测试、Android 打包、CLI 契约和网关集成。发布（CD）仍是手工流程。
 on:
   workflow_dispatch:
+    inputs:
+      capture_screenshots:
+        description: Capture light and dark Android screens on a clean emulator
+        type: boolean
+        default: false
   workflow_call:
+    inputs:
+      capture_screenshots:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -104,6 +113,32 @@ jobs:
           if-no-files-found: error
           retention-days: 14
           compression-level: 0
+      - name: Start Android emulator for visual capture
+        id: visual_emulator
+        if: ${{ inputs.capture_screenshots }}
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
+          echo no | avdmanager create avd --force --name mika-visual --package 'system-images;android-35;google_apis;x86_64' --device pixel_2
+          "$ANDROID_HOME/emulator/emulator" -avd mika-visual -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/mika-emulator.log 2>&1 &
+          timeout 240 adb wait-for-device || { cat /tmp/mika-emulator.log; exit 1; }
+          timeout 240 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done' || { cat /tmp/mika-emulator.log; exit 1; }
+      - name: Run focused Android interaction tests
+        if: ${{ inputs.capture_screenshots }}
+        run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.wangzan101.mika.ui.TaskTabsTest,com.wangzan101.mika.ui.EditorialHeaderTest,com.wangzan101.mika.ui.ChatRecommendationTest --stacktrace
+      - name: Capture actual Android screens
+        if: ${{ !cancelled() && inputs.capture_screenshots && steps.visual_emulator.outcome == 'success' }}
+        run: python3 tools/ui/capture_screens.py app/build/outputs/apk/debug/app-debug.apk build/visual-captures
+      - name: Upload Android screenshots
+        if: ${{ !cancelled() && inputs.capture_screenshots }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: Mika-screenshots-${{ github.sha }}
+          path: build/visual-captures/
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload test reports
         if: failure()
         uses: actions/upload-artifact@v7
@@ -112,6 +147,8 @@ jobs:
           path: |
             app/build/test-results/testDebugUnitTest
             app/build/reports/tests/testDebugUnitTest
+            app/build/outputs/androidTest-results/connected
+            app/build/reports/androidTests/connected
           retention-days: 7
           if-no-files-found: ignore
 
