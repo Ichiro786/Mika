@@ -23,10 +23,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -54,6 +56,16 @@ import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.R
 import com.wangzan101.mika.personal.PersonalRuntime
 import com.wangzan101.mika.chat.ConversationStore
+import com.wangzan101.mika.chat.FileLibrary
+import com.wangzan101.mika.chat.FileLibrarySnapshot
+import com.wangzan101.mika.chat.LibraryFile
+import com.wangzan101.mika.browser.UserBrowser
+import com.wangzan101.mika.memory.MemoryRuntime
+import com.wangzan101.mika.core.memory.MemoryStatus
+import com.wangzan101.mika.core.memory.MemoryStore
+import com.wangzan101.mika.core.skills.PersonalSkill
+import com.wangzan101.mika.settings.FeatureFlags
+import com.wangzan101.mika.settings.OrbitIdentityMode
 import com.wangzan101.mika.core.run.RunPhase
 import com.wangzan101.mika.core.run.RunStore
 import com.wangzan101.mika.core.run.StoredRun
@@ -92,6 +104,12 @@ internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit, size: Dp 
 }
 
 private data class HubSection(val label: Int, val icon: ImageVector)
+private data class HubMemoryData(val store: MemoryStore, val skills: List<PersonalSkill>)
+private class HubSectionCache {
+    var memory by mutableStateOf<Result<HubMemoryData>?>(null)
+    var files by mutableStateOf<Result<FileLibrarySnapshot>?>(null)
+    var filesRevision by mutableIntStateOf(0)
+}
 private val hubSections = listOf(
     HubSection(R.string.orbit_hub_today, MikaIcons.Clock),
     HubSection(R.string.drawer_browser, MikaIcons.Globe),
@@ -107,17 +125,26 @@ internal fun OrbitHub(
     personal: PersonalRuntime,
     taskState: TaskCenterState,
     runStore: RunStore,
+    memory: MemoryRuntime,
     onClose: () -> Unit,
     onTasks: () -> Unit,
     onPlans: () -> Unit,
     onOpenTask: (String) -> Unit,
-    onBrowser: () -> Unit,
+    onBrowser: (String?) -> Unit,
     onMemory: () -> Unit,
     onFiles: () -> Unit,
     onPersonalization: () -> Unit,
 ) {
     BackHandler(onBack = onClose)
     val c = MikaTheme.colors
+    val context = LocalContext.current
+    val cache = remember { HubSectionCache() }
+    LaunchedEffect(context, cache) {
+        ConversationStore.shared(context).changes.collect {
+            cache.files = null
+            cache.filesRevision++
+        }
+    }
     var selected by rememberSaveable { mutableIntStateOf(0) }
     Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()
         .verticalScroll(rememberScrollState()).testTag("orbit-hub")) {
@@ -132,23 +159,7 @@ internal fun OrbitHub(
             Text(stringResource(R.string.app_name), Modifier.padding(top = 14.dp), style = MikaType.Title, color = c.ink)
             Text(stringResource(presenceLabel(state, ready)), Modifier.padding(top = 5.dp), style = MikaType.Caption, color = c.ink2)
         }
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)
-            .clip(MikaShapes.Pill).background(c.surface).padding(4.dp).selectableGroup(),
-            horizontalArrangement = Arrangement.SpaceEvenly) {
-            hubSections.forEachIndexed { index, section ->
-                val label = stringResource(section.label)
-                Column(Modifier.weight(1f).clip(MikaShapes.Pill)
-                    .background(if (selected == index) c.answer else c.surface)
-                    .selectable(selected == index, role = Role.Tab) { selected = index }
-                    .heightIn(min = 64.dp).padding(horizontal = 2.dp, vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-                    Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
-                    Text(label, Modifier.padding(top = 3.dp), color = if (selected == index) c.ink else c.ink3,
-                        fontSize = 10.sp, lineHeight = 12.sp, fontWeight = if (selected == index) FontWeight.SemiBold else FontWeight.Normal,
-                        maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
-                }
-            }
-        }
+        OrbitHubTabs(selected) { selected = it }
         val contentModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
         Column(if (MikaTheme.reduceMotion) contentModifier else contentModifier.animateContentSize()) {
             val section = hubSections[selected]
@@ -156,10 +167,33 @@ internal fun OrbitHub(
                 modifier = Modifier.padding(bottom = 14.dp))
             when (selected) {
                 0 -> HubToday(personal, taskState, runStore, onTasks, onPlans, onOpenTask)
-                1 -> HubDestination(R.string.orbit_hub_browser_description, onBrowser)
-                2 -> HubDestination(R.string.orbit_hub_memory_description, onMemory)
-                3 -> HubDestination(R.string.orbit_hub_files_description, onFiles)
-                else -> HubDestination(R.string.orbit_hub_personalization_description, onPersonalization)
+                1 -> HubBrowser(onBrowser)
+                2 -> HubMemory(memory, cache, onMemory)
+                3 -> HubFiles(cache, onFiles)
+                else -> HubPersonalization(onPersonalization)
+            }
+        }
+    }
+}
+
+@Composable
+internal fun OrbitHubTabs(selected: Int, onSelect: (Int) -> Unit) {
+    val c = MikaTheme.colors
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)
+        .clip(MikaShapes.Pill).background(c.surface).padding(4.dp).selectableGroup(),
+        horizontalArrangement = Arrangement.SpaceEvenly) {
+        hubSections.forEachIndexed { index, section ->
+            val label = stringResource(section.label)
+            Column(Modifier.weight(1f).clip(MikaShapes.Pill)
+                .background(if (selected == index) c.answer else c.surface)
+                .selectable(selected == index, role = Role.Tab) { onSelect(index) }
+                .testTag("orbit-hub-section-$index")
+                .heightIn(min = 64.dp).padding(horizontal = 2.dp, vertical = 8.dp),
+                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
+                Text(label, Modifier.padding(top = 3.dp), color = if (selected == index) c.ink else c.ink3,
+                    fontSize = 10.sp, lineHeight = 12.sp, fontWeight = if (selected == index) FontWeight.SemiBold else FontWeight.Normal,
+                    maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }
         }
     }
@@ -274,14 +308,135 @@ private fun terminalStatus(state: TaskState?): String? = when (state) {
 }
 
 @Composable
-private fun HubDestination(description: Int, onOpen: () -> Unit) {
+private fun HubBrowser(onOpen: (String?) -> Unit) {
     val c = MikaTheme.colors
+    val context = LocalContext.current
+    val browser = remember(context) { UserBrowser.of(context) }
+    val page by browser.page.collectAsState()
+    val recent by browser.recent.entries.collectAsState()
     MikaCard {
         Column(Modifier.fillMaxWidth().padding(18.dp)) {
-            Text(stringResource(description), style = MikaType.Body, color = c.ink2)
+            Text(stringResource(R.string.browser_recent_source), style = MikaType.BodyStrong, color = c.ink)
+            page?.let { current -> HubEntry(current.title.ifBlank { current.url }) { onOpen(null) } }
+            val pages = recent.filter { it.url != page?.url }.take(3)
+            if (page == null && pages.isEmpty()) HubHint(stringResource(R.string.browser_no_recent))
+            pages.forEach { item -> HubEntry(item.title.ifBlank { item.url }) { onOpen(item.url) } }
+            TextButton(onClick = { onOpen(null) }) { Text(stringResource(R.string.orbit_hub_open_section)) }
+        }
+    }
+}
+
+@Composable
+private fun HubMemory(memory: MemoryRuntime, cache: HubSectionCache, onOpen: () -> Unit) {
+    val c = MikaTheme.colors
+    LaunchedEffect(memory, cache) {
+        if (cache.memory == null) {
+            cache.memory = try {
+                Result.success(withContext(Dispatchers.IO) { HubMemoryData(memory.store(), memory.skills().list()) })
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    val loaded = cache.memory
+    MikaCard {
+        Column(Modifier.fillMaxWidth().padding(18.dp)) {
+            Text(stringResource(R.string.memory_memory), style = MikaType.BodyStrong, color = c.ink)
+            val data = loaded?.getOrNull()
+            when {
+                loaded == null -> HubHint(stringResource(R.string.loading))
+                data == null || !data.store.available -> HubHint(stringResource(R.string.memory_unavailable))
+                else -> {
+                    val items by data.store.items.collectAsState()
+                    val active = items.filter { it.status == MemoryStatus.active }.sortedByDescending { it.updatedAt }.take(3)
+                    if (active.isEmpty()) HubHint(stringResource(R.string.memory_empty))
+                    active.forEach { item -> HubEntry(item.content, onOpen) }
+                    if (items.any { it.status == MemoryStatus.pending }) HubEntry(stringResource(R.string.memory_pending), onOpen)
+                    Text(stringResource(R.string.memory_skills), Modifier.padding(top = 12.dp), style = MikaType.BodyStrong, color = c.ink)
+                    if (data.skills.isEmpty()) HubHint(stringResource(R.string.skills_empty))
+                    data.skills.take(3).forEach { skill -> HubEntry(skill.name, onOpen) }
+                }
+            }
             TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
         }
     }
+}
+
+@Composable
+private fun HubFiles(cache: HubSectionCache, onOpen: () -> Unit) {
+    val c = MikaTheme.colors
+    val context = LocalContext.current
+    LaunchedEffect(context, cache.filesRevision) {
+        if (cache.files == null) {
+            cache.files = try {
+                Result.success(withContext(Dispatchers.IO) { FileLibrary(ConversationStore.shared(context)).snapshot() })
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Result.failure(e)
+            }
+        }
+    }
+    val loaded = cache.files
+    MikaCard {
+        Column(Modifier.fillMaxWidth().padding(18.dp)) {
+            val snapshot = loaded?.getOrNull()
+            when {
+                loaded == null -> HubHint(stringResource(R.string.file_library_loading))
+                snapshot == null -> HubHint(stringResource(R.string.file_library_load_failed))
+                else -> {
+                    val files = snapshot.files.sortedByDescending {
+                        when (it) {
+                            is LibraryFile.Input -> it.latestAtMs
+                            is LibraryFile.Output -> it.latestAtMs
+                        } ?: 0L
+                    }.take(3)
+                    if (files.isEmpty() && !snapshot.hasReadFailures) HubHint(stringResource(R.string.file_library_empty))
+                    files.forEach { file ->
+                        val name = when (file) {
+                            is LibraryFile.Input -> file.name
+                            is LibraryFile.Output -> file.sources.maxByOrNull { it.source.atMs ?: 0L }?.file?.name.orEmpty()
+                        }
+                        HubEntry(name, onOpen)
+                    }
+                    if (snapshot.hasReadFailures) HubHint(stringResource(R.string.file_library_partial))
+                }
+            }
+            TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+        }
+    }
+}
+
+@Composable
+private fun HubPersonalization(onOpen: () -> Unit) {
+    val c = MikaTheme.colors
+    val context = LocalContext.current
+    val flags = remember(context) { FeatureFlags.get(context) }
+    val mode by remember(flags) { flags.themeModeChanges() }.collectAsState(flags.themeMode())
+    val identity = MikaTheme.identity
+    MikaCard {
+        Column(Modifier.fillMaxWidth().padding(18.dp)) {
+            Text(stringResource(R.string.appearance_group), style = MikaType.BodyStrong, color = c.ink)
+            HubEntry(appearanceLabel(mode), onOpen)
+            val identityLabel = stringResource(if (identity == OrbitIdentityMode.Original) R.string.orbit_identity_original else R.string.orbit_identity_monochrome)
+            HubEntry("${stringResource(R.string.orbit_identity)} · $identityLabel", onOpen)
+            TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+        }
+    }
+}
+
+@Composable
+private fun HubEntry(title: String, onOpen: () -> Unit) {
+    Text(title, Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onOpen)
+        .heightIn(min = 48.dp).padding(vertical = 12.dp), style = MikaType.Body, color = MikaTheme.colors.ink,
+        maxLines = 2, overflow = TextOverflow.Ellipsis)
+}
+
+@Composable
+private fun HubHint(text: String) {
+    Text(text, Modifier.padding(top = 12.dp), style = MikaType.Caption, color = MikaTheme.colors.ink2)
 }
 
 private fun presenceLabel(state: PresenceState, ready: Boolean): Int = when (state) {

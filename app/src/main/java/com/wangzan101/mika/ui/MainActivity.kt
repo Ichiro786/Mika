@@ -681,12 +681,12 @@ private fun MikaRoot(
                     ) {
                         OrbitHub(
                             state = orbitPresence, ready = check.canStartTask, personal = app.personal, taskState = app.taskState,
-                            runStore = app.runStore,
+                            runStore = app.runStore, memory = memoryRuntime,
                             onClose = { orbitHubOpen = false },
                             onTasks = { orbitHubOpen = false; nav.show(Route.Tasks) },
                             onPlans = { planToOpen = null; createPlanOnOpen = false; nav.push(Route.Plans) },
                             onOpenTask = { id -> orbitHubOpen = false; app.chat.openPersonalTask(id); nav.reset() },
-                            onBrowser = { nav.push(Route.Browser) },
+                            onBrowser = { url -> if (url == null) nav.push(Route.Browser) else openSelfUrl(url) },
                             onMemory = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
                             onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                             onPersonalization = { nav.push(Route.Settings) },
