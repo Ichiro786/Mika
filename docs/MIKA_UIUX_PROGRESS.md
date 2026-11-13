@@ -4,7 +4,7 @@
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
 - Current phase: **Tasks, navigation and approvals — device verification open**
-- Baseline compile/tests: **PASS in GitHub Actions; most recent recorded passing source commit 27ca52eb**
+- Baseline compile/tests: **PASS in GitHub Actions; most recent recorded passing source commit 8a4589aa**
 - Device test: **Unverified: no device/emulator**
 - Overall status: **CI results recorded by commit below; device verification remains open**
 
@@ -14,11 +14,11 @@
 | 01 | Theme and design tokens | In progress | — | Foundation implemented; build and visual verification open |
 | 02 | Orbit Spark vector | In progress | — | Reused scalable mark; actual visual verification open |
 | 03 | Agent presence animations | In progress | — | Runtime state adapter and motion added; device verification open |
-| 04 | App shell and navigation | In progress | — | Primary navigation implemented; CI passed at 27ca52eb; device checks pending |
+| 04 | App shell and navigation | In progress | — | Primary navigation implemented; CI passed at 8a4589aa; device checks pending |
 | 05 | Home and composer | In progress | — | Chat presentation added; device verification open |
 | 06 | Chat and activity | In progress | — | Message and activity styling added; device verification open |
-| 07 | Tasks and schedules | In progress | — | Real task and schedule views implemented; CI passed at 27ca52eb; device checks pending |
-| 08 | Approval cards | In progress | — | Keyed confirmation card implemented; CI passed at 27ca52eb; device checks pending |
+| 07 | Tasks and schedules | In progress | — | Real task and schedule views implemented; CI passed at 8a4589aa; device checks pending |
+| 08 | Approval cards | In progress | — | Keyed confirmation card implemented; CI passed at 8a4589aa; device checks pending |
 | 09 | Make and skills | Pending | — | — |
 | 10 | Capsule, voice and system assets | Pending | — | — |
 | 11 | Secondary screens and accessibility | Pending | — | — |
@@ -127,8 +127,10 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - GitHub Actions run 43405454116 **passed** for milestone commit `3b7c83e696a4b92200d54c3ae75288f87d5a11ba`: core, Android unit tests, debug APK and Android-test compilation, CLI/localization, and relay. Its APK artifact is `Mika-debug-3b7c83e696a4b92200d54c3ae75288f87d5a11ba`. The subsequent draft-preservation and contrast follow-up is not covered by this run and requires its own CI result.
 
-- Task rows ignore changes that only add streamed reply text; chat still receives the original stream. A presentation regression test covers this mapping. Consult GitHub Actions for the result on the commit containing this change.
+- Task rows ignore changes that only add streamed reply text; chat still receives the original stream. A presentation regression test covers this mapping; the GitHub Actions run below passed.
 
 - Added instrumentation tests for primary-navigation selection and for approval/decline card behavior; GitHub CI compiles device tests but does not run them.
 
 - GitHub Actions run 43406406518 **passed** for commit `27ca52eb874c43784c6fe087da48e3c188f31211`, including the draft/quote/attachment preservation regression, core and app unit tests, Android debug build and device-test compilation, CLI/localization and relay. Its APK artifact is `Mika-debug-27ca52eb874c43784c6fe087da48e3c188f31211`. The later streaming and device-test additions require the Actions result for their own commit.
+
+- GitHub Actions run 43407595152 **passed** for source commit `8a4589aa32d323a6ee81100b2253d25fa5c9333b`: core tests, app unit tests, debug APK assembly, Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-8a4589aa32d323a6ee81100b2253d25fa5c9333b`. The new Android device tests were compiled, not executed. No Android screenshots were captured.
