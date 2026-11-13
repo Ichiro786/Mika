@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="orbit_identity">Orbit identity</string>
+    <string name="orbit_identity_original">Original</string>
+    <string name="orbit_identity_monochrome">Monochrome</string>
+    <string name="orbit_hub_title">Personal agent</string>
+    <string name="orbit_hub_open">Open personal agent</string>
+    <string name="orbit_hub_today">Today</string>
+    <string name="orbit_hub_personalization">Personalization</string>
+    <string name="orbit_hub_ready">Ready to help</string>
+    <string name="orbit_hub_listening">Listening</string>
+    <string name="orbit_hub_thinking">Thinking</string>
+    <string name="orbit_hub_working">Working</string>
+    <string name="orbit_hub_needs_you">Needs your input</string>
+    <string name="orbit_hub_success">Completed</string>
+    <string name="orbit_hub_error">Needs attention</string>
+    <string name="orbit_hub_empty">No recent activity yet.</string>
+    <string name="orbit_hub_activity">Your activity</string>
+    <string name="orbit_hub_open_section">Open</string>
+    <string name="orbit_hub_tasks">View tasks</string>
+    <string name="orbit_hub_browser_description">Open your browser and continue browsing.</string>
+    <string name="orbit_hub_memory_description">View and manage memory and learned skills.</string>
+    <string name="orbit_hub_files_description">Browse your files.</string>
+    <string name="orbit_hub_personalization_description">Manage appearance and assistant settings.</string>
+</resources>

@@ -32,6 +32,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.wangzan101.mika.ui.theme.MikaTheme
+import com.wangzan101.mika.settings.OrbitIdentityMode
 
 enum class PresenceState { Idle, Listening, Thinking, Working, NeedsUser, Success, Error }
 
@@ -75,8 +76,8 @@ fun MikaPresenceAvatar(
             pulse.animateTo(0f, tween(600))
         }
     }
-    val coral = Color(0xFFE97D60)
-    val error = MikaTheme.colors.bad
+    val coral = orbitIdentityPalette(MikaTheme.identity, dark).glow
+    val error = if (MikaTheme.identity == OrbitIdentityMode.Monochrome) coral else MikaTheme.colors.bad
     val surface = MikaTheme.colors.surface
     val edge = MikaTheme.colors.hair
     Box(modifier.size(40.dp), contentAlignment = Alignment.Center) {

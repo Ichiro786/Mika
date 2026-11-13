@@ -116,6 +116,8 @@ internal fun TasksScreen(
     onOpenDrawer: () -> Unit,
     onOpenTask: (String) -> Unit,
     onPlans: (String?, Boolean) -> Unit,
+    onOpenOrbitHub: () -> Unit = {},
+    presence: com.wangzan101.mika.ui.identity.PresenceState = com.wangzan101.mika.ui.identity.PresenceState.Idle,
 ) {
     val context = LocalContext.current
     val c = MikaTheme.colors
@@ -183,7 +185,7 @@ internal fun TasksScreen(
         TopBar(
             title = "", left = MikaIcons.Menu, onLeft = onOpenDrawer,
             leftLabel = stringResource(R.string.chat_menu),
-            titleIcon = { MikaPresenceAvatar(Modifier.size(52.dp), reduceMotion = true, framed = true) },
+            titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) },
             centerTitle = true,
             right = { BarIconButton(MikaIcons.Alarm, stringResource(R.string.drawer_plans), { onPlans(null, false) }) },
         )
@@ -194,6 +196,7 @@ internal fun TasksScreen(
             ) {
                 item("heading") {
                     val title = stringResource(R.string.tasks_title)
+                    val compactTitle = LocalConfiguration.current.screenWidthDp < 360
                     Text(buildAnnotatedString {
                         if (title.endsWith('.')) {
                             append(title.dropLast(1))
@@ -201,7 +204,7 @@ internal fun TasksScreen(
                             append('.')
                             pop()
                         } else append(title)
-                    }, style = MikaType.LargeTitle, color = c.ink,
+                    }, style = if (compactTitle) MikaType.LargeTitle.copy(fontSize = 28.sp, lineHeight = 36.sp) else MikaType.LargeTitle, color = c.ink,
                         modifier = Modifier.semantics { heading() })
                     Text(stringResource(R.string.tasks_subtitle), style = MikaType.Body, color = c.ink2,
                         modifier = Modifier.padding(top = 6.dp, bottom = 24.dp))
@@ -290,11 +293,11 @@ internal fun TaskTabs(selected: Int, onSelect: (Int) -> Unit) {
     Column {
         Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             listOf(R.string.tasks_active, R.string.tasks_up_next).forEachIndexed { index, label ->
-                Column(Modifier.widthIn(min = 48.dp).width(IntrinsicSize.Min).heightIn(min = 48.dp).testTag("tasks-tab-$index")
+                Column(Modifier.weight(1f, fill = false).widthIn(min = 48.dp).heightIn(min = 48.dp).testTag("tasks-tab-$index")
                     .selectable(selected == index, role = Role.Tab, onClick = { onSelect(index) }),
                     verticalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(label), style = MikaType.BodyStrong, color = if (selected == index) c.ink else c.ink3,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
+                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Box(Modifier.fillMaxWidth().height(2.dp).background(if (selected == index) c.ink else c.bg))
                 }
             }

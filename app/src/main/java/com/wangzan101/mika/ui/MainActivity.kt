@@ -2,6 +2,14 @@ package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -40,6 +48,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
@@ -419,6 +429,16 @@ private fun MikaRoot(
     val hasMain = roles.main != null
     val check = Prerequisites.check(status, hasMain)
     val app = context.applicationContext as MikaApp
+    var orbitHubOpen by rememberSaveable { mutableStateOf(false) }
+    var voiceListening by remember { mutableStateOf(false) }
+    val presenceFlow = remember(app.chat) {
+        app.chat.ui.map { presenceFor(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
+    }
+    val chatPresence by presenceFlow.collectAsState(initial = presenceFor(app.chat.ui.value.exchanges.lastOrNull(), false))
+    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else chatPresence
+    LaunchedEffect(requestedConversation, requestedCalls, sharedDraft, openTeach) {
+        if (requestedConversation != null || requestedCalls || sharedDraft != null || openTeach) orbitHubOpen = false
+    }
     // 查到的新版本:侧栏、设置首页、关于页的红点都看它
     val updateState by app.updates.state.collectAsState()
     val autoUpdate by app.automaticUpdates.enabled.collectAsState()
@@ -577,12 +597,16 @@ private fun MikaRoot(
                                 onOpenDrawer = openDrawer,
                                 onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
                                 onPlans = { id, create -> planToOpen = id; createPlanOnOpen = create; nav.push(Route.Plans) },
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                presence = orbitPresence,
                             ) else if (nav.current == Route.Make) MakeScreen(
                                 onOpenDrawer = openDrawer,
                                 onTeach = { nav.push(Route.Teach) },
                                 onSkills = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
                                 onBrowser = { nav.push(Route.Browser) },
                                 onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                presence = orbitPresence,
                             ) else if (nav.current == Route.Personal) PersonalAgentScreen(
                                 runtime = app.personal,
                                 voice = app.voice,
@@ -619,6 +643,8 @@ private fun MikaRoot(
                                     app.teach.prefill(hint)
                                     nav.push(Route.Teach)
                                 },
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                onVoiceListeningChanged = { voiceListening = it },
                             )
                         }
                         if (WindowInsets.ime.getBottom(LocalDensity.current) == 0) {
@@ -644,6 +670,24 @@ private fun MikaRoot(
                     installUpdate?.let { release ->
                         UpdateSheet(release, BuildConfig.VERSION_NAME, BuildConfig.BETA,
                             onOpenUrl = { openInBrowser(context, it) }, onDismiss = { installUpdate = null })
+                    }
+                    val still = MikaTheme.reduceMotion
+                    AnimatedVisibility(
+                        visible = orbitHubOpen,
+                        enter = if (still) EnterTransition.None else fadeIn() + scaleIn(initialScale = 0.94f, transformOrigin = TransformOrigin(0.5f, 0.12f)),
+                        exit = if (still) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.94f, transformOrigin = TransformOrigin(0.5f, 0.12f)),
+                    ) {
+                        OrbitHub(
+                            state = orbitPresence, personal = app.personal, taskState = app.taskState,
+                            onClose = { orbitHubOpen = false },
+                            onTasks = { orbitHubOpen = false; nav.show(Route.Tasks) },
+                            onPlans = { planToOpen = null; createPlanOnOpen = false; nav.push(Route.Plans) },
+                            onOpenTask = { id -> orbitHubOpen = false; app.chat.openPersonalTask(id); nav.reset() },
+                            onBrowser = { nav.push(Route.Browser) },
+                            onMemory = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
+                            onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                            onPersonalization = { nav.push(Route.Settings) },
+                        )
                     }
                 }
             }

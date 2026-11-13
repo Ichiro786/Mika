@@ -35,6 +35,7 @@ import com.wangzan101.mika.ui.components.GroupCard
 import com.wangzan101.mika.ui.components.Hairline
 import com.wangzan101.mika.ui.components.IconTile
 import com.wangzan101.mika.ui.components.MikaButton
+import com.wangzan101.mika.ui.components.MikaLogo
 import com.wangzan101.mika.ui.components.PageBackground
 import com.wangzan101.mika.ui.components.ProgressDots
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -49,11 +50,7 @@ fun WelcomeScreen(onStart: () -> Unit) {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.statusBars).windowInsetsPadding(WindowInsets.navigationBars)) {
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
                 Column(Modifier.fillMaxWidth().padding(top = 40.dp, start = 8.dp, end = 8.dp, bottom = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painterResource(R.drawable.mika_launcher_art), null,
-                        Modifier.size(76.dp).shadow(14.dp, LogoShape, clip = false).clip(LogoShape),
-                        contentScale = ContentScale.Crop,
-                    )
+                    MikaLogo(76.dp, Modifier.shadow(14.dp, LogoShape, clip = false), corner = 22.dp)
                     Text(WelcomeCopy.TITLE, Modifier.padding(top = 20.dp), style = MikaType.LargeTitle, fontSize = 26.sp, color = c.ink, textAlign = TextAlign.Center)
                     Text(
                         WelcomeCopy.LEAD, Modifier.padding(top = 8.dp),

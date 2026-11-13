@@ -207,6 +207,8 @@ fun ChatScreen(
     onOpenTeach: (String) -> Unit = {},
     /** 首页推荐任务。不传时用本机保存的那一份;测试传入单独的存储,避免改到用户的数据。 */
     recommendations: RecommendedTaskStore? = null,
+    onOpenOrbitHub: () -> Unit = {},
+    onVoiceListeningChanged: (Boolean) -> Unit = {},
 ) {
     val recommendationStore = recommendations
         ?: (LocalContext.current.applicationContext as? MikaApp)?.recommendedTasks
@@ -432,8 +434,8 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
-                titleIcon = { MikaPresenceAvatar(Modifier.size(if (sub == null) 52.dp else 34.dp),
-                    presenceFor(last, voiceListening), reduceMotion = reduceMotion, framed = true) },
+                titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub,
+                    size = if (sub == null) 52.dp else 48.dp) },
                 centerTitle = true,
                 subtitle = sub?.first,
                 subtitleColor = when (sub?.second) {
@@ -494,7 +496,7 @@ fun ChatScreen(
             onPickSpeech = openSpeechModel,
             steerTarget = if (ui.followUpMode == FollowUpMode.Steer) last?.goal?.let(ChatCopy::plainTitle) else null,
             onVoiceHolding = { voiceHolding = it },
-            onVoiceListening = { voiceListening = it },
+            onVoiceListening = { voiceListening = it; onVoiceListeningChanged(it) },
             editorial = true,
             editRequest = editRequest,
         )
@@ -691,7 +693,7 @@ private fun EmptyState(
         if (tasks.isNotEmpty()) {
             Row(Modifier.fillMaxWidth().padding(start = 8.dp, top = 30.dp, end = 4.dp, bottom = 8.dp),
                 verticalAlignment = Alignment.CenterVertically) {
-                Text(stringResource(R.string.home_for_you).uppercase(locale), Modifier.weight(1f),
+                Text(stringResource(R.string.recommendations_title).uppercase(locale), Modifier.weight(1f),
                     style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold, letterSpacing = if (latin) 0.8.sp else 0.sp), color = c.ink3)
                 if (tasks.size > 2) {
                     Text(stringResource(if (expanded) R.string.collapse else R.string.more),
@@ -703,10 +705,9 @@ private fun EmptyState(
             val featured = tasks.first()
             MikaCard {
                 Column(Modifier.fillMaxWidth().clickable(role = Role.Button) { onPick(featured.prompt) }.padding(20.dp)) {
-                    Text(stringResource(R.string.recommendations_title), style = MikaType.Caption, color = c.ink2)
-                    Text(featured.title, Modifier.padding(top = 12.dp),
-                        style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 20.sp, lineHeight = 27.sp),
-                        color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                    Text(featured.title,
+                        style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, lineHeight = 23.sp),
+                        color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 }
             }
             val secondary = if (expanded) tasks.drop(1) else tasks.drop(1).take(1)

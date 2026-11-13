@@ -42,11 +42,13 @@ internal fun MakeScreen(
     onSkills: () -> Unit,
     onBrowser: () -> Unit,
     onFiles: () -> Unit,
+    onOpenOrbitHub: () -> Unit = {},
+    presence: com.wangzan101.mika.ui.identity.PresenceState = com.wangzan101.mika.ui.identity.PresenceState.Idle,
 ) {
     val c = MikaTheme.colors
     Column(Modifier.fillMaxSize().background(c.bg).testTag("make-screen")) {
         TopBar("", MikaIcons.Menu, onOpenDrawer, stringResource(R.string.chat_menu),
-            titleIcon = { MikaPresenceAvatar(Modifier.size(52.dp), reduceMotion = true, framed = true) }, centerTitle = true)
+            titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) }, centerTitle = true)
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 26.dp)) {
             item {
                 Text(stringResource(R.string.nav_make), style = MikaType.LargeTitle, color = c.ink,

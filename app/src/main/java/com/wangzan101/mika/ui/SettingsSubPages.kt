@@ -11,6 +11,9 @@ import androidx.compose.ui.platform.testTag
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
+import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -542,6 +545,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
     // 跟着设置走:任务里改了外观,这页也对得上
     val themeMode by remember(flags) { flags.themeModeChanges() }.collectAsState(flags.themeMode())
     val themeAccent by remember(flags) { flags.themeAccentChanges() }.collectAsState(flags.themeAccent())
+    val identity by remember(flags) { flags.orbitIdentityChanges() }.collectAsState(flags.orbitIdentity())
     val skin by remember(flags) { flags.skinChanges() }.collectAsState(flags.skin())
     val scope = rememberCoroutineScope()
     val pickSkin = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -563,6 +567,16 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                     },
                 )
             }
+        }
+        GroupLabel(stringResource(R.string.orbit_identity))
+        GroupCard {
+            Box(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp), contentAlignment = Alignment.Center) {
+                MikaPresenceAvatar(Modifier.size(68.dp), reduceMotion = true, framed = true)
+            }
+            RadioRow(stringResource(R.string.orbit_identity_original), identity == OrbitIdentityMode.Original,
+                onClick = { flags.setOrbitIdentity(OrbitIdentityMode.Original) }, first = true)
+            RadioRow(stringResource(R.string.orbit_identity_monochrome), identity == OrbitIdentityMode.Monochrome,
+                onClick = { flags.setOrbitIdentity(OrbitIdentityMode.Monochrome) })
         }
         GroupLabel(stringResource(R.string.accent_group))
         GroupCard {

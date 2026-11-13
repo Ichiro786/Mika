@@ -33,6 +33,7 @@ import androidx.activity.enableEdgeToEdge
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
+import com.wangzan101.mika.settings.OrbitIdentityMode
 
 /** 动效:时长和曲线。系统关了动画时([MikaTheme.reduceMotion])直接到位。 */
 object MikaMotion {
@@ -56,6 +57,7 @@ fun animationsOff(context: Context): Boolean =
     Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
 val LocalReduceMotion = staticCompositionLocalOf { false }
+val LocalOrbitIdentity = staticCompositionLocalOf { OrbitIdentityMode.Original }
 
 object MikaTheme {
     val colors: MikaColors
@@ -63,6 +65,9 @@ object MikaTheme {
 
     val reduceMotion: Boolean
         @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
+
+    val identity: OrbitIdentityMode
+        @Composable @ReadOnlyComposable get() = LocalOrbitIdentity.current
 }
 
 /**
@@ -90,6 +95,14 @@ fun appearanceAccent(): ThemeAccent {
     return accent
 }
 
+@Composable
+fun appearanceIdentity(): OrbitIdentityMode {
+    val context = LocalContext.current
+    val flags = remember(context) { FeatureFlags.get(context) }
+    val identity by remember(flags) { flags.orbitIdentityChanges() }.collectAsState(flags.orbitIdentity())
+    return identity
+}
+
 /** 状态栏、导航栏的图标深浅跟界面一致:界面强制浅色而系统是深色时,图标也得是深色的才看得见。 */
 fun ComponentActivity.systemBarsFor(dark: Boolean) {
     val transparent = android.graphics.Color.TRANSPARENT
@@ -111,6 +124,7 @@ fun MikaTheme(
     dark: Boolean = appearanceDark(),
     accent: ThemeAccent = appearanceAccent(),
     reduceMotion: Boolean = false,
+    identity: OrbitIdentityMode = appearanceIdentity(),
     content: @Composable () -> Unit,
 ) {
     // 背景图片设了「强调色跟随图片」时,用图上的主色代替设置里选的强调色
@@ -129,6 +143,7 @@ fun MikaTheme(
         LocalLayoutDirection provides layoutDirection,
         LocalMikaColors provides colors,
         LocalReduceMotion provides reduceMotion,
+        LocalOrbitIdentity provides identity,
     ) {
         MaterialTheme(colorScheme = materialColors, typography = MikaTypography) {
             CompositionLocalProvider(LocalContentColor provides colors.ink, content = content)

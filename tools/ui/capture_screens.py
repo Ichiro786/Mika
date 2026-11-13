@@ -62,11 +62,11 @@ def main() -> None:
         adb("shell", "am", "start", "-n", "com.wangzan101.mika/.ui.MainActivity",
             "--es", "open_conversation", "visual-capture")
         time.sleep(12)
-        capture(output / f"{theme}-chat.png", "FOR YOU TODAY")
+        capture(output / f"{theme}-chat.png", "RECOMMENDED TASKS")
         tap_tab("Tasks")
         capture(output / f"{theme}-tasks.png", "Your work.")
         tap_tab("Make")
-        capture(output / f"{theme}-make.png", "Teach Mika")
+        capture(output / f"{theme}-make.png", "Teach Orbit")
 
 
 if __name__ == "__main__":

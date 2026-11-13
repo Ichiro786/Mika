@@ -11,6 +11,25 @@ import org.junit.Test
 
 /** 外观改了(设置页或任务里)界面当场跟着换,不靠重建界面。 */
 class FeatureFlagsThemeTest {
+    @Test fun orbitIdentityDefaultsToOriginalAndPersists() {
+        val prefs = FeatureFlagsCapsuleTest.MemoryPrefs()
+        val flags = FeatureFlags(prefs)
+        assertEquals(OrbitIdentityMode.Original, flags.orbitIdentity())
+        flags.setOrbitIdentity(OrbitIdentityMode.Monochrome)
+        assertEquals(OrbitIdentityMode.Monochrome, FeatureFlags(prefs).orbitIdentity())
+        prefs.edit().putString("orbit_identity", "unknown").commit()
+        assertEquals(OrbitIdentityMode.Original, flags.orbitIdentity())
+    }
+
+    @Test fun orbitIdentityChangesAreObserved() = runTest {
+        val flags = FeatureFlags(FeatureFlagsCapsuleTest.MemoryPrefs())
+        val seen = mutableListOf<OrbitIdentityMode>()
+        val job = launch { flags.orbitIdentityChanges().take(2).toList(seen) }
+        runCurrent()
+        flags.setOrbitIdentity(OrbitIdentityMode.Monochrome)
+        job.join()
+        assertEquals(listOf(OrbitIdentityMode.Original, OrbitIdentityMode.Monochrome), seen)
+    }
     @Test fun defaultsToSystemAndUnknownFallsBack() {
         val prefs = FeatureFlagsCapsuleTest.MemoryPrefs()
         assertEquals(ThemeMode.System, FeatureFlags(prefs).themeMode())

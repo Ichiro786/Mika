@@ -62,6 +62,7 @@ import com.wangzan101.mika.ui.components.GroupCard
 import com.wangzan101.mika.ui.components.ListRow
 import com.wangzan101.mika.ui.components.MikaSwitch
 import com.wangzan101.mika.ui.components.MikaButton
+import com.wangzan101.mika.ui.components.MikaLogo
 import com.wangzan101.mika.ui.components.PageScaffold
 import com.wangzan101.mika.ui.components.RowChevron
 import com.wangzan101.mika.ui.components.RowValue
@@ -199,11 +200,8 @@ private fun Hero(versionName: String, build: String, beta: Boolean) {
         Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(
-            painterResource(R.drawable.mika_launcher_art), contentDescription = null,
-            Modifier.size(72.dp).clip(RoundedCornerShape(20.dp)),
-        )
-        Text("Mika", Modifier.padding(top = 12.dp), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
+        MikaLogo(72.dp, corner = 20.dp)
+        Text(stringResource(R.string.app_name), Modifier.padding(top = 12.dp), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
         Text(AboutCopy.TAGLINE, Modifier.padding(top = 4.dp), style = MikaType.Caption, color = c.ink2, textAlign = TextAlign.Center)
         Row(Modifier.padding(top = 10.dp).testTag("about-version"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(AboutCopy.version(versionName), style = MikaType.Hint, color = c.ink3)
