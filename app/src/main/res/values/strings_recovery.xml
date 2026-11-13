@@ -8,7 +8,7 @@
     <string name="rec_boot">Restore after restart</string>
     <string name="rec_boot_body">“Wireless debugging” turns itself off after a restart. With this on, Orbit turns it back on at startup and reconnects. This needs the “Modify system settings” permission, used only to turn on Wireless debugging, and works only on Wi-Fi you’ve trusted. Turning this off or unpairing returns the permission.</string>
     <string name="rec_auto_wireless">Turn on Wireless debugging automatically</string>
-    <string name="rec_auto_wireless_body">After Wi-Fi drops or the phone restarts, the system turns “Wireless debugging” off. Phone control normally doesn’t need it — only when restarting (for example after a Orbit update). With this on, in those moments and while on Wi-Fi, Orbit turns it on and reconnects, but never turns it off for you. This uses the same “Modify system settings” permission as “Restore after restart” and works only on Wi-Fi you’ve allowed. Turn it off and Orbit stops doing this.</string>
+    <string name="rec_auto_wireless_body">After Wi-Fi drops or the phone restarts, the system turns “Wireless debugging” off. Phone control normally doesn’t need it — only when restarting (for example after an Orbit update). With this on, in those moments and while on Wi-Fi, Orbit turns it on and reconnects, but never turns it off for you. This uses the same “Modify system settings” permission as “Restore after restart” and works only on Wi-Fi you’ve allowed. Turn it off and Orbit stops doing this.</string>
     <string name="rec_need_setup">Finish phone control setup first</string>
     <string name="rec_failed">Couldn’t finish. Make sure phone control is ready and try again.</string>
     <string name="rec_working">Working…</string>

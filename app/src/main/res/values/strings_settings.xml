@@ -94,7 +94,7 @@
     <string name="capsule_mode_always">Always</string>
     <string name="capsule_mode_off_detail">Notifications only</string>
     <string name="capsule_mode_tasks_detail">Appears while a task runs or waits for you, and goes away a few seconds after</string>
-    <string name="capsule_mode_always_detail">Keeps a Orbit icon on screen even with no tasks</string>
+    <string name="capsule_mode_always_detail">Keeps an Orbit icon on screen even with no tasks</string>
     <string name="capsule_idle_opacity">Idle opacity</string>
     <string name="capsule_idle_opacity_detail">After a few seconds untouched; anything needing your attention stays fully visible</string>
     <string name="capsule_card_size">Card size</string>

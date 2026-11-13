@@ -2,10 +2,10 @@
 <resources>
     <string name="about_tagline">Ваш личный помощник в телефоне: делает дела за вас</string>
     <string name="about_check">Проверить обновления</string>
-    <string name="about_check_sub">Новые версии берутся из GitHub Releases</string>
-    <string name="about_check_sub_new">Доступна новая версия</string>
-    <string name="about_up_to_date">Установлена последняя версия</string>
-    <string name="about_up_to_date_toast">У вас последняя версия</string>
+    <string name="about_check_sub">Check the upstream Mika project on GitHub</string>
+    <string name="about_check_sub_new">New upstream Mika release available</string>
+    <string name="about_up_to_date">No newer upstream release</string>
+    <string name="about_up_to_date_toast">No newer upstream Mika release found.</string>
     <string name="about_offline">Нет связи с GitHub</string>
     <string name="about_offline_toast">Сейчас нет связи с GitHub. Попробуйте позже.</string>
     <string name="about_changelog">Список изменений</string>
@@ -48,13 +48,13 @@
     <string name="about_update_error">Загрузка или установка не завершена. Попробуйте позже.</string>
     <string name="about_update_bad_file">Скачанный пакет неполный или не совпадает с релизом. Он удалён, скачайте его заново.</string>
     <string name="about_update_not_newer">Скачанный пакет не новее установленной Orbit. Он удалён.</string>
-    <string name="about_update_bad_signer">Подпись этого пакета отличается от подписи установленной Orbit, поэтому обновить её им нельзя. Пакет удалён. Если вы собирали Orbit сами, сначала удалите её, а затем установите официальную версию.</string>
+    <string name="about_update_bad_signer">This upstream Mika package is signed differently and cannot update Orbit.</string>
     <string name="about_update_later">Позже</string>
     <string name="about_no_browser">Нет браузера, чтобы открыть ссылку</string>
     <string name="about_version">Версия %1$s</string>
     <string name="about_build">Сборка %1$s</string>
     <string name="about_available">Доступна %1$s</string>
-    <string name="about_update_title">Новая версия %1$s</string>
+    <string name="about_update_title">Upstream Mika release %1$s</string>
     <string name="about_current">Сейчас %1$s</string>
     <string name="about_released_on">" · выпущена %1$s"</string>
     <string name="about_released_under">Лицензия: %1$s</string>
@@ -70,10 +70,10 @@
     <string name="diagnostics_copied">Скопировано</string>
     <string name="diagnostics_loading">Сбор данных…</string>
     <string name="about_auto_update">Автообновление</string>
-    <string name="about_auto_update_detail">Скачивать новые версии в фоне только по Wi-Fi и запрашивать подтверждение перед установкой</string>
+    <string name="about_auto_update_detail">Download upstream Mika releases over Wi-Fi. Orbit asks before installing.</string>
     <string name="about_auto_update_disable">Выключить автообновление</string>
-    <string name="about_auto_update_ready">Orbit %1$s загружен</string>
-    <string name="about_auto_update_confirm_title">Новая версия Orbit готова</string>
-    <string name="about_auto_update_confirm_detail">Установите %1$s сейчас или отключите автообновление и проверяйте обновления в настройках.</string>
+    <string name="about_auto_update_ready">Upstream Mika %1$s downloaded</string>
+    <string name="about_auto_update_confirm_title">An upstream Mika release is ready</string>
+    <string name="about_auto_update_confirm_detail">This is an upstream Mika release, not an Orbit build. Install %1$s, or turn off auto-update.</string>
     <string name="about_auto_update_now">Обновить сейчас</string>
 </resources>

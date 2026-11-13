@@ -10,6 +10,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -588,7 +589,8 @@ private fun MikaRoot(
                 Box(Modifier.fillMaxSize()) {
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
-                    Column(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding()) {
+                    val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
+                    Column(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
                         Box(Modifier.weight(1f)) {
                             if (nav.current == Route.Tasks) TasksScreen(
                                 runtime = app.personal,
@@ -678,7 +680,8 @@ private fun MikaRoot(
                         exit = if (still) ExitTransition.None else fadeOut() + scaleOut(targetScale = 0.94f, transformOrigin = TransformOrigin(0.5f, 0.12f)),
                     ) {
                         OrbitHub(
-                            state = orbitPresence, personal = app.personal, taskState = app.taskState,
+                            state = orbitPresence, ready = check.canStartTask, personal = app.personal, taskState = app.taskState,
+                            runStore = app.runStore,
                             onClose = { orbitHubOpen = false },
                             onTasks = { orbitHubOpen = false; nav.show(Route.Tasks) },
                             onPlans = { planToOpen = null; createPlanOnOpen = false; nav.push(Route.Plans) },

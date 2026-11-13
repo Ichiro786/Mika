@@ -109,14 +109,17 @@ class CallPolicyTest {
 
     @Test fun legacyGreetingMigratesOnlyTheExactOldDefault() {
         val legacyDefault = "您好，我是 Mika 的 AI 电话助手。请问有什么需要我转告？"
+        val previousDefault = "您好，我是 Mika AI 电话助手。请问有什么需要我转告？"
         val customWithOldName = "您好，我是 Mika 的 AI 电话助手。请留下可回拨的时间。"
-        val currentDefault = "您好，我是 Mika AI 电话助手。请问有什么需要我转告？"
+        val currentDefault = "您好，我是 Orbit AI 电话助手。请问有什么需要我转告？"
         assertEquals(currentDefault, CallConfig().greeting)
         assertEquals(currentDefault, CallPolicy.migrateDefaultGreeting(legacyDefault))
+        assertEquals(currentDefault, CallPolicy.migrateDefaultGreeting(previousDefault))
         assertEquals(currentDefault, CallPolicy.spokenGreeting(legacyDefault, hasTask = false))
+        assertEquals("您好，我是 Orbit AI 电话助手。请问现在方便通话吗？", CallPolicy.spokenGreeting(previousDefault, hasTask = true))
         assertEquals(customWithOldName, CallPolicy.migrateDefaultGreeting(customWithOldName))
         assertEquals(customWithOldName, CallPolicy.spokenGreeting(customWithOldName, hasTask = false))
-        assertEquals("您好，我是 Mika AI 电话助手。请问现在方便通话吗？",
+        assertEquals("您好，我是 Orbit AI 电话助手。请问现在方便通话吗？",
             CallPolicy.spokenGreeting(currentDefault, hasTask = true))
     }
 

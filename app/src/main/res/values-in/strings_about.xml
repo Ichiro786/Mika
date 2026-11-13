@@ -2,10 +2,10 @@
 <resources>
     <string name="about_tagline">Asisten pribadi di ponsel Anda, yang mengerjakan banyak hal untuk Anda</string>
     <string name="about_check">Periksa pembaruan</string>
-    <string name="about_check_sub">Dapatkan versi baru dari GitHub Releases</string>
-    <string name="about_check_sub_new">Versi baru tersedia</string>
-    <string name="about_up_to_date">Sudah terbaru</string>
-    <string name="about_up_to_date_toast">Anda memakai versi terbaru</string>
+    <string name="about_check_sub">Check the upstream Mika project on GitHub</string>
+    <string name="about_check_sub_new">New upstream Mika release available</string>
+    <string name="about_up_to_date">No newer upstream release</string>
+    <string name="about_up_to_date_toast">No newer upstream Mika release found.</string>
     <string name="about_offline">Tidak bisa terhubung ke GitHub</string>
     <string name="about_offline_toast">Saat ini tidak bisa terhubung ke GitHub. Coba lagi nanti.</string>
     <string name="about_changelog">Catatan rilis</string>
@@ -48,13 +48,13 @@
     <string name="about_update_error">Pengunduhan atau penginstalan belum selesai. Silakan coba lagi nanti.</string>
     <string name="about_update_bad_file">Paket yang diunduh tidak lengkap atau tidak cocok dengan rilisnya. Paket sudah dihapus; silakan unduh ulang.</string>
     <string name="about_update_not_newer">Paket yang diunduh tidak lebih baru dari Orbit yang terpasang. Paket sudah dihapus.</string>
-    <string name="about_update_bad_signer">Paket ini ditandatangani berbeda dari Orbit yang terpasang, jadi tidak bisa memperbaruinya. Paket sudah dihapus. Jika Anda membangun Orbit sendiri, copot dulu, lalu instal versi resmi.</string>
+    <string name="about_update_bad_signer">This upstream Mika package is signed differently and cannot update Orbit.</string>
     <string name="about_update_later">Nanti</string>
     <string name="about_no_browser">Tidak ada browser untuk membuka tautan</string>
     <string name="about_version">Versi %1$s</string>
     <string name="about_build">Build %1$s</string>
     <string name="about_available">%1$s tersedia</string>
-    <string name="about_update_title">Versi baru %1$s</string>
+    <string name="about_update_title">Upstream Mika release %1$s</string>
     <string name="about_current">Saat ini %1$s</string>
     <string name="about_released_on">" · dirilis %1$s"</string>
     <string name="about_released_under">Dirilis di bawah %1$s</string>
@@ -70,10 +70,10 @@
     <string name="diagnostics_copied">Disalin</string>
     <string name="diagnostics_loading">Mengumpulkan…</string>
     <string name="about_auto_update">Pembaruan otomatis</string>
-    <string name="about_auto_update_detail">Unduh versi baru di latar belakang hanya melalui Wi-Fi dan minta konfirmasi sebelum memasang</string>
+    <string name="about_auto_update_detail">Download upstream Mika releases over Wi-Fi. Orbit asks before installing.</string>
     <string name="about_auto_update_disable">Matikan pembaruan otomatis</string>
-    <string name="about_auto_update_ready">Orbit %1$s telah diunduh</string>
-    <string name="about_auto_update_confirm_title">Versi baru Orbit siap</string>
-    <string name="about_auto_update_confirm_detail">Pasang %1$s sekarang atau matikan pembaruan otomatis dan periksa secara manual di Pengaturan.</string>
+    <string name="about_auto_update_ready">Upstream Mika %1$s downloaded</string>
+    <string name="about_auto_update_confirm_title">An upstream Mika release is ready</string>
+    <string name="about_auto_update_confirm_detail">This is an upstream Mika release, not an Orbit build. Install %1$s, or turn off auto-update.</string>
     <string name="about_auto_update_now">Perbarui sekarang</string>
 </resources>

@@ -2,10 +2,10 @@
 <resources>
     <string name="about_tagline">スマホの中のあなた専用アシスタント。用事をまるごと片付けます</string>
     <string name="about_check">アップデートを確認</string>
-    <string name="about_check_sub">GitHub Releases から新しいバージョンを入手</string>
-    <string name="about_check_sub_new">新しいバージョンがあります</string>
-    <string name="about_up_to_date">最新です</string>
-    <string name="about_up_to_date_toast">最新バージョンです</string>
+    <string name="about_check_sub">Check the upstream Mika project on GitHub</string>
+    <string name="about_check_sub_new">New upstream Mika release available</string>
+    <string name="about_up_to_date">No newer upstream release</string>
+    <string name="about_up_to_date_toast">No newer upstream Mika release found.</string>
     <string name="about_offline">GitHub に接続できません</string>
     <string name="about_offline_toast">今は GitHub に接続できません。しばらくしてからもう一度お試しください。</string>
     <string name="about_changelog">リリースノート</string>
@@ -48,13 +48,13 @@
     <string name="about_update_error">ダウンロードまたはインストールが完了しませんでした。しばらくしてからもう一度お試しください。</string>
     <string name="about_update_bad_file">ダウンロードしたパッケージが不完全か、リリースと一致しません。削除しましたので、もう一度ダウンロードしてください。</string>
     <string name="about_update_not_newer">ダウンロードしたパッケージは、インストール済みの Orbit より新しくありません。削除しました。</string>
-    <string name="about_update_bad_signer">このパッケージはインストール済みの Orbit と署名が異なるため、上書きできません。削除しました。自分でビルドした Orbit の場合は、先にアンインストールしてから公式版をインストールしてください。</string>
+    <string name="about_update_bad_signer">This upstream Mika package is signed differently and cannot update Orbit.</string>
     <string name="about_update_later">あとで</string>
     <string name="about_no_browser">リンクを開けるブラウザがありません</string>
     <string name="about_version">バージョン %1$s</string>
     <string name="about_build">ビルド %1$s</string>
     <string name="about_available">%1$s が利用可能</string>
-    <string name="about_update_title">新バージョン %1$s</string>
+    <string name="about_update_title">Upstream Mika release %1$s</string>
     <string name="about_current">現在 %1$s</string>
     <string name="about_released_on">" · %1$s にリリース"</string>
     <string name="about_released_under">ライセンス: %1$s</string>
@@ -70,10 +70,10 @@
     <string name="diagnostics_copied">コピーしました</string>
     <string name="diagnostics_loading">収集中…</string>
     <string name="about_auto_update">自動更新</string>
-    <string name="about_auto_update_detail">Wi-Fi 接続時にのみ新版をバックグラウンドでダウンロードし、インストール前に確認します</string>
+    <string name="about_auto_update_detail">Download upstream Mika releases over Wi-Fi. Orbit asks before installing.</string>
     <string name="about_auto_update_disable">自動更新をオフにする</string>
-    <string name="about_auto_update_ready">Orbit %1$s ダウンロード済み</string>
-    <string name="about_auto_update_confirm_title">新版の Orbit が利用できます</string>
-    <string name="about_auto_update_confirm_detail">今すぐ %1$s をインストールするか、自動更新をオフにして設定から手動で確認できます。</string>
+    <string name="about_auto_update_ready">Upstream Mika %1$s downloaded</string>
+    <string name="about_auto_update_confirm_title">An upstream Mika release is ready</string>
+    <string name="about_auto_update_confirm_detail">This is an upstream Mika release, not an Orbit build. Install %1$s, or turn off auto-update.</string>
     <string name="about_auto_update_now">今すぐ更新</string>
 </resources>

@@ -12,7 +12,7 @@ import org.junit.Test
 class ToolLabelsTest {
     @get:Rule val texts = ChineseTexts()
 
-    /** 每个声明了 label 的工具都有界面文字,中文和声明一字不差;英文另有一份。 */
+    /** Every tool has a localized label; the upstream internal name remains unchanged. */
     @Test
     fun everyDeclaredLabelIsLocalized() {
         val tools = knownTools()
@@ -21,7 +21,8 @@ class ToolLabelsTest {
         assertTrue(declared.size > 40)
         for ((name, label) in declared) {
             assertTrue("$name: $label", label in ToolLabels.TOOL_LABELS)
-            assertEquals(name, label, labels.label(name))
+            val display = if (name == "mika_open_screen") "打开 Orbit 的页面" else label
+            assertEquals(name, display, labels.label(name))
         }
         UiText.source = ResFileTexts.english
         assertEquals("Tap", labels.label("tap"))
