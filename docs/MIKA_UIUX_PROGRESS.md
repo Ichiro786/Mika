@@ -172,3 +172,5 @@ Rollback: remove only the newly added program documents/references and root prog
 - GitHub Actions run 43496124615 **PASSED** for commit `5b228d3b2fb49ea09bb3d7216080fbe92a494ea4`: core unit tests, Android app unit tests, debug APK assembly and Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-5b228d3b2fb49ea09bb3d7216080fbe92a494ea4` (artifact 14073090446). The Android device tests were compiled, not executed; visual and device verification remain open.
 
 - Hub transition follow-up: the presence now grows and moves between its compact header and expanded hub positions in sync with the panel fade; reduced motion snaps to the target. This source change requires its own CI and Android motion review.
+
+- GitHub Actions run 43498113257 **PASSED** for transition commit `7daa9bdc6367065e264acffff1710e3cb2dc6cea`: core and Android app unit tests, debug APK assembly, Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-7daa9bdc6367065e264acffff1710e3cb2dc6cea` (artifact 14073566214). Android interaction tests and visual comparison remain unexecuted.
