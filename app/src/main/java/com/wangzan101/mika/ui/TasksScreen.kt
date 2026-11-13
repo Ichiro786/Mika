@@ -41,6 +41,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -108,6 +109,7 @@ internal fun TasksScreen(
 ) {
     val context = LocalContext.current
     val c = MikaTheme.colors
+    val errorInk = if (c.isDark) c.bad else Color(0xFFAB3028)
     val personal by runtime.state.collectAsState()
     val error by runtime.error.collectAsState()
     val runs by taskState.runs.collectAsState()
@@ -186,7 +188,7 @@ internal fun TasksScreen(
                     TaskTabs(tab) { tab = it }
                 }
                 historyError?.let { message -> item("history-error") {
-                    Text(message.displayText(context), Modifier.padding(top = 20.dp), style = MikaType.Body, color = c.bad)
+                    Text(message.displayText(context), Modifier.padding(top = 20.dp), style = MikaType.Body, color = errorInk)
                 } }
                 visibleSections.filter { it != TaskSection.Resolved }.forEach { section ->
                     val entries = visibleTasks.filter { it.section == section }
@@ -210,7 +212,7 @@ internal fun TasksScreen(
                 }
                 if (schedules?.isFailure == true || history?.isFailure == true) item("schedules-error") {
                     Row(Modifier.fillMaxWidth().padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(R.string.op_failed), Modifier.weight(1f), style = MikaType.Body, color = c.bad)
+                        Text(stringResource(R.string.op_failed), Modifier.weight(1f), style = MikaType.Body, color = errorInk)
                         TextButton(onClick = { refresh++ }) { Text(stringResource(R.string.retry)) }
                     }
                 }
@@ -315,8 +317,9 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
         ?: task?.displayDetail(context)?.takeIf { it.isNotBlank() }
         ?: item.stored?.reply?.takeIf { it.isNotBlank() }
     val progress = state?.let(::taskProgress)
+    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
     val status = when {
-        state is TaskState.Cancelled -> stringResource(R.string.personal_status_cancelled)
+        state == TaskState.Cancelled -> stringResource(R.string.personal_status_cancelled)
         state is TaskState.Failed -> stringResource(R.string.personal_status_incomplete)
         state is TaskState.Succeeded -> stringResource(R.string.personal_status_completed)
         item.stored?.phase == RunPhase.Interrupted || item.stored?.runSucceeded == false -> stringResource(R.string.personal_status_incomplete)
@@ -331,13 +334,13 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
         Column(Modifier.weight(1f)) {
             Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(status, Modifier.padding(top = 4.dp), style = MikaType.Caption,
-                color = if (item.section == TaskSection.Review || item.section == TaskSection.NeedsYou) c.warn else c.ink2)
+                color = if (item.section == TaskSection.Review || item.section == TaskSection.NeedsYou) attention else c.ink2)
             if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
                 Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
             if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
                 color = c.accent, trackColor = c.fill)
         }
-        if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = c.warn)
+        if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = attention)
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
     }
     HorizontalDivider(color = c.hair)

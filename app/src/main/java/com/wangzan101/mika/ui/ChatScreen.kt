@@ -1274,6 +1274,8 @@ private fun ApprovalCard(
     onDecline: () -> Unit,
 ) {
     val c = MikaTheme.colors
+    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
+    val errorInk = if (c.isDark) c.bad else Color(0xFFAB3028)
     MikaCard(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
         Column(Modifier.fillMaxWidth()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
@@ -1283,7 +1285,7 @@ private fun ApprovalCard(
                 }
                 Column(Modifier.weight(1f)) {
                     Text(status.title, style = NeedTitle, color = c.ink)
-                    Text(stringResource(R.string.chat_wait_approval), style = MikaType.Caption, color = c.warn)
+                    Text(stringResource(R.string.chat_wait_approval), style = MikaType.Caption, color = attention)
                 }
             }
             HorizontalDivider(color = c.hair)
@@ -1293,28 +1295,38 @@ private fun ApprovalCard(
                 if (submission.pending) Text(stringResource(R.string.relay_busy), Modifier.padding(top = 8.dp),
                     style = MikaType.Caption, color = c.ink2)
                 if (submission.failed) Text(stringResource(R.string.op_failed), Modifier.padding(top = 8.dp),
-                    style = MikaType.Caption, color = c.bad)
+                    style = MikaType.Caption, color = errorInk)
                 if (LocalConfiguration.current.fontScale >= 1.5f) {
                     Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MikaButton(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
-                            Modifier.fillMaxWidth().heightIn(min = 48.dp), kind = ButtonKind.Tonal, size = ButtonSize.Medium,
-                            enabled = !submission.pending)
-                        MikaButton(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.fillMaxWidth().heightIn(min = 48.dp), kind = ButtonKind.Primary, size = ButtonSize.Medium,
-                            enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.fillMaxWidth(), enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.fillMaxWidth(), primary = true, enabled = !submission.pending)
                     }
                 } else {
                     Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MikaButton(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
-                            Modifier.weight(1f).heightIn(min = 48.dp), kind = ButtonKind.Tonal, size = ButtonSize.Medium,
-                            enabled = !submission.pending)
-                        MikaButton(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.weight(1f).heightIn(min = 48.dp), kind = ButtonKind.Primary, size = ButtonSize.Medium,
-                            enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.weight(1f), enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.weight(1f), primary = true, enabled = !submission.pending)
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ApprovalAction(text: String, onClick: () -> Unit, modifier: Modifier, primary: Boolean = false, enabled: Boolean) {
+    val c = MikaTheme.colors
+    Box(
+        modifier.heightIn(min = 48.dp).background(if (primary) c.ink else c.surface, MikaShapes.Pill)
+            .border(1.dp, if (primary) c.ink else c.hair, MikaShapes.Pill).clip(MikaShapes.Pill)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick).alpha(if (enabled) 1f else 0.5f)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = MikaType.BodyStrong, color = if (primary) c.bg else c.ink, textAlign = TextAlign.Center)
     }
 }
 

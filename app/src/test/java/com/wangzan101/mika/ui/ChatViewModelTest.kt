@@ -3579,6 +3579,29 @@ class ChatViewModelTest {
         assertEquals("已有对话的草稿", vm.ui.value.input)
     }
 
+    @Test fun openingTaskConversationsKeepsEachDraftAndSameConversationState() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        store.append("a", Turn("first", "done", "succeeded"))
+        store.append("b", Turn("second", "done", "succeeded"))
+        val vm = ChatViewModel(backgroundScope, state, stage, actions, store, sandboxReady = MutableStateFlow(true)).also { runCurrent() }
+        vm.openConversation("a")
+        vm.input("draft A")
+        assertEquals(LibraryAttachmentResult.Added, vm.addLibraryAttachment("a", PendingAttachment("content://a.pdf", "a.pdf", 1)))
+        vm.quote(QuoteMessage.From.Mika, "quoted answer")
+        vm.openPersonalTask("b")
+        assertEquals("", vm.ui.value.input)
+        vm.input("draft B")
+        vm.openPersonalTask("b")
+        assertEquals("draft B", vm.ui.value.input)
+        vm.openPersonalTask("a")
+        assertEquals("draft A", vm.ui.value.input)
+        assertEquals("a.pdf", vm.ui.value.attachments.single().name)
+        assertNotNull(vm.ui.value.quote)
+        vm.openPersonalTask("b")
+        assertEquals("draft B", vm.ui.value.input)
+        assertTrue(calls.none { it.startsWith("start:") })
+    }
+
     @Test fun personalTaskCanBeOpenedWhileOrdinaryConversationIsBusyWithoutStartingWork() = runTest {
         val store = ConversationStore(tmp.newFolder())
         store.append("personal-work", Turn("整理资料", "整理完成", "succeeded"))

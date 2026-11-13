@@ -4,7 +4,7 @@
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
 - Current phase: **Tasks, navigation and approvals — implementation awaiting CI and device verification**
-- Baseline compile/tests: **PASS in GitHub Actions at 68d06720; milestone changes awaiting CI**
+- Baseline compile/tests: **PASS in GitHub Actions at 68d06720; milestone commit 3b7c83e6 also passed**
 - Device test: **Unverified: no device/emulator**
 - Overall status: **Baseline suite passed; current milestone and device verification gates remain open**
 
@@ -122,3 +122,7 @@ Rollback: remove only the newly added program documents/references and root prog
 - The confirmation card displays existing request details and calls the existing keyed approve/decline handlers. Its local guard prevents repeated taps while a request is pending; a synchronous dispatch error re-enables the buttons. Runtime state, not the card, determines the eventual outcome.
 - Local static checks: translation validation **PASS** (2,819 resources across 11 languages), i18n unit tests **PASS** (12 tests), actionlint **PASS**, and `git diff --check` **PASS**. New Kotlin tests cover task grouping, genuine progress, navigation and repeat submissions; they await GitHub Actions. No local Android build was attempted.
 - Current changes have not yet been compiled or rendered. Device tests, screenshots, actual edge-to-edge/IME behavior, large text, TalkBack, task action flows and approval execution remain **UNVERIFIED**. Review light and AMOLED captures against the supplied boards before accepting visual fidelity.
+
+- Review follow-up: the existing UI adapter for opening a personal task rebuilt the composer and could discard drafts. It now keeps and restores per-conversation text, attachments and quotes, with a regression test. New light-theme attention text measures 6.12:1 on the page and 6.44:1 on the card; approval button text measures 14.99:1 light and 18.45:1 dark. These are limited static color checks, not a device accessibility audit. The follow-up changes also await CI.
+
+- GitHub Actions run 43405454116 **passed** for milestone commit `3b7c83e696a4b92200d54c3ae75288f87d5a11ba`: core, Android unit tests, debug APK and Android-test compilation, CLI/localization, and relay. Its APK artifact is `Mika-debug-3b7c83e696a4b92200d54c3ae75288f87d5a11ba`. The subsequent draft-preservation and contrast follow-up is not covered by this run and requires its own CI result.

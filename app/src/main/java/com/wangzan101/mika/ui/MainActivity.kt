@@ -1,6 +1,7 @@
 package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -567,7 +568,7 @@ private fun MikaRoot(
                 Box(Modifier.fillMaxSize()) {
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
-                    Column(Modifier.fillMaxSize().glassSource(updateBackdrop).navigationBarsPadding()) {
+                    Column(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding()) {
                         Box(Modifier.weight(1f)) {
                             if (nav.current == Route.Tasks) TasksScreen(
                                 runtime = app.personal,
