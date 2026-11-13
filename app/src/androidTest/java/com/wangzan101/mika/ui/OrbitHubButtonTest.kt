@@ -1,6 +1,8 @@
 package com.wangzan101.mika.ui
 
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assert
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.runtime.getValue
@@ -9,8 +11,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
+import com.wangzan101.mika.R
 import com.wangzan101.mika.settings.OrbitIdentityMode
 import com.wangzan101.mika.ui.identity.PresenceState
 import com.wangzan101.mika.ui.theme.MikaTheme
@@ -32,6 +37,20 @@ class OrbitHubButtonTest {
         }
         compose.onNodeWithTag("orbit-hub-open").assertIsDisplayed().assertHasClickAction().performClick()
         compose.runOnIdle { assertEquals(1, opens) }
+    }
+
+    @Test fun hubSectionsHaveAccessibleLabelsWithoutVisibleTabText() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val labels = listOf(R.string.orbit_hub_today, R.string.drawer_browser, R.string.memory_and_skills,
+            R.string.file_library_title, R.string.orbit_hub_personalization).map { context.getString(it) }
+        compose.setContent {
+            MikaTheme(dark = true, reduceMotion = true) { OrbitHubTabs(0) {} }
+        }
+        labels.forEachIndexed { index, label ->
+            compose.onNodeWithTag("orbit-hub-section-$index")
+                .assertIsDisplayed().assertHasClickAction().assert(hasContentDescription(label))
+            compose.onNodeWithText(label, useUnmergedTree = true).assertDoesNotExist()
+        }
     }
 
     @Test fun allFiveHubSectionsCanBeSelected() {

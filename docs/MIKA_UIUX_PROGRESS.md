@@ -174,3 +174,9 @@ Rollback: remove only the newly added program documents/references and root prog
 - Hub transition follow-up: the presence now grows and moves between its compact header and expanded hub positions in sync with the panel fade; reduced motion snaps to the target. This source change requires its own CI and Android motion review.
 
 - GitHub Actions run 43498113257 **PASSED** for transition commit `7daa9bdc6367065e264acffff1710e3cb2dc6cea`: core and Android app unit tests, debug APK assembly, Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-7daa9bdc6367065e264acffff1710e3cb2dc6cea` (artifact 14073566214). Android interaction tests and visual comparison remain unexecuted.
+
+## Conversation workspaces — stage A, 2026-11-13
+
+- Removed duplicate browser, files, memory and schedules drawer links after checking their existing hub, Make and Tasks entry points. Preserved personal-agent, running screens, conversation history, archive, settings and quit access. Side Chats and Channels are not implemented in this stage.
+- Hub tabs are icon-only with accessible labels and selected state; tabs stay available while the presence collapses into the header. Memory and skill summaries use separate existing-data cards. Updated browser navigation and hub accessibility device tests; they require Android execution.
+- Local localization validation **PASS** (2,845 resources, 11 languages), localization tool tests **PASS** (12), and `git diff --check` **PASS**. Android compilation and device tests await GitHub Actions; no new screenshots or visual/performance checks were possible in Muse.

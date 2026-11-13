@@ -83,15 +83,26 @@ class BrowserScreenTest {
     }
 
     @Test
-    fun drawerHasBrowserEntryThatOpensIt() {
+    fun drawerKeepsConversationActionsWithoutDuplicateToolLinks() {
         compose.setContent {
             MikaTheme {
-                ChatDrawer(
-                    Prerequisites.Check(emptyList()), DrawerSections(emptyList(), emptyList()), canSwitch = true,
-                    onNew = {}, onPlans = {}, onMemory = {},
-                    onBrowser = { calls += "browser" },
-                    onSettings = {}, onOpen = {},
-                )
+                ChatDrawer(Prerequisites.Check(emptyList()), DrawerSections(emptyList(), emptyList()), canSwitch = true,
+                    onNew = { calls += "new" }, onPlans = {}, onMemory = {}, onBrowser = {},
+                    onSettings = {}, onOpen = {})
+            }
+        }
+        listOf(R.string.drawer_plans, R.string.memory_and_skills, R.string.drawer_browser, R.string.file_library_title)
+            .forEach { compose.onNodeWithText(tr(it)).assertDoesNotExist() }
+        compose.onNodeWithText(tr(R.string.chat_new)).assertIsDisplayed().performClick()
+        assertEquals(listOf("new"), calls)
+    }
+
+    @Test
+    fun makeHasBrowserEntryThatOpensIt() {
+        compose.setContent {
+            MikaTheme {
+                MakeScreen(onOpenDrawer = {}, onTeach = {}, onSkills = {},
+                    onBrowser = { calls += "browser" }, onFiles = {})
             }
         }
         compose.onNodeWithText("浏览器").assertIsDisplayed().performClick()

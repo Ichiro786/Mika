@@ -1,7 +1,10 @@
 package com.wangzan101.mika.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -15,16 +18,17 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
@@ -41,6 +45,7 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
@@ -48,12 +53,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.R
 import com.wangzan101.mika.personal.PersonalRuntime
 import com.wangzan101.mika.chat.ConversationStore
@@ -78,6 +81,7 @@ import com.wangzan101.mika.ui.components.MikaCard
 import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.identity.PresenceState
 import com.wangzan101.mika.ui.theme.MikaIcons
+import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
@@ -119,6 +123,7 @@ private val hubSections = listOf(
     HubSection(R.string.orbit_hub_personalization, MikaIcons.Gear),
 )
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun OrbitHub(
     state: PresenceState,
@@ -148,40 +153,71 @@ internal fun OrbitHub(
         }
     }
     var selected by rememberSaveable { mutableIntStateOf(0) }
-    Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()
-        .verticalScroll(rememberScrollState()).testTag("orbit-hub")) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
-            Text(stringResource(R.string.orbit_hub_title).uppercase(), Modifier.weight(1f),
-                style = MikaType.Label, color = c.ink3, textAlign = TextAlign.Center)
-            HubIconButton(MikaIcons.Gear, stringResource(R.string.orbit_hub_personalization), onPersonalization)
+    val list = rememberLazyListState()
+    val collapseOffset = with(LocalDensity.current) { 96.dp.roundToPx() }
+    val collapsed by remember(list, collapseOffset) {
+        derivedStateOf { list.firstVisibleItemIndex > 0 || list.firstVisibleItemScrollOffset >= collapseOffset }
+    }
+    val presenceLimit = with(LocalDensity.current) { 200.dp.roundToPx() }
+    val presenceVisible by remember(list, presenceLimit) {
+        derivedStateOf { list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset < presenceLimit }
+    }
+    Box(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding().testTag("orbit-hub")) {
+        LazyColumn(Modifier.fillMaxSize().padding(top = 48.dp).testTag("orbit-hub-scroll"), state = list) {
+            item(key = "presence") {
+                Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    // Space for the presence, drawn above the list to preserve its entrance path.
+                    Box(Modifier.size(128.dp))
+                    Text(stringResource(R.string.app_name), Modifier.padding(top = 14.dp), style = MikaType.Title, color = c.ink)
+                    Text(stringResource(presenceLabel(state, ready)), Modifier.padding(top = 5.dp), style = MikaType.Caption, color = c.ink2)
+                }
+            }
+            stickyHeader(key = "sections") {
+                Box(Modifier.fillMaxWidth().background(c.bg)) { OrbitHubTabs(selected) { selected = it } }
+            }
+            item(key = "content") {
+                val contentModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                Column(if (MikaTheme.reduceMotion) contentModifier else contentModifier.animateContentSize()) {
+                    val section = hubSections[selected]
+                    Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
+                        modifier = Modifier.padding(bottom = 14.dp))
+                    when (selected) {
+                        0 -> HubToday(personal, taskState, runStore, onTasks, onPlans, onOpenTask)
+                        1 -> HubBrowser(onBrowser)
+                        2 -> HubMemory(memory, cache, onMemory)
+                        3 -> HubFiles(cache, onFiles)
+                        else -> HubPersonalization(onPersonalization)
+                    }
+                }
+            }
         }
-        Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            // The compact header mark is centered in a 56 dp bar; the expanded mark is
-            // centered 102 dp lower. Keep a fixed layout box while the presence travels.
-            Box(Modifier.size(128.dp), contentAlignment = Alignment.Center) {
+        if (presenceVisible) {
+            // Draw outside the lazy viewport so the avatar can move from the compact header.
+            Box(Modifier.align(Alignment.TopCenter).padding(top = 66.dp).size(128.dp)
+                .graphicsLayer { translationY = -list.firstVisibleItemScrollOffset.toFloat() },
+                contentAlignment = Alignment.Center) {
                 MikaPresenceAvatar(
                     Modifier.size(52.dp + 76.dp * expansion).graphicsLayer {
                         translationY = -102.dp.toPx() * (1f - expansion)
                     }, state = state, framed = true,
                 )
             }
-            Text(stringResource(R.string.app_name), Modifier.padding(top = 14.dp), style = MikaType.Title, color = c.ink)
-            Text(stringResource(presenceLabel(state, ready)), Modifier.padding(top = 5.dp), style = MikaType.Caption, color = c.ink2)
         }
-        OrbitHubTabs(selected) { selected = it }
-        val contentModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-        Column(if (MikaTheme.reduceMotion) contentModifier else contentModifier.animateContentSize()) {
-            val section = hubSections[selected]
-            Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
-                modifier = Modifier.padding(bottom = 14.dp))
-            when (selected) {
-                0 -> HubToday(personal, taskState, runStore, onTasks, onPlans, onOpenTask)
-                1 -> HubBrowser(onBrowser)
-                2 -> HubMemory(memory, cache, onMemory)
-                3 -> HubFiles(cache, onFiles)
-                else -> HubPersonalization(onPersonalization)
+        Row(Modifier.fillMaxWidth().align(Alignment.TopCenter)
+            .background(if (collapsed) c.bg else c.bg.copy(alpha = 0f)).padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
+            Crossfade(collapsed, Modifier.weight(1f), animationSpec = MikaMotion.switch(MikaTheme.reduceMotion), label = "hub-header") { compact ->
+                if (compact) {
+                    Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        MikaPresenceAvatar(Modifier.size(32.dp), state = state, framed = true)
+                        Text(stringResource(R.string.app_name), Modifier.padding(start = 8.dp), style = MikaType.BodyStrong, color = c.ink)
+                    }
+                } else {
+                    Text(stringResource(R.string.orbit_hub_title).uppercase(), style = MikaType.Label, color = c.ink3, textAlign = TextAlign.Center)
+                }
             }
+            HubIconButton(MikaIcons.Gear, stringResource(R.string.orbit_hub_personalization), onPersonalization)
         }
     }
 }
@@ -189,21 +225,21 @@ internal fun OrbitHub(
 @Composable
 internal fun OrbitHubTabs(selected: Int, onSelect: (Int) -> Unit) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 24.dp)
+    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp)
         .clip(MikaShapes.Pill).background(c.surface).padding(4.dp).selectableGroup(),
         horizontalArrangement = Arrangement.SpaceEvenly) {
         hubSections.forEachIndexed { index, section ->
             val label = stringResource(section.label)
-            Column(Modifier.weight(1f).clip(MikaShapes.Pill)
-                .background(if (selected == index) c.answer else c.surface)
+            val background by animateColorAsState(
+                if (selected == index) c.answer else c.surface,
+                animationSpec = MikaMotion.switch(MikaTheme.reduceMotion), label = "hub-tab-background",
+            )
+            Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(MikaShapes.Pill)
+                .background(background)
                 .selectable(selected == index, role = Role.Tab) { onSelect(index) }
-                .testTag("orbit-hub-section-$index")
-                .heightIn(min = 64.dp).padding(horizontal = 2.dp, vertical = 8.dp),
-                horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
+                .semantics { contentDescription = label }
+                .testTag("orbit-hub-section-$index"), contentAlignment = Alignment.Center) {
                 Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
-                Text(label, Modifier.padding(top = 3.dp), color = if (selected == index) c.ink else c.ink3,
-                    fontSize = 10.sp, lineHeight = 12.sp, fontWeight = if (selected == index) FontWeight.SemiBold else FontWeight.Normal,
-                    maxLines = 2, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }
         }
     }
@@ -351,27 +387,39 @@ private fun HubMemory(memory: MemoryRuntime, cache: HubSectionCache, onOpen: () 
         }
     }
     val loaded = cache.memory
-    MikaCard {
-        Column(Modifier.fillMaxWidth().padding(18.dp)) {
-            Text(stringResource(R.string.memory_memory), style = MikaType.BodyStrong, color = c.ink)
-            val data = loaded?.getOrNull()
-            when {
-                loaded == null -> HubHint(stringResource(R.string.loading))
-                data == null || !data.store.available -> HubHint(stringResource(R.string.memory_unavailable))
-                else -> {
-                    val items by data.store.items.collectAsState()
-                    val active = items.filter { it.status == MemoryStatus.active }.sortedByDescending { it.updatedAt }.take(3)
-                    if (active.isEmpty()) HubHint(stringResource(R.string.memory_empty))
-                    active.forEach { item -> HubEntry(item.content, onOpen) }
-                    if (items.any { it.status == MemoryStatus.pending }) HubEntry(stringResource(R.string.memory_pending), onOpen)
-                    Text(stringResource(R.string.memory_skills), Modifier.padding(top = 12.dp), style = MikaType.BodyStrong, color = c.ink)
-                    if (data.skills.isEmpty()) HubHint(stringResource(R.string.skills_empty))
-                    data.skills.take(3).forEach { skill -> HubEntry(skill.name, onOpen) }
+    val data = loaded?.getOrNull()
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        MikaCard {
+            Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                Text(stringResource(R.string.memory_memory), style = MikaType.BodyStrong, color = c.ink)
+                when {
+                    loaded == null -> HubHint(stringResource(R.string.loading))
+                    data == null || !data.store.available -> HubHint(stringResource(R.string.memory_unavailable))
+                    else -> {
+                        val items by data.store.items.collectAsState()
+                        val active = items.filter { it.status == MemoryStatus.active }.sortedByDescending { it.updatedAt }.take(3)
+                        if (active.isEmpty()) HubHint(stringResource(R.string.memory_empty))
+                        active.forEach { item -> HubEntry(item.content, onOpen) }
+                        if (items.any { it.status == MemoryStatus.pending }) HubEntry(stringResource(R.string.memory_pending), onOpen)
+                    }
                 }
+                TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
             }
-            TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+        }
+        MikaCard {
+            Column(Modifier.fillMaxWidth().padding(18.dp)) {
+                Text(stringResource(R.string.memory_skills), style = MikaType.BodyStrong, color = c.ink)
+                when {
+                    loaded == null -> HubHint(stringResource(R.string.loading))
+                    data == null -> HubHint(stringResource(R.string.memory_unavailable))
+                    data.skills.isEmpty() -> HubHint(stringResource(R.string.skills_empty))
+                    else -> data.skills.take(3).forEach { skill -> HubEntry(skill.name, onOpen) }
+                }
+                TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+            }
         }
     }
+
 }
 
 @Composable
