@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -207,7 +209,7 @@ internal fun OrbitHub(
             .background(if (collapsed) c.bg else c.bg.copy(alpha = 0f)).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
-            Crossfade(collapsed, Modifier.weight(1f), animationSpec = MikaMotion.switch(MikaTheme.reduceMotion), label = "hub-header") { compact ->
+            Crossfade(collapsed, Modifier.weight(1f), animationSpec = if (MikaTheme.reduceMotion) snap() else tween(MikaMotion.SWITCH_MS, easing = MikaMotion.Decelerate), label = "hub-header") { compact ->
                 if (compact) {
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         MikaPresenceAvatar(Modifier.size(32.dp), state = state, framed = true)
