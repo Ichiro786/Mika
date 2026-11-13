@@ -3,7 +3,7 @@
 - Repository: `Ichiro786/Mika`
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
-- Current phase: **00 recovery and 01 — foundation; static identity started**
+- Current phase: **Orbit Spark and chat milestone — implementation awaiting Android verification**
 - Baseline compile/tests: **Blocked: JDK unavailable**
 - Device test: **Unverified: no device/emulator**
 - Overall status: **Phase 00 and Phase 01 gates open: build and device verification unavailable**
@@ -12,11 +12,11 @@
 |---|---|---|---|---|
 | 00 | Baseline and safety rails | Open | — | Inventory and i18n checks recorded; build and device baselines blocked |
 | 01 | Theme and design tokens | In progress | — | Foundation implemented; build and visual verification open |
-| 02 | Orbit Spark vector | Started | — | Static component only; visual verification open |
-| 03 | Agent presence animations | Pending | — | — |
+| 02 | Orbit Spark vector | In progress | — | Reused scalable mark; actual visual verification open |
+| 03 | Agent presence animations | In progress | — | Runtime state adapter and motion added; device verification open |
 | 04 | App shell and navigation | Pending | — | — |
-| 05 | Home and composer | Pending | — | — |
-| 06 | Chat and activity | Pending | — | — |
+| 05 | Home and composer | In progress | — | Chat presentation added; device verification open |
+| 06 | Chat and activity | In progress | — | Message and activity styling added; device verification open |
 | 07 | Tasks and schedules | Pending | — | — |
 | 08 | Approval cards | Pending | — | — |
 | 09 | Make and skills | Pending | — | — |
@@ -77,3 +77,15 @@ Rollback: remove only the newly added program documents/references and root prog
 - `ui/identity/MikaMark.kt`: standalone scalable Canvas orb and ribbon, light/dark ribbon variants and static `MikaPresenceAvatar` entry point. No animation states, screen integration or runtime bitmap assets. Geometry is an initial implementation; **visual fidelity is unverified**.
 - `EditorialPaletteTest` asserts warm and black backgrounds for every existing accent preference. Attempted `./gradlew :app:testDebugUnitTest --tests com.wangzan101.mika.ui.theme.EditorialPaletteTest`: **NOT RUN**, no Java. Compile and all Android/JVM tests remain unverified. Re-ran localization check: **PASS**, 2,808 resources / 11 languages; i18n unit tests: **PASS**, 12 tests. Static sRGB calculations for muted ink on page/answer surfaces: light 5.35:1 / 4.89:1; dark 8.77:1 / 6.73:1. These are limited color-pair checks, not a complete accessibility audit.
 - Screenshots, emulator/device tests, actual light/dark comparison, 200% text, TalkBack, preview lab, resolved Material3 version and runtime animation verification are **UNVERIFIED**. No Expressive library upgrade or experimental API was introduced. Before considering Phase 01 or identity complete, run CI on these changes, verify Gradle tests and compilation, add/capture actual previews, and review the mark against references at multiple sizes.
+
+## Orbit Spark and chat milestone — 2026-11-13
+
+**Status: implementation prepared; Android build, device regressions and visual/motion verification remain OPEN.** Base: `15fb0df8763478d15da38c7c489ef814943e582b`, branch `mika-uiux-phase-00`. The user explicitly requested this combined milestone across identity and chat; no other screen or navigation redesign was started.
+
+- Reused the existing warm/AMOLED palette, typography, shapes, static Canvas mark, composer, Markdown renderer, navigation and approval controls. `MikaPresenceAvatar` adds lifecycle-aware and reduced-motion-aware idle, listening, thinking, working, needs-user and success presentations, plus a static error indicator. Needs-user and success pulse once per state transition and do not replay merely on foregrounding.
+- `presenceFor` derives presentation only: listening requires an active hold-to-talk `Listening` state that has not ended; thinking requires a live exchange with actual streamed draft text and the existing model-wait signal; working uses a non-null tool in the live `TaskState.Running`; confirmation, input and takeover use their existing statuses; success and error use live terminal statuses. Old conversation history, queued work and ambiguous preparation do not trigger activity. The existing waiting flag is inferred from task fields, so no thinking animation is shown before streamed text establishes a model response. A running tool name indicates a tool is being handled, not proof an external action succeeded.
+- Chat retains its existing send, stop, attachments, voice, drafts, streaming, message menus, source/run links, takeover and approval handlers. The home shows existing recommended tasks and, only when present, an actual count of tasks in other conversations linked to the existing drawer. User bubbles use warm/dark coral, the floating composer has chat-only styling, and live activity steps are compact and expandable. No synthetic briefing, navigation tabs or agent data were added.
+- Changed: `ui/ChatScreen.kt`, `ui/ChatViewModel.kt` (UI-only tool-state flag), `ui/PresenceState.kt`, `ui/components/Controls.kt` (optional chat title icon), `ui/identity/MikaMark.kt`, `ui/identity/MikaPresenceAvatar.kt`, `app/src/test/.../PresenceStateTest.kt`, and this tracker. Existing shared composer defaults remain unchanged outside chat; `:core`, authentication, networking, task execution and overlay lifecycle files were not edited.
+- `python3 tools/i18n/translations.py check`: **PASS**, 2,808 resources across 11 UI languages. `python3 -m unittest discover -s tools/i18n -p 'test_*.py'`: **PASS**, 12 tests. `git diff --check`: **PASS**. New user-message text/background contrast calculated at 11.56:1 light and 9.39:1 dark; this is not a complete accessibility audit.
+- `./gradlew :app:testDebugUnitTest --tests com.wangzan101.mika.ui.PresenceStateTest` and `./gradlew :core:test :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin`: **NOT RUN**, wrapper stopped because Java/JAVA_HOME is unavailable. The new unit tests and all Android compilation remain unverified. GitHub authentication was invalid; no remote CI run was dispatched or verified. No actual before/after screenshots, animations, emulator or physical-device tests were captured.
+- Before shipping: run the listed Gradle and existing device regressions in CI/on Android; inspect the six states and reduced-motion/background behavior; compare light/dark renders to the boards at multiple sizes and 200% font; exercise voice, attachments, streaming, approval, long-press actions and IME/insets. In particular, validate live-step expand/collapse and the home briefing in real UI. Roll back this milestone with its single commit if regressions arise.

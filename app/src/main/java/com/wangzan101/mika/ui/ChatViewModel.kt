@@ -205,6 +205,8 @@ data class Exchange(
     val keptPageClosed: String? = null,
     /** 每一步实际做的动作(按步号):标题是汇总,点开一步时看这里的明细。 */
     val stepActions: Map<Int, List<StepAction>> = emptyMap(),
+    /** Current task state names a tool being handled. */
+    val toolRunning: Boolean = false,
 )
 
 /** 在跑时的一行进展:等你时说等什么;模型请求在途时只给中性状态;否则是这一步的话,没有就是最近做的事。 */
@@ -2094,7 +2096,8 @@ class ChatViewModel(
 
         internal fun reduce(ex: Exchange, s: TaskState, appLabel: (String) -> String = { it }, toolLabel: (String) -> String = { it }): Exchange =
             state(ex, s, appLabel).let {
-                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel))
+                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel),
+                    toolRunning = s is TaskState.Running && s.tool != null)
             }
 
         /** 按步号归好的动作明细:点开一步时列出来。 */

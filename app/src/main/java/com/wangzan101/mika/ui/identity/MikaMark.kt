@@ -35,9 +35,3 @@ fun MikaMark(modifier: Modifier = Modifier, dark: Boolean = MikaTheme.colors.isD
         drawContext.transform.translate(-x, -y)
     }
 }
-
-/** Static presentation point for a future state-driven presence component. */
-@Composable
-fun MikaPresenceAvatar(modifier: Modifier = Modifier, dark: Boolean = MikaTheme.colors.isDark) {
-    MikaMark(modifier, dark)
-}
