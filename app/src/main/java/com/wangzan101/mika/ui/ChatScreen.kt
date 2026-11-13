@@ -222,6 +222,7 @@ fun ChatScreen(
     }
     val recommendedTasks by recommendedTasksFlow.collectAsState()
     val ui by vm.ui.collectAsState()
+    val isSideChat = remember(ui.conversationId) { vm.isSideChat(ui.conversationId) }
     val pendingJump by vm.jump.collectAsState()
     val others by vm.otherRunning.collectAsState()
     val keptAny by vm.keptPage.collectAsState()
@@ -272,6 +273,18 @@ fun ChatScreen(
     var followingTail by rememberSaveable { mutableStateOf(true) }
     var previousScrollMarker by rememberSaveable { mutableStateOf<String?>(null) }
     var previousConversation by rememberSaveable { mutableStateOf<String?>(null) }
+    // Store small per-conversation viewport snapshots in the existing saved UI state.
+    var savedPositions by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+    DisposableEffect(ui.conversationId) {
+        val id = ui.conversationId
+        onDispose {
+            if (id != null) {
+                val other = savedPositions.chunked(4).filter { it.size == 4 && it[0] != id }.flatten()
+                savedPositions = ArrayList((other + listOf(id, listState.firstVisibleItemIndex.toString(),
+                    listState.firstVisibleItemScrollOffset.toString(), if (followingTail) "1" else "0")).takeLast(400))
+            }
+        }
+    }
     val tailThresholdPx = with(density) { 240.dp.roundToPx() }
     LaunchedEffect(listState, tailThresholdPx) {
         var wasScrolling = false
@@ -312,7 +325,17 @@ fun ChatScreen(
         val changedConversation = previousConversation != ui.conversationId
         previousScrollMarker = scrollMarker
         previousConversation = ui.conversationId
-        if (changedConversation) followingTail = true
+        if (changedConversation) {
+            val saved = savedPositions.chunked(4).lastOrNull { it.size == 4 && it[0] == ui.conversationId }
+            val index = saved?.get(1)?.toIntOrNull()
+            val offset = saved?.get(2)?.toIntOrNull()
+            if (index != null && offset != null && rowCount > 0) {
+                followingTail = saved?.get(3) == "1"
+                listState.scrollToItem(index.coerceIn(0, rowCount - 1), offset.coerceAtLeast(0))
+                return@LaunchedEffect
+            }
+            followingTail = true
+        }
         if (!firstEntry && !changedConversation && !followingTail) return@LaunchedEffect
         if (rowCount > 0) {
             if (firstEntry || changedConversation || reduceMotion) listState.scrollToItem(rowCount - 1)
@@ -391,7 +414,13 @@ fun ChatScreen(
             ) {
                 if (ui.exchanges.isEmpty() && ui.blocked == null) {
                     item("empty") {
-                        EmptyState(ui.conversationId, recommendedTasks, others.size, onOpenDrawer) { prompt ->
+                        if (isSideChat) {
+                            Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 52.dp)) {
+                                Text(stringResource(R.string.orbit_side_chat), style = MikaType.LargeTitle, color = c.ink)
+                                Text(stringResource(R.string.orbit_side_context), Modifier.padding(top = 12.dp),
+                                    style = MikaType.Body, color = c.ink2)
+                            }
+                        } else EmptyState(ui.conversationId, recommendedTasks, others.size, onOpenDrawer) { prompt ->
                             if (input.isEmpty()) vm.input(prompt) else pendingExample = prompt
                         }
                     }
@@ -439,9 +468,9 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
                 titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub,
-                    size = if (sub == null) 52.dp else 48.dp) },
+                    size = if (sub == null && !isSideChat) 52.dp else 48.dp) },
                 centerTitle = true,
-                subtitle = sub?.first,
+                subtitle = if (isSideChat) listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ") else sub?.first,
                 subtitleColor = when (sub?.second) {
                     ChatCopy.Tone.Accent -> c.accent
                     ChatCopy.Tone.Warn -> c.warn

@@ -130,6 +130,41 @@ class ChatViewModelTest {
         runCurrent()
     }
 
+    @Test fun sideChatSwitchingKeepsParentAndSideDraftsSeparate() = runTest {
+        for (parallel in listOf(false, true)) {
+            val store = ConversationStore(tmp.newFolder())
+            store.append("parent", Turn("Parent question", "Parent answer", "succeeded"))
+            val vm = ChatViewModel(backgroundScope, MutableStateFlow(TaskState.Idle), stage, actions, store,
+                parallelFlag = { parallel })
+            runCurrent()
+            vm.openConversation("parent")
+            vm.input("Parent draft")
+            assertTrue(vm.createSideChat())
+            val side = requireNotNull(vm.ui.value.conversationId)
+            assertEquals("parent", store.sideChat(side)?.parentId)
+            assertEquals(1, store.sideChat(side)?.parentTurn)
+            assertTrue(vm.ui.value.exchanges.isEmpty())
+            vm.input("Side draft")
+            vm.openMainChat()
+            assertEquals("parent", vm.ui.value.conversationId)
+            assertEquals("Parent draft", vm.ui.value.input)
+            assertEquals("Parent question", store.turns("parent").single().userText)
+            vm.openConversation(side)
+            assertEquals("Side draft", vm.ui.value.input)
+        }
+    }
+
+    @Test fun serialRunCannotBeCancelledOrSwitchedByCreatingSideChat() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        val vm = vm(store)
+        assertTrue(vm.send("Working", ok))
+        val parent = vm.ui.value.conversationId
+        assertFalse(vm.createSideChat())
+        assertEquals(parent, vm.ui.value.conversationId)
+        assertTrue(store.list().none { it.sideChat != null })
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
     @Test fun draftsStayWithTheirConversationInSerialAndParallelModes() = runTest {
         for (parallel in listOf(false, true)) {
             val vm = ChatViewModel(backgroundScope, MutableStateFlow(TaskState.Idle), stage, actions,

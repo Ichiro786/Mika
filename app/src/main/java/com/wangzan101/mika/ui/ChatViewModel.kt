@@ -1738,6 +1738,27 @@ class ChatViewModel(
         markCurrent(CurrentChat.Fresh)
     }
 
+    /** Side chats use the same execution and draft owners as every other conversation. */
+    fun isSideChat(id: String?): Boolean = id != null && store.sideChat(id) != null
+
+    fun createSideChat(): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val origin = store.sideChat(parent)
+        val main = origin?.mainId ?: origin?.parentId ?: parent
+        val id = store.newConversation()
+        if (!store.createSideChat(id, parent, store.turns(parent).size, main)) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun openMainChat() {
+        val origin = _ui.value.conversationId?.let(store::sideChat) ?: return
+        val id = origin.mainId ?: origin.parentId
+        if (id == null) newConversation() else openConversation(id)
+    }
+
     /** 屏上这个对话此刻有没有任务在跑或排队。 */
     fun currentRunning(): Boolean = _ui.value.conversationId?.let { it in activeConversations.value } == true
 

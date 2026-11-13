@@ -115,17 +115,27 @@ class ConversationStore(
         val unsaved = pending.asSequence()
             .filter { firstMessage(file(it.id)) == null }
             .filter { includeArchived || archivedAt(it.id) == null }
-        val saved = dir.listFiles { f -> f.isFile && f.name.endsWith(".json") }.orEmpty()
-            .map { it to it.lastModified() }
-            .sortedWith(compareByDescending<Pair<File, Long>> { it.second }.thenBy { it.first.name })
-            .asSequence().mapNotNull { (f, updatedAt) ->
-                val first = firstMessage(f) ?: return@mapNotNull null
-                val id = f.nameWithoutExtension
-                val archivedAt = archivedAt(id)
-                if (!includeArchived && archivedAt != null) return@mapNotNull null
-                ConversationSummary(id, title(id) ?: first, updatedAt, pinnedAt(id), pageOrigin(id), branchOrigin(id), archivedAt, restoredAt(id))
+            .map { summary ->
+                sideChat(summary.id)?.let { summary.copy(updatedAt = it.createdAt, sideChat = it) } ?: summary
+            }.toList()
+        val pendingIds = unsaved.map { it.id }.toSet()
+        // Workspace metadata can exist before the first message. Legacy conversations
+        // remain discoverable from their original JSON files, without reclassification.
+        val saved = dir.listFiles { f -> f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".workspace")) }.orEmpty()
+            .map { it.nameWithoutExtension }.distinct().asSequence()
+            .filter { it !in pendingIds }
+            .mapNotNull { id ->
+                val f = file(id)
+                val first = firstMessage(f)
+                val side = sideChat(id)
+                if (first == null && side == null) return@mapNotNull null
+                val archived = archivedAt(id)
+                if (!includeArchived && archived != null) return@mapNotNull null
+                val updatedAt = if (f.isFile && first != null) f.lastModified() else side!!.createdAt
+                ConversationSummary(id, title(id) ?: first.orEmpty(), updatedAt, pinnedAt(id), pageOrigin(id), branchOrigin(id), archived, restoredAt(id), side)
             }
-        return (unsaved + saved).drop(offset).take(limit).toList()
+            .sortedWith(compareByDescending<ConversationSummary> { it.updatedAt }.thenBy { it.id })
+        return (unsaved.asSequence() + saved).drop(offset).take(limit).toList()
     }
 
     private data class FirstMessage(val modified: Long, val size: Long, val text: String?)
@@ -171,7 +181,7 @@ class ConversationStore(
         val main = file(conversationId).name
         val metadata = setOf(titleFile(conversationId).name, pinFile(conversationId).name,
             pageFile(conversationId).name, branchFile(conversationId).name, archiveFile(conversationId).name,
-            restoreFile(conversationId).name)
+            restoreFile(conversationId).name, workspaceFile(conversationId).name, workspaceTempFile(conversationId).name)
         val files = dir.listFiles { f -> f.name == main || f.name.startsWith("$main.") || f.name in metadata }
             ?: if (Files.notExists(dir.toPath())) emptyArray() else throw IOException("Cannot list conversation files")
         // Leave the history in place if any of its companion files cannot be removed.
@@ -209,6 +219,39 @@ class ConversationStore(
         dir.mkdirs()
         val ok = runCatching { titleFile(conversationId).writeText(t) }.isSuccess
         if (ok) _changes.tryEmit(conversationId)
+        return ok
+    }
+
+    /** Side-chat metadata is separate from the original transcript format. */
+    @Synchronized
+    fun sideChat(conversationId: String): SideChatOrigin? = runCatching {
+        val f = workspaceFile(conversationId).takeIf { it.isFile } ?: return@runCatching null
+        val o = Json.parseToJsonElement(f.readText()) as? JsonObject ?: return@runCatching null
+        if (str(o, "kind") != "side") return@runCatching null
+        val at = str(o, "createdAt")?.toLongOrNull()?.takeIf { it > 0 } ?: return@runCatching null
+        fun validId(key: String): String? = str(o, key)?.takeIf { it.isNotEmpty() && safe(it) == it }
+        SideChatOrigin(at, validId("parent"), str(o, "parentTurn")?.toIntOrNull()?.takeIf { it >= 0 }, validId("main"))
+    }.getOrNull()
+
+    /** Creates an empty, independent conversation without copying its parent's transcript. */
+    @Synchronized
+    fun createSideChat(id: String, parent: String?, parentTurn: Int?, main: String?): Boolean {
+        if (id.isEmpty() || safe(id) != id || id in deleted || file(id).exists() || workspaceFile(id).exists()) return false
+        if (listOfNotNull(parent, main).any { it.isEmpty() || safe(it) != it } || (parentTurn != null && parentTurn < 0)) return false
+        if (!dir.isDirectory && !dir.mkdirs()) return false
+        val json = buildJsonObject {
+            put("kind", "side")
+            put("createdAt", clock().coerceAtLeast(1L))
+            parent?.let { put("parent", it) }
+            parentTurn?.let { put("parentTurn", it) }
+            main?.let { put("main", it) }
+        }
+        val temp = workspaceTempFile(id)
+        val ok = runCatching {
+            temp.writeText(json.toString())
+            if (!temp.renameTo(workspaceFile(id))) throw IOException("Cannot save side chat metadata")
+        }.isSuccess
+        if (!ok) temp.delete() else _changes.tryEmit(id)
         return ok
     }
 
@@ -588,6 +631,8 @@ class ConversationStore(
     private fun branchFile(id: String) = File(dir, "${safe(id)}.branch")
     private fun archiveFile(id: String) = File(dir, "${safe(id)}.archive")
     private fun restoreFile(id: String) = File(dir, "${safe(id)}.restored")
+    private fun workspaceFile(id: String) = File(dir, "${safe(id)}.workspace")
+    private fun workspaceTempFile(id: String) = File(dir, "${safe(id)}.workspace.tmp")
 
     /** 用户此刻在哪个对话,见 [CurrentChat];不是 `.json`,不进 [list]。 */
     private fun currentFile() = File(dir, "current")
@@ -604,7 +649,11 @@ data class ConversationSummary(
     val archivedAt: Long? = null,
     /** 最近一次手动取消归档的时间;自动归档给它一段宽限。 */
     val restoredAt: Long? = null,
+    val sideChat: SideChatOrigin? = null,
 )
+
+/** Parent position is a count of saved turns; parent context is not copied or inherited. */
+data class SideChatOrigin(val createdAt: Long, val parentId: String?, val parentTurn: Int?, val mainId: String?)
 
 /** 分支来源:从 [parentId] 的第 [parentTurn] 轮(0 起)分出来的;[afterTurn] 为 false 时是复制到这一轮之前(第 2 阶段从用户消息重新问)。 */
 data class BranchOrigin(val parentId: String, val parentTurn: Int, val afterTurn: Boolean, val at: Long)

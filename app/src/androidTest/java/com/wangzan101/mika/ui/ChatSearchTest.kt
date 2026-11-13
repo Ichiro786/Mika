@@ -108,7 +108,7 @@ class ChatSearchTest {
         // 清空:入口回来,搜索框的清除按钮消失
         compose.onNodeWithTag("drawer-search-clear").performClick()
         compose.onNodeWithTag("drawer-search-clear").assertDoesNotExist()
-        compose.onNodeWithText("定时任务").assertExists()
+        compose.onNodeWithText("Main Chat").assertExists()
 
         // 再搜另一个对话,点结果打开它
         compose.onNodeWithTag("drawer-search").performTextReplacement("天气")
@@ -116,4 +116,31 @@ class ChatSearchTest {
         compose.onNode(hasTestTag("conversation-row") and hasText("查天气")).performClick()
         compose.waitUntil(5_000) { vm.ui.value.conversationId == "b" }
     }
+
+    @Test fun recentSideChatsAndSearchableHistoryStaySeparateFromMain() {
+        listOf("Alpha", "Bravo", "Charlie").forEachIndexed { index, title ->
+            val id = "side-$index"
+            check(store.createSideChat(id, "parent", 1, "parent"))
+            store.append(id, Turn(title, "Answer", "succeeded"))
+        }
+        // Rename and assign distinct activity times for deterministic ordering.
+        val summaries = store.list().filter { it.sideChat != null }
+        summaries.forEachIndexed { index, summary ->
+            store.rename(summary.id, "Side ${index + 1}")
+        }
+        val sides = store.list().filter { it.sideChat != null }
+        val vm = vm()
+        show(vm)
+        sides.take(2).map { it.title }.forEach(::awaitRow)
+        compose.onNode(hasTestTag("conversation-row") and hasText(sides.last().title)).assertDoesNotExist()
+        compose.onNodeWithTag("side-chats-see-all").performClick()
+        compose.onNodeWithTag("drawer-search").performClick().performTextInput("Alpha")
+        compose.waitUntil(5_000) {
+            compose.onAllNodes(hasTestTag("conversation-row") and hasText("Side", substring = true)).fetchSemanticsNodes().isNotEmpty()
+        }
+        compose.onNode(hasTestTag("conversation-row") and hasText("Side", substring = true)).performClick()
+        compose.waitUntil(5_000) { vm.ui.value.conversationId == "side-0" }
+        assertEquals("Alpha", store.turns("side-0").single().userText)
+    }
+
 }

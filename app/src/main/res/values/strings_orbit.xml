@@ -24,4 +24,12 @@
     <string name="orbit_call_unobserved">Android is in a call, but Orbit has not received its call event yet.</string>
     <string name="orbit_call_system_permission">Allow phone permissions for Orbit in system settings.</string>
     <string name="orbit_call_management_unavailable">This device does not allow Orbit to manage carrier calls.</string>
+    <string name="orbit_main_chat">Main Chat</string>
+    <string name="orbit_side_new">New Side Chat</string>
+    <string name="orbit_side_chats">Side Chats</string>
+    <string name="orbit_side_chat">Side Chat</string>
+    <string name="orbit_side_all">See all</string>
+    <string name="orbit_side_empty">No side chats yet.</string>
+    <string name="orbit_side_context">This is a separate conversation. Parent messages are not included automatically.</string>
+    <string name="orbit_side_create_failed">Could not create a side chat. Please try again.</string>
 </resources>

@@ -184,3 +184,9 @@ Rollback: remove only the newly added program documents/references and root prog
 - Stage A GitHub Actions run 43507619564 **FAILED** at Android compilation: the collapsing header passed a general animation specification where Compose requires a finite float specification. Core, CLI/localization and relay jobs passed. The header now uses an explicit finite specification; a new Android CI run is required.
 
 - Stage A GitHub Actions run 43508864408 **PASSED** for commit `cf3b6c9d85c208f2b14b1d27895affd1cb5bc105`: core and Android unit tests, debug APK assembly, Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-cf3b6c9d85c208f2b14b1d27895affd1cb5bc105` (artifact 14076543758). The new device tests were compiled, not run; no Android screenshots were captured.
+
+## Conversation workspaces — stage B, 2026-11-13
+
+- The tests-first Actions run 43510028828 reached Android unit tests and **FAILED as expected**: two Side Chat persistence/isolation regressions failed out of 2,148 tests. The earlier stage A commit remains the latest passing APK.
+- Added independent Side Chat metadata beside the existing conversation files, without copying or inheriting parent context. Existing conversation history and file formats remain unchanged. The drawer offers creation, the two latest active sides and searchable full history using existing rename/delete actions; it blocks switching during a serial active run. Per-conversation drafts use the existing state owner and chat scroll positions use saved UI state.
+- New UI text uses documented English fallback in the other locales. Android CI, actual persistence across device restarts, scrolling, voice, attachment and accessibility behavior require verification for this stage. No Android screenshot or device test has been run in Muse.

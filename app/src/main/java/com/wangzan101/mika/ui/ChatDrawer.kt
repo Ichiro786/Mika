@@ -396,6 +396,13 @@ fun ChatDrawer(
     archivedView: Boolean = false,
     onOpenArchive: () -> Unit = {},
     onExitArchive: () -> Unit = {},
+    sideChats: List<DrawerConversation> = emptyList(),
+    allSideChats: List<DrawerConversation> = emptyList(),
+    sideHistoryView: Boolean = false,
+    onMainChat: () -> Unit = {},
+    onNewSideChat: () -> Unit = {},
+    onSideHistory: () -> Unit = {},
+    onExitSideHistory: () -> Unit = {},
 ) {
     val c = MikaTheme.colors
     // 能勾的就是此刻列在侧栏里、已经存过的对话(还没存过的当前草稿没有编号,删不了);归档视图里是归档的那些
@@ -429,7 +436,7 @@ fun ChatDrawer(
             // 多选从顶上这个按钮进;进去以后这里换成「取消」,返回键同样能退出
             when {
                 selecting -> HeaderAction(stringResource(R.string.cancel), "drawer-select-cancel", c.ink2, onExitSelect)
-                selectableIds.isNotEmpty() && !searchActive ->
+                selectableIds.isNotEmpty() && !searchActive && !sideHistoryView ->
                     HeaderAction(stringResource(R.string.drawer_select), "drawer-select", c.accent, onStartSelect)
             }
         }
@@ -437,9 +444,11 @@ fun ChatDrawer(
         // 搜索时搜索框下面按归档状态筛;归档视图里没有搜索,自然也没有这一行
         if (searchActive) SearchArchiveFilterRow(searchFilter, onSearchFilterChange)
         // 搜索、多选、归档视图时把几个入口收起来，把高度让给列表;退出后原样回来
-        if (!searchActive && !selecting && !archivedView) Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-            NavEntry(MikaIcons.Message, stringResource(R.string.drawer_personal), onClick = onPersonal)
+        if (!searchActive && !selecting && !archivedView && !sideHistoryView) Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+            NavEntry(MikaIcons.Message, stringResource(R.string.orbit_main_chat), enabled = canSwitch, onClick = onMainChat)
+            NavEntry(MikaIcons.New, stringResource(R.string.orbit_side_new), enabled = canSwitch, onClick = onNewSideChat)
             NavEntry(MikaIcons.New, stringResource(R.string.chat_new), enabled = canSwitch, onClick = onNew)
+            NavEntry(MikaIcons.Message, stringResource(R.string.drawer_personal), onClick = onPersonal)
             // 和上面几项隔开一点:这是把 Mika 整个停下来,不是换一页
             Box(Modifier.padding(top = 4.dp)) {
                 NavEntry(MikaIcons.Power, stringResource(R.string.quit_title), onClick = onQuit)
@@ -450,6 +459,7 @@ fun ChatDrawer(
         val first = when {
             archivedView -> "h-archive"
             searchActive -> "h-search"
+            sideHistoryView -> "h-side-history"
             sections.running.isNotEmpty() -> "h-running"
             sections.pinned.isNotEmpty() -> "h-pinned"
             sections.recent.isNotEmpty() -> "h-recent"
@@ -489,6 +499,12 @@ fun ChatDrawer(
                 if (search?.truncated == true) {
                     item("search-more") { SearchHint(stringResource(R.string.drawer_search_truncated, ConversationSearch.MAX_HITS)) }
                 }
+            } else if (sideHistoryView) {
+                item("h-side-history") { SideHistoryHeader(onExitSideHistory) }
+                if (allSideChats.isEmpty()) item("side-empty") { SearchHint(stringResource(R.string.orbit_side_empty)) }
+                items(allSideChats, key = { "all-side-${it.id}" }) {
+                    ConversationEntry(it, onOpen, onActions)
+                }
             } else if (archivedView) {
                 item("h-archive") { ArchiveHeader(archived.size, onExitArchive) }
                 if (archived.isEmpty()) item("archive-empty") { ArchiveEmpty() }
@@ -502,6 +518,10 @@ fun ChatDrawer(
                     }
                 }
             } else {
+                if (!selecting) {
+                    item("h-sides") { SideChatsHeader(onSideHistory) }
+                    items(sideChats, key = { "side-${it.id}" }) { ConversationEntry(it, onOpen, onActions) }
+                }
                 if (sections.running.isNotEmpty()) {
                     // 「进行中」这一段的右边进「后台屏」页:看每个在跑的任务正在用哪个 App、实时画面
                     item("h-running") { RunningLabel(onScreens) }
@@ -541,7 +561,7 @@ fun ChatDrawer(
                     }
                 }
             }
-            if (!searchActive && !selecting && !archivedView && archived.isNotEmpty()) {
+            if (!searchActive && !selecting && !archivedView && !sideHistoryView && archived.isNotEmpty()) {
                 item("archive-entry") { ArchiveEntry(archived.size, onOpenArchive) }
             }
             item("end") { Box(Modifier.height(12.dp)) }
@@ -571,6 +591,29 @@ fun ChatDrawer(
 private fun HeaderAction(text: String, tag: String, color: Color, onClick: () -> Unit) {
     TextButton(onClick = onClick, modifier = Modifier.testTag(tag), contentPadding = PaddingValues(horizontal = 10.dp)) {
         Text(text, style = MikaType.Label, color = color)
+    }
+}
+
+@Composable
+private fun SideChatsHeader(onSeeAll: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.orbit_side_chats)) }
+        TextButton(onClick = onSeeAll, modifier = Modifier.testTag("side-chats-see-all")) {
+            Text(stringResource(R.string.orbit_side_all), style = MikaType.Hint, color = MikaTheme.colors.ink2)
+        }
+    }
+}
+
+@Composable
+private fun SideHistoryHeader(onBack: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(48.dp).clickable(role = Role.Button, onClick = onBack)
+            .padding(horizontal = 24.dp).testTag("side-chats-back"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(MikaIcons.Back, null, Modifier.size(16.dp), tint = MikaTheme.colors.ink2)
+        Text(stringResource(R.string.orbit_side_chats), style = SectionText, color = MikaTheme.colors.ink3)
     }
 }
 
@@ -1077,6 +1120,7 @@ fun ChatWithDrawer(
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     /** 归档视图:列表换成收起来的对话;侧栏关上就退出。 */
     var archivedView by remember { mutableStateOf(false) }
+    var sideHistoryView by remember { mutableStateOf(false) }
     /** 等用户确认的批量删除(对话编号)。 */
     var confirmingMany by remember { mutableStateOf<List<String>?>(null) }
     val deleteBatch by vm.deleteBatch.collectAsState()
@@ -1116,6 +1160,7 @@ fun ChatWithDrawer(
             selecting = false
             selected = emptySet()
             archivedView = false
+            sideHistoryView = false
             archiveBatch = null
             archiveUndo = null
             // 正文索引只在侧栏开着时有用,关掉就放掉,长时间使用不会一直占着全部对话的正文
@@ -1134,6 +1179,7 @@ fun ChatWithDrawer(
             }
             archivedView -> archivedView = false
             query.isNotEmpty() -> query = ""
+            sideHistoryView -> sideHistoryView = false
             open -> activity?.moveTaskToBack(true)
             onBackFromPrimary != null -> onBackFromPrimary()
             else -> scope.launch { if (reduceMotion) drawer.snapTo(DrawerValue.Open) else drawer.open() }
@@ -1175,6 +1221,7 @@ fun ChatWithDrawer(
             selecting = false
             selected = emptySet()
             archivedView = false
+            sideHistoryView = false
             confirmingMany = null
             confirmingQuit = false
             archiveBatch = null
@@ -1201,7 +1248,11 @@ fun ChatWithDrawer(
                 // 只在打开时读盘;每次打开、开着时存储里有对话改过都重读一次
                 val history = remember(open, revision) { if (open) conversations() else emptyList() }
                 val drafts by vm.draftConversations.collectAsState()
-                val all = remember(open, history, drafts, revision) { if (open) vm.withDrafts(history) else emptyList() }
+                val all = remember(open, history, drafts, revision) {
+                    if (open) vm.withDrafts(history).map { summary ->
+                        if (summary.sideChat != null && summary.title.isBlank()) summary.copy(title = tr(R.string.orbit_side_chat)) else summary
+                    } else emptyList()
+                }
                 val stored = remember(open, revision, ui.conversationId) { if (open) ui.conversationId?.let(conversationTitle) else null }
                 val last = ui.exchanges.lastOrNull()
                 val running = vm.busy()
@@ -1213,8 +1264,10 @@ fun ChatWithDrawer(
                 val canSwitch = vm.canSwitch()
                 // 搜索候选:标题换成侧栏里显示的样子(去掉附件行、网页说明),和行上看到的一致;再按归档状态筛。
                 // 有没有可搜的对话看全部,不看当前筛选——筛到空的时候搜索框和筛选条还得留着,不然退不回来
-                val searchable = remember(all, deleted) { all.any { it.id !in deleted } }
-                val candidates = remember(all, deleted, searchFilter) { drawerSearchCandidates(all, deleted, searchFilter) }
+                val searchable = remember(all, deleted, sideHistoryView) { sideHistoryView || all.any { it.id !in deleted } }
+                val candidates = remember(all, deleted, searchFilter, sideHistoryView) {
+                    drawerSearchCandidates(if (sideHistoryView) all.filter { it.sideChat != null } else all, deleted, searchFilter)
+                }
                 val engine = search
                 LaunchedEffect(open, query, revision, candidates, engine) {
                     val q = query.trim()
@@ -1254,7 +1307,7 @@ fun ChatWithDrawer(
                 }
                 // 删掉的对话当场不列,不等后台删完
                 val sections = remember(all, current, others, canSwitch, deleted) {
-                    drawerSections(all.filter { it.id !in deleted }, current, others.filter { it !in deleted }, vm::runningGoal, canSwitch, System.currentTimeMillis())
+                    drawerSections(all.filter { it.id !in deleted && it.sideChat == null }, current, others.filter { it !in deleted }, vm::runningGoal, canSwitch, System.currentTimeMillis())
                 }
                 // 归档视图里的行:按归档时间倒序,最近收起来的在前;副标题写清归档了多久
                 val archivedRows = remember(all, current, canSwitch, deleted, runningIds) {
@@ -1268,6 +1321,13 @@ fun ChatWithDrawer(
                                 subtitle = s.archivedAt?.let { archivedAgo(it, now) }.orEmpty(),
                             )
                         }
+                }
+                val sideRows = remember(all, current, canSwitch, deleted, runningIds) {
+                    val now = System.currentTimeMillis()
+                    all.filter { it.id !in deleted && it.sideChat != null }.sortedByDescending { it.updatedAt }.map { summary ->
+                        drawerEntry(summary, current.id, canSwitch, summary.id in runningIds,
+                            if (summary.updatedAt != 0L) conversationTime(summary.updatedAt, now) else "")
+                    }
                 }
                 // 能勾的就是此刻列在侧栏里的对话;别处删了、列表变了,勾选里已经不存在的当场去掉。归档视图里换成归档的对话
                 val selectableIds = remember(sections, archivedRows, archivedView) {
@@ -1288,6 +1348,16 @@ fun ChatWithDrawer(
                     searchFilter = searchFilter,
                     onSearchFilterChange = { searchFilter = it },
                     onNew = { close { vm.newConversation(); onRegularChat() } },
+                    onMainChat = { close { vm.openMainChat(); onRegularChat() } },
+                    onNewSideChat = {
+                        if (vm.createSideChat()) close { onRegularChat() }
+                        else android.widget.Toast.makeText(context, context.getString(R.string.orbit_side_create_failed), android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    sideChats = sideRows.filterNot { it.archived }.take(2),
+                    allSideChats = sideRows,
+                    sideHistoryView = sideHistoryView,
+                    onSideHistory = { query = ""; sideHistoryView = true },
+                    onExitSideHistory = { query = ""; sideHistoryView = false },
                     onPersonal = { leave(onPersonal) },
                     onPlans = { leave(onPlans) },
                     onMemory = { leave(onMemory) },
