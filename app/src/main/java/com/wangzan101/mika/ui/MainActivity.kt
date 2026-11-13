@@ -2,6 +2,10 @@ package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -48,6 +52,7 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.cap.web.WebHandover
 import com.wangzan101.mika.cap.web.WebSites
@@ -381,6 +386,14 @@ private fun MikaRoot(
     var focusedCallHistoryId by remember { mutableStateOf<String?>(null) }
     val personalStart = remember { FeatureFlags.get(context).personalStart() }
     val nav = rememberNavStack(if (personalStart && requestedConversation == null) Route.Personal else Route.Chat)
+    var planToOpen by rememberSaveable { mutableStateOf<String?>(null) }
+    var createPlanOnOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(nav.current) {
+        if (nav.current != Route.Plans) {
+            planToOpen = null
+            createPlanOnOpen = false
+        }
+    }
     var filesFromDrawer by rememberSaveable { mutableStateOf(false) }
     var filesConversation by rememberSaveable { mutableStateOf<String?>(null) }
     // 从设置页「重新配对」进来时先回到配对一步
@@ -522,7 +535,7 @@ private fun MikaRoot(
                 },
             )
         }
-        Route.Chat, Route.Personal -> screenStates.SaveableStateProvider(nav.current.name) {
+        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider(nav.current.name) {
             // 对话页重新看得见(回到前台、从别的页面回来):补上别处存进来的轮次,接上别处开始的任务
             LifecycleStartEffect(Unit) {
                 app.chat.refresh()
@@ -536,7 +549,7 @@ private fun MikaRoot(
                 conversationChanges = ConversationStore.shared(context).changes,
                 conversationTitle = { ConversationStore.shared(context).title(it) },
                 search = ConversationStore.shared(context).search,
-                onPlans = { nav.pushFromDrawer(Route.Plans) },
+                onPlans = { planToOpen = null; createPlanOnOpen = false; nav.pushFromDrawer(Route.Plans) },
                 onMemory = { nav.pushFromDrawer(Route.Memory) },
                 onSettings = { nav.pushFromDrawer(Route.Settings) },
                 onBrowser = { nav.pushFromDrawer(Route.Browser) },
@@ -549,48 +562,69 @@ private fun MikaRoot(
                 onPersonal = { nav.show(Route.Personal) },
                 onRegularChat = nav::reset,
                 resetKey = nav.resetSerial,
+                onBackFromPrimary = if (nav.current == Route.Tasks || nav.current == Route.Make) ({ nav.back() }) else null,
             ) { openDrawer ->
                 Box(Modifier.fillMaxSize()) {
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
-                    Box(Modifier.fillMaxSize().glassSource(updateBackdrop)) {
-                        if (nav.current == Route.Personal) PersonalAgentScreen(
-                            runtime = app.personal,
-                            voice = app.voice,
-                            onOpenDrawer = openDrawer,
-                            onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
-                            memoryRuntime = memoryRuntime,
-                            onModels = { nav.push(Route.Models) },
-                            onPickSpeech = { nav.push(Route.SpeechModel) },
-                        ) else ChatScreen(
-                            vm = app.chat,
-                            check = check,
-                            frames = app.taskState.frames,
-                            webOpen = app.tasks.webScreenOpen,
-                            pipInput = app.taskState.pipInput,
-                            pipOperateEnabled = FeatureFlags.get(context).pipOperate(),
-                            reduceMotion = MikaTheme.reduceMotion,
-                            onOpenDrawer = openDrawer,
-                            onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
-                            openSettings = { nav.push(Route.Settings) },
-                            openRun = { runId = it; nav.push(Route.Run) },
-                            phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
-                            openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
-                            loadSource = { id ->
-                                withContext(Dispatchers.IO) { evidenceSource(RunStore(context).events(id)) { ConfirmationNotifier.appLabel(context, it) } }
-                            },
-                            openSource = { id, legacy ->
-                                sourceRunId = id
-                                sourceLegacyText = legacy
-                                nav.push(Route.Source)
-                            },
-                            voice = app.voice,
-                            openSpeechModel = { nav.push(Route.SpeechModel) },
-                            onOpenTeach = { hint ->
-                                app.teach.prefill(hint)
-                                nav.push(Route.Teach)
-                            },
-                        )
+                    Column(Modifier.fillMaxSize().glassSource(updateBackdrop).navigationBarsPadding()) {
+                        Box(Modifier.weight(1f)) {
+                            if (nav.current == Route.Tasks) TasksScreen(
+                                runtime = app.personal,
+                                taskState = app.taskState,
+                                runStore = app.runStore,
+                                onOpenDrawer = openDrawer,
+                                onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
+                                onPlans = { id, create -> planToOpen = id; createPlanOnOpen = create; nav.push(Route.Plans) },
+                            ) else if (nav.current == Route.Make) MakeScreen(
+                                onOpenDrawer = openDrawer,
+                                onTeach = { nav.push(Route.Teach) },
+                                onSkills = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
+                                onBrowser = { nav.push(Route.Browser) },
+                                onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                            ) else if (nav.current == Route.Personal) PersonalAgentScreen(
+                                runtime = app.personal,
+                                voice = app.voice,
+                                onOpenDrawer = openDrawer,
+                                onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
+                                memoryRuntime = memoryRuntime,
+                                onModels = { nav.push(Route.Models) },
+                                onPickSpeech = { nav.push(Route.SpeechModel) },
+                            ) else ChatScreen(
+                                vm = app.chat,
+                                check = check,
+                                frames = app.taskState.frames,
+                                webOpen = app.tasks.webScreenOpen,
+                                pipInput = app.taskState.pipInput,
+                                pipOperateEnabled = FeatureFlags.get(context).pipOperate(),
+                                reduceMotion = MikaTheme.reduceMotion,
+                                onOpenDrawer = openDrawer,
+                                onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                                openSettings = { nav.push(Route.Settings) },
+                                openRun = { runId = it; nav.push(Route.Run) },
+                                phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
+                                openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
+                                loadSource = { id ->
+                                    withContext(Dispatchers.IO) { evidenceSource(RunStore(context).events(id)) { ConfirmationNotifier.appLabel(context, it) } }
+                                },
+                                openSource = { id, legacy ->
+                                    sourceRunId = id
+                                    sourceLegacyText = legacy
+                                    nav.push(Route.Source)
+                                },
+                                voice = app.voice,
+                                openSpeechModel = { nav.push(Route.SpeechModel) },
+                                onOpenTeach = { hint ->
+                                    app.teach.prefill(hint)
+                                    nav.push(Route.Teach)
+                                },
+                            )
+                        }
+                        if (WindowInsets.ime.getBottom(LocalDensity.current) == 0) {
+                            PrimaryNavigation(nav.current) { route ->
+                                if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
+                            }
+                        }
                     }
                     var installUpdate by remember { mutableStateOf<ReleaseInfo?>(null) }
                     readyRelease?.let { release ->
@@ -720,7 +754,7 @@ private fun MikaRoot(
         Route.Plans -> PlansScreen(context, onBack = back, onOpenConversation = {
             app.chat.openConversation(it)
             nav.reset()
-        })
+        }, initialPlanId = planToOpen, createOnOpen = createPlanOnOpen)
         Route.Teach -> TeachScreen(
             app.teach,
             onBack = { nav.back() },

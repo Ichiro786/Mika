@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">チャット</string>
+    <string name="nav_make">作成</string>
+    <string name="tasks_title">あなたの仕事。</string>
+    <string name="tasks_subtitle">進行中のことを、落ち着いて確認。</string>
+    <string name="tasks_active">進行中</string>
+    <string name="tasks_up_next">次の予定</string>
+    <string name="tasks_review">レビュー待ち</string>
+    <string name="tasks_scheduled">予定済み</string>
+    <string name="tasks_resolved">終了</string>
+    <string name="tasks_waiting">待機中</string>
+    <string name="tasks_empty_up_next">待機中または予定されたタスクはありません。</string>
+</resources>

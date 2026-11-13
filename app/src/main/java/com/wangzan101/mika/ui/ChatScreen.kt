@@ -66,6 +66,7 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -100,6 +101,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -1206,10 +1208,10 @@ private fun StatusCard(
                 if (options.isEmpty()) CardButton(stringResource(R.string.action_cancel_task), onClick = vm::cancel)
             }
         }
-        // 只有花钱的操作要你同意,每次只同意这一次
-        is ExchangeStatus.NeedsConfirmation -> NeedCard(status.title, status.body + "\n" + ConfirmationCopy.NOTE) {
-            CardButton(stringResource(R.string.chat_refuse), onClick = { vm.decline(status.key) })
-            CardButton(stringResource(R.string.chat_allow_once), primary = true, onClick = { vm.approve(status.key) })
+        // Keep the runtime request key and wait for its next state before claiming any outcome.
+        is ExchangeStatus.NeedsConfirmation -> androidx.compose.runtime.key(status.key) {
+            val submission = rememberSaveable(saver = ApprovalSubmission.Saver) { ApprovalSubmission() }
+            ApprovalCard(status, submission, onApprove = { vm.approve(status.key) }, onDecline = { vm.decline(status.key) })
         }
         is ExchangeStatus.Paused -> NeedCard(stringResource(if (status.resumable) R.string.chat_paused else R.string.chat_waiting_for_you), status.why) {
             CardButton(stringResource(R.string.action_cancel_task), onClick = vm::cancel)
@@ -1259,6 +1261,59 @@ private fun StatusCard(
                 }
             }
             RecoveryActions(runId, recover)
+        }
+    }
+}
+
+/** Shows only the request fields supplied by the existing confirmation flow. */
+@Composable
+private fun ApprovalCard(
+    status: ExchangeStatus.NeedsConfirmation,
+    submission: ApprovalSubmission,
+    onApprove: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    val c = MikaTheme.colors
+    MikaCard(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(40.dp).border(1.dp, c.hair, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                    Icon(MikaIcons.Doc, null, Modifier.size(20.dp), tint = c.ink)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(status.title, style = NeedTitle, color = c.ink)
+                    Text(stringResource(R.string.chat_wait_approval), style = MikaType.Caption, color = c.warn)
+                }
+            }
+            HorizontalDivider(color = c.hair)
+            Column(Modifier.padding(16.dp)) {
+                Text(status.body, style = CardBody, color = c.ink)
+                Text(ConfirmationCopy.NOTE, Modifier.padding(top = 12.dp), style = MikaType.Caption, color = c.ink2)
+                if (submission.pending) Text(stringResource(R.string.relay_busy), Modifier.padding(top = 8.dp),
+                    style = MikaType.Caption, color = c.ink2)
+                if (submission.failed) Text(stringResource(R.string.op_failed), Modifier.padding(top = 8.dp),
+                    style = MikaType.Caption, color = c.bad)
+                if (LocalConfiguration.current.fontScale >= 1.5f) {
+                    Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MikaButton(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp), kind = ButtonKind.Tonal, size = ButtonSize.Medium,
+                            enabled = !submission.pending)
+                        MikaButton(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.fillMaxWidth().heightIn(min = 48.dp), kind = ButtonKind.Primary, size = ButtonSize.Medium,
+                            enabled = !submission.pending)
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MikaButton(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.weight(1f).heightIn(min = 48.dp), kind = ButtonKind.Tonal, size = ButtonSize.Medium,
+                            enabled = !submission.pending)
+                        MikaButton(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.weight(1f).heightIn(min = 48.dp), kind = ButtonKind.Primary, size = ButtonSize.Medium,
+                            enabled = !submission.pending)
+                    }
+                }
+            }
         }
     }
 }

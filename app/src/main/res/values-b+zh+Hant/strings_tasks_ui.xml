@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">對話</string>
+    <string name="nav_make">建立</string>
+    <string name="tasks_title">你的工作。</string>
+    <string name="tasks_subtitle">更從容地查看進行中的一切。</string>
+    <string name="tasks_active">進行中</string>
+    <string name="tasks_up_next">接下來</string>
+    <string name="tasks_review">待你審閱</string>
+    <string name="tasks_scheduled">已排程</string>
+    <string name="tasks_resolved">已結束</string>
+    <string name="tasks_waiting">等待中</string>
+    <string name="tasks_empty_up_next">目前沒有排隊或排程的任務。</string>
+</resources>

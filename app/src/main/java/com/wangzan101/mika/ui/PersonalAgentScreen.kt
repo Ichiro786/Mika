@@ -564,7 +564,7 @@ private fun PersonalTaskCard(task: PersonalTask, onClick: () -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun PersonalTaskSheet(
+internal fun PersonalTaskSheet(
     task: PersonalTask,
     onDismiss: () -> Unit,
     onOpen: () -> Unit,

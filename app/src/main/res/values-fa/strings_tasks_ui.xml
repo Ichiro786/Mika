@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">گفتگو</string>
+    <string name="nav_make">ساختن</string>
+    <string name="tasks_title">کارهای شما.</string>
+    <string name="tasks_subtitle">نگاهی آرام‌تر به همه کارهای در جریان.</string>
+    <string name="tasks_active">فعال</string>
+    <string name="tasks_up_next">در ادامه</string>
+    <string name="tasks_review">آماده بررسی</string>
+    <string name="tasks_scheduled">زمان‌بندی‌شده</string>
+    <string name="tasks_resolved">پایان‌یافته</string>
+    <string name="tasks_waiting">در انتظار</string>
+    <string name="tasks_empty_up_next">کاری در صف یا زمان‌بندی‌شده نیست.</string>
+</resources>

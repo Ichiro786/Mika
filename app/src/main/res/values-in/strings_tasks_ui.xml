@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">Obrolan</string>
+    <string name="nav_make">Buat</string>
+    <string name="tasks_title">Pekerjaan Anda.</string>
+    <string name="tasks_subtitle">Lihat semua yang sedang berjalan dengan lebih tenang.</string>
+    <string name="tasks_active">Aktif</string>
+    <string name="tasks_up_next">Berikutnya</string>
+    <string name="tasks_review">Siap ditinjau</string>
+    <string name="tasks_scheduled">Terjadwal</string>
+    <string name="tasks_resolved">Selesai</string>
+    <string name="tasks_waiting">Menunggu</string>
+    <string name="tasks_empty_up_next">Tidak ada tugas dalam antrean atau terjadwal.</string>
+</resources>

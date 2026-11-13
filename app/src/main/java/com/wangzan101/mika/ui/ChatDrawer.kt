@@ -1046,6 +1046,7 @@ fun ChatWithDrawer(
     onRegularChat: () -> Unit = {},
     /** 外部跳回对话页时变化:若之前因返回键留在展开的侧栏,当场收起侧栏。 */
     resetKey: Int = 0,
+    onBackFromPrimary: (() -> Unit)? = null,
     content: @Composable (openDrawer: () -> Unit) -> Unit,
 ) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -1138,6 +1139,7 @@ fun ChatWithDrawer(
             archivedView -> archivedView = false
             query.isNotEmpty() -> query = ""
             open -> activity?.moveTaskToBack(true)
+            onBackFromPrimary != null -> onBackFromPrimary()
             else -> scope.launch { if (reduceMotion) drawer.snapTo(DrawerValue.Open) else drawer.open() }
         }
     }

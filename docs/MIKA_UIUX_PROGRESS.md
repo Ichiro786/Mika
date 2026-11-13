@@ -3,10 +3,10 @@
 - Repository: `Ichiro786/Mika`
 - Active branch: `mika-uiux-phase-00`
 - Baseline commit: `4ade16b1dac36b1c893c066a6d408be4ba76114c`
-- Current phase: **Tasks, navigation and approvals — CI baseline recovery**
-- Baseline compile/tests: **Android job passed; core documentation test failed**
+- Current phase: **Tasks, navigation and approvals — implementation awaiting CI and device verification**
+- Baseline compile/tests: **PASS in GitHub Actions at 68d06720; milestone changes awaiting CI**
 - Device test: **Unverified: no device/emulator**
-- Overall status: **Android compiled in CI; full test and device verification gates remain open**
+- Overall status: **Baseline suite passed; current milestone and device verification gates remain open**
 
 | Phase | Workstream | Status | Commit | Evidence / blockers |
 |---|---|---|---|---|
@@ -14,11 +14,11 @@
 | 01 | Theme and design tokens | In progress | — | Foundation implemented; build and visual verification open |
 | 02 | Orbit Spark vector | In progress | — | Reused scalable mark; actual visual verification open |
 | 03 | Agent presence animations | In progress | — | Runtime state adapter and motion added; device verification open |
-| 04 | App shell and navigation | Pending | — | — |
+| 04 | App shell and navigation | In progress | — | Primary navigation implemented; CI and device checks pending |
 | 05 | Home and composer | In progress | — | Chat presentation added; device verification open |
 | 06 | Chat and activity | In progress | — | Message and activity styling added; device verification open |
-| 07 | Tasks and schedules | Pending | — | — |
-| 08 | Approval cards | Pending | — | — |
+| 07 | Tasks and schedules | In progress | — | Real task and schedule views implemented; CI and device checks pending |
+| 08 | Approval cards | In progress | — | Keyed confirmation card implemented; CI and device checks pending |
 | 09 | Make and skills | Pending | — | — |
 | 10 | Capsule, voice and system assets | Pending | — | — |
 | 11 | Secondary screens and accessibility | Pending | — | — |
@@ -112,3 +112,13 @@ Rollback: remove only the newly added program documents/references and root prog
 - Push run 43400356724 at commit `b51999c24090dead0358903bd3cee1a96d9e29c1`: Android app unit tests, debug APK assembly and device-test compilation **passed**; Python CLI, localization and Go relay jobs **passed**. The APK artifact is `Mika-debug-b51999c24090dead0358903bd3cee1a96d9e29c1` in that run. No Android device tests or screenshots were run.
 - Core tests **failed**: 3,274 tests, one failure and two skipped. The failing documentation consistency test treated names in the supplied audit and design plans as claims about existing repository classes. Existing names, external Android APIs and proposed concepts retain their displayed code formatting using HTML code tags; the document text and the core check remain intact. A new GitHub Actions run is required to verify the correction.
 - No local Android builds were attempted. Visual fidelity, navigation, approvals and device behavior remain unverified.
+
+
+## Tasks, navigation and approvals milestone — 2026-11-13
+
+- Baseline GitHub Actions run 43402986805 **passed** at commit `68d06720f089bd9c9b5291869fffd338718743f7`: core, Android unit tests, debug APK, Android-test compilation, localization, CLI and relay. APK artifact: `Mika-debug-68d06720f089bd9c9b5291869fffd338718743f7`. This result predates the changes below.
+- Added a Tasks surface using personal tasks, current runs, reachable persisted run records and enabled schedules. Actual confirmation requests are distinguished from other user-attention states; progress bars use only reported completed/total counts. Existing task details, replay, stop, schedule actions and conversations remain the action targets. Loading, empty and read-error states are shown.
+- Added Chat / Tasks / Make navigation within the saved route stack, retaining the drawer and history; Make links to existing teaching, skills, browser and files. The bar hides while the keyboard is open. No provider, task engine, scheduling service, overlay or core files changed.
+- The confirmation card displays existing request details and calls the existing keyed approve/decline handlers. Its local guard prevents repeated taps while a request is pending; a synchronous dispatch error re-enables the buttons. Runtime state, not the card, determines the eventual outcome.
+- Local static checks: translation validation **PASS** (2,819 resources across 11 languages), i18n unit tests **PASS** (12 tests), actionlint **PASS**, and `git diff --check` **PASS**. New Kotlin tests cover task grouping, genuine progress, navigation and repeat submissions; they await GitHub Actions. No local Android build was attempted.
+- Current changes have not yet been compiled or rendered. Device tests, screenshots, actual edge-to-edge/IME behavior, large text, TalkBack, task action flows and approval execution remain **UNVERIFIED**. Review light and AMOLED captures against the supplied boards before accepting visual fidelity.
