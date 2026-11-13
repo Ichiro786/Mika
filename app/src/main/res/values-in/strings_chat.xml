@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">Untuk Anda hari ini</string>
+    <string name="home_editorial_subtitle">Selangkah lebih siap menjalani hari, bersama Mika.</string>
     <string name="chat_greeting_morning">Selamat pagi</string>
     <string name="chat_greeting_noon">Selamat siang</string>
     <string name="chat_greeting_afternoon">Selamat sore</string>

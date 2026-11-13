@@ -97,7 +97,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -111,9 +110,12 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -422,7 +424,7 @@ fun ChatScreen(
             ?: ChatTokensCopy.conversationSubtitle(endedRuns, runMetrics)?.let { it to null }
         Column(Modifier.behindMenu(menuOpen) { lift.value }.onSizeChanged { topHeight = it.height }) {
             TopBar(
-                ChatCopy.APP_TITLE,
+                "",
                 left = MikaIcons.Menu, leftLabel = stringResource(R.string.chat_menu), onLeft = onOpenDrawer,
                 // 别的对话里还有任务在跑(并行时):菜单上一个小圆点,侧栏「进行中」里能切过去
                 leftBadge = others.isNotEmpty(),
@@ -430,7 +432,9 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
-                titleIcon = { MikaPresenceAvatar(Modifier.size(30.dp), presenceFor(last, voiceListening), reduceMotion = reduceMotion) },
+                titleIcon = { MikaPresenceAvatar(Modifier.size(if (sub == null) 52.dp else 34.dp),
+                    presenceFor(last, voiceListening), reduceMotion = reduceMotion, framed = true) },
+                centerTitle = true,
                 subtitle = sub?.first,
                 subtitleColor = when (sub?.second) {
                     ChatCopy.Tone.Accent -> c.accent
@@ -658,10 +662,23 @@ private fun EmptyState(
 ) {
     val c = MikaTheme.colors
     val hour = remember(conversation) { LocalTime.now().hour }
+    val greeting = ChatCopy.greeting(hour)
+    val locale = LocalConfiguration.current.locales[0]
+    val english = locale.language == "en"
+    val latin = locale.language in setOf("en", "es", "in", "pt")
+    var expanded by rememberSaveable(conversation) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 52.dp)) {
-            Text(ChatCopy.greeting(hour), style = MikaType.LargeTitle, color = c.ink)
-            Text(ChatCopy.EMPTY_PROMPT, Modifier.padding(top = 6.dp), style = EmptyLead, color = c.ink2)
+            Text(buildAnnotatedString {
+                if (english && greeting.startsWith("Good ")) {
+                    append("Good ")
+                    pushStyle(SpanStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Normal))
+                    append(greeting.removePrefix("Good "))
+                    append('.')
+                    pop()
+                } else append(greeting)
+            }, style = MikaType.LargeTitle, color = c.ink)
+            Text(stringResource(R.string.home_editorial_subtitle), Modifier.padding(top = 8.dp), style = EmptyLead, color = c.ink2)
         }
         if (runningElsewhere > 0) {
             Row(Modifier.fillMaxWidth().padding(top = 28.dp).cardSurface(c).clip(MikaShapes.Card)
@@ -672,34 +689,37 @@ private fun EmptyState(
             }
         }
         if (tasks.isNotEmpty()) {
-            Text(stringResource(R.string.recommendations_title), Modifier.padding(start = 8.dp, top = 30.dp, bottom = 10.dp),
-                style = MikaType.Label, color = c.ink3)
+            Row(Modifier.fillMaxWidth().padding(start = 8.dp, top = 30.dp, end = 4.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.home_for_you).uppercase(locale), Modifier.weight(1f),
+                    style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold, letterSpacing = if (latin) 0.8.sp else 0.sp), color = c.ink3)
+                if (tasks.size > 2) {
+                    Text(stringResource(if (expanded) R.string.collapse else R.string.more),
+                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { expanded = !expanded }
+                            .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 8.dp),
+                        style = MikaType.Caption, color = c.ink)
+                }
+            }
+            val featured = tasks.first()
             MikaCard {
-                tasks.forEachIndexed { i, task ->
-                    ExampleRow(MikaIcons.Message, task.title, first = i == 0) { onPick(task.prompt) }
+                Column(Modifier.fillMaxWidth().clickable(role = Role.Button) { onPick(featured.prompt) }.padding(20.dp)) {
+                    Text(stringResource(R.string.recommendations_title), style = MikaType.Caption, color = c.ink2)
+                    Text(featured.title, Modifier.padding(top = 12.dp),
+                        style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 20.sp, lineHeight = 27.sp),
+                        color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            val secondary = if (expanded) tasks.drop(1) else tasks.drop(1).take(1)
+            secondary.forEach { task ->
+                Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top) {
+                    MikaPresenceAvatar(Modifier.size(28.dp), reduceMotion = true, framed = true)
+                    Text(task.title, Modifier.weight(1f).clip(MikaShapes.Card).background(c.answer)
+                        .clickable(role = Role.Button) { onPick(task.prompt) }.heightIn(min = 48.dp).padding(14.dp),
+                        style = ExampleText, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ExampleRow(icon: ImageVector, text: String, first: Boolean, onClick: () -> Unit) {
-    val c = MikaTheme.colors
-    Row(
-        Modifier.fillMaxWidth()
-            .then(if (first) Modifier else Modifier.drawBehind {
-                val y = 0.25.dp.toPx()
-                drawLine(c.hair, Offset(52.dp.toPx(), y), Offset(size.width, y), strokeWidth = 0.5.dp.toPx())
-            })
-            .clickable(role = Role.Button, onClick = onClick)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Icon(icon, null, Modifier.size(MikaSize.Icon), tint = c.ink2)
-        Text(text, Modifier.weight(1f), style = ExampleText, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -1663,7 +1683,7 @@ internal fun Composer(
                 }
                 val canSend = AttachTray.canSend(text, attachments, importing)
                 // 键盘出来以后长按输入框留给系统选字;话筒按住才听,点一下只提示按住
-                if (fieldFocused && vh != null) {
+                if (vh != null) {
                     val hint = stringResource(R.string.voice_hold_to_talk)
                     Box(
                         Modifier.size(MikaSize.IconButton).testTag("composer-mic").holdToTalk(vh) { vh.toast = hint },

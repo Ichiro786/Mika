@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">پیشنهادهای امروز</string>
+    <string name="home_editorial_subtitle">با Mika، یک قدم جلوتر از روزتان.</string>
     <string name="chat_greeting_morning">صبح بخیر</string>
     <string name="chat_greeting_noon">بعدازظهر بخیر</string>
     <string name="chat_greeting_afternoon">بعدازظهر بخیر</string>

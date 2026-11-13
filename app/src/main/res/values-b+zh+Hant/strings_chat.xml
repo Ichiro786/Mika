@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">今天為你推薦</string>
+    <string name="home_editorial_subtitle">和 Mika 一起，從容迎接每一天。</string>
     <string name="chat_greeting_morning">早上好</string>
     <string name="chat_greeting_noon">中午好</string>
     <string name="chat_greeting_afternoon">下午好</string>

@@ -256,22 +256,18 @@ fun TopBar(
     subtitleColor: Color = Color.Unspecified,
     background: Color = MikaTheme.colors.bg,
     titleIcon: (@Composable () -> Unit)? = null,
+    centerTitle: Boolean = false,
 ) {
     val c = MikaTheme.colors
     Box(Modifier.fillMaxWidth().pageBackground(background).windowInsetsPadding(WindowInsets.statusBars)) {
-        Row(
-            Modifier.fillMaxWidth().height(MikaSize.TopBar).padding(horizontal = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-        ) {
-            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge) else Spacer(Modifier.size(MikaSize.IconButton))
-            Column(Modifier.weight(1f).padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        val titleContent: @Composable () -> Unit = {
+            Column(Modifier.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (titleIcon == null) {
                     Text(title, style = MikaType.Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                         titleIcon()
-                        Text(title, style = MikaType.Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (title.isNotEmpty()) Text(title, style = MikaType.Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 }
                 if (!subtitle.isNullOrEmpty()) {
@@ -281,8 +277,19 @@ fun TopBar(
                     )
                 }
             }
+        }
+        Row(
+            Modifier.fillMaxWidth().height(MikaSize.TopBar).padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge) else Spacer(Modifier.size(MikaSize.IconButton))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (!centerTitle) titleContent() }
             if (right != null) Row(verticalAlignment = Alignment.CenterVertically, content = right)
             else Spacer(Modifier.size(MikaSize.IconButton))
+        }
+        if (centerTitle) Box(Modifier.align(Alignment.Center).padding(horizontal = 96.dp), contentAlignment = Alignment.Center) {
+            titleContent()
         }
     }
 }

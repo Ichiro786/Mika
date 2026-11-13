@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">今日のおすすめ</string>
+    <string name="home_editorial_subtitle">Mika と一緒に、一日を少し先回り。</string>
     <string name="chat_greeting_morning">おはようございます</string>
     <string name="chat_greeting_noon">こんにちは</string>
     <string name="chat_greeting_afternoon">こんにちは</string>

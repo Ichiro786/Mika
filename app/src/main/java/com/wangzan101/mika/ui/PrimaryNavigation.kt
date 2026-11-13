@@ -39,16 +39,16 @@ internal fun PrimaryNavigation(current: Route, onSelect: (Route) -> Unit) {
     )
     val selected = if (current == Route.Personal) Route.Chat else current
     Row(
-        Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 8.dp)
-            .background(c.surface, MikaShapes.Pill).border(1.dp, c.hair, MikaShapes.Pill)
+        Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp)
+            .background(if (c.isDark) c.answer else c.surface, MikaShapes.Pill).border(1.dp, c.hair, MikaShapes.Pill)
             .padding(4.dp).selectableGroup(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         tabs.forEach { (route, label, icon) ->
             val active = selected == route
             Column(
-                Modifier.weight(1f).heightIn(min = 56.dp).testTag("primary-nav-${route.name}").clip(MikaShapes.Pill)
-                    .background(if (active) c.answer else c.surface)
+                Modifier.weight(1f).heightIn(min = 50.dp).testTag("primary-nav-${route.name}").clip(MikaShapes.Pill)
+                    .background(if (active) { if (c.isDark) c.surface else c.answer } else androidx.compose.ui.graphics.Color.Transparent)
                     .selectable(selected = active, role = Role.Tab, onClick = { onSelect(route) })
                     .padding(horizontal = 4.dp, vertical = 6.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

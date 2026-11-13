@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +16,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -49,9 +52,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.wangzan101.mika.R
 import com.wangzan101.mika.core.agent.TaskState
@@ -72,7 +78,7 @@ import com.wangzan101.mika.task.TaskRun
 import com.wangzan101.mika.task.TriggerRuntime
 import com.wangzan101.mika.ui.components.BarIconButton
 import com.wangzan101.mika.ui.components.TopBar
-import com.wangzan101.mika.ui.identity.MikaMark
+import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
@@ -86,6 +92,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+
+private val TaskCoral = Color(0xFFD9684A)
 
 private data class LiveTask(val run: TaskRun, val state: TaskState, val recordId: String?)
 private data class TaskItem(
@@ -175,7 +183,8 @@ internal fun TasksScreen(
         TopBar(
             title = "", left = MikaIcons.Menu, onLeft = onOpenDrawer,
             leftLabel = stringResource(R.string.chat_menu),
-            titleIcon = { MikaMark(Modifier.size(36.dp)) },
+            titleIcon = { MikaPresenceAvatar(Modifier.size(52.dp), reduceMotion = true, framed = true) },
+            centerTitle = true,
             right = { BarIconButton(MikaIcons.Alarm, stringResource(R.string.drawer_plans), { onPlans(null, false) }) },
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -184,7 +193,15 @@ internal fun TasksScreen(
                 contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 88.dp),
             ) {
                 item("heading") {
-                    Text(stringResource(R.string.tasks_title), style = MikaType.LargeTitle, color = c.ink,
+                    val title = stringResource(R.string.tasks_title)
+                    Text(buildAnnotatedString {
+                        if (title.endsWith('.')) {
+                            append(title.dropLast(1))
+                            pushStyle(SpanStyle(color = TaskCoral))
+                            append('.')
+                            pop()
+                        } else append(title)
+                    }, style = MikaType.LargeTitle, color = c.ink,
                         modifier = Modifier.semantics { heading() })
                     Text(stringResource(R.string.tasks_subtitle), style = MikaType.Body, color = c.ink2,
                         modifier = Modifier.padding(top = 6.dp, bottom = 24.dp))
@@ -244,10 +261,10 @@ internal fun TasksScreen(
             }
             Box(
                 Modifier.align(Alignment.BottomEnd).padding(20.dp).size(56.dp)
-                    .clip(RoundedCornerShape(20.dp)).background(c.accent)
+                    .clip(RoundedCornerShape(20.dp)).background(TaskCoral)
                     .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) { onPlans(null, true) },
                 contentAlignment = Alignment.Center,
-            ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = c.onAccent) }
+            ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = Color.White) }
         }
     }
 
@@ -268,12 +285,13 @@ internal fun TasksScreen(
 }
 
 @Composable
-private fun TaskTabs(selected: Int, onSelect: (Int) -> Unit) {
+internal fun TaskTabs(selected: Int, onSelect: (Int) -> Unit) {
     val c = MikaTheme.colors
     Column {
         Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
             listOf(R.string.tasks_active, R.string.tasks_up_next).forEachIndexed { index, label ->
-                Column(Modifier.heightIn(min = 48.dp).selectable(selected == index, role = Role.Tab, onClick = { onSelect(index) }),
+                Column(Modifier.widthIn(min = 48.dp).width(IntrinsicSize.Min).heightIn(min = 48.dp).testTag("tasks-tab-$index")
+                    .selectable(selected == index, role = Role.Tab, onClick = { onSelect(index) }),
                     verticalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(label), style = MikaType.BodyStrong, color = if (selected == index) c.ink else c.ink3,
                         modifier = Modifier.padding(top = 8.dp, bottom = 12.dp))
@@ -297,8 +315,11 @@ private fun sectionLabel(section: TaskSection): String = stringResource(when (se
 
 @Composable
 private fun TaskSectionTitle(label: String, count: Int) {
-    Text("$label · $count", Modifier.padding(top = 28.dp, bottom = 8.dp).semantics { heading() },
-        style = MikaType.Label, fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.ink3)
+    val locale = LocalConfiguration.current.locales[0]
+    val latin = locale.language in setOf("en", "es", "in", "pt")
+    Text("${label.uppercase(locale)} · $count", Modifier.padding(top = 28.dp, bottom = 8.dp).semantics { heading() },
+        style = MikaType.Hint.copy(letterSpacing = if (latin) 0.8.sp else 0.sp),
+        fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.ink3)
 }
 
 @Composable
@@ -341,7 +362,7 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
             if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
                 Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
             if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
-                color = c.accent, trackColor = c.fill)
+                color = TaskCoral, trackColor = c.fill)
         }
         if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = attention)
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)

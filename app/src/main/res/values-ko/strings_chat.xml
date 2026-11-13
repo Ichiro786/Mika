@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">오늘의 추천</string>
+    <string name="home_editorial_subtitle">Mika와 함께 하루를 조금 앞서 준비하세요.</string>
     <string name="chat_greeting_morning">좋은 아침이에요</string>
     <string name="chat_greeting_noon">점심 시간이에요</string>
     <string name="chat_greeting_afternoon">좋은 오후예요</string>

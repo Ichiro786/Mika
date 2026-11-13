@@ -23,6 +23,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -40,6 +42,7 @@ fun MikaPresenceAvatar(
     state: PresenceState = PresenceState.Idle,
     dark: Boolean = MikaTheme.colors.isDark,
     reduceMotion: Boolean = MikaTheme.reduceMotion,
+    framed: Boolean = false,
 ) {
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     var started by remember(lifecycle) { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
@@ -74,9 +77,23 @@ fun MikaPresenceAvatar(
     }
     val coral = Color(0xFFE97D60)
     val error = MikaTheme.colors.bad
+    val surface = MikaTheme.colors.surface
+    val edge = MikaTheme.colors.hair
     Box(modifier.size(40.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.matchParentSize()) {
             val p = phase?.value ?: 0f
+            if (framed) {
+                drawCircle(
+                    Brush.radialGradient(
+                        0f to coral.copy(alpha = if (dark) 0.13f + p * 0.02f else 0.09f + p * 0.02f).compositeOver(surface),
+                        0.68f to surface,
+                        1f to surface,
+                        center = Offset(size.width * 0.5f, size.height * 0.56f),
+                        radius = size.minDimension * 0.55f,
+                    ),
+                )
+                drawCircle(edge, style = Stroke(width = size.minDimension * 0.015f))
+            }
             val ring = when (state) {
                 PresenceState.Listening -> 0.12f + p * 0.12f
                 PresenceState.Working -> 0.20f
@@ -94,7 +111,7 @@ fun MikaPresenceAvatar(
                     size = Size(side, side), style = Stroke(width = size.minDimension * 0.035f))
             }
         }
-        MikaMark(Modifier.fillMaxSize().graphicsLayer {
+        MikaMark(Modifier.fillMaxSize(if (framed) 0.58f else 1f).graphicsLayer {
             val p = phase?.value ?: 0f
             val breath = if (state == PresenceState.Idle) 1f + p * 0.025f else 1f
             scaleX = breath

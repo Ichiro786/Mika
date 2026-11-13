@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">Para você hoje</string>
+    <string name="home_editorial_subtitle">Um passo à frente no seu dia, com Mika.</string>
     <string name="chat_greeting_morning">Bom dia</string>
     <string name="chat_greeting_noon">Boa tarde</string>
     <string name="chat_greeting_afternoon">Boa tarde</string>

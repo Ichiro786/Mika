@@ -3,12 +3,14 @@ package com.wangzan101.mika.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -26,7 +28,8 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.R
 import com.wangzan101.mika.ui.components.TopBar
-import com.wangzan101.mika.ui.identity.MikaMark
+import com.wangzan101.mika.ui.components.MikaCard
+import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
@@ -43,16 +46,26 @@ internal fun MakeScreen(
     val c = MikaTheme.colors
     Column(Modifier.fillMaxSize().background(c.bg).testTag("make-screen")) {
         TopBar("", MikaIcons.Menu, onOpenDrawer, stringResource(R.string.chat_menu),
-            titleIcon = { MikaMark(Modifier.size(36.dp)) })
+            titleIcon = { MikaPresenceAvatar(Modifier.size(52.dp), reduceMotion = true, framed = true) }, centerTitle = true)
         LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 26.dp)) {
             item {
                 Text(stringResource(R.string.nav_make), style = MikaType.LargeTitle, color = c.ink,
                     modifier = Modifier.padding(bottom = 24.dp).semantics { heading() })
             }
-            item { MakeAction(MikaIcons.New, stringResource(R.string.teach_title), onTeach) }
-            item { MakeAction(MikaIcons.Spark, stringResource(R.string.memory_and_skills), onSkills) }
-            item { MakeAction(MikaIcons.Globe, stringResource(R.string.drawer_browser), onBrowser) }
-            item { MakeAction(MikaIcons.Doc, stringResource(R.string.file_library_title), onFiles) }
+            item {
+                MikaCard {
+                    MakeAction(MikaIcons.New, stringResource(R.string.teach_title), onTeach)
+                    HorizontalDivider(Modifier.padding(start = 68.dp), color = c.hair)
+                    MakeAction(MikaIcons.Spark, stringResource(R.string.memory_and_skills), onSkills)
+                }
+            }
+            item {
+                MikaCard(Modifier.padding(top = 14.dp)) {
+                    MakeAction(MikaIcons.Globe, stringResource(R.string.drawer_browser), onBrowser)
+                    HorizontalDivider(Modifier.padding(start = 68.dp), color = c.hair)
+                    MakeAction(MikaIcons.Doc, stringResource(R.string.file_library_title), onFiles)
+                }
+            }
         }
     }
 }
@@ -61,10 +74,12 @@ internal fun MakeScreen(
 private fun MakeAction(icon: ImageVector, label: String, onClick: () -> Unit) {
     val c = MikaTheme.colors
     Row(Modifier.fillMaxWidth().clip(MikaShapes.Card).clickable(role = Role.Button, onClick = onClick)
-        .padding(vertical = 18.dp), horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, null, Modifier.size(24.dp), tint = c.ink)
+        .heightIn(min = 68.dp).padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.size(38.dp).background(c.answer, MikaShapes.Tile), contentAlignment = Alignment.Center) {
+            Icon(icon, null, Modifier.size(21.dp), tint = c.ink)
+        }
         Text(label, Modifier.weight(1f), style = MikaType.BodyStrong, color = c.ink)
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
     }
-    HorizontalDivider(color = c.hair)
 }
