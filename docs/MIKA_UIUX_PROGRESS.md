@@ -182,3 +182,5 @@ Rollback: remove only the newly added program documents/references and root prog
 - Local localization validation **PASS** (2,845 resources, 11 languages), localization tool tests **PASS** (12), and `git diff --check` **PASS**. Android compilation and device tests await GitHub Actions; no new screenshots or visual/performance checks were possible in Muse.
 
 - Stage A GitHub Actions run 43507619564 **FAILED** at Android compilation: the collapsing header passed a general animation specification where Compose requires a finite float specification. Core, CLI/localization and relay jobs passed. The header now uses an explicit finite specification; a new Android CI run is required.
+
+- Stage A GitHub Actions run 43508864408 **PASSED** for commit `cf3b6c9d85c208f2b14b1d27895affd1cb5bc105`: core and Android unit tests, debug APK assembly, Android-test compilation, CLI/localization and relay. APK artifact: `Mika-debug-cf3b6c9d85c208f2b14b1d27895affd1cb5bc105` (artifact 14076543758). The new device tests were compiled, not run; no Android screenshots were captured.
