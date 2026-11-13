@@ -19,8 +19,10 @@
     <string name="orbit_hub_activity">Your activity</string>
     <string name="orbit_hub_open_section">Open</string>
     <string name="orbit_hub_tasks">View tasks</string>
-    <string name="orbit_hub_browser_description">Open your browser and continue browsing.</string>
-    <string name="orbit_hub_memory_description">View and manage memory and learned skills.</string>
-    <string name="orbit_hub_files_description">Browse your files.</string>
-    <string name="orbit_hub_personalization_description">Manage appearance and assistant settings.</string>
+    <string name="orbit_call_phone_permission">请允许 Orbit 的电话权限</string>
+    <string name="orbit_call_helper_connect">请先连接 Orbit 内置助手</string>
+    <string name="orbit_call_helper_unavailable">Orbit 内置助手未连接</string>
+    <string name="orbit_call_unobserved">Android 正在通话，但 Orbit 尚未收到该通话的回调</string>
+    <string name="orbit_call_system_permission">请在 Orbit 的系统权限中允许电话权限</string>
+    <string name="orbit_call_management_unavailable">此系统不允许 Orbit 管理运营商通话</string>
 </resources>

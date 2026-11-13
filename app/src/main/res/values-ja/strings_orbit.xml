@@ -19,8 +19,10 @@
     <string name="orbit_hub_activity">Your activity</string>
     <string name="orbit_hub_open_section">Open</string>
     <string name="orbit_hub_tasks">View tasks</string>
-    <string name="orbit_hub_browser_description">Open your browser and continue browsing.</string>
-    <string name="orbit_hub_memory_description">View and manage memory and learned skills.</string>
-    <string name="orbit_hub_files_description">Browse your files.</string>
-    <string name="orbit_hub_personalization_description">Manage appearance and assistant settings.</string>
+    <string name="orbit_call_phone_permission">Allow phone permissions for Orbit.</string>
+    <string name="orbit_call_helper_connect">Connect the Orbit phone helper first.</string>
+    <string name="orbit_call_helper_unavailable">The Orbit phone helper is not connected.</string>
+    <string name="orbit_call_unobserved">Android is in a call, but Orbit has not received its call event yet.</string>
+    <string name="orbit_call_system_permission">Allow phone permissions for Orbit in system settings.</string>
+    <string name="orbit_call_management_unavailable">This device does not allow Orbit to manage carrier calls.</string>
 </resources>
