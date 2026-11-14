@@ -192,3 +192,10 @@ Rollback: remove only the newly added program documents/references and root prog
 - New UI text uses documented English fallback in the other locales. Android CI, actual persistence across device restarts, scrolling, voice, attachment and accessibility behavior require verification for this stage. No Android screenshot or device test has been run in Muse.
 
 - GitHub Actions run 43512065153 **FAILED** for commit `54d64d99`: Android source and tests compiled, then 1 of 2,153 app unit tests failed because the new workspace listing read every conversation body before paging. Core, CLI/localization and relay passed. The listing now sorts file metadata before lazily reading page contents; this correction needs a new CI run.
+
+- The paging correction is committed at `84239bf9`; its result is **UNVERIFIED**. GitHub accepted the push but created no run; manual workflow dispatch returned HTTP 422, “Actions has been disabled for this repository,” even though the repository Actions permissions API reports enabled. No Android build was attempted in Muse.
+
+## Conversation workspaces — stage C, 2026-11-14
+
+- Channels use small `.workspace` companion metadata and independent existing conversation IDs. Creation, editing, contextual chat labels and removal are wired to the existing drawer and chat state. Removing a channel retains its transcript, task records and files; serial active work is not cancelled. Channel-scoped model instructions are omitted because the existing execution path has no supported per-channel instruction interface.
+- Local localization validation **PASS** (2,862 resources in 11 languages); translation-tool tests **PASS** (12); XML parsing **PASS** (548 files); actionlint and `git diff --check` **PASS**. New Kotlin and device tests, Android compilation and device behavior remain **UNVERIFIED** because GitHub Actions rejected dispatch. New labels use the existing documented English fallback for non-English locales.

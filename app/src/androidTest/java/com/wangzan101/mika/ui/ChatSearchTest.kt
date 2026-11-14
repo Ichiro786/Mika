@@ -143,4 +143,19 @@ class ChatSearchTest {
         assertEquals("Alpha", store.turns("side-0").single().userText)
     }
 
+
+    @Test fun createsChannelWithoutChangingMainConversation() {
+        store.append("main", Turn("Main question", "Main answer", "succeeded"))
+        val vm = vm()
+        compose.runOnIdle { vm.openConversation("main") }
+        show(vm)
+        compose.onNodeWithTag("channel-create").performClick()
+        compose.onNodeWithTag("channel-name").performTextInput("Studio")
+        compose.onNodeWithTag("channel-description").performTextInput("Design notes")
+        compose.onNodeWithTag("channel-save").performClick()
+        compose.waitUntil(5_000) { vm.channelInfo(vm.ui.value.conversationId)?.name == "Studio" }
+        assertEquals("Main question", store.turns("main").single().userText)
+        assertEquals("Design notes", vm.channelInfo(vm.ui.value.conversationId)?.description)
+    }
+
 }

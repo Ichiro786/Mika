@@ -167,6 +167,7 @@ import com.wangzan101.mika.voice.VoiceSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -223,6 +224,11 @@ fun ChatScreen(
     val recommendedTasks by recommendedTasksFlow.collectAsState()
     val ui by vm.ui.collectAsState()
     val isSideChat = remember(ui.conversationId) { vm.isSideChat(ui.conversationId) }
+    var channel by remember(ui.conversationId) { mutableStateOf(vm.channelInfo(ui.conversationId)) }
+    LaunchedEffect(vm, ui.conversationId) {
+        val id = ui.conversationId
+        vm.workspaceChanges.collect { changed -> if (changed == id) channel = vm.channelInfo(id) }
+    }
     val pendingJump by vm.jump.collectAsState()
     val others by vm.otherRunning.collectAsState()
     val keptAny by vm.keptPage.collectAsState()
@@ -414,11 +420,12 @@ fun ChatScreen(
             ) {
                 if (ui.exchanges.isEmpty() && ui.blocked == null) {
                     item("empty") {
-                        if (isSideChat) {
+                        if (isSideChat || channel != null) {
                             Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 52.dp)) {
-                                Text(stringResource(R.string.orbit_side_chat), style = MikaType.LargeTitle, color = c.ink)
-                                Text(stringResource(R.string.orbit_side_context), Modifier.padding(top = 12.dp),
-                                    style = MikaType.Body, color = c.ink2)
+                                Text(channel?.name ?: stringResource(R.string.orbit_side_chat), style = MikaType.LargeTitle, color = c.ink)
+                                val description = channel?.description?.takeIf { it.isNotBlank() }
+                                    ?: stringResource(if (isSideChat) R.string.orbit_side_context else R.string.orbit_channel_empty)
+                                Text(description, Modifier.padding(top = 12.dp), style = MikaType.Body, color = c.ink2)
                             }
                         } else EmptyState(ui.conversationId, recommendedTasks, others.size, onOpenDrawer) { prompt ->
                             if (input.isEmpty()) vm.input(prompt) else pendingExample = prompt
@@ -468,9 +475,13 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
                 titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub,
-                    size = if (sub == null && !isSideChat) 52.dp else 48.dp) },
+                    size = if (sub == null && !isSideChat && channel == null) 52.dp else 48.dp) },
                 centerTitle = true,
-                subtitle = if (isSideChat) listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ") else sub?.first,
+                subtitle = when {
+                    channel != null -> listOfNotNull(channel?.name, sub?.first).joinToString(" · ")
+                    isSideChat -> listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ")
+                    else -> sub?.first
+                },
                 subtitleColor = when (sub?.second) {
                     ChatCopy.Tone.Accent -> c.accent
                     ChatCopy.Tone.Warn -> c.warn

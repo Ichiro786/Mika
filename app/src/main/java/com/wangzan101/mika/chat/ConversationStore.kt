@@ -24,6 +24,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.LinkOption
+import java.nio.file.StandardCopyOption
 import java.util.UUID
 
 /** 每个对话一个小 JSON 文件,放在 App 私有目录;重启后仍在。 */
@@ -116,28 +117,37 @@ class ConversationStore(
             .filter { firstMessage(file(it.id)) == null }
             .filter { includeArchived || archivedAt(it.id) == null }
             .map { summary ->
-                sideChat(summary.id)?.let { summary.copy(updatedAt = it.createdAt, sideChat = it) } ?: summary
+                val side = sideChat(summary.id)
+                val channel = if (side == null) channel(summary.id) else null
+                when {
+                    side != null -> summary.copy(updatedAt = side.createdAt, sideChat = side)
+                    channel != null -> summary.copy(title = channel.name, updatedAt = channel.createdAt, channel = channel)
+                    else -> summary
+                }
             }.toList()
         val pendingIds = unsaved.map { it.id }.toSet()
         // Workspace metadata can exist before the first message. Legacy conversations
         // remain discoverable from their original JSON files, without reclassification.
+        data class Candidate(val id: String, val updatedAt: Long, val side: SideChatOrigin?, val channel: WorkspaceChannel?)
         val saved = dir.listFiles { f -> f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".workspace")) }.orEmpty()
             .map { it.nameWithoutExtension }.distinct()
             .filter { it !in pendingIds }
             .mapNotNull { id ->
                 val f = file(id)
                 val side = sideChat(id)
-                if (!f.isFile && side == null) return@mapNotNull null
-                Triple(id, if (f.isFile) f.lastModified() else side!!.createdAt, side)
+                val channel = if (side == null) channel(id) else null
+                if (!f.isFile && side == null && channel == null) return@mapNotNull null
+                Candidate(id, if (f.isFile) f.lastModified() else side?.createdAt ?: channel!!.createdAt, side, channel)
             }
             // Sort lightweight file metadata first; only parse bodies needed for this page.
-            .sortedWith(compareByDescending<Triple<String, Long, SideChatOrigin?>> { it.second }.thenBy { it.first })
-            .asSequence().mapNotNull { (id, updatedAt, side) ->
+            .sortedWith(compareByDescending<Candidate> { it.updatedAt }.thenBy { it.id })
+            .asSequence().mapNotNull { (id, updatedAt, side, channel) ->
                 val first = firstMessage(file(id))
-                if (first == null && side == null) return@mapNotNull null
+                if (first == null && side == null && channel == null) return@mapNotNull null
                 val archived = archivedAt(id)
                 if (!includeArchived && archived != null) return@mapNotNull null
-                ConversationSummary(id, title(id) ?: first.orEmpty(), updatedAt, pinnedAt(id), pageOrigin(id), branchOrigin(id), archived, restoredAt(id), side)
+                ConversationSummary(id, channel?.name ?: title(id) ?: first.orEmpty(), updatedAt, pinnedAt(id),
+                    pageOrigin(id), branchOrigin(id), archived, restoredAt(id), side, channel)
             }
         return (unsaved.asSequence() + saved).drop(offset).take(limit).toList()
     }
@@ -256,6 +266,61 @@ class ConversationStore(
             if (!temp.renameTo(workspaceFile(id))) throw IOException("Cannot save side chat metadata")
         }.isSuccess
         if (!ok) temp.delete() else _changes.tryEmit(id)
+        return ok
+    }
+
+    /** A channel is metadata for one independent existing-style conversation. */
+    @Synchronized
+    fun channel(conversationId: String): WorkspaceChannel? = runCatching {
+        val f = workspaceFile(conversationId).takeIf { it.isFile } ?: return@runCatching null
+        val o = Json.parseToJsonElement(f.readText()) as? JsonObject ?: return@runCatching null
+        if (str(o, "kind") != "channel") return@runCatching null
+        val name = str(o, "name")?.trim()?.takeIf { it.isNotEmpty() } ?: return@runCatching null
+        val at = str(o, "createdAt")?.toLongOrNull()?.takeIf { it > 0 } ?: return@runCatching null
+        val main = str(o, "main")?.takeIf { it.isNotEmpty() && safe(it) == it }
+        WorkspaceChannel(name, str(o, "description").orEmpty(), at, main)
+    }.getOrNull()
+
+    @Synchronized
+    fun createChannel(id: String, name: String, description: String, main: String?): Boolean {
+        if (id.isEmpty() || safe(id) != id || id in deleted || file(id).exists() || workspaceFile(id).exists()) return false
+        if (main != null && (main.isEmpty() || safe(main) != main)) return false
+        val channel = WorkspaceChannel(name.trim(), description.trim(), clock().coerceAtLeast(1L), main)
+        return writeChannel(id, channel, replace = false)
+    }
+
+    @Synchronized
+    fun updateChannel(id: String, name: String, description: String): Boolean {
+        val current = channel(id) ?: return false
+        return writeChannel(id, current.copy(name = name.trim(), description = description.trim()), replace = true)
+    }
+
+    private fun writeChannel(id: String, channel: WorkspaceChannel, replace: Boolean): Boolean {
+        if (channel.name.isBlank() || channel.name.length > 80 || channel.description.length > 2000) return false
+        if (!dir.isDirectory && !dir.mkdirs()) return false
+        val json = buildJsonObject {
+            put("kind", "channel")
+            put("name", channel.name)
+            put("description", channel.description)
+            put("createdAt", channel.createdAt)
+            channel.mainId?.let { put("main", it) }
+        }
+        val temp = workspaceTempFile(id)
+        val ok = runCatching {
+            temp.writeText(json.toString())
+            if (replace) Files.move(temp.toPath(), workspaceFile(id).toPath(), StandardCopyOption.REPLACE_EXISTING)
+            else Files.move(temp.toPath(), workspaceFile(id).toPath())
+        }.isSuccess
+        if (!ok) temp.delete() else _changes.tryEmit(id)
+        return ok
+    }
+
+    /** Removing a channel leaves its transcript, runs, and files intact. */
+    @Synchronized
+    fun removeChannel(id: String): Boolean {
+        if (channel(id) == null) return false
+        val ok = runCatching { Files.deleteIfExists(workspaceFile(id).toPath()) }.getOrDefault(false)
+        if (ok) _changes.tryEmit(id)
         return ok
     }
 
@@ -654,7 +719,10 @@ data class ConversationSummary(
     /** 最近一次手动取消归档的时间;自动归档给它一段宽限。 */
     val restoredAt: Long? = null,
     val sideChat: SideChatOrigin? = null,
+    val channel: WorkspaceChannel? = null,
 )
+
+data class WorkspaceChannel(val name: String, val description: String, val createdAt: Long, val mainId: String?)
 
 /** Parent position is a count of saved turns; parent context is not copied or inherited. */
 data class SideChatOrigin(val createdAt: Long, val parentId: String?, val parentTurn: Int?, val mainId: String?)

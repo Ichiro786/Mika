@@ -99,9 +99,9 @@ internal fun ConversationMenu(
                 item.saved && !item.running -> MenuEntry(stringResource(R.string.drawer_archive), MikaIcons.Archive, "drawer-menu-archive", onClick = onArchive)
                 else -> null
             },
-            MenuEntry(stringResource(R.string.drawer_rename), MikaIcons.Edit, "drawer-menu-rename", onClick = onRename),
+            MenuEntry(stringResource(if (item.channel) R.string.orbit_channel_edit else R.string.drawer_rename), MikaIcons.Edit, "drawer-menu-rename", onClick = onRename),
             MenuEntry(stringResource(R.string.terminal_open), MikaIcons.Terminal, "drawer-menu-terminal", onClick = onTerminal),
-            MenuEntry(stringResource(R.string.confirm_delete), MikaIcons.Trash, "drawer-menu-delete", c.bad, onDelete),
+            MenuEntry(stringResource(if (item.channel) R.string.orbit_channel_remove else R.string.confirm_delete), MikaIcons.Trash, "drawer-menu-delete", c.bad, onDelete),
         ),
         onDismiss = onDismiss,
     ) { LiftedRow(item) }

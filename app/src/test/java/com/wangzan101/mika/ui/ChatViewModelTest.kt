@@ -154,6 +154,46 @@ class ChatViewModelTest {
         }
     }
 
+    @Test fun channelSwitchingAndRemovalPreserveConversationAndDrafts() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        store.append("main", Turn("Main question", "Main answer", "succeeded"))
+        val vm = vm(store)
+        vm.openConversation("main")
+        vm.input("Main draft")
+        assertTrue(vm.createChannel("Project", "Notes"))
+        val channel = requireNotNull(vm.ui.value.conversationId)
+        assertEquals("Project", store.channel(channel)?.name)
+        vm.input("Project draft")
+        vm.openMainChat()
+        assertEquals("Main draft", vm.ui.value.input)
+        vm.openConversation(channel)
+        assertEquals("Project draft", vm.ui.value.input)
+        assertTrue(vm.createSideChat())
+        val side = requireNotNull(vm.ui.value.conversationId)
+        assertEquals(channel, store.sideChat(side)?.parentId)
+        assertEquals("main", store.sideChat(side)?.mainId)
+        vm.openMainChat()
+        assertEquals("main", vm.ui.value.conversationId)
+        vm.openConversation(channel)
+        assertEquals("Project draft", vm.ui.value.input)
+        assertTrue(vm.removeChannel(channel))
+        assertEquals("main", vm.ui.value.conversationId)
+        assertEquals("Main question", store.turns("main").single().userText)
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
+    @Test fun removingCurrentChannelDuringSerialRunDoesNotCancelIt() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        val vm = vm(store)
+        assertTrue(vm.createChannel("Project", ""))
+        val channel = requireNotNull(vm.ui.value.conversationId)
+        assertTrue(vm.send("Working", ok))
+        assertFalse(vm.removeChannel(channel))
+        assertEquals(channel, vm.ui.value.conversationId)
+        assertEquals("Project", store.channel(channel)?.name)
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
     @Test fun serialRunCannotBeCancelledOrSwitchedByCreatingSideChat() = runTest {
         val store = ConversationStore(tmp.newFolder())
         val vm = vm(store)

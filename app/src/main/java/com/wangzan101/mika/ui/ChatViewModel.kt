@@ -13,6 +13,7 @@ import com.wangzan101.mika.chat.RetryAttachmentResult
 import com.wangzan101.mika.chat.RetryAttachmentStatus
 import com.wangzan101.mika.chat.ConversationStore
 import com.wangzan101.mika.chat.ConversationSummary
+import com.wangzan101.mika.chat.WorkspaceChannel
 import com.wangzan101.mika.chat.CurrentChat
 import com.wangzan101.mika.chat.DeleteBatch
 import com.wangzan101.mika.chat.DeleteImpact
@@ -1738,25 +1739,52 @@ class ChatViewModel(
         markCurrent(CurrentChat.Fresh)
     }
 
-    /** Side chats use the same execution and draft owners as every other conversation. */
+    /** Workspaces use the existing execution and draft owners, with separate conversation IDs. */
+    val workspaceChanges = store.changes
     fun isSideChat(id: String?): Boolean = id != null && store.sideChat(id) != null
+    fun channelInfo(id: String?): WorkspaceChannel? = id?.let(store::channel)
+
+    private fun mainConversationOf(id: String): String =
+        store.sideChat(id)?.let { it.mainId ?: it.parentId } ?: store.channel(id)?.mainId ?: id
 
     fun createSideChat(): Boolean {
         refreshParallel()
         if (!canSwitch()) return false
         val parent = draftConversation()
-        val origin = store.sideChat(parent)
-        val main = origin?.mainId ?: origin?.parentId ?: parent
         val id = store.newConversation()
-        if (!store.createSideChat(id, parent, store.turns(parent).size, main)) return false
+        if (!store.createSideChat(id, parent, store.turns(parent).size, mainConversationOf(parent))) return false
         openConversation(id)
         return _ui.value.conversationId == id
     }
 
+    fun createChannel(name: String, description: String): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val id = store.newConversation()
+        if (!store.createChannel(id, name, description, mainConversationOf(parent))) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun updateChannel(id: String, name: String, description: String): Boolean = store.updateChannel(id, name, description)
+
+    fun removeChannel(id: String): Boolean {
+        val channel = store.channel(id) ?: return false
+        refreshParallel()
+        if (_ui.value.conversationId == id && !canSwitch()) return false
+        if (!store.removeChannel(id)) return false
+        if (_ui.value.conversationId == id) {
+            val main = channel.mainId
+            if (main == null || main == id) newConversation() else openConversation(main)
+        }
+        return true
+    }
+
     fun openMainChat() {
-        val origin = _ui.value.conversationId?.let(store::sideChat) ?: return
-        val id = origin.mainId ?: origin.parentId
-        if (id == null) newConversation() else openConversation(id)
+        val current = _ui.value.conversationId ?: return
+        val main = mainConversationOf(current)
+        if (main != current) openConversation(main)
     }
 
     /** 屏上这个对话此刻有没有任务在跑或排队。 */
