@@ -58,4 +58,7 @@
     <string name="whatsapp_you">أنت</string>
     <string name="whatsapp_file_saved">تم حفظ %1$s على هاتفك. افتح Orbit لعرضه.</string>
     <string name="whatsapp_footer">تُخزَّن جلسة WhatsApp على هذا الهاتف فقط ولا تُدرج في النسخ الاحتياطية. يحتفظ Orbit بآخر 50 رسالة من كل محادثة تختارها على هذا الهاتف ليتمكن من قراءتها، ولا تُخزَّن المحادثات الأخرى أبدًا.</string>
+    <string name="whatsapp_tool_chats">محادثات WhatsApp</string>
+    <string name="whatsapp_tool_read">قراءة WhatsApp</string>
+    <string name="whatsapp_tool_send">إرسال رسالة WhatsApp</string>
 </resources>

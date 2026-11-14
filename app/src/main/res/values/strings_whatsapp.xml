@@ -58,4 +58,7 @@
     <string name="whatsapp_you">You</string>
     <string name="whatsapp_file_saved">Saved %1$s on your phone. Open Orbit to see it.</string>
     <string name="whatsapp_footer">The WhatsApp session is stored only on this phone and left out of backups. Orbit keeps the last 50 messages of each chat you pick, on this phone, so it can read them; other chats are never stored.</string>
+    <string name="whatsapp_tool_chats">WhatsApp chats</string>
+    <string name="whatsapp_tool_read">Read WhatsApp</string>
+    <string name="whatsapp_tool_send">Send WhatsApp message</string>
 </resources>

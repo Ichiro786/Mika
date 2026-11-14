@@ -58,4 +58,7 @@
     <string name="whatsapp_you">你</string>
     <string name="whatsapp_file_saved">已將 %1$s 儲存到你的手機。開啟 Orbit 即可查看。</string>
     <string name="whatsapp_footer">WhatsApp 工作階段只儲存在這支手機上，且不會包含在備份中。對於你選擇的每個對話，Orbit 會在這支手機上保留最近 50 則訊息以便讀取；其他對話絕不會被儲存。</string>
+    <string name="whatsapp_tool_chats">WhatsApp 對話</string>
+    <string name="whatsapp_tool_read">讀取 WhatsApp</string>
+    <string name="whatsapp_tool_send">傳送 WhatsApp 訊息</string>
 </resources>

@@ -58,4 +58,7 @@
     <string name="whatsapp_you">شما</string>
     <string name="whatsapp_file_saved">%1$s روی تلفن شما ذخیره شد. برای دیدن آن، Orbit را باز کنید.</string>
     <string name="whatsapp_footer">نشست WhatsApp فقط روی همین تلفن ذخیره می‌شود و در پشتیبان‌ها نیست. Orbit آخرین ۵۰ پیام هر گفتگوی انتخابی را روی همین تلفن نگه می‌دارد تا بتواند آن‌ها را بخواند؛ گفتگوهای دیگر هرگز ذخیره نمی‌شوند.</string>
+    <string name="whatsapp_tool_chats">گفتگوهای WhatsApp</string>
+    <string name="whatsapp_tool_read">خواندن WhatsApp</string>
+    <string name="whatsapp_tool_send">ارسال پیام WhatsApp</string>
 </resources>

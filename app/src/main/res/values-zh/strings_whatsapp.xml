@@ -58,4 +58,7 @@
     <string name="whatsapp_you">你</string>
     <string name="whatsapp_file_saved">已将 %1$s 保存到你的手机。打开 Orbit 即可查看。</string>
     <string name="whatsapp_footer">WhatsApp 会话仅存储在这部手机上，且不包含在备份中。对于你选择的每个聊天，Orbit 会在这部手机上保留最近 50 条消息以便读取；其他聊天绝不会被存储。</string>
+    <string name="whatsapp_tool_chats">WhatsApp 对话</string>
+    <string name="whatsapp_tool_read">读取 WhatsApp</string>
+    <string name="whatsapp_tool_send">发送 WhatsApp 消息</string>
 </resources>

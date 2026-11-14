@@ -58,4 +58,7 @@
     <string name="whatsapp_you">Anda</string>
     <string name="whatsapp_file_saved">%1$s disimpan di ponsel Anda. Buka Orbit untuk melihatnya.</string>
     <string name="whatsapp_footer">Sesi WhatsApp hanya disimpan di ponsel ini dan tidak disertakan dalam cadangan. Orbit menyimpan 50 pesan terakhir dari setiap obrolan yang Anda pilih, di ponsel ini, agar dapat membacanya; obrolan lain tidak pernah disimpan.</string>
+    <string name="whatsapp_tool_chats">Chat WhatsApp</string>
+    <string name="whatsapp_tool_read">Baca WhatsApp</string>
+    <string name="whatsapp_tool_send">Kirim pesan WhatsApp</string>
 </resources>
