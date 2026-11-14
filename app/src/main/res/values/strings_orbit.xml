@@ -47,4 +47,6 @@
     <string name="orbit_attach_media">Photos and videos</string>
     <string name="orbit_attach_title">Add to conversation</string>
     <string name="orbit_picker_unavailable">No compatible picker is available.</string>
+    <string name="orbit_make_subtitle">Everything Orbit has made for you.</string>
+    <string name="orbit_make_empty">Nothing here yet. Files Orbit creates in your chats will show up here.</string>
 </resources>

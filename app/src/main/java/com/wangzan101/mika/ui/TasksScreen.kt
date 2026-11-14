@@ -138,6 +138,7 @@ internal fun TasksScreen(
     var selectedTask by rememberSaveable { mutableStateOf<String?>(null) }
     var replay by rememberSaveable { mutableStateOf<String?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
+    var creatingPlan by rememberSaveable { mutableStateOf<String?>(null) }
     LifecycleResumeEffect(Unit) {
         refresh++
         onPauseOrDispose {}
@@ -268,10 +269,28 @@ internal fun TasksScreen(
             Box(
                 Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomInset + 20.dp).size(56.dp)
                     .clip(RoundedCornerShape(20.dp)).background(TaskCoral)
-                    .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) { onPlans(null, true) },
+                    .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) {
+                        // Create right here, over Tasks: no detour through the schedules page, and Cancel stays on Tasks.
+                        creatingPlan = runCatching { ConversationStore.shared(context).newConversation() }.getOrNull()
+                    },
                 contentAlignment = Alignment.Center,
             ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = Color.White) }
         }
+    }
+
+    creatingPlan?.let { threadId ->
+        PlanEditorDialog(
+            original = null,
+            newThreadId = threadId,
+            onDismiss = { creatingPlan = null },
+            onSave = { plan ->
+                runCatching { TriggerRuntime.schedule(context, plan) }
+                    .onSuccess { creatingPlan = null; refresh++ }
+                    .onFailure {
+                        android.widget.Toast.makeText(context, it.message ?: context.getString(R.string.op_failed), android.widget.Toast.LENGTH_SHORT).show()
+                    }
+            },
+        )
     }
 
     selectedTask?.let { id -> personal.tasks.firstOrNull { it.id == id } }?.let { task ->

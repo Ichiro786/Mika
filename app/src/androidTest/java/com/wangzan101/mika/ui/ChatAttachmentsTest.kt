@@ -58,16 +58,20 @@ class ChatAttachmentsTest {
                 var t by remember { mutableStateOf(text) }
                 var followUpMode by remember { mutableStateOf(FollowUpMode.Steer) }
                 val canAttach = mode == ComposerMode.Idle || followUpMode == FollowUpMode.Queue
+                var open by remember { mutableStateOf(false) }
                 Box(Modifier.fillMaxSize()) {
                     Composer(
                         Modifier, t, { t = it }, mode, hasHistory = false, onSend = onSend, onStop = {},
                         followUpMode = followUpMode,
                         onFollowUpMode = { followUpMode = it },
-                        attachPanel = if (canAttach) ({ Box(Modifier.fillMaxSize().testTag("panel-body")) }) else null,
+                        attachOpen = open && canAttach,
+                        onAttachOpen = if (canAttach) ({ open = it }) else null,
                         attachBlocked = !canAttach,
                         attachments = attachments,
                         rejected = rejected,
                     )
+                    AttachMenuOverlay(open = open && canAttach, onDismiss = { open = false },
+                        actions = AttachActions({}, {}, {}), bottom = 80.dp)
                 }
             }
         }
@@ -88,12 +92,12 @@ class ChatAttachmentsTest {
 
     @Test fun plusOpensThePanelAndTurnsIntoClose() {
         composer()
-        compose.onAllNodesWithTag("panel-body").assertCountEquals(0)
+        compose.onAllNodesWithTag("attach-panel").assertCountEquals(0)
         compose.onNodeWithContentDescription(AttachCopy.ADD).performClick()
-        compose.onNodeWithTag("panel-body").assertIsDisplayed()
+        compose.onNodeWithTag("attach-panel").assertIsDisplayed()
         // 再点(这时是 ×)收起
         compose.onNodeWithContentDescription(AttachCopy.CLOSE).performClick()
-        waitGone("panel-body")
+        waitGone("attach-panel")
         compose.onNodeWithContentDescription(AttachCopy.ADD).assertIsDisplayed()
     }
 
@@ -103,23 +107,23 @@ class ChatAttachmentsTest {
         compose.onNodeWithTag("follow-up-mode-queue").assertIsDisplayed().performClick()
         compose.onNode(hasTestTag("follow-up-mode-queue") and isSelected()).assertIsDisplayed()
         compose.onNodeWithContentDescription(AttachCopy.ADD).performClick()
-        compose.onNodeWithTag("panel-body").assertIsDisplayed()
+        compose.onNodeWithTag("attach-panel").assertIsDisplayed()
     }
 
     @Test fun tappingTheFieldClosesThePanel() {
         composer()
         compose.onNodeWithContentDescription(AttachCopy.ADD).performClick()
-        compose.onNodeWithTag("panel-body").assertIsDisplayed()
+        compose.onNodeWithTag("attach-panel").assertIsDisplayed()
         compose.onNodeWithTag("composer-field").performClick()
-        waitGone("panel-body")
+        waitGone("attach-panel")
     }
 
     @Test fun backClosesThePanelFirst() {
         composer()
         compose.onNodeWithContentDescription(AttachCopy.ADD).performClick()
-        compose.onNodeWithTag("panel-body").assertIsDisplayed()
+        compose.onNodeWithTag("attach-panel").assertIsDisplayed()
         compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
-        waitGone("panel-body")
+        waitGone("attach-panel")
         assertEquals(false, compose.activity.isFinishing)
     }
 

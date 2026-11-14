@@ -117,7 +117,8 @@ internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit) {
             keyboard?.hide()
             onClick()
         }.testTag("orbit-hub-open"), contentAlignment = Alignment.Center) {
-        MikaPresenceAvatar(Modifier.size(size), state = state, framed = true)
+        val hidden = LocalOrbitHubShowing.current
+        MikaPresenceAvatar(Modifier.size(size).graphicsLayer { alpha = if (hidden) 0f else 1f }, state = state, framed = true)
     }
 }
 
@@ -127,7 +128,13 @@ private class HubSectionCache {
     var memory by mutableStateOf<Result<HubMemoryData>?>(null)
     var files by mutableStateOf<Result<FileLibrarySnapshot>?>(null)
     var filesRevision by mutableIntStateOf(0)
+    // Today keeps its last read too, so coming back to the tab never flashes "Loading" again.
+    var schedules by mutableStateOf<Result<TriggerSnapshot>?>(null)
+    var history by mutableStateOf<Result<List<StoredRun>>?>(null)
 }
+
+/** Whether the Orbit hub is on screen (or animating); header avatars hide so only one presence shows. */
+internal val LocalOrbitHubShowing = androidx.compose.runtime.compositionLocalOf { false }
 private val hubSections = listOf(
     HubSection(R.string.orbit_hub_today, MikaIcons.Clock),
     HubSection(R.string.drawer_browser, MikaIcons.Globe),
@@ -180,8 +187,12 @@ internal fun OrbitHub(
     val presenceVisible by remember(list, presenceLimit) {
         derivedStateOf { list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset < presenceLimit }
     }
-    Box(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding().testTag("orbit-hub")) {
-        LazyColumn(Modifier.fillMaxSize().padding(top = 48.dp).testTag("orbit-hub-scroll"), state = list) {
+    // The page goes opaque quickly while the presence grows out of the header, then the content fades in:
+    // nothing from the screen underneath shows through, and there is only ever one avatar.
+    val backdropAlpha = (expansion * 2.2f).coerceIn(0f, 1f)
+    val contentAlpha = ((expansion - 0.35f) / 0.65f).coerceIn(0f, 1f)
+    Box(Modifier.fillMaxSize().background(c.bg.copy(alpha = backdropAlpha)).statusBarsPadding().navigationBarsPadding().testTag("orbit-hub")) {
+        LazyColumn(Modifier.fillMaxSize().padding(top = 48.dp).graphicsLayer { alpha = contentAlpha }.testTag("orbit-hub-scroll"), state = list) {
             item(key = "presence") {
                 Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     // Space for the presence, drawn above the list to preserve its entrance path.
@@ -200,7 +211,7 @@ internal fun OrbitHub(
                     Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
                         modifier = Modifier.padding(bottom = 14.dp))
                     when (selected) {
-                        0 -> HubToday(personal, taskState, runStore, onTasks, onPlans, onOpenTask)
+                        0 -> HubToday(personal, taskState, runStore, cache, onTasks, onPlans, onOpenTask)
                         1 -> HubBrowser(onBrowser)
                         2 -> HubMemory(memory, cache, onMemory)
                         3 -> HubFiles(cache, onFiles)
@@ -221,7 +232,7 @@ internal fun OrbitHub(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().align(Alignment.TopCenter)
+        Row(Modifier.fillMaxWidth().align(Alignment.TopCenter).graphicsLayer { alpha = contentAlpha }
             .background(if (collapsed) c.bg else c.bg.copy(alpha = 0f)).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
@@ -272,13 +283,13 @@ private fun HubIconButton(icon: ImageVector, label: String, onClick: () -> Unit)
 }
 
 @Composable
-private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit) {
+private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, cache: HubSectionCache, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit) {
     val c = MikaTheme.colors
     val context = LocalContext.current
     val snapshot by personal.state.collectAsState()
     val runs by taskState.runs.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
-    val schedules by produceState<Result<TriggerSnapshot>?>(null) {
+    val schedules by produceState(cache.schedules) {
         value = try {
             Result.success(withContext(Dispatchers.IO) { TriggerRuntime.snapshot(context) })
         } catch (e: CancellationException) {
@@ -286,11 +297,12 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
         } catch (e: Exception) {
             Result.failure(e)
         }
+        cache.schedules = value
     }
     val tasks = remember(snapshot.tasks) { snapshot.tasks.sortedByDescending { it.at }.take(4) }
     val otherRuns = runs.filter { run -> snapshot.tasks.none { it.conversationId == run.conversationId } }.take(4)
     val plans = schedules?.getOrNull()?.triggers.orEmpty().filter { it.enabled }.sortedBy { it.nextAtMs }.take(3)
-    val history by produceState<Result<List<StoredRun>>?>(null, runs.map { it.key }) {
+    val history by produceState(cache.history, runs.map { it.key }) {
         value = try {
             Result.success(withContext(Dispatchers.IO) {
                 val conversations = ConversationStore.shared(context).list(includeArchived = true).mapTo(mutableSetOf()) { it.id }
@@ -301,6 +313,7 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
         } catch (e: Exception) {
             Result.failure(e)
         }
+        cache.history = value
     }
     val personalIds = snapshot.tasks.mapTo(mutableSetOf()) { it.conversationId }
     val liveIds = runs.mapNotNullTo(mutableSetOf()) { it.runId.value }

@@ -12,6 +12,21 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.input.pointer.pointerInput
+import com.wangzan101.mika.ui.components.SmokedGlassPanel
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,20 +97,25 @@ object AttachCopy {
     fun overLimit(n: Int) = tr(R.string.attach_over_limit, AttachTray.LIMIT, n)
 }
 
-// ---------- 面板 ----------
+// ---------- 菜单 ----------
 
-/** Opens supported system pickers without requesting broad media-library access. */
+/** The three system pickers behind the composer's plus menu. */
+@androidx.compose.runtime.Stable
+internal class AttachActions(val camera: () -> Unit, val media: () -> Unit, val files: () -> Unit)
+
+/**
+ * Registers the system pickers without requesting broad media-library access.
+ * Keep this composed while a picker is open (the menu itself closes on tap), or the result is lost.
+ */
 @Composable
-internal fun AttachPanelHost(
-    onPicked: (List<String>) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+internal fun rememberAttachActions(onPicked: (List<String>) -> Unit): AttachActions {
     val context = LocalContext.current
+    val picked by androidx.compose.runtime.rememberUpdatedState(onPicked)
     var cameraUri by rememberSaveable { mutableStateOf<String?>(null) }
     val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { ok ->
         val uri = cameraUri ?: return@rememberLauncherForActivityResult
         cameraUri = null
-        if (ok) onPicked(listOf(uri)) else AttachFiles.discardCamera(context, Uri.parse(uri))
+        if (ok) picked(listOf(uri)) else AttachFiles.discardCamera(context, Uri.parse(uri))
     }
     fun startCamera() {
         val uri = runCatching { AttachFiles.newCameraUri(context) }.getOrElse {
@@ -119,10 +139,10 @@ internal fun AttachPanelHost(
         if (granted) startCamera()
     }
     val album = rememberLauncherForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(AttachTray.LIMIT)) { uris ->
-        if (uris.isNotEmpty()) onPicked(uris.map { it.toString() })
+        if (uris.isNotEmpty()) picked(uris.map { it.toString() })
     }
     val files = rememberLauncherForActivityResult(ActivityResultContracts.OpenMultipleDocuments()) { uris ->
-        if (uris.isNotEmpty()) onPicked(uris.map { it.toString() })
+        if (uris.isNotEmpty()) picked(uris.map { it.toString() })
     }
     fun openPicker(action: () -> Unit) {
         try { action() } catch (e: ActivityNotFoundException) {
@@ -131,51 +151,97 @@ internal fun AttachPanelHost(
             Toast.makeText(context, R.string.orbit_picker_unavailable, Toast.LENGTH_SHORT).show()
         }
     }
-    AttachPanel(
-        onCamera = {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
-            else cameraPermission.launch(Manifest.permission.CAMERA)
-        },
-        onAlbum = { openPicker { album.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } },
-        onFiles = { openPicker { files.launch(arrayOf("*/*")) } },
-        modifier = modifier,
-    )
+    return remember(camera, album, files, cameraPermission) {
+        AttachActions(
+            camera = {
+                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCamera()
+                else cameraPermission.launch(Manifest.permission.CAMERA)
+            },
+            media = { openPicker { album.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)) } },
+            files = { openPicker { files.launch(arrayOf("*/*")) } },
+        )
+    }
 }
 
-/** Compact actions; selected files remain in the existing composer tray. */
+/**
+ * The plus button's menu: a small smoked-glass column that floats just above the composer,
+ * anchored under the plus (like X's attach menu). Tapping outside, Back, or any choice closes it.
+ * [bottom] is the distance from the bottom of this overlay to the top of the composer.
+ */
+@Composable
+internal fun AttachMenuOverlay(
+    open: Boolean,
+    onDismiss: () -> Unit,
+    actions: AttachActions,
+    bottom: Dp,
+    modifier: Modifier = Modifier,
+    onTeach: (() -> Unit)? = null,
+    backdrop: com.wangzan101.mika.ui.components.GlassBackdrop? = null,
+    reduceMotion: Boolean = false,
+) {
+    androidx.activity.compose.BackHandler(enabled = open, onBack = onDismiss)
+    Box(modifier.fillMaxSize()) {
+        if (open) {
+            Box(
+                Modifier.fillMaxSize().testTag("attach-scrim")
+                    // Tap anywhere else to close; Back and the plus (now ×) close it for TalkBack users.
+                    .pointerInput(onDismiss) { detectTapGestures { onDismiss() } },
+            )
+        }
+        AnimatedVisibility(
+            visible = open,
+            modifier = Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = bottom),
+            enter = if (reduceMotion) fadeIn(snap()) else
+                fadeIn(tween(120)) + scaleIn(spring(dampingRatio = 0.72f, stiffness = 520f), initialScale = 0.82f, transformOrigin = MenuOrigin),
+            exit = if (reduceMotion) fadeOut(snap()) else
+                fadeOut(tween(110)) + scaleOut(tween(140, easing = com.wangzan101.mika.ui.theme.MikaMotion.Decelerate), targetScale = 0.9f, transformOrigin = MenuOrigin),
+        ) {
+            AttachPanel(
+                onCamera = { onDismiss(); actions.camera() },
+                onAlbum = { onDismiss(); actions.media() },
+                onFiles = { onDismiss(); actions.files() },
+                onTeach = onTeach?.let { teach -> { onDismiss(); teach() } },
+                backdrop = backdrop,
+            )
+        }
+    }
+}
+
+/** Compact vertical list of attach choices on smoked glass; picked files land in the composer tray. */
 @Composable
 internal fun AttachPanel(
     onCamera: () -> Unit,
     onAlbum: () -> Unit,
     onFiles: () -> Unit,
     modifier: Modifier = Modifier,
+    onTeach: (() -> Unit)? = null,
+    backdrop: com.wangzan101.mika.ui.components.GlassBackdrop? = null,
 ) {
-    val c = MikaTheme.colors
-    Column(modifier.fillMaxWidth().testTag("attach-panel").padding(horizontal = 12.dp, vertical = 8.dp)
-        .cardSurface(c, PanelShape).clip(PanelShape).padding(12.dp)) {
-        Text(stringResource(R.string.orbit_attach_title), style = MikaType.BodyStrong, color = c.ink,
-            modifier = Modifier.padding(start = 2.dp, bottom = 10.dp))
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Tile(MikaIcons.PhotoCamera, AttachCopy.CAMERA, onCamera)
-            Tile(MikaIcons.Photo, AttachCopy.ALBUM, onAlbum)
-            Tile(MikaIcons.Paperclip, AttachCopy.FILES, onFiles)
-        }
+    SmokedGlassPanel(modifier.widthIn(min = 196.dp, max = 260.dp).width(IntrinsicSize.Max).testTag("attach-panel"), backdrop, PanelShape) {
+        MenuRow(MikaIcons.Photo, AttachCopy.ALBUM, onAlbum)
+        MenuRow(MikaIcons.PhotoCamera, AttachCopy.CAMERA, onCamera)
+        MenuRow(MikaIcons.Paperclip, AttachCopy.FILES, onFiles)
+        if (onTeach != null) MenuRow(MikaIcons.Spark, stringResource(R.string.teach_menu), onTeach, Modifier.testTag("teach-mika"))
     }
 }
 
 @Composable
-private fun RowScope.Tile(icon: ImageVector, label: String, onClick: () -> Unit) {
+private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
-    Column(
-        Modifier.weight(1f).heightIn(min = 76.dp).cardSurface(c, TileShape).clip(TileShape)
-            .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 3.dp, vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterVertically),
+    Row(
+        modifier.fillMaxWidth().heightIn(min = 52.dp).clickable(role = Role.Button, onClick = onClick)
+            .padding(start = 10.dp, end = 20.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        Icon(icon, null, Modifier.size(24.dp), tint = c.ink)
-        Text(label, style = TileText, color = c.ink, textAlign = TextAlign.Center, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Box(Modifier.size(40.dp).background(c.ink.copy(alpha = if (c.isDark) 0.09f else 0.06f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(icon, null, Modifier.size(20.dp), tint = c.ink)
+        }
+        Text(label, style = MenuText, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
+
+private val MenuOrigin = TransformOrigin(0.08f, 1f)
 
 // ---------- 待发 ----------
 
@@ -330,12 +396,11 @@ private const val SINGLE_PX = 640
 
 private val SingleWidth = 200.dp
 private val NeutralBadge = Color(0xFF8E8E93)
-private val PanelShape = RoundedCornerShape(22.dp)
-private val TileShape = RoundedCornerShape(16.dp)
+private val PanelShape = RoundedCornerShape(26.dp)
 private val ChipShape = RoundedCornerShape(12.dp)
 private val GridPhotoShape = RoundedCornerShape(14.dp)
 private val FileCardShape = RoundedCornerShape(14.dp)
-private val TileText = TextStyle(fontSize = 12.5.sp, lineHeight = 16.sp)
+private val MenuText = TextStyle(fontSize = 16.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
 private val BadgeSmall = TextStyle(fontSize = 8.5.sp, lineHeight = 10.sp, fontWeight = FontWeight.Bold)
 private val BadgeLarge = TextStyle(fontSize = 10.5.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold)
 private val ChipName = TextStyle(fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)

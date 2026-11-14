@@ -52,6 +52,8 @@ internal fun PrimaryNavigation(
     GlassBar(
         modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp),
         backdrop = backdrop,
+        // Thinner tint than the composer so the live blur of what scrolls behind reads as frosted glass.
+        tint = if (c.isDark) 0.58f else 0.6f,
     ) {
         Row(Modifier.weight(1f).selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
             tabs.forEach { (route, label, icon) ->

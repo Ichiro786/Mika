@@ -98,15 +98,19 @@ class BrowserScreenTest {
     }
 
     @Test
-    fun makeHasBrowserEntryThatOpensIt() {
+    fun makeShowsOnlyMadeArtifacts() {
+        val made = MadeArtifact(
+            "out", "report.pdf", "12 KB", 1_000L,
+            LibraryFileHandle.Exported(com.wangzan101.mika.chat.SharedFile("report.pdf", 12_000, "report.pdf", "content://made/1")),
+            com.wangzan101.mika.chat.FileSource("c1", 0, null, 1_000L),
+        )
         compose.setContent {
             MikaTheme {
-                MakeScreen(onOpenDrawer = {}, onTeach = {}, onSkills = {},
-                    onBrowser = { calls += "browser" }, onFiles = {})
+                MakeScreen(onOpenDrawer = {}, load = { listOf(made) })
             }
         }
-        compose.onNodeWithText("浏览器").assertIsDisplayed().performClick()
-        assertEquals(listOf("browser"), calls)
+        compose.onNodeWithText("report.pdf").assertIsDisplayed()
+        compose.onNodeWithText("浏览器").assertDoesNotExist()
     }
 
     @Test

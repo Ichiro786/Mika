@@ -6,8 +6,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.spring
+import com.wangzan101.mika.ui.theme.MikaMotion
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
@@ -15,7 +15,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -589,15 +588,20 @@ private fun MikaRoot(
                 resetKey = nav.resetSerial,
                 onBackFromPrimary = if (nav.current == Route.Tasks || nav.current == Route.Make) ({ nav.back() }) else null,
             ) { openDrawer ->
+                val hubState = remember { androidx.compose.animation.core.MutableTransitionState(orbitHubOpen) }
+                hubState.targetState = orbitHubOpen
+                val hubShowing = hubState.currentState || hubState.targetState
+                androidx.compose.runtime.CompositionLocalProvider(LocalOrbitHubShowing provides hubShowing) {
                 Box(Modifier.fillMaxSize()) {
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
                     val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
                     val navDensity = LocalDensity.current
-                    val navVisible = WindowInsets.ime.getBottom(navDensity) == 0
+                    // The bar stays put while the keyboard is up (the keyboard slides over it), so nothing
+                    // re-mounts and the composer never snaps when the keyboard closes.
                     var navHeight by remember(navDensity) { mutableIntStateOf(with(navDensity) { 74.dp.roundToPx() }) }
-                    val navInset = if (navVisible) with(navDensity) { navHeight.toDp() } else 0.dp
-                    val navBackdrop = if (navVisible) rememberGlassBackdrop() else null
+                    val navInset = with(navDensity) { navHeight.toDp() }
+                    val navBackdrop = rememberGlassBackdrop()
                     Box(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
                         Box(Modifier.fillMaxSize().glassSource(navBackdrop)) {
                             if (nav.current == Route.Tasks) TasksScreen(
@@ -612,13 +616,15 @@ private fun MikaRoot(
                                 bottomInset = navInset,
                             ) else if (nav.current == Route.Make) MakeScreen(
                                 onOpenDrawer = openDrawer,
-                                onTeach = { nav.push(Route.Teach) },
-                                onSkills = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
-                                onBrowser = { nav.push(Route.Browser) },
-                                onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
                                 bottomInset = navInset,
+                                onOpenSource = { id, target ->
+                                    app.chat.openConversationAt(id, target)
+                                    val opened = app.chat.ui.value.conversationId == id
+                                    if (opened) nav.reset()
+                                    opened
+                                },
                             ) else if (nav.current == Route.Personal) {
                                 Box(Modifier.fillMaxSize().padding(bottom = navInset)) {
                                     PersonalAgentScreen(
@@ -664,13 +670,11 @@ private fun MikaRoot(
                                 primaryBottomInset = navInset,
                             )
                         }
-                        if (navVisible) {
-                            PrimaryNavigation(nav.current,
-                                modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
-                                backdrop = navBackdrop,
-                            ) { route ->
-                                if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
-                            }
+                        PrimaryNavigation(nav.current,
+                            modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
+                            backdrop = navBackdrop,
+                        ) { route ->
+                            if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
                         }
                     }
                     var installUpdate by remember { mutableStateOf<ReleaseInfo?>(null) }
@@ -693,13 +697,18 @@ private fun MikaRoot(
                     }
                     val still = MikaTheme.reduceMotion
                     AnimatedVisibility(
-                        visible = orbitHubOpen,
-                        enter = if (still) EnterTransition.None else fadeIn(tween(220)),
-                        exit = if (still) ExitTransition.None else fadeOut(tween(220)),
+                        visibleState = hubState,
+                        // The hub fades its own page and content against `expansion`; the presence stays solid.
+                        enter = EnterTransition.None,
+                        exit = ExitTransition.None,
                     ) {
                         // Keep the presence synchronized with the panel in both directions.
                         val expansion by transition.animateFloat(
-                            transitionSpec = { if (still) snap() else tween(220) },
+                            transitionSpec = {
+                                if (still) snap()
+                                else if (targetState == EnterExitState.Visible) spring(dampingRatio = 0.86f, stiffness = 380f)
+                                else tween(200, easing = MikaMotion.Decelerate)
+                            },
                             label = "orbit-hub-presence",
                         ) { if (it == EnterExitState.Visible) 1f else 0f }
                         OrbitHub(
@@ -715,6 +724,7 @@ private fun MikaRoot(
                             onPersonalization = { nav.push(Route.Settings) },
                         )
                     }
+                }
                 }
             }
         }
