@@ -58,4 +58,7 @@
     <string name="whatsapp_you">Вы</string>
     <string name="whatsapp_file_saved">%1$s сохранён на вашем телефоне. Откройте Orbit, чтобы посмотреть.</string>
     <string name="whatsapp_footer">Сеанс WhatsApp хранится только на этом телефоне и не входит в резервные копии. Orbit хранит последние 50 сообщений каждого выбранного чата на этом телефоне, чтобы их можно было прочитать; другие чаты никогда не сохраняются.</string>
+    <string name="whatsapp_tool_chats">Чаты WhatsApp</string>
+    <string name="whatsapp_tool_read">Читать WhatsApp</string>
+    <string name="whatsapp_tool_send">Отправить сообщение WhatsApp</string>
 </resources>

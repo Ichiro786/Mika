@@ -58,4 +58,7 @@
     <string name="whatsapp_you">Você</string>
     <string name="whatsapp_file_saved">%1$s salvo no seu celular. Abra o Orbit para ver.</string>
     <string name="whatsapp_footer">A sessão do WhatsApp fica armazenada somente neste celular e não entra nos backups. O Orbit guarda as últimas 50 mensagens de cada chat escolhido, neste celular, para poder lê-las; outros chats nunca são armazenados.</string>
+    <string name="whatsapp_tool_chats">Conversas do WhatsApp</string>
+    <string name="whatsapp_tool_read">Ler WhatsApp</string>
+    <string name="whatsapp_tool_send">Enviar mensagem no WhatsApp</string>
 </resources>

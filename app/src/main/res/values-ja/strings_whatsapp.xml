@@ -58,4 +58,7 @@
     <string name="whatsapp_you">あなた</string>
     <string name="whatsapp_file_saved">%1$s を端末に保存しました。Orbit を開くと確認できます。</string>
     <string name="whatsapp_footer">WhatsApp のセッションはこの端末にのみ保存され、バックアップには含まれません。Orbit は、選択した各チャットの直近 50 件のメッセージをこの端末に保存して読み取ります。ほかのチャットは保存されません。</string>
+    <string name="whatsapp_tool_chats">WhatsApp のチャット</string>
+    <string name="whatsapp_tool_read">WhatsApp を読む</string>
+    <string name="whatsapp_tool_send">WhatsApp メッセージを送信</string>
 </resources>

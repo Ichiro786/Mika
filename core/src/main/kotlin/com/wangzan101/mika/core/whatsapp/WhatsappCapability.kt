@@ -49,7 +49,7 @@ private class WhatsappTool(private val action: String, override val verb: Verb) 
     override val offScreen = true
     override val risk = if (action == "send") Risk.Write else Risk.Read
     override val logged = action == "send"
-    override val label = when (action) { "chats" -> "WhatsApp chats"; "read" -> "Read WhatsApp"; else -> "Send WhatsApp message" }
+    override val label = when (action) { "chats" -> "WhatsApp 对话"; "read" -> "读取 WhatsApp"; else -> "发送 WhatsApp 消息" }
     override val def = ToolDef("whatsapp_$action", Prompts.tool("whatsapp_$action"),
         when (action) {
             "read" -> mapOf(WHATSAPP_CHAT_FIELD to str("Chat id returned by whatsapp_chats."),
