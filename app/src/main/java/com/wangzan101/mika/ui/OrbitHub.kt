@@ -2,8 +2,8 @@ package com.wangzan101.mika.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -11,6 +11,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -255,24 +259,33 @@ internal fun OrbitHub(
     }
 }
 
+/**
+ * The hub's section bar. One pill slides under the chosen section on a spring, so a switch never shows
+ * two highlights at once; with reduced motion it jumps.
+ */
 @Composable
 internal fun OrbitHubTabs(selected: Int, onSelect: (Int) -> Unit) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp)
-        .clip(MikaShapes.Pill).background(c.surface).padding(4.dp).selectableGroup(),
-        horizontalArrangement = Arrangement.SpaceEvenly) {
-        hubSections.forEachIndexed { index, section ->
-            val label = stringResource(section.label)
-            val background by animateColorAsState(
-                if (selected == index) c.answer else c.surface,
-                animationSpec = MikaMotion.switch(MikaTheme.reduceMotion), label = "hub-tab-background",
-            )
-            Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(MikaShapes.Pill)
-                .background(background)
-                .selectable(selected == index, role = Role.Tab) { onSelect(index) }
-                .semantics { contentDescription = label }
-                .testTag("orbit-hub-section-$index"), contentAlignment = Alignment.Center) {
-                Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
+    val count = hubSections.size
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp)
+        .clip(MikaShapes.Pill).background(c.surface).padding(4.dp)) {
+        val slot = maxWidth / count
+        val offset by animateDpAsState(
+            slot * selected.coerceIn(0, count - 1),
+            animationSpec = MikaMotion.spatial(MikaTheme.reduceMotion), label = "hub-tab-indicator",
+        )
+        Box(Modifier.matchParentSize()) {
+            Box(Modifier.offset(x = offset).width(slot).fillMaxHeight().clip(MikaShapes.Pill).background(c.answer))
+        }
+        Row(Modifier.fillMaxWidth().selectableGroup()) {
+            hubSections.forEachIndexed { index, section ->
+                val label = stringResource(section.label)
+                Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(MikaShapes.Pill)
+                    .selectable(selected == index, role = Role.Tab) { onSelect(index) }
+                    .semantics { contentDescription = label }
+                    .testTag("orbit-hub-section-$index"), contentAlignment = Alignment.Center) {
+                    Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
+                }
             }
         }
     }

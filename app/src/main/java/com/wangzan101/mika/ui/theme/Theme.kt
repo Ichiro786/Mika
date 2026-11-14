@@ -73,6 +73,10 @@ object MikaTheme {
     val reduceMotion: Boolean
         @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
 
+    /** The user's own message bubble colors (Material You). */
+    val userBubble: UserBubbleColors
+        @Composable @ReadOnlyComposable get() = LocalUserBubble.current
+
     val identity: OrbitIdentityMode
         @Composable @ReadOnlyComposable get() = LocalOrbitIdentity.current
 
@@ -148,7 +152,8 @@ fun MikaTheme(
 ) {
     // 背景图片设了「强调色跟随图片」时,用图上的主色代替设置里选的强调色
     val imageHue = appearanceSkin().accentHue
-    val wallpaper = if (accent == ThemeAccent.Dynamic && imageHue == null) wallpaperAccent(dark) else null
+    val dynamic = if (accent == ThemeAccent.Dynamic && imageHue == null) wallpaperScheme(dark) else null
+    val wallpaper = dynamic?.let { it.primary to it.onPrimary }
     val colors = remember(dark, accent, imageHue, wallpaper) {
         val base = palette(dark, accent)
         when {
@@ -158,6 +163,12 @@ fun MikaTheme(
         }
     }
     val materialColors = remember(colors) { scheme(colors) }
+    // The user's bubbles: the wallpaper's own primary container when there is one, else a tone of the accent.
+    val userBubble = remember(colors, dynamic) {
+        dynamic?.let { UserBubbleColors(it.primaryContainer, it.onPrimaryContainer) }
+            ?.takeIf { contrast(it.bg, it.fg) >= 4.5f }
+            ?: userBubbleTone(colors.accent, dark)
+    }
     val layoutDirection = if (LocalContext.current.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
         LayoutDirection.Rtl
     } else {
@@ -166,6 +177,7 @@ fun MikaTheme(
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
         LocalMikaColors provides colors,
+        LocalUserBubble provides userBubble,
         LocalReduceMotion provides reduceMotion,
         LocalOrbitIdentity provides identity,
         LocalOrbitPresence provides presence,
@@ -182,14 +194,17 @@ fun MikaTheme(
  * Android 12, where the default palette is used.
  */
 @Composable
-fun wallpaperAccent(dark: Boolean): Pair<Color, Color>? {
+fun wallpaperAccent(dark: Boolean): Pair<Color, Color>? = wallpaperScheme(dark)?.let { it.primary to it.onPrimary }
+
+/** The wallpaper's Material You scheme, Android 12 and newer; null before. */
+@Composable
+fun wallpaperScheme(dark: Boolean): ColorScheme? {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
     val context = LocalContext.current
     // The scheme is read again when the configuration changes, which is how a new wallpaper reaches the app.
     val config = LocalConfiguration.current
     return remember(context, dark, config) {
-        val s = if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        s.primary to s.onPrimary
+        if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     }
 }
 

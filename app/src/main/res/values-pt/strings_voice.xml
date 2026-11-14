@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="voice_placeholder_idle">Segure para falar, toque para digitar</string>
-    <string name="voice_placeholder_busy">Segure para falar com a tarefa, toque para digitar</string>
-    <string name="voice_placeholder_answer">Segure para responder, toque para digitar</string>
+    <string name="voice_placeholder_idle">Mensagem para o Orbit</string>
+    <string name="voice_placeholder_busy">Adicionar à tarefa</string>
+    <string name="voice_placeholder_answer">Responder ao Orbit</string>
     <string name="voice_listening">Ouvindo</string>
     <string name="voice_steer_to">Falando com “%1$s”</string>
     <string name="voice_engine_phone">Celular</string>

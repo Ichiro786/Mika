@@ -3,6 +3,8 @@ package com.wangzan101.mika.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.graphics.luminance
 import com.wangzan101.mika.settings.ThemeAccent
 
 /**
@@ -164,3 +166,33 @@ fun accentTone(accent: ThemeAccent, dark: Boolean): Pair<Color, Color> = when (a
 
 /** 没有包在 [MikaTheme] 里时(比如界面测试)按浅色。 */
 val LocalMikaColors = staticCompositionLocalOf { LightColors }
+
+/** The user's own message bubble: [bg] is a Material You tonal container, [fg] the text on it. */
+@Immutable
+data class UserBubbleColors(val bg: Color, val fg: Color)
+
+val LocalUserBubble = staticCompositionLocalOf { userBubbleTone(LightColors.accent, dark = false) }
+
+/** WCAG contrast ratio of two opaque colors. */
+fun contrast(a: Color, b: Color): Float {
+    val la = a.luminance()
+    val lb = b.luminance()
+    return (maxOf(la, lb) + 0.05f) / (minOf(la, lb) + 0.05f)
+}
+
+/**
+ * A tonal container of [accent] for the user's bubbles when the wallpaper scheme isn't there (before
+ * Android 12, a fixed accent, an image accent): a deep tint on black, a pale tint on white, with text
+ * that reads on it at 4.5:1 or better. The tint is eased off until it does.
+ */
+fun userBubbleTone(accent: Color, dark: Boolean): UserBubbleColors {
+    val base = if (dark) Color(0xFF0E0E10) else Color.White
+    val text = if (dark) Color(0xFFF2F2F7) else Color(0xFF16161A)
+    var alpha = if (dark) 0.42f else 0.20f
+    var bg = accent.copy(alpha = alpha).compositeOver(base)
+    while (contrast(bg, text) < 4.5f && alpha > 0.06f) {
+        alpha -= 0.04f
+        bg = accent.copy(alpha = alpha).compositeOver(base)
+    }
+    return UserBubbleColors(bg, text)
+}

@@ -97,7 +97,6 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -945,10 +944,10 @@ internal fun UserBubble(text: String, conversationId: String?, note: String? = n
             }
             if (attached.hasAttachments && attached.words.isNotEmpty()) Spacer(Modifier.size(6.dp))
             if ((!attached.hasAttachments || attached.words.isNotEmpty()) && (paged.page == null || quoted.words.isNotEmpty())) UserMessage(conversationId, attached.words.takeIf { attached.hasAttachments } ?: quoted.words, ChatThumbWidth) { words ->
-                val colors = MikaTheme.colors
-                // Your messages take a tint of the accent, so Material You wallpaper colors reach the bubble too.
-                val bubble = colors.accent.copy(alpha = if (colors.isDark) 0.30f else 0.20f).compositeOver(colors.bg)
-                CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(colors.ink, colors.ink.copy(alpha = 0.25f))) {
+                // Your messages sit on the Material You primary container (or a tone of the accent before Android 12).
+                val tone = MikaTheme.userBubble
+                val bubble = tone.bg
+                CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(tone.fg, tone.fg.copy(alpha = 0.25f))) {
                     MessageArea(
                         key, QuoteMessage.From.You, words, "selectable-user",
                         Modifier.widthIn(max = max).background(bubble, MikaShapes.UserBubble),
@@ -963,7 +962,7 @@ internal fun UserBubble(text: String, conversationId: String?, note: String? = n
 
 @Composable
 private fun UserBubbleText(words: String) {
-    Text(words, Modifier.padding(horizontal = 14.dp, vertical = 10.dp), style = BubbleText, color = MikaTheme.colors.ink)
+    Text(words, Modifier.padding(horizontal = 14.dp, vertical = 10.dp), style = BubbleText, color = MikaTheme.userBubble.fg)
 }
 
 /** 长按抬起的那条消息:[color] 底、带阴影;太长时(最高半屏)只露开头,下面裁掉。 */

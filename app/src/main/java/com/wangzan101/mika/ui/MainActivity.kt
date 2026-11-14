@@ -14,6 +14,8 @@ import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -39,7 +41,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -59,10 +61,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
@@ -539,7 +543,23 @@ private fun MikaRoot(
     }
     val phoneSetupNeeded by phoneSetup.needed.collectAsState()
     // 页面有自己的返回处理时(设置页里的子页、侧栏)由它们先接;这里只管退回上一页
-    BackHandler(enabled = nav.canGoBack) { nav.back() }
+    // Predictive back: while the back gesture is held, the page shrinks a little and follows the finger;
+    // letting go goes back, cancelling springs it into place. Reduced motion skips the preview.
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var backFromLeft by remember { mutableStateOf(true) }
+    PredictiveBackHandler(enabled = nav.canGoBack) { events ->
+        try {
+            events.collect { e ->
+                backFromLeft = e.swipeEdge == androidx.activity.BackEventCompat.EDGE_LEFT
+                backProgress = e.progress
+            }
+            backProgress = 0f
+            nav.back()
+        } catch (e: CancellationException) {
+            backProgress = 0f
+            throw e
+        }
+    }
     val back: () -> Unit = { nav.back() }
     // 聊天页离开组合树时保留列表位置和输入内容，返回设置页等子页面后原样恢复。
     val screenStates = rememberSaveableStateHolder()
@@ -554,6 +574,17 @@ private fun MikaRoot(
         transitionSpec = { pageTransition(forward, stillPages) },
         contentKey = { if (isPrimaryRoute(it)) "primary" else it.name },
         label = "pages",
+        modifier = Modifier.graphicsLayer {
+            val p = if (stillPages) 0f else backProgress
+            if (p > 0f) {
+                val scale = 1f - 0.08f * p
+                scaleX = scale
+                scaleY = scale
+                translationX = (if (backFromLeft) 1f else -1f) * 24.dp.toPx() * p
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp * p)
+                clip = true
+            }
+        },
     ) { route ->
     when (route) {
         Route.PhoneSetup -> PhoneSetupScreen(status, setupRepair, onFix, onboarding = onboarding == OnboardingStep.Phone) {
@@ -696,6 +727,12 @@ private fun MikaRoot(
                             }
                             }
                         }
+                        // A soft scrim under the floating bars, so text scrolling behind them never collides with them.
+                        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(navInset + 32.dp).background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(androidx.compose.ui.graphics.Color.Transparent, MikaTheme.colors.bg.copy(alpha = 0.82f)),
+                            ),
+                        ))
                         PrimaryNavigation(route,
                             modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
                             backdrop = navBackdrop,
