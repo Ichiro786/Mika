@@ -127,6 +127,8 @@ fun toolDispatcher(
     /** 操作 Mika 自己的界面/文件/通知/剪贴板;用户打开「允许 Mika 操作自己的界面」时才给。 */
     selfOperate: com.wangzan101.mika.core.self.SelfPort? = null,
     phoneCalls: com.wangzan101.mika.core.calls.PhoneCallPort? = null,
+    /** The linked WhatsApp account, limited to the chats the user allowed; null when not linked or no chat is allowed. */
+    whatsapp: com.wangzan101.mika.core.whatsapp.WhatsappPort? = null,
     /** 跨会话任务摘要;给了才提供 task_memory_search / task_memory_timeline / task_memory_step。 */
     taskMemory: com.wangzan101.mika.core.memory.TaskMemoryStore? = null,
 ): ToolDispatcher {
@@ -161,6 +163,11 @@ fun toolDispatcher(
         object : CapabilityProvider {
             override val id = "calls"
             override fun open(spec: RunSpec) = com.wangzan101.mika.core.calls.PhoneCallsCapability(port)
+        }
+    }, whatsapp?.let { port ->
+        object : CapabilityProvider {
+            override val id = "whatsapp"
+            override fun open(spec: RunSpec) = com.wangzan101.mika.core.whatsapp.WhatsappCapability(port)
         }
     }) + mcpServers.map(::McpClientProvider)
     return RunAssembler(providers).assemble(runSpec, config, stableRefs, FORMER_PREFIX, RENAMED, RETIRED, MOVED)
@@ -208,7 +215,8 @@ fun recordedTools(): ToolIndex = legacyNames().let { legacy -> ToolIndex(allTool
 
 /** Mika 所有可能提供的工具,按发给模型的顺序。 */
 internal fun allTools(): List<AgentTool> =
-    GeneralGroup.tools + PhoneCapability.tools() + WebGroup.tools + SandboxGroup.tools + RootGroup.tools + com.wangzan101.mika.core.calls.callAgentTools
+    GeneralGroup.tools + PhoneCapability.tools() + WebGroup.tools + SandboxGroup.tools + RootGroup.tools + com.wangzan101.mika.core.calls.callAgentTools +
+        com.wangzan101.mika.core.whatsapp.whatsappAgentTools
 
 /** Mika 所有可能提供的工具的声明。 */
 fun knownTools(): ToolIndex = ToolIndex(allTools())
