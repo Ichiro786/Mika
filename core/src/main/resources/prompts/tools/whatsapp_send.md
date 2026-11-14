@@ -1,0 +1,1 @@
+Send one text message to an allowed WhatsApp chat from the user's own account. Send only what the user asked for, to the chat they meant. The user confirms each message on the phone before it goes out; never retry a send whose result is uncertain without reading the chat first.

@@ -1,0 +1,1 @@
+List the WhatsApp chats the user allowed Orbit to use, with each chat's id, name, whether it is a group, and how many messages arrived since Orbit last read it. Only these chats can be read or messaged.
