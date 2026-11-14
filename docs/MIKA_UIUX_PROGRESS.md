@@ -260,3 +260,15 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - "Your work." stays on one line (ORB-012): the title shrinks just enough to fit narrow screens and large font sizes, never below 22sp.
 - The bottom navigation floats: it is inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
 - The navigation and the message bar use frosted glass: a heavier live blur under a light, milky veil with a top-lit rim, instead of the dark smoke used for menus. Without blur (before Android 12) both fall back to a solid surface.
+
+## Stage 5 sidebar, spaces and calling Orbit, 2026-11-14
+
+- The sidebar is rebuilt. The header has the Orbit logo, the name and a status line, and when phone control needs setting up the status line takes you there. Under it sit a pill search field and a round compose button for a new side chat. One rounded card holds Everything (every chat, channel, side chat and space in one list) and Main chat with its latest title and time.
+- Channels have colored tiles, the open one sits raised, and each channel's side chats are nested under it with a thin connecting line. The list ends with New channel. Side chats that belong to no channel keep their own group.
+- Spaces are live panels, after Meta's Muse spaces. Create a space from one sentence and Orbit builds one self-contained page for it in the space's own chat. Opening a space shows the page full screen in a locked down web view (scripts run, nothing loads from the network, no file access) that reloads when Orbit rewrites it. Refresh asks Orbit to gather fresh data, and Change it opens the space's chat. Rows show when the page last changed and a green live dot. A space's chat stays out of Recent, and search still finds it.
+- Long press on a space pins, renames, hides or deletes it. Long press on a chat now also offers Select, which starts multi-select with that row ticked, since the header button became compose. Settings and About are round buttons at the foot.
+- The home header has two frosted round pills: a two-line sidebar button (Open sidebar) and a call button (Call Orbit) in place of Files and New chat, which stay reachable from the hub and the sidebar.
+- Calling Orbit is hands free: it listens, ends your turn after a short pause, sends what you said to the open chat, reads the reply aloud with the phone's text to speech and listens again. Steps that need a tap are said once and wait on screen. Everything said stays in the chat.
+- Your own message bubbles use the wallpaper's Material You primary container with its matching text color. Before Android 12, or with a fixed or image accent, they use a tone of the accent whose text reads at 4.5 to 1 or better.
+- Audit leftovers: the composer placeholder is shorter so it is no longer cut, the hub tabs use one sliding highlight so two never show at once, a soft scrim sits behind the floating navigation, and back gestures preview the page underneath (predictive back).
+- Not in this stage: a scheduled refresh for spaces (Refresh is manual for now).

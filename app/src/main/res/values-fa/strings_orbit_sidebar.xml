@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">تماس با Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">در حال اتصال…</string>
+    <string name="orbit_call_listening">در حال گوش دادن</string>
+    <string name="orbit_call_thinking">در حال فکر کردن</string>
+    <string name="orbit_call_speaking">Orbit در حال صحبت است</string>
+    <string name="orbit_call_needs_screen">Orbit به شما روی صفحه نیاز دارد</string>
+    <string name="orbit_call_ended">تماس پایان یافت</string>
+    <string name="orbit_call_failed">تماس نتوانست از میکروفون استفاده کند</string>
+    <string name="orbit_call_needs_mic">Orbit برای صحبت با شما به میکروفون نیاز دارد</string>
+    <string name="orbit_call_open_settings">باز کردن تنظیمات</string>
+    <string name="orbit_call_no_voice">برای تماس با Orbit یک مدل صوتی انتخاب کنید</string>
+    <string name="orbit_call_choose_voice">انتخاب</string>
+    <string name="orbit_call_screen_line">الان نمی‌توانم انجامش بدهم. نگاهی به صفحه بیندازید.</string>
+    <string name="orbit_call_hang_up">پایان تماس</string>
+    <string name="drawer_status_fix">راه‌اندازی</string>
+    <string name="drawer_everything">همه</string>
+    <string name="drawer_everything_sub">همه گفتگوها، کانال‌ها و فضاها</string>
+    <string name="drawer_spaces">فضاها</string>
+    <string name="drawer_chats">گفتگوها</string>
+    <string name="orbit_channel_new">کانال جدید</string>
+    <string name="space_create">ساخت فضا</string>
+    <string name="space_create_body">در یک جمله توصیفش کنید. Orbit یک پنل زنده برایش می‌سازد و در نوار کناری نگه می‌دارد.</string>
+    <string name="space_description">برای چیست</string>
+    <string name="space_description_example">ردیاب آب و خواب من</string>
+    <string name="space_name_optional">نام (اختیاری)</string>
+    <string name="space_create_action">ساختن</string>
+    <string name="space_updated">به‌روزرسانی %1$s</string>
+    <string name="space_updated_now">همین حالا به‌روز شد</string>
+    <string name="space_hide">پنهان کردن</string>
+    <string name="space_show">نمایش در نوار کناری</string>
+    <string name="space_delete">حذف فضا</string>
+    <string name="space_delete_body">«%1$s» حذف شود؟ صفحه و گفتگوی آن هم حذف می‌شود.</string>
+    <string name="space_working">Orbit در حال کار روی آن است…</string>
+    <string name="space_building">Orbit در حال ساختن این فضاست…</string>
+    <string name="space_empty">هنوز صفحه‌ای نیست. برای درخواست از Orbit روی تغییر بزنید.</string>
+    <string name="space_refresh">تازه‌سازی</string>
+    <string name="space_change">تغییر</string>
+</resources>

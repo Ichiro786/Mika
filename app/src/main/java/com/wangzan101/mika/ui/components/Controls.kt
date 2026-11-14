@@ -3,6 +3,9 @@ package com.wangzan101.mika.ui.components
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -220,6 +223,8 @@ fun BarIconButton(
     glass: Boolean = false,
     enabled: Boolean = true,
     badge: Boolean = false,
+    /** A frosted round pill behind the icon, as on the home header. */
+    pill: Boolean = false,
 ) {
     val c = MikaTheme.colors
     // A full 48dp touch target around the 40dp visual, so neighbouring header buttons are easy to hit.
@@ -229,7 +234,8 @@ fun BarIconButton(
             .clickable(enabled = enabled, onClickLabel = label, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        if (glass) Box(Modifier.size(MikaSize.IconButton).floatShadow(c, CircleShape).background(c.surface, CircleShape))
+        if (pill) HeaderPill()
+        else if (glass) Box(Modifier.size(MikaSize.IconButton).floatShadow(c, CircleShape).background(c.surface, CircleShape))
         DirectionalIcon(icon, label, Modifier.size(MikaSize.Icon).alpha(if (enabled) 1f else 0.35f), tint = c.ink)
         if (badge) {
             Box(
@@ -285,7 +291,8 @@ fun TopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge) else Spacer(Modifier.size(MikaSize.TouchTarget))
+            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge, pill = left == MikaIcons.Menu)
+            else Spacer(Modifier.size(MikaSize.TouchTarget))
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (!centerTitle) titleContent() }
             if (right != null) Row(verticalAlignment = Alignment.CenterVertically, content = right)
             else Spacer(Modifier.size(MikaSize.TouchTarget))
@@ -294,6 +301,19 @@ fun TopBar(
             titleContent()
         }
     }
+}
+
+/** The frosted round pill behind a home header button: translucent fill, a hairline rim lit from the top, a soft shadow. */
+@Composable
+fun HeaderPill(size: Dp = 44.dp) {
+    val c = MikaTheme.colors
+    val fill = if (c.isDark) Color(0xFF2C2C2E).copy(alpha = 0.62f) else Color.White.copy(alpha = 0.78f)
+    val rim = if (c.isDark) {
+        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.18f), Color.White.copy(alpha = 0.06f)))
+    } else {
+        Brush.verticalGradient(listOf(Color.Black.copy(alpha = 0.05f), Color.Black.copy(alpha = 0.09f)))
+    }
+    Box(Modifier.size(size).floatShadow(c, CircleShape).background(fill, CircleShape).border(BorderStroke(1.dp, rim), CircleShape))
 }
 
 // ---------- 选择胶囊 ----------

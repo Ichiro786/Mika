@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Позвонить Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">Подключение…</string>
+    <string name="orbit_call_listening">Слушаю</string>
+    <string name="orbit_call_thinking">Думаю</string>
+    <string name="orbit_call_speaking">Orbit говорит</string>
+    <string name="orbit_call_needs_screen">Orbit нужен ваш ответ на экране</string>
+    <string name="orbit_call_ended">Звонок завершён</string>
+    <string name="orbit_call_failed">Звонку не удалось использовать микрофон</string>
+    <string name="orbit_call_needs_mic">Чтобы говорить с вами, Orbit нужен микрофон</string>
+    <string name="orbit_call_open_settings">Открыть настройки</string>
+    <string name="orbit_call_no_voice">Выберите голосовую модель, чтобы позвонить Orbit</string>
+    <string name="orbit_call_choose_voice">Выбрать</string>
+    <string name="orbit_call_screen_line">Сейчас я не могу это сделать. Посмотрите на экран.</string>
+    <string name="orbit_call_hang_up">Завершить звонок</string>
+    <string name="drawer_status_fix">Настроить</string>
+    <string name="drawer_everything">Всё</string>
+    <string name="drawer_everything_sub">Все чаты, каналы и пространства</string>
+    <string name="drawer_spaces">Пространства</string>
+    <string name="drawer_chats">Чаты</string>
+    <string name="orbit_channel_new">Новый канал</string>
+    <string name="space_create">Создать пространство</string>
+    <string name="space_create_body">Опишите одним предложением. Orbit создаст живую панель и добавит её на боковую панель.</string>
+    <string name="space_description">Для чего</string>
+    <string name="space_description_example">Трекер воды и сна</string>
+    <string name="space_name_optional">Название (необязательно)</string>
+    <string name="space_create_action">Создать</string>
+    <string name="space_updated">Обновлено %1$s</string>
+    <string name="space_updated_now">Только что обновлено</string>
+    <string name="space_hide">Скрыть</string>
+    <string name="space_show">Показывать на боковой панели</string>
+    <string name="space_delete">Удалить пространство</string>
+    <string name="space_delete_body">Удалить «%1$s»? Его страница и чат тоже будут удалены.</string>
+    <string name="space_working">Orbit работает над этим…</string>
+    <string name="space_building">Orbit создаёт это пространство…</string>
+    <string name="space_empty">Страницы пока нет. Нажмите «Изменить», чтобы попросить Orbit.</string>
+    <string name="space_refresh">Обновить</string>
+    <string name="space_change">Изменить</string>
+</resources>

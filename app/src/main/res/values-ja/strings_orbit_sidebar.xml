@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Orbitに通話</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">接続中…</string>
+    <string name="orbit_call_listening">聞いています</string>
+    <string name="orbit_call_thinking">考えています</string>
+    <string name="orbit_call_speaking">Orbitが話しています</string>
+    <string name="orbit_call_needs_screen">画面での操作が必要です</string>
+    <string name="orbit_call_ended">通話が終了しました</string>
+    <string name="orbit_call_failed">通話でマイクを使えませんでした</string>
+    <string name="orbit_call_needs_mic">Orbitと話すにはマイクが必要です</string>
+    <string name="orbit_call_open_settings">設定を開く</string>
+    <string name="orbit_call_no_voice">Orbitに通話するには音声モデルを選んでください</string>
+    <string name="orbit_call_choose_voice">選ぶ</string>
+    <string name="orbit_call_screen_line">今はそれを受けられません。画面を確認してください。</string>
+    <string name="orbit_call_hang_up">通話を終了</string>
+    <string name="drawer_status_fix">設定する</string>
+    <string name="drawer_everything">すべて</string>
+    <string name="drawer_everything_sub">すべてのチャット、チャンネル、スペース</string>
+    <string name="drawer_spaces">スペース</string>
+    <string name="drawer_chats">チャット</string>
+    <string name="orbit_channel_new">新しいチャンネル</string>
+    <string name="space_create">スペースを作成</string>
+    <string name="space_create_body">一文で説明してください。Orbitがライブパネルを作り、サイドバーに置きます。</string>
+    <string name="space_description">用途</string>
+    <string name="space_description_example">水分と睡眠のトラッカー</string>
+    <string name="space_name_optional">名前(任意)</string>
+    <string name="space_create_action">作成</string>
+    <string name="space_updated">%1$sに更新</string>
+    <string name="space_updated_now">たった今更新</string>
+    <string name="space_hide">非表示</string>
+    <string name="space_show">サイドバーに表示</string>
+    <string name="space_delete">スペースを削除</string>
+    <string name="space_delete_body">「%1$s」を削除しますか?ページとチャットも削除されます。</string>
+    <string name="space_working">Orbitが作業中…</string>
+    <string name="space_building">Orbitがスペースを作成中…</string>
+    <string name="space_empty">まだページがありません。「変更する」でOrbitに頼めます。</string>
+    <string name="space_refresh">更新</string>
+    <string name="space_change">変更する</string>
+</resources>

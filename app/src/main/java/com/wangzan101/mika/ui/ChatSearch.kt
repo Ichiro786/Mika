@@ -59,19 +59,24 @@ data class DrawerSearch(
 
 /** 侧栏顶部的搜索框:38 高的浅底圆角条,聚焦时一圈强调色;键盘上是「搜索」。 */
 @Composable
-internal fun DrawerSearchField(query: String, onQueryChange: (String) -> Unit) {
+internal fun DrawerSearchField(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+) {
     val c = MikaTheme.colors
     val clear = stringResource(R.string.drawer_search_clear)
     val focus = LocalFocusManager.current
     var focused by remember { mutableStateOf(false) }
     Row(
-        Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp)
-            .height(38.dp)
+        // A pill, the height of the compose button beside it.
+        modifier
+            .height(44.dp)
             .keepsKeyboard()
-            .clip(NavShape)
+            .clip(CircleShape)
             .background(c.fill)
-            .then(if (focused) Modifier.border(1.dp, c.accent, NavShape) else Modifier)
-            .padding(start = 12.dp, end = 4.dp),
+            .then(if (focused) Modifier.border(1.dp, c.accent, CircleShape) else Modifier)
+            .padding(start = 14.dp, end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {

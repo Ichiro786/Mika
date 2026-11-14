@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">الاتصال بـ Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">جارٍ الاتصال…</string>
+    <string name="orbit_call_listening">أستمع</string>
+    <string name="orbit_call_thinking">أفكر</string>
+    <string name="orbit_call_speaking">Orbit يتحدث</string>
+    <string name="orbit_call_needs_screen">Orbit يحتاجك على الشاشة</string>
+    <string name="orbit_call_ended">انتهت المكالمة</string>
+    <string name="orbit_call_failed">تعذّر على المكالمة استخدام الميكروفون</string>
+    <string name="orbit_call_needs_mic">يحتاج Orbit إلى الميكروفون للتحدث معك</string>
+    <string name="orbit_call_open_settings">فتح الإعدادات</string>
+    <string name="orbit_call_no_voice">اختر نموذج صوت للاتصال بـ Orbit</string>
+    <string name="orbit_call_choose_voice">اختيار</string>
+    <string name="orbit_call_screen_line">لا يمكنني تنفيذ ذلك الآن. ألقِ نظرة على شاشتك.</string>
+    <string name="orbit_call_hang_up">إنهاء المكالمة</string>
+    <string name="drawer_status_fix">إعداد</string>
+    <string name="drawer_everything">كل شيء</string>
+    <string name="drawer_everything_sub">كل محادثة وقناة ومساحة</string>
+    <string name="drawer_spaces">المساحات</string>
+    <string name="drawer_chats">المحادثات</string>
+    <string name="orbit_channel_new">قناة جديدة</string>
+    <string name="space_create">إنشاء مساحة</string>
+    <string name="space_create_body">صِفها في جملة واحدة. يبني Orbit لوحة حية لها ويحفظها في الشريط الجانبي.</string>
+    <string name="space_description">الغرض منها</string>
+    <string name="space_description_example">متتبع للماء والنوم</string>
+    <string name="space_name_optional">الاسم (اختياري)</string>
+    <string name="space_create_action">إنشاء</string>
+    <string name="space_updated">تم التحديث %1$s</string>
+    <string name="space_updated_now">تم التحديث الآن</string>
+    <string name="space_hide">إخفاء</string>
+    <string name="space_show">إظهار في الشريط الجانبي</string>
+    <string name="space_delete">حذف المساحة</string>
+    <string name="space_delete_body">حذف “%1$s”؟ ستُحذف صفحتها ومحادثتها أيضًا.</string>
+    <string name="space_working">يعمل Orbit عليها…</string>
+    <string name="space_building">يبني Orbit هذه المساحة…</string>
+    <string name="space_empty">لا توجد صفحة بعد. انقر على تغييرها لتطلب واحدة من Orbit.</string>
+    <string name="space_refresh">تحديث</string>
+    <string name="space_change">تغييرها</string>
+</resources>

@@ -1769,6 +1769,15 @@ class ChatViewModel(
 
     fun updateChannel(id: String, name: String, description: String): Boolean = store.updateChannel(id, name, description)
 
+    /** A fresh conversation of its own for a new space, opened so its first message can go out; null while switching isn't possible. */
+    fun createSpaceConversation(): String? {
+        refreshParallel()
+        if (!canSwitch()) return null
+        val id = store.newConversation()
+        openConversation(id)
+        return id.takeIf { _ui.value.conversationId == id }
+    }
+
     fun removeChannel(id: String): Boolean {
         val channel = store.channel(id) ?: return false
         refreshParallel()

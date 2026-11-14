@@ -635,6 +635,7 @@ private fun MikaRoot(
                 onRegularChat = nav::reset,
                 resetKey = nav.resetSerial,
                 onBackFromPrimary = if (route == Route.Tasks || route == Route.Make) ({ nav.back() }) else null,
+                onFixStatus = { onFix(Fix.OpenPhoneSetup) },
             ) { openDrawer ->
                 val hubState = remember { androidx.compose.animation.core.MutableTransitionState(orbitHubOpen) }
                 hubState.targetState = orbitHubOpen

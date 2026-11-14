@@ -225,6 +225,10 @@ fun ChatScreen(
     DisposableEffect(vm) {
         onDispose { onVoiceListeningChanged(false) }
     }
+    // A hands-free call with Orbit, opened from the header's call button.
+    var calling by rememberSaveable { mutableStateOf(false) }
+    val onCallOrbit: () -> Unit = { calling = true }
+    if (calling) OrbitCallScreen(vm, check, voice, openSpeechModel) { calling = false }
     val recommendationStore = recommendations
         ?: (LocalContext.current.applicationContext as? MikaApp)?.recommendedTasks
     val recommendedTasksFlow = remember(recommendationStore) {
@@ -493,8 +497,8 @@ fun ChatScreen(
                 // 别的对话里还有任务在跑(并行时):菜单上一个小圆点,侧栏「进行中」里能切过去
                 leftBadge = !focus && others.isNotEmpty(),
                 right = {
-                    BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
-                    BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
+                    // One call button in place of Files and New chat: both are a tap away in the sidebar.
+                    BarIconButton(MikaIcons.Call, stringResource(R.string.orbit_call_orbit), onCallOrbit, pill = true)
                 },
                 titleIcon = if (focus) {
                     {
