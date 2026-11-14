@@ -92,8 +92,18 @@ kotlin {
     jvmToolchain(17)
 }
 
+// WhatsApp linked device: whatsmeow (Go) built into an .aar with gomobile. Needs Go and an Android NDK.
+val whatsappBridgeAar = layout.buildDirectory.file("wabridge/wabridge.aar")
+val buildWhatsappBridge by tasks.registering(Exec::class) {
+    val dir = rootProject.file("whatsapp-bridge")
+    inputs.files(fileTree(dir) { include("*.go", "go.mod", "go.sum", "build-aar.sh") }).withPropertyName("bridgeSources")
+    outputs.file(whatsappBridgeAar)
+    commandLine("bash", File(dir, "build-aar.sh").path, whatsappBridgeAar.get().asFile.path)
+}
+
 dependencies {
     implementation(project(":core"))
+    implementation(files(whatsappBridgeAar) { builtBy(buildWhatsappBridge) })
     implementation(libs.protobuf.lite)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)

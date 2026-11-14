@@ -97,7 +97,12 @@ jobs:
       # compileSdk 36；构建工具版本取 AGP 8.7.3 的默认值。action 顺带接受 SDK 许可。
       - uses: android-actions/setup-android@v4
         with:
-          packages: "platform-tools platforms;android-36 build-tools;35.0.0"
+          packages: "platform-tools platforms;android-36 build-tools;35.0.0 ndk;27.2.12479018"
+      # The WhatsApp linked-device library (whatsapp-bridge/) is Go, built into an .aar during the Gradle build.
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: whatsapp-bridge/go.mod
+          cache-dependency-path: whatsapp-bridge/go.sum
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
