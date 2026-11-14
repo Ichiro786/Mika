@@ -55,6 +55,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -110,8 +111,9 @@ internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     val keyboard = LocalSoftwareKeyboardController.current
     val label = stringResource(R.string.orbit_hub_open)
+    val status = stringResource(presenceLabel(state))
     Box(Modifier.size(maxOf(size, 48.dp)).clip(MikaShapes.Pill)
-        .semantics { contentDescription = label }
+        .semantics { contentDescription = label; stateDescription = status }
         .clickable(role = Role.Button) {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             keyboard?.hide()
@@ -533,7 +535,7 @@ private fun HubHint(text: String) {
     Text(text, Modifier.padding(top = 12.dp), style = MikaType.Caption, color = MikaTheme.colors.ink2)
 }
 
-private fun presenceLabel(state: PresenceState, ready: Boolean): Int = when (state) {
+internal fun presenceLabel(state: PresenceState, ready: Boolean = true): Int = when (state) {
     PresenceState.Idle -> if (ready) R.string.orbit_hub_ready else R.string.banner_no_model
     PresenceState.Listening -> R.string.orbit_hub_listening
     PresenceState.Thinking -> R.string.orbit_hub_thinking

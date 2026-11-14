@@ -222,17 +222,18 @@ fun BarIconButton(
     badge: Boolean = false,
 ) {
     val c = MikaTheme.colors
+    // A full 48dp touch target around the 40dp visual, so neighbouring header buttons are easy to hit.
     Box(
-        Modifier.size(MikaSize.IconButton)
-            .then(if (glass) Modifier.floatShadow(c, CircleShape).background(c.surface, CircleShape) else Modifier)
+        Modifier.size(MikaSize.TouchTarget)
             .clip(CircleShape)
             .clickable(enabled = enabled, onClickLabel = label, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
+        if (glass) Box(Modifier.size(MikaSize.IconButton).floatShadow(c, CircleShape).background(c.surface, CircleShape))
         DirectionalIcon(icon, label, Modifier.size(MikaSize.Icon).alpha(if (enabled) 1f else 0.35f), tint = c.ink)
         if (badge) {
             Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 8.dp, end = 7.dp).size(8.dp)
+                Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 11.dp).size(8.dp)
                     .background(c.bg, CircleShape).padding(1.dp).background(c.accent, CircleShape),
             )
         }
@@ -284,12 +285,12 @@ fun TopBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge) else Spacer(Modifier.size(MikaSize.IconButton))
+            if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge) else Spacer(Modifier.size(MikaSize.TouchTarget))
             Box(Modifier.weight(1f), contentAlignment = Alignment.Center) { if (!centerTitle) titleContent() }
             if (right != null) Row(verticalAlignment = Alignment.CenterVertically, content = right)
-            else Spacer(Modifier.size(MikaSize.IconButton))
+            else Spacer(Modifier.size(MikaSize.TouchTarget))
         }
-        if (centerTitle) Box(Modifier.align(Alignment.Center).padding(horizontal = 96.dp), contentAlignment = Alignment.Center) {
+        if (centerTitle) Box(Modifier.align(Alignment.Center).padding(horizontal = 108.dp), contentAlignment = Alignment.Center) {
             titleContent()
         }
     }

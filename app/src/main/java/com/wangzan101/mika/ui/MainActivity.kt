@@ -2,6 +2,7 @@ package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
@@ -56,6 +57,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -541,7 +543,19 @@ private fun MikaRoot(
     val back: () -> Unit = { nav.back() }
     // 聊天页离开组合树时保留列表位置和输入内容，返回设置页等子页面后原样恢复。
     val screenStates = rememberSaveableStateHolder()
-    when (nav.current) {
+    // Pushes slide in from the right and pops slide back, instead of cutting between screens.
+    val depth = nav.stack.size
+    val lastDepth = remember { mutableIntStateOf(depth) }
+    val forward = depth >= lastDepth.intValue
+    SideEffect { lastDepth.intValue = depth }
+    val stillPages = MikaTheme.reduceMotion
+    AnimatedContent(
+        targetState = nav.current,
+        transitionSpec = { pageTransition(forward, stillPages) },
+        contentKey = { if (isPrimaryRoute(it)) "primary" else it.name },
+        label = "pages",
+    ) { route ->
+    when (route) {
         Route.PhoneSetup -> PhoneSetupScreen(status, setupRepair, onFix, onboarding = onboarding == OnboardingStep.Phone) {
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
@@ -560,7 +574,9 @@ private fun MikaRoot(
                 },
             )
         }
-        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider(nav.current.name) {
+        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider("primary") {
+            // Each tab keeps its own scroll and input while the drawer, hub and bar stay in place.
+            val tabStates = rememberSaveableStateHolder()
             // 对话页重新看得见(回到前台、从别的页面回来):补上别处存进来的轮次,接上别处开始的任务
             LifecycleStartEffect(Unit) {
                 app.chat.refresh()
@@ -587,7 +603,7 @@ private fun MikaRoot(
                 onPersonal = { nav.show(Route.Personal) },
                 onRegularChat = nav::reset,
                 resetKey = nav.resetSerial,
-                onBackFromPrimary = if (nav.current == Route.Tasks || nav.current == Route.Make) ({ nav.back() }) else null,
+                onBackFromPrimary = if (route == Route.Tasks || route == Route.Make) ({ nav.back() }) else null,
             ) { openDrawer ->
                 val hubState = remember { androidx.compose.animation.core.MutableTransitionState(orbitHubOpen) }
                 hubState.targetState = orbitHubOpen
@@ -605,7 +621,14 @@ private fun MikaRoot(
                     val navBackdrop = rememberGlassBackdrop()
                     Box(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
                         Box(Modifier.fillMaxSize().glassSource(navBackdrop)) {
-                            if (nav.current == Route.Tasks) TasksScreen(
+                            val stillTabs = MikaTheme.reduceMotion
+                            AnimatedContent(
+                                targetState = route,
+                                transitionSpec = { tabTransition(stillTabs) },
+                                label = "tabs",
+                            ) { tab ->
+                            tabStates.SaveableStateProvider(tab.name) {
+                            if (tab == Route.Tasks) TasksScreen(
                                 runtime = app.personal,
                                 taskState = app.taskState,
                                 runStore = app.runStore,
@@ -615,7 +638,7 @@ private fun MikaRoot(
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
                                 bottomInset = navInset,
-                            ) else if (nav.current == Route.Make) MakeScreen(
+                            ) else if (tab == Route.Make) MakeScreen(
                                 onOpenDrawer = openDrawer,
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
@@ -626,7 +649,7 @@ private fun MikaRoot(
                                     if (opened) nav.reset()
                                     opened
                                 },
-                            ) else if (nav.current == Route.Personal) {
+                            ) else if (tab == Route.Personal) {
                                 Box(Modifier.fillMaxSize().padding(bottom = navInset)) {
                                     PersonalAgentScreen(
                                         runtime = app.personal,
@@ -670,12 +693,14 @@ private fun MikaRoot(
                                 onVoiceListeningChanged = { voiceListening = it },
                                 primaryBottomInset = navInset,
                             )
+                            }
+                            }
                         }
-                        PrimaryNavigation(nav.current,
+                        PrimaryNavigation(route,
                             modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
                             backdrop = navBackdrop,
-                        ) { route ->
-                            if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
+                        ) { picked ->
+                            if (picked == Route.Chat) nav.reset() else if (nav.current != picked) nav.show(picked)
                         }
                     }
                     var installUpdate by remember { mutableStateOf<ReleaseInfo?>(null) }
@@ -851,6 +876,7 @@ private fun MikaRoot(
             nav.reset()
         })
         Route.Calls -> CallSettingsScreen(app.calls, onBack = back, standalone = true, initialHistoryCallId = focusedCallHistoryId)
+    }
     }
 }
 

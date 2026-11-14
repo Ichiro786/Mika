@@ -43,6 +43,8 @@ object MikaSpace {
 object MikaSize {
     val TopBar = 56.dp
     val IconButton = 40.dp
+    /** Minimum touch target for icon-only buttons (Android accessibility guidance). */
+    val TouchTarget = 48.dp
     val RowMin = 52.dp
     val Button = 52.dp
     val Composer = 52.dp

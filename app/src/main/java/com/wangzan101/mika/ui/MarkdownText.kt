@@ -28,6 +28,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
@@ -40,6 +42,8 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.withContext
 import com.wangzan101.mika.ui.theme.MikaTheme
 
@@ -57,8 +61,15 @@ internal fun MarkdownDocument(markdown: String, streaming: Boolean = false, cont
     val colors = MikaTheme.colors
     val styles = remember(colors) { MarkdownModel.Styles.of(colors) }
     val blocks = if (streaming) {
-        val parsed by produceState<List<MdBlock>>(emptyList(), markdown, styles) {
-            value = withContext(Dispatchers.Default) { MarkdownModel.parseStreaming(markdown, styles) }
+        // One parser per message: finished blocks are parsed once and reused, only the growing tail is
+        // re-parsed, and at most one parse runs about every 50 ms however fast the text arrives.
+        val latest by rememberUpdatedState(markdown)
+        val parsed by produceState<List<MdBlock>>(emptyList(), styles) {
+            val cache = StreamingBlocks()
+            snapshotFlow { latest }.conflate().collect { text ->
+                value = withContext(Dispatchers.Default) { cache.parse(text, styles) }
+                delay(STREAM_PARSE_GAP_MS)
+            }
         }
         parsed
     } else remember(markdown, styles) { MarkdownModel.parse(markdown, styles) }
@@ -169,5 +180,24 @@ private fun TableBlock(t: MdBlock.Table, style: TextStyle) {
                 }
             }
         }
+    }
+}
+
+private const val STREAM_PARSE_GAP_MS = 50L
+
+/** Keeps the parsed blocks of a streaming reply's finished prefix, so each update parses only the tail. */
+internal class StreamingBlocks {
+    private var prefix = ""
+    private var prefixBlocks: List<MdBlock> = emptyList()
+
+    fun parse(markdown: String, styles: MarkdownModel.Styles = MarkdownModel.Styles.Light): List<MdBlock> {
+        val end = StreamingMarkdown.stableEnd(markdown)
+        if (end == 0) return MarkdownModel.parseStreaming(markdown, styles)
+        val head = markdown.substring(0, end)
+        if (head != prefix) {
+            prefixBlocks = MarkdownModel.parse(head, styles)
+            prefix = head
+        }
+        return prefixBlocks + MarkdownModel.parseStreaming(markdown.substring(end), styles)
     }
 }

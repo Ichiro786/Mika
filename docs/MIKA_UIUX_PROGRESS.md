@@ -240,3 +240,13 @@ The Orbit presence now follows the presence study. Idle breathes, Listening send
 The states now follow the live run. A model request with nothing to show yet reads as Thinking (it used to read as Idle), any other live step reads as Working, and a locked phone or a pause waiting for the user reads as Needs you. Success shows for three seconds after the run ends, then settles to Idle, in the header, the hub and on the Tasks and Make headers alike.
 
 Side chats and channels get a focus header. The left button goes back to Main Chat, and the centre is a pill with the live presence, the channel name or Side Chat, and the run status or channel description. Tapping the pill opens the Orbit hub. Main Chat keeps the plain header with the drawer button. Drafts were already kept per conversation, so nothing changed there.
+
+## Stage 4 motion, streaming and accessibility, 2026-11-14
+
+Screens no longer cut. Opening a page slides it in from the right with a fade on a soft spring, and going back slides it the other way. Chat, Tasks and Make drift a little in the direction of the tab you picked and cross fade, while the drawer, the hub and the bottom bar stay in place. Each tab keeps its own scroll position and input. Reduced motion turns all of this into instant switches.
+
+Streaming replies parse less. Finished blocks of a reply (paragraphs and headings that a blank line has closed, outside any list, table, quote or code fence) are parsed once and reused, so only the growing tail is parsed again, and a reply parses at most about twenty times a second however fast text arrives. The chat state itself already merges updates to one per frame. The progress spinner now turns in its layer instead of recomposing every frame.
+
+Header icon buttons have a full 48 dp touch target around the same 40 dp look, and the centred header leaves room for them. The Orbit avatar and the focus pill tell TalkBack the current presence (for example Working or Needs you) as their state. The hub's section bar already used tab roles with labels. Continuous animations and the chat's auto scroll already respected reduced motion, so only the spinner needed work.
+
+On Files, the conversation and source filters scroll sideways instead of sharing the width, so the conversation name is no longer cut short, and they use tonal Orbit pills instead of outlines.

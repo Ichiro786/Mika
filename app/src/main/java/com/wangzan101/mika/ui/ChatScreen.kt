@@ -112,6 +112,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -1206,11 +1208,12 @@ private fun StepDot(dot: Dot) {
 /** 转圈:淡色圆环,顶上一段实色。[spinning] 为假(关了动画、停下来等你)时停在原处。 */
 @Composable
 internal fun Spinner(modifier: Modifier, spinning: Boolean, track: Color, head: Color) {
-    val turn = if (!spinning) 0f else rememberInfiniteTransition(label = "spin").animateFloat(
+    // Read only in the layer, so a spinning ring redraws without recomposing every frame.
+    val turn = if (!spinning) null else rememberInfiniteTransition(label = "spin").animateFloat(
         0f, 360f, infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart), label = "spin",
-    ).value
+    )
     Box(
-        modifier.graphicsLayer { rotationZ = turn }
+        modifier.graphicsLayer { rotationZ = turn?.value ?: 0f }
             .border(2.dp, track, CircleShape)
             .border(
                 2.dp,
@@ -1831,10 +1834,12 @@ private fun FocusPill(state: PresenceState, title: String, status: String?, stat
     val c = MikaTheme.colors
     val label = stringResource(R.string.orbit_hub_open)
     val hidden = LocalOrbitHubShowing.current
+    val presenceStatus = stringResource(presenceLabel(state))
     val shape = RoundedCornerShape(22.dp)
     Row(
         Modifier.widthIn(max = 230.dp).heightIn(min = 44.dp).clip(shape).background(c.surface).border(1.dp, c.hair, shape)
             .clickable(onClickLabel = label, role = Role.Button, onClick = onOpenHub)
+            .semantics { stateDescription = presenceStatus }
             .testTag("orbit-focus-pill")
             .padding(start = 5.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
         verticalAlignment = Alignment.CenterVertically,
