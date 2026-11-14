@@ -498,6 +498,9 @@ class ChatViewModel(
     /** 每次有分享放进当前会话就加一;异步操作靠它分辨草稿是被新分享换掉了,还是用户只改了文字。 */
     private var sharedDraftSerial = 0L
 
+    /** Sends per conversation, so a file still being read when its message went out doesn't reappear in the tray afterwards. */
+    private val sendsByConversation = mutableMapOf<String, Int>()
+
     /** 尚未发送第一句话的草稿也能从侧栏找回来;已有历史的对话由侧栏沿用原标题。 */
     val draftConversations = combine(drafts, _ui) { saved, current ->
         val all = saved + listOfNotNull(current.conversationId?.let { it to current.draft() }).toMap()
@@ -851,8 +854,10 @@ class ChatViewModel(
         val id = draftConversation()
         val sharedBefore = _ui.value.sharedDraft
         val serialBefore = sharedDraftSerial
+        val sendsBefore = sendsByConversation[id] ?: 0
         scope.launch {
             val items = try { describeAttachments(uris) } catch (e: CancellationException) { throw e } catch (e: Exception) { emptyList() }
+            if ((sendsByConversation[id] ?: 0) != sendsBefore) return@launch
             if (_ui.value.conversationId == id && (!canAttach(_ui.value) || sharedDraftSerial != serialBefore)) return@launch
             if (_ui.value.conversationId != id && drafts.value[id]?.sharedDraft != sharedBefore) return@launch
             updateDraft(id) { draft ->
@@ -1045,6 +1050,7 @@ class ChatViewModel(
         if (ui.importing) return false
         val sendingAttachments = ui.attachments.isNotEmpty() && attachesWithNextSend(ui)
         val sent = sendQuoted(text.trim(), ui, check)
+        ui.conversationId?.let { id -> if (sent) sendsByConversation[id] = (sendsByConversation[id] ?: 0) + 1 }
         if (sent && !sendingAttachments) {
             val shared = ui.sharedDraft
             if (shared != null) {

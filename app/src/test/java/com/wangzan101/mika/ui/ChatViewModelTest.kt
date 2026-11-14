@@ -1818,10 +1818,10 @@ class ChatViewModelTest {
         assertEquals(listOf("start:汇总一下\n附件:/workspace/inbox/报表 (1).csv(2 KB)"), calls)
         assertTrue(vm.ui.value.attachments.isEmpty())
         assertTrue(vm.ui.value.input.isEmpty())
-        // 任务在跑时不收附件
+        // While the task runs, files wait in the tray for the next message to it.
         vm.attach(listOf("content://x/3"))
         runCurrent()
-        assertTrue(vm.ui.value.attachments.isEmpty())
+        assertEquals(listOf("content://x/3"), vm.ui.value.attachments.map { it.uri })
     }
 
     @Test fun attachmentsAloneCanBeSent() = runTest {
