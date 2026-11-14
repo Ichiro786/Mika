@@ -435,10 +435,11 @@ private fun MikaRoot(
     var orbitHubOpen by rememberSaveable { mutableStateOf(false) }
     var voiceListening by remember { mutableStateOf(false) }
     val presenceFlow = remember(app.chat) {
-        app.chat.ui.map { presenceFor(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
+        app.chat.ui.map { presenceSignal(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
     }
-    val chatPresence by presenceFlow.collectAsState(initial = presenceFor(app.chat.ui.value.exchanges.lastOrNull(), false))
-    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else chatPresence
+    val chatPresence by presenceFlow.collectAsState(initial = presenceSignal(app.chat.ui.value.exchanges.lastOrNull(), false))
+    val settledChat = settledPresence(chatPresence)
+    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else settledChat
     LaunchedEffect(requestedConversation, requestedCalls, sharedDraft, openTeach) {
         if (requestedConversation != null || requestedCalls || sharedDraft != null || openTeach) orbitHubOpen = false
     }

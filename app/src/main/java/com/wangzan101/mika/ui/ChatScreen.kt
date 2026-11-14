@@ -158,6 +158,7 @@ import com.wangzan101.mika.ui.components.floatShadow
 import com.wangzan101.mika.ui.components.glassSource
 import com.wangzan101.mika.ui.components.rememberGlassBackdrop
 import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
+import com.wangzan101.mika.ui.identity.PresenceState
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
@@ -469,30 +470,44 @@ fun ChatScreen(
         val sub: Pair<String, ChatCopy.Tone?>? = ChatCopy.subtitle(last, last?.let(vm::livePlace))
             ?: kept?.let { ChatCopy.KEPT_PAGE to ChatCopy.Tone.Ok }
             ?: ChatTokensCopy.conversationSubtitle(endedRuns, runMetrics)?.let { it to null }
+        // Side chats and channels get a focus header: back to Main Chat, and a pill naming where you are.
+        val focus = isSideChat || channel != null
+        val presence = settledPresence(presenceSignal(last, voiceListening))
+        val subColor = when (sub?.second) {
+            ChatCopy.Tone.Accent -> c.accent
+            ChatCopy.Tone.Warn -> c.warn
+            ChatCopy.Tone.Ok -> c.ok
+            null -> Color.Unspecified
+        }
         Column(Modifier.behindMenu(menuOpen) { lift.value }.onSizeChanged { topHeight = it.height }) {
             TopBar(
                 "",
-                left = MikaIcons.Menu, leftLabel = stringResource(R.string.chat_menu), onLeft = onOpenDrawer,
+                left = if (focus) MikaIcons.Back else MikaIcons.Menu,
+                leftLabel = stringResource(if (focus) R.string.orbit_main_chat else R.string.chat_menu),
+                onLeft = if (focus) ({ if (vm.canSwitch()) vm.openMainChat() }) else onOpenDrawer,
                 // 别的对话里还有任务在跑(并行时):菜单上一个小圆点,侧栏「进行中」里能切过去
-                leftBadge = others.isNotEmpty(),
+                leftBadge = !focus && others.isNotEmpty(),
                 right = {
                     BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
-                titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub) },
+                titleIcon = if (focus) {
+                    {
+                        FocusPill(
+                            presence,
+                            title = channel?.name?.let { "# $it" } ?: stringResource(R.string.orbit_side_chat),
+                            status = sub?.first ?: channel?.description?.takeIf { it.isNotBlank() },
+                            statusColor = subColor,
+                            onOpenHub = onOpenOrbitHub,
+                        )
+                    }
+                } else {
+                    { OrbitHubButton(presence, onOpenOrbitHub) }
+                },
                 centerTitle = true,
-                barHeight = orbitHeaderBarHeight(hasSubtitle = sub != null || isSideChat || channel != null),
-                subtitle = when {
-                    channel != null -> listOfNotNull(channel?.name, sub?.first).joinToString(" · ")
-                    isSideChat -> listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ")
-                    else -> sub?.first
-                },
-                subtitleColor = when (sub?.second) {
-                    ChatCopy.Tone.Accent -> c.accent
-                    ChatCopy.Tone.Warn -> c.warn
-                    ChatCopy.Tone.Ok -> c.ok
-                    null -> Color.Unspecified
-                },
+                barHeight = if (focus) maxOf(orbitHeaderBarHeight(), 60.dp) else orbitHeaderBarHeight(hasSubtitle = sub != null),
+                subtitle = if (focus) null else sub?.first,
+                subtitleColor = subColor,
             )
             // Soft edge under the header: scrolled text feathers out instead of being cut on a hard line.
             // Laid out at zero height so it never pushes the chat down.
@@ -1806,3 +1821,32 @@ private val CardBody = TextStyle(fontSize = 14.sp, lineHeight = 21.5.sp)
 private val PillText = TextStyle(fontSize = 13.sp, lineHeight = 18.sp)
 private val FileName = TextStyle(fontSize = 14.5.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
 private val FileMeta = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
+
+/**
+ * The focus header's centre: the live presence beside where you are (a channel or side chat) and
+ * what is happening there. Tapping it opens the Orbit hub, like the plain header avatar.
+ */
+@Composable
+private fun FocusPill(state: PresenceState, title: String, status: String?, statusColor: Color, onOpenHub: () -> Unit) {
+    val c = MikaTheme.colors
+    val label = stringResource(R.string.orbit_hub_open)
+    val hidden = LocalOrbitHubShowing.current
+    val shape = RoundedCornerShape(22.dp)
+    Row(
+        Modifier.widthIn(max = 230.dp).heightIn(min = 44.dp).clip(shape).background(c.surface).border(1.dp, c.hair, shape)
+            .clickable(onClickLabel = label, role = Role.Button, onClick = onOpenHub)
+            .testTag("orbit-focus-pill")
+            .padding(start = 5.dp, end = 14.dp, top = 4.dp, bottom = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        MikaPresenceAvatar(Modifier.size(30.dp).graphicsLayer { alpha = if (hidden) 0f else 1f }, state = state, framed = true)
+        Column(Modifier.weight(1f, fill = false)) {
+            Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            if (!status.isNullOrEmpty()) {
+                Text(status, style = MikaType.Hint, color = if (statusColor == Color.Unspecified) c.ink3 else statusColor,
+                    maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}

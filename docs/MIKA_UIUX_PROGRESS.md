@@ -232,3 +232,11 @@ Rollback: remove only the newly added program documents/references and root prog
 ### Stage 2 redesign, 2026-11-14
 
 Side panel: one grouped card with Main chat and New side chat; the extra New chat row is gone (the chat header keeps it), the Personal Assistant row moved into the Orbit hub's Today card, and Quit lives only in Settings under Advanced. Section labels are small capitals with tracking. Tasks: the alarm shortcut is gone; Up next now lists switched-off schedules under Paused and shows the exact-alarm notice with its Turn on button. Settings home is regrouped into Common, Calls and messages, Look and feel, My data and Other, opens at the top, and every settings page fades content under the top bar instead of cutting it. Teach Orbit uses Orbit cards, rounded fields and full-width actions pinned above the keyboard. The schedule editor is a bottom sheet with rounded fields and date and time pickers that still write the same text format.
+
+## Stage 3 presence and focus header, 2026-11-14
+
+The Orbit presence now follows the presence study. Idle breathes, Listening sends out ripples, Thinking leaves soft trails of the sphere, Working sweeps a tilted orbit ring, Needs you shows three warm rays at one to two o'clock with a glow, and Success settles inside a halo. One phase value drives each loop and is read only while drawing, so the avatar does not recompose per frame. With reduced motion each state is drawn as a still frame.
+
+The states now follow the live run. A model request with nothing to show yet reads as Thinking (it used to read as Idle), any other live step reads as Working, and a locked phone or a pause waiting for the user reads as Needs you. Success shows for three seconds after the run ends, then settles to Idle, in the header, the hub and on the Tasks and Make headers alike.
+
+Side chats and channels get a focus header. The left button goes back to Main Chat, and the centre is a pill with the live presence, the channel name or Side Chat, and the run status or channel description. Tapping the pill opens the Orbit hub. Main Chat keeps the plain header with the drawer button. Drafts were already kept per conversation, so nothing changed there.

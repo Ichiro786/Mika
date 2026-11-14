@@ -14,9 +14,11 @@ class PresenceStateTest {
         assertEquals(PresenceState.Thinking, presenceFor(live.copy(waitingForModel = true, draft = "streamed"), false))
         assertEquals(PresenceState.Working, presenceFor(live.copy(toolRunning = true), false))
         assertEquals(PresenceState.Working, presenceFor(live.copy(toolRunning = true, waitingForModel = true, draft = "streamed"), false))
-        assertEquals(PresenceState.Idle, presenceFor(live, false))
-        assertEquals(PresenceState.Idle, presenceFor(live.copy(waitingForModel = true), false))
+        // A live run with narration but no tool is still working; a model request with nothing yet is thinking.
+        assertEquals(PresenceState.Working, presenceFor(live, false))
+        assertEquals(PresenceState.Thinking, presenceFor(live.copy(waitingForModel = true), false))
         assertEquals(PresenceState.Idle, presenceFor(live.copy(status = ExchangeStatus.Queued("wait")), false))
+        assertEquals(PresenceState.Idle, presenceFor(live.copy(status = ExchangeStatus.Cancelled()), false))
     }
 
     @Test fun attentionAndTerminalStatesDoNotAnimateOldHistory() {
@@ -31,6 +33,17 @@ class PresenceStateTest {
         assertEquals(PresenceState.Idle, presenceFor(done.copy(live = false), false))
         assertEquals(PresenceState.Idle, presenceFor(failed.copy(live = false), false))
         assertEquals(PresenceState.Listening, presenceFor(confirmation, true))
+        assertEquals(PresenceState.NeedsUser, presenceFor(live.copy(status = ExchangeStatus.WaitingUnlock), false))
+        assertEquals(PresenceState.NeedsUser, presenceFor(live.copy(status = ExchangeStatus.Paused("why", resumable = true)), false))
+        assertEquals(PresenceState.Idle, presenceFor(live.copy(status = ExchangeStatus.Paused("why", resumable = false)), false))
+    }
+
+    @Test fun successSettlesAShortWhileAfterTheRunEnds() {
+        val done = live.copy(status = ExchangeStatus.Done("answer", null), startedAt = 1_000L, elapsedMs = 500L)
+        assertEquals(PresenceSignal(PresenceState.Success, 1_500L + SUCCESS_HOLD_MS), presenceSignal(done, false))
+        // Unknown finish time: the success hold starts when the presence first sees it.
+        assertEquals(PresenceSignal(PresenceState.Success, null), presenceSignal(done.copy(elapsedMs = null), false))
+        assertEquals(PresenceSignal(PresenceState.Working), presenceSignal(live.copy(toolRunning = true), false))
     }
 
     @Test fun toolSignalFollowsTheCurrentRuntimeState() {
