@@ -209,3 +209,8 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - Reused the existing Compose graphics-layer backdrop and RenderEffect blur for the floating primary navigation and composer; unsupported devices use a translucent surface. Primary content now extends behind navigation, while measured navigation height is reserved for the composer, task action and final list content. Selection color respects reduced motion.
 - No Android rendering, IME, scrolling, accessibility, GPU or performance measurements were possible. Blur appearance and the overlay/inset behavior remain **UNVERIFIED**, as does Android compilation, while Actions dispatch is blocked.
+
+## Conversation workspaces — stage F, 2026-11-14
+
+- Replaced the permission-driven recent-photo grid with a compact chooser for the existing camera, Android photo/video picker and document picker. Multiple selection still uses the existing attachment limit, tray, import validation and draft state; cancellation leaves the draft alone. Removed media-library permission declarations that were used only by the old grid. Videos use the existing file attachment path; model video understanding is not implied.
+- Picker, camera, keyboard transitions and attachment handling still require device verification. The new Kotlin and device regression tests and Android compilation remain **UNVERIFIED** while Actions dispatch is blocked. New labels use the documented English fallback in other locales.

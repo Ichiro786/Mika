@@ -517,7 +517,7 @@ fun ChatScreen(
             attachPanel = if (ui.attachEnabled && (ui.composer == ComposerMode.Idle ||
                     (ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue))) ({
                 androidx.compose.runtime.key(ui.conversationId) {
-                    AttachPanelHost(ui.attachments, onPicked = { vm.attach(it, ui.conversationId) }, onToggle = vm::toggleAttachment)
+                    AttachPanelHost(onPicked = { vm.attach(it, ui.conversationId) })
                 }
             }) else null,
             // 附件功能开着但此刻不能加(任务在跑、插话模式):「＋」保留,点了提示切队列
@@ -1617,7 +1617,9 @@ internal fun Composer(
     var fieldValue by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
     val shownValue = if (fieldValue.text == text) fieldValue else TextFieldValue(text, TextRange(text.length))
     val panelPx = with(density) {
-        if (keyboardPx > 0) keyboardPx.coerceIn(PanelMin.roundToPx(), PanelMax.roundToPx()) else PanelDefault.roundToPx()
+        val extra = 80.dp * (fontScale.coerceIn(1f, 2f) - 1f)
+        if (keyboardPx > 0) keyboardPx.coerceIn((PanelMin + extra).roundToPx(), (PanelMax + extra).roundToPx())
+        else (PanelDefault + extra).roundToPx()
     }
     LaunchedEffect(attachPanel == null) { if (attachPanel == null) panel = Panel.Closed }
     BackHandler(enabled = panel == Panel.Open) { panel = Panel.Closed }
@@ -1793,9 +1795,9 @@ internal fun Composer(
 }
 
 /** 面板高度:没见过键盘时的默认值,以及跟着键盘时的上下限。 */
-private val PanelDefault = 320.dp
-private val PanelMin = 280.dp
-private val PanelMax = 420.dp
+private val PanelDefault = 220.dp
+private val PanelMin = 200.dp
+private val PanelMax = 260.dp
 /** 让给键盘时最多等这么久(毫秒)。 */
 private const val YIELD_MS = 700L
 

@@ -194,6 +194,19 @@ class ChatViewModelTest {
         assertTrue(calls.none { it.startsWith("cancel") })
     }
 
+    @Test fun cancellingAttachmentPickerPreservesDraftAndExistingAttachments() = runTest {
+        val vm = ChatViewModel(backgroundScope, state, stage, actions, ConversationStore(tmp.newFolder()),
+            sandboxReady = MutableStateFlow(true))
+        runCurrent()
+        vm.input("Keep this draft")
+        vm.attach(listOf("content://files/a.pdf"))
+        runCurrent()
+        vm.attach(emptyList())
+        runCurrent()
+        assertEquals("Keep this draft", vm.ui.value.input)
+        assertEquals(listOf("content://files/a.pdf"), vm.ui.value.attachments.map { it.uri })
+    }
+
     @Test fun serialRunCannotBeCancelledOrSwitchedByCreatingSideChat() = runTest {
         val store = ConversationStore(tmp.newFolder())
         val vm = vm(store)

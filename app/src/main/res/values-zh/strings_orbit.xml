@@ -45,4 +45,7 @@
     <string name="orbit_presence">Orbit presence</string>
     <string name="orbit_presence_header">Header avatar size</string>
     <string name="orbit_presence_hub">Hub bubble size</string>
+    <string name="orbit_attach_media">Photos and videos</string>
+    <string name="orbit_attach_title">Add to conversation</string>
+    <string name="orbit_picker_unavailable">No compatible picker is available.</string>
 </resources>
