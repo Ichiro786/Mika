@@ -224,7 +224,7 @@ The Apache Software Foundation (https://www.apache.org/).
 - Project: https://github.com/zxing/zxing
 - Artifact: `com.google.zxing:core:3.5.3`
 - License: Apache-2.0(依据 Maven POM)
-- Usage: 以库的形式依赖,未修改其代码;只用于在 Android 本机生成微信绑定二维码。
+- Usage: 以库的形式依赖,未修改其代码;只用于在 Android 本机生成 WhatsApp 关联设备二维码。
 
 ## commonmark-java
 
@@ -291,3 +291,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 ```
+
+## whatsmeow
+
+- Project: https://github.com/tulir/whatsmeow
+- Module: `go.mau.fi/whatsmeow`(版本见 `whatsapp-bridge/go.mod`)
+- License: MPL-2.0
+- Usage: 未修改其代码;用 gomobile 编进 WhatsApp 关联设备库(`whatsapp-bridge/`)。源代码见上面的项目地址。
+
+## modernc.org/sqlite
+
+- Project: https://gitlab.com/cznic/sqlite
+- Module: `modernc.org/sqlite`(版本见 `whatsapp-bridge/go.sum`)
+- License: BSD-3-Clause
+- Usage: 未修改其代码;在本机保存 WhatsApp 关联设备的会话。
+
+## Go 与 golang.org/x
+
+- Project: https://go.dev
+- License: BSD-3-Clause
+- Usage: WhatsApp 关联设备库的运行时、标准库与 golang.org/x 扩展库(含 gomobile 生成的绑定代码),未修改。

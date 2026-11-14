@@ -107,13 +107,13 @@ class TaskGateTest {
         var unlocks = 0
         val channel = TaskGate(locked, shellUp,
             unattendedUnlock = { unlocks++; "disabled" },
-            unlockFailureMessage = { tr(R.string.wechat_unlock_failed) }) { true }
+            unlockFailureMessage = { tr(R.string.whatsapp_unlock_failed) }) { true }
 
         val result = withTimeoutOrNull(1_000) { runCatching { channel.pass { reported += it } } }
 
         val error = result?.exceptionOrNull()
         assertTrue(error is UnattendedLockException)
-        assertEquals("${tr(R.string.wechat_unlock_failed)} [disabled]", error?.message)
+        assertEquals("${tr(R.string.whatsapp_unlock_failed)} [disabled]", error?.message)
         assertEquals(1, unlocks)
         assertTrue(locked.value)
         assertEquals(listOf(TaskState.Held(TaskGate.LOCKED)), reported)
