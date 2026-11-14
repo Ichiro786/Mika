@@ -1,0 +1,68 @@
+name: Android CI
+
+# This default-branch entry makes workflow_dispatch available before the
+# redesign branch is merged. The existing ci.yml remains the push/PR pipeline.
+on:
+  workflow_dispatch:
+    inputs:
+      capture_screenshots:
+        description: Capture device screenshots on the redesign branch
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v7
+        with:
+          go-version-file: tools/relay/go.mod
+          cache: true
+          cache-dependency-path: tools/relay/go.sum
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;35.0.0"
+      - uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-provider: basic
+      - name: Localization tests and validation
+        run: |
+          python3 -m unittest discover -s tools/i18n -v
+          python3 tools/i18n/translations.py check
+      - name: Core, relay, and Android verification
+        run: ./gradlew :core:test :core:cliTest :core:relayTest :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin -PmikaPython=python3 --stacktrace
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v7
+        with:
+          name: Mika-debug-${{ github.sha }}
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
+          compression-level: 0
+      - name: Device capture availability
+        if: ${{ inputs.capture_screenshots }}
+        run: echo '::warning::Device capture is available when dispatching the redesign branch.'
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: android-ci-test-results
+          path: |
+            core/build/test-results/
+            core/build/reports/tests/
+            app/build/test-results/testDebugUnitTest/
+            app/build/reports/tests/testDebugUnitTest/
+          retention-days: 7
+          if-no-files-found: ignore
