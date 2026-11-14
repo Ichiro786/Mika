@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- English fallback pending reviewed translation. -->
+    <string name="orbit_identity">Orbit identity</string>
+    <string name="orbit_identity_original">Original</string>
+    <string name="orbit_identity_monochrome">Monochrome</string>
+    <string name="orbit_hub_title">Personal agent</string>
+    <string name="orbit_hub_open">Open personal agent</string>
+    <string name="orbit_hub_today">Today</string>
+    <string name="orbit_hub_personalization">Personalization</string>
+    <string name="orbit_hub_ready">Ready to help</string>
+    <string name="orbit_hub_listening">Listening</string>
+    <string name="orbit_hub_thinking">Thinking</string>
+    <string name="orbit_hub_working">Working</string>
+    <string name="orbit_hub_needs_you">Needs your input</string>
+    <string name="orbit_hub_success">Completed</string>
+    <string name="orbit_hub_error">Needs attention</string>
+    <string name="orbit_hub_empty">No recent activity yet.</string>
+    <string name="orbit_hub_activity">Your activity</string>
+    <string name="orbit_hub_open_section">Open</string>
+    <string name="orbit_hub_tasks">View tasks</string>
+    <string name="orbit_call_phone_permission">请允许 Orbit 的电话权限</string>
+    <string name="orbit_call_helper_connect">请先连接 Orbit 内置助手</string>
+    <string name="orbit_call_helper_unavailable">Orbit 内置助手未连接</string>
+    <string name="orbit_call_unobserved">Android 正在通话，但 Orbit 尚未收到该通话的回调</string>
+    <string name="orbit_call_system_permission">请在 Orbit 的系统权限中允许电话权限</string>
+    <string name="orbit_call_management_unavailable">此系统不允许 Orbit 管理运营商通话</string>
+    <string name="orbit_main_chat">Main Chat</string>
+    <string name="orbit_side_new">New Side Chat</string>
+    <string name="orbit_side_chats">Side Chats</string>
+    <string name="orbit_side_chat">Side Chat</string>
+    <string name="orbit_side_all">See all</string>
+    <string name="orbit_side_empty">No side chats yet.</string>
+    <string name="orbit_side_context">This is a separate conversation. Parent messages are not included automatically.</string>
+    <string name="orbit_side_create_failed">Could not create a side chat. Please try again.</string>
+    <string name="orbit_channels">Channels</string>
+    <string name="orbit_channel_create">Create channel</string>
+    <string name="orbit_channel_edit">Edit channel</string>
+    <string name="orbit_channel_name">Channel name</string>
+    <string name="orbit_channel_description">Description (optional)</string>
+    <string name="orbit_channel_remove">Remove channel</string>
+    <string name="orbit_channel_remove_body">Remove %1$s from Channels? Its conversation, tasks, and files will remain in history.</string>
+    <string name="orbit_channel_empty">Start a conversation in this channel.</string>
+    <string name="orbit_channel_failed">Could not save this channel. Please try again.</string>
+    <string name="orbit_presence">Orbit presence</string>
+    <string name="orbit_presence_header">Header avatar size</string>
+    <string name="orbit_presence_hub">Hub bubble size</string>
+    <string name="orbit_attach_media">Photos and videos</string>
+    <string name="orbit_attach_title">Add to conversation</string>
+    <string name="orbit_picker_unavailable">No compatible picker is available.</string>
+</resources>

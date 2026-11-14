@@ -160,42 +160,18 @@ class ChatAttachmentsTest {
         assertEquals(listOf("content://f/9"), removed)
     }
 
-    private fun panel(access: PhotoAccess, recent: List<PendingAttachment>?, selected: List<PendingAttachment> = emptyList(), onGrant: () -> Unit = {}) =
+    @Test fun compactPanelOffersSupportedPickersWithoutMediaPermissionPrompt() {
+        val choices = mutableListOf<String>()
         compose.setContent {
             MikaTheme {
-                CompositionLocalProvider(LocalAttachImages provides images) {
-                    AttachPanel(access, recent, selected, {}, {}, {}, {}, onGrant)
-                }
+                AttachPanel(onCamera = { choices += "camera" }, onAlbum = { choices += "media" }, onFiles = { choices += "files" })
             }
         }
-
-    @Test fun panelWithoutPhotoAccessExplainsAndOffersToAllow() {
-        var granted = 0
-        panel(PhotoAccess.None, emptyList(), onGrant = { granted++ })
-        compose.onNodeWithText(AttachCopy.CAMERA).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.ALBUM).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.FILES).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.NEED_ACCESS).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.GRANT).performClick()
-        assertEquals(1, granted)
-        compose.onAllNodesWithTag("recent-photo").assertCountEquals(0)
-    }
-
-    @Test fun panelListsRecentPhotosWithNumberedSelection() {
-        val recent = (1..6).map { PendingAttachment("content://m/$it", "p$it.jpg", 1, photo = true) }
-        panel(PhotoAccess.Full, recent, selected = listOf(recent[4], recent[1]))
-        compose.onNodeWithText(AttachCopy.RECENT).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.ALL).assertIsDisplayed()
-        compose.onAllNodesWithTag("recent-photo").assertCountEquals(6)
-        compose.onAllNodes(hasTestTag("recent-photo") and isSelected()).assertCountEquals(2)
-        compose.onNodeWithText("1").assertIsDisplayed()
-        compose.onNodeWithText("2").assertIsDisplayed()
-    }
-
-    @Test fun partialAccessOffersToChangeTheSelection() {
-        panel(PhotoAccess.Partial, listOf(PendingAttachment("content://m/1", "p.jpg", 1, photo = true)))
-        compose.onNodeWithText(AttachCopy.RECENT_PARTIAL).assertIsDisplayed()
-        compose.onNodeWithText(AttachCopy.CHANGE).assertIsDisplayed()
+        compose.onNodeWithTag("attach-panel").assertIsDisplayed()
+        compose.onNodeWithText(AttachCopy.CAMERA).assertIsDisplayed().performClick()
+        compose.onNodeWithText(AttachCopy.ALBUM).assertIsDisplayed().performClick()
+        compose.onNodeWithText(AttachCopy.FILES).assertIsDisplayed().performClick()
+        assertEquals(listOf("camera", "media", "files"), choices)
     }
 
     private fun bubble(text: String) = compose.setContent {

@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -149,6 +150,7 @@ data class DrawerConversation(
     val archivedAt: Long? = null,
     /** 搜索结果命中了正文:打开对话后跳到这条消息;只有标题命中时为 null。 */
     val target: ChatTarget? = null,
+    val channel: Boolean = false,
 )
 
 /** 一次批量归档的结果:归档了几个、几个因为在跑任务或是当前对话没动。 */
@@ -180,8 +182,8 @@ fun drawerSelectableIds(
     archived: List<DrawerConversation>,
     archivedView: Boolean,
 ): Set<String> =
-    if (archivedView) archived.mapNotNull { it.id }.toSet()
-    else (sections.running + sections.pinned + sections.recent).mapNotNull { it.id }.toSet()
+    if (archivedView) archived.filterNot { it.channel }.mapNotNull { it.id }.toSet()
+    else (sections.running + sections.pinned + sections.recent).filterNot { it.channel }.mapNotNull { it.id }.toSet()
 
 /** 搜索候选:删掉的当场不搜;再按归档状态筛,全部时归档的也搜(结果行带归档标记)。 */
 internal fun drawerSearchCandidates(
@@ -233,17 +235,17 @@ fun drawerSections(
     fun archived(id: String?) = byId[id]?.archivedAt != null
     fun saved(id: String?) = byId[id]?.updatedAt?.let { it != 0L } ?: false
     val running = buildList {
-        if (current.running) add(DrawerConversation(current.id, current.title.ifBlank { tr(R.string.chat_new) }, current.subtitle, true, true, true, time = timeOf(current.id), pinned = pinned(current.id), site = byId[current.id]?.page?.host, branch = byId[current.id]?.branchOf != null, archived = archived(current.id), saved = saved(current.id)))
+        if (current.running) add(DrawerConversation(current.id, current.title.ifBlank { tr(R.string.chat_new) }, current.subtitle, true, true, true, time = timeOf(current.id), pinned = pinned(current.id), site = byId[current.id]?.page?.host, branch = byId[current.id]?.branchOf != null, archived = archived(current.id), saved = saved(current.id), channel = byId[current.id]?.channel != null))
         others.filter { it != current.id }.distinct().forEach { id ->
             val title = (byId[id]?.title ?: otherTitle(id))?.let(ChatCopy::plainTitle)?.ifBlank { null } ?: tr(R.string.drawer_running_task)
-            add(DrawerConversation(id, title, tr(R.string.drawer_running), running = true, current = false, enabled = canSwitch, time = timeOf(id), pinned = pinned(id), site = byId[id]?.page?.host, branch = byId[id]?.branchOf != null, archived = archived(id), saved = saved(id)))
+            add(DrawerConversation(id, title, tr(R.string.drawer_running), running = true, current = false, enabled = canSwitch, time = timeOf(id), pinned = pinned(id), site = byId[id]?.page?.host, branch = byId[id]?.branchOf != null, archived = archived(id), saved = saved(id), channel = byId[id]?.channel != null))
         }
     }
     val runningIds = running.mapNotNull { it.id }.toSet()
     fun entry(s: ConversationSummary): DrawerConversation =
         drawerEntry(s, current.id, canSwitch, running = s.id in runningIds, time = timeOf(s.id))
     // 归档的对话不在主列表里;当前正在看的那个例外,不然打开归档对话后不知道自己在哪
-    val rest = all.filter { it.id !in runningIds && (it.archivedAt == null || it.id == current.id) }
+    val rest = all.filter { it.sideChat == null && it.channel == null && it.id !in runningIds && (it.archivedAt == null || it.id == current.id) }
     val pinnedRows = rest.filter { it.pinnedAt != null }.sortedByDescending { it.pinnedAt }.map(::entry)
     val recent = rest.asSequence().filter { it.pinnedAt == null }.take(MAX_RECENT).map(::entry).toList()
     return DrawerSections(running, recent, pinnedRows)
@@ -264,6 +266,7 @@ internal fun drawerEntry(
         s.id, ChatCopy.plainTitle(s.title), subtitle, running, isCurrent, canSwitch || isCurrent, time,
         pinned = s.pinnedAt != null, site = s.page?.host, branch = s.branchOf != null,
         archived = s.archivedAt != null, saved = s.updatedAt != 0L, archivedAt = s.archivedAt, target = target,
+        channel = s.channel != null,
     )
 }
 
@@ -396,6 +399,15 @@ fun ChatDrawer(
     archivedView: Boolean = false,
     onOpenArchive: () -> Unit = {},
     onExitArchive: () -> Unit = {},
+    channels: List<DrawerConversation> = emptyList(),
+    onCreateChannel: () -> Unit = {},
+    sideChats: List<DrawerConversation> = emptyList(),
+    allSideChats: List<DrawerConversation> = emptyList(),
+    sideHistoryView: Boolean = false,
+    onMainChat: () -> Unit = {},
+    onNewSideChat: () -> Unit = {},
+    onSideHistory: () -> Unit = {},
+    onExitSideHistory: () -> Unit = {},
 ) {
     val c = MikaTheme.colors
     // 能勾的就是此刻列在侧栏里、已经存过的对话(还没存过的当前草稿没有编号,删不了);归档视图里是归档的那些
@@ -407,7 +419,8 @@ fun ChatDrawer(
     // 搜索时把几个入口收起来，把高度让给结果;清空后原样回来。搜索框在入口上面，位置不跳
     val searchActive = canSearch && !selecting && !archivedView && query.isNotBlank()
     Column(
-        Modifier.fillMaxHeight().widthIn(max = DrawerWidth).fillMaxWidth()
+        Modifier.fillMaxHeight()
+            .then(if (sideHistoryView) Modifier.fillMaxWidth() else Modifier.widthIn(max = DrawerWidth).fillMaxWidth())
             .clip(DrawerShape).background(c.bg, DrawerShape)
             .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.navigationBars))
             .testTag("drawer"),
@@ -420,7 +433,7 @@ fun ChatDrawer(
         ) {
             MikaLogo(36.dp, corner = 10.dp)
             Column(Modifier.weight(1f)) {
-                Text("Mika", style = MikaType.Title, color = c.ink)
+                Text(stringResource(R.string.app_name), style = MikaType.Title, color = c.ink)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Box(Modifier.size(6.dp).background(if (ok) c.ok else c.warnSolid, CircleShape))
                     Text(state, style = MikaType.Hint, fontWeight = FontWeight.Medium, color = c.ink3)
@@ -429,7 +442,7 @@ fun ChatDrawer(
             // 多选从顶上这个按钮进;进去以后这里换成「取消」,返回键同样能退出
             when {
                 selecting -> HeaderAction(stringResource(R.string.cancel), "drawer-select-cancel", c.ink2, onExitSelect)
-                selectableIds.isNotEmpty() && !searchActive ->
+                selectableIds.isNotEmpty() && !searchActive && !sideHistoryView ->
                     HeaderAction(stringResource(R.string.drawer_select), "drawer-select", c.accent, onStartSelect)
             }
         }
@@ -437,23 +450,17 @@ fun ChatDrawer(
         // 搜索时搜索框下面按归档状态筛;归档视图里没有搜索,自然也没有这一行
         if (searchActive) SearchArchiveFilterRow(searchFilter, onSearchFilterChange)
         // 搜索、多选、归档视图时把几个入口收起来，把高度让给列表;退出后原样回来
-        if (!searchActive && !selecting && !archivedView) Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-            NavEntry(MikaIcons.Message, stringResource(R.string.drawer_personal), onClick = onPersonal)
+        if (!searchActive && !selecting && !archivedView && !sideHistoryView) Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
+            NavEntry(MikaIcons.Message, stringResource(R.string.orbit_main_chat), enabled = canSwitch, onClick = onMainChat)
+            NavEntry(MikaIcons.New, stringResource(R.string.orbit_side_new), enabled = canSwitch, onClick = onNewSideChat)
             NavEntry(MikaIcons.New, stringResource(R.string.chat_new), enabled = canSwitch, onClick = onNew)
-            NavEntry(MikaIcons.Clock, stringResource(R.string.drawer_plans), onClick = onPlans)
-            NavEntry(MikaIcons.Heart, stringResource(R.string.memory_and_skills), onClick = onMemory)
-            NavEntry(MikaIcons.Globe, stringResource(R.string.drawer_browser), onClick = onBrowser)
-            NavEntry(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onClick = onFiles)
-            // 和上面几项隔开一点:这是把 Mika 整个停下来,不是换一页
-            Box(Modifier.padding(top = 4.dp)) {
-                NavEntry(MikaIcons.Power, stringResource(R.string.quit_title), onClick = onQuit)
-            }
         }
         // 侧栏关着时列表只剩末尾那一项;打开时对话插在它前面,列表会按原来那一项停在最底下。最上面一项变了就回到顶上
         val list = rememberLazyListState()
         val first = when {
             archivedView -> "h-archive"
             searchActive -> "h-search"
+            sideHistoryView -> "h-side-history"
             sections.running.isNotEmpty() -> "h-running"
             sections.pinned.isNotEmpty() -> "h-pinned"
             sections.recent.isNotEmpty() -> "h-recent"
@@ -493,6 +500,12 @@ fun ChatDrawer(
                 if (search?.truncated == true) {
                     item("search-more") { SearchHint(stringResource(R.string.drawer_search_truncated, ConversationSearch.MAX_HITS)) }
                 }
+            } else if (sideHistoryView) {
+                item("h-side-history") { SideHistoryHeader(onExitSideHistory) }
+                if (allSideChats.isEmpty()) item("side-empty") { SearchHint(stringResource(R.string.orbit_side_empty)) }
+                items(allSideChats, key = { "all-side-${it.id}" }) {
+                    ConversationEntry(it, onOpen, onActions)
+                }
             } else if (archivedView) {
                 item("h-archive") { ArchiveHeader(archived.size, onExitArchive) }
                 if (archived.isEmpty()) item("archive-empty") { ArchiveEmpty() }
@@ -506,6 +519,12 @@ fun ChatDrawer(
                     }
                 }
             } else {
+                if (!selecting) {
+                    item("h-channels") { ChannelsHeader(canSwitch, onCreateChannel) }
+                    items(channels, key = { "channel-${it.id}" }) { ConversationEntry(it, onOpen, onActions) }
+                    item("h-sides") { SideChatsHeader(onSideHistory) }
+                    items(sideChats, key = { "side-${it.id}" }) { ConversationEntry(it, onOpen, onActions) }
+                }
                 if (sections.running.isNotEmpty()) {
                     // 「进行中」这一段的右边进「后台屏」页:看每个在跑的任务正在用哪个 App、实时画面
                     item("h-running") { RunningLabel(onScreens) }
@@ -545,8 +564,10 @@ fun ChatDrawer(
                     }
                 }
             }
-            if (!searchActive && !selecting && !archivedView && archived.isNotEmpty()) {
-                item("archive-entry") { ArchiveEntry(archived.size, onOpenArchive) }
+            if (!searchActive && !selecting && !archivedView && !sideHistoryView) {
+                if (archived.isNotEmpty()) item("archive-entry") { ArchiveEntry(archived.size, onOpenArchive) }
+                item("personal-entry") { NavEntry(MikaIcons.Message, stringResource(R.string.drawer_personal), onClick = onPersonal) }
+                item("quit-entry") { NavEntry(MikaIcons.Power, stringResource(R.string.quit_title), onClick = onQuit) }
             }
             item("end") { Box(Modifier.height(12.dp)) }
         }
@@ -575,6 +596,40 @@ fun ChatDrawer(
 private fun HeaderAction(text: String, tag: String, color: Color, onClick: () -> Unit) {
     TextButton(onClick = onClick, modifier = Modifier.testTag(tag), contentPadding = PaddingValues(horizontal = 10.dp)) {
         Text(text, style = MikaType.Label, color = color)
+    }
+}
+
+@Composable
+private fun ChannelsHeader(enabled: Boolean, onCreate: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.orbit_channels)) }
+        TextButton(onClick = onCreate, enabled = enabled, modifier = Modifier.testTag("channel-create")) {
+            Text(stringResource(R.string.orbit_channel_create), style = MikaType.Hint,
+                color = if (enabled) MikaTheme.colors.ink2 else MikaTheme.colors.ink3)
+        }
+    }
+}
+
+@Composable
+private fun SideChatsHeader(onSeeAll: () -> Unit) {
+    Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+        Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.orbit_side_chats)) }
+        TextButton(onClick = onSeeAll, modifier = Modifier.testTag("side-chats-see-all")) {
+            Text(stringResource(R.string.orbit_side_all), style = MikaType.Hint, color = MikaTheme.colors.ink2)
+        }
+    }
+}
+
+@Composable
+private fun SideHistoryHeader(onBack: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().height(48.dp).clickable(role = Role.Button, onClick = onBack)
+            .padding(horizontal = 24.dp).testTag("side-chats-back"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Icon(MikaIcons.Back, null, Modifier.size(16.dp), tint = MikaTheme.colors.ink2)
+        Text(stringResource(R.string.orbit_side_chats), style = SectionText, color = MikaTheme.colors.ink3)
     }
 }
 
@@ -736,7 +791,7 @@ private fun NavEntry(
 ) {
     val c = MikaTheme.colors
     Row(
-        modifier.height(46.dp).clip(NavShape)
+        modifier.heightIn(min = 48.dp).clip(NavShape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.4f)
             .padding(horizontal = 12.dp),
@@ -801,7 +856,7 @@ internal fun ConversationEntry(
 ) {
     val c = MikaTheme.colors
     val deletable = item.id != null
-    val selectable = selecting && deletable
+    val selectable = selecting && deletable && !item.channel
     val haptic = LocalHapticFeedback.current
     // 这一行在窗口里的位置和大小(不裁掉滚出列表的部分),菜单照它摆出抬起的那一行;只在回调里读,不引起重组
     val bounds = remember { mutableStateOf(Rect.Zero) }
@@ -830,7 +885,7 @@ internal fun ConversationEntry(
                 )
                 .testTag("conversation-row")
                 .alpha(if (item.enabled || selectable) 1f else 0.45f)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+                .heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 9.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (selectable) SelectMark(selected)
@@ -918,6 +973,39 @@ internal fun ConversationRowContent(
             Text(styled, Modifier.padding(top = 2.dp), style = ConversationTime, color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
     }
+}
+
+@Composable
+private fun ChannelEditor(
+    initialName: String,
+    initialDescription: String,
+    creating: Boolean,
+    onSave: (String, String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    var name by remember(initialName) { mutableStateOf(initialName) }
+    var description by remember(initialDescription) { mutableStateOf(initialDescription) }
+    val valid = name.isNotBlank() && name.length <= 80 && description.length <= 2000
+    MikaDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(if (creating) R.string.orbit_channel_create else R.string.orbit_channel_edit)) },
+        text = {
+            KeyboardDismissArea {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(name, { if (it.length <= 80) name = it }, Modifier.fillMaxWidth().keepsKeyboard().testTag("channel-name"),
+                        label = { Text(stringResource(R.string.orbit_channel_name)) }, singleLine = true)
+                    OutlinedTextField(description, { if (it.length <= 2000) description = it }, Modifier.fillMaxWidth().keepsKeyboard().testTag("channel-description"),
+                        label = { Text(stringResource(R.string.orbit_channel_description)) }, minLines = 2, maxLines = 4)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onSave(name.trim(), description.trim()) }, enabled = valid, modifier = Modifier.testTag("channel-save")) {
+                Text(stringResource(R.string.save))
+            }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 /** 给对话改名:输入框里是现在的标题(整段选中,直接打字就替换);空的存不了,两头空白去掉。 */
@@ -1046,6 +1134,7 @@ fun ChatWithDrawer(
     onRegularChat: () -> Unit = {},
     /** 外部跳回对话页时变化:若之前因返回键留在展开的侧栏,当场收起侧栏。 */
     resetKey: Int = 0,
+    onBackFromPrimary: (() -> Unit)? = null,
     content: @Composable (openDrawer: () -> Unit) -> Unit,
 ) {
     val drawer = rememberDrawerState(DrawerValue.Closed)
@@ -1080,6 +1169,7 @@ fun ChatWithDrawer(
     var selected by remember { mutableStateOf<Set<String>>(emptySet()) }
     /** 归档视图:列表换成收起来的对话;侧栏关上就退出。 */
     var archivedView by remember { mutableStateOf(false) }
+    var sideHistoryView by remember { mutableStateOf(false) }
     /** 等用户确认的批量删除(对话编号)。 */
     var confirmingMany by remember { mutableStateOf<List<String>?>(null) }
     val deleteBatch by vm.deleteBatch.collectAsState()
@@ -1119,6 +1209,7 @@ fun ChatWithDrawer(
             selecting = false
             selected = emptySet()
             archivedView = false
+            sideHistoryView = false
             archiveBatch = null
             archiveUndo = null
             // 正文索引只在侧栏开着时有用,关掉就放掉,长时间使用不会一直占着全部对话的正文
@@ -1137,7 +1228,9 @@ fun ChatWithDrawer(
             }
             archivedView -> archivedView = false
             query.isNotEmpty() -> query = ""
+            sideHistoryView -> sideHistoryView = false
             open -> activity?.moveTaskToBack(true)
+            onBackFromPrimary != null -> onBackFromPrimary()
             else -> scope.launch { if (reduceMotion) drawer.snapTo(DrawerValue.Open) else drawer.open() }
         }
     }
@@ -1163,6 +1256,9 @@ fun ChatWithDrawer(
     }
     /** 正在改名的那条。 */
     var renaming by remember { mutableStateOf<DrawerConversation?>(null) }
+    var creatingChannel by remember { mutableStateOf(false) }
+    var editingChannel by remember { mutableStateOf<Pair<String, com.wangzan101.mika.chat.WorkspaceChannel>?>(null) }
+    var removingChannel by remember { mutableStateOf<DrawerConversation?>(null) }
     /** 要删的那条和删它会连带什么;确认弹窗开着。 */
     var confirming by remember { mutableStateOf<Pair<DrawerConversation, DeleteImpact>?>(null) }
     /** 「完全退出」的确认弹窗开着。 */
@@ -1173,10 +1269,14 @@ fun ChatWithDrawer(
             lastReset = resetKey
             acting = null
             renaming = null
+            creatingChannel = false
+            editingChannel = null
+            removingChannel = null
             confirming = null
             selecting = false
             selected = emptySet()
             archivedView = false
+            sideHistoryView = false
             confirmingMany = null
             confirmingQuit = false
             archiveBatch = null
@@ -1203,20 +1303,26 @@ fun ChatWithDrawer(
                 // 只在打开时读盘;每次打开、开着时存储里有对话改过都重读一次
                 val history = remember(open, revision) { if (open) conversations() else emptyList() }
                 val drafts by vm.draftConversations.collectAsState()
-                val all = remember(open, history, drafts, revision) { if (open) vm.withDrafts(history) else emptyList() }
+                val all = remember(open, history, drafts, revision) {
+                    if (open) vm.withDrafts(history).map { summary ->
+                        if (summary.sideChat != null && summary.title.isBlank()) summary.copy(title = tr(R.string.orbit_side_chat)) else summary
+                    } else emptyList()
+                }
                 val stored = remember(open, revision, ui.conversationId) { if (open) ui.conversationId?.let(conversationTitle) else null }
                 val last = ui.exchanges.lastOrNull()
                 val running = vm.busy()
                 val current = CurrentConversation(
                     ui.conversationId, running,
-                    stored ?: ChatCopy.title(ui.exchanges),
+                    all.firstOrNull { it.id == ui.conversationId }?.channel?.name ?: stored ?: ChatCopy.title(ui.exchanges),
                     if (running) ChatCopy.subtitle(last, last?.let(vm::livePlace))?.first.orEmpty() else "",
                 )
                 val canSwitch = vm.canSwitch()
                 // 搜索候选:标题换成侧栏里显示的样子(去掉附件行、网页说明),和行上看到的一致;再按归档状态筛。
                 // 有没有可搜的对话看全部,不看当前筛选——筛到空的时候搜索框和筛选条还得留着,不然退不回来
-                val searchable = remember(all, deleted) { all.any { it.id !in deleted } }
-                val candidates = remember(all, deleted, searchFilter) { drawerSearchCandidates(all, deleted, searchFilter) }
+                val searchable = remember(all, deleted, sideHistoryView) { sideHistoryView || all.any { it.id !in deleted } }
+                val candidates = remember(all, deleted, searchFilter, sideHistoryView) {
+                    drawerSearchCandidates(if (sideHistoryView) all.filter { it.sideChat != null } else all, deleted, searchFilter)
+                }
                 val engine = search
                 LaunchedEffect(open, query, revision, candidates, engine) {
                     val q = query.trim()
@@ -1271,6 +1377,23 @@ fun ChatWithDrawer(
                             )
                         }
                 }
+                val channelRows = remember(all, current, canSwitch, deleted, runningIds) {
+                    val now = System.currentTimeMillis()
+                    all.filter { it.id !in deleted && it.channel != null }
+                        .sortedWith(compareByDescending<ConversationSummary> { it.pinnedAt != null }
+                            .thenByDescending { it.pinnedAt ?: 0L }.thenByDescending { it.updatedAt }).map { summary ->
+                            drawerEntry(summary, current.id, canSwitch, summary.id in runningIds,
+                                if (summary.updatedAt != 0L) conversationTime(summary.updatedAt, now) else "",
+                                subtitle = summary.channel?.description.orEmpty())
+                        }
+                }
+                val sideRows = remember(all, current, canSwitch, deleted, runningIds) {
+                    val now = System.currentTimeMillis()
+                    all.filter { it.id !in deleted && it.sideChat != null }.sortedByDescending { it.updatedAt }.map { summary ->
+                        drawerEntry(summary, current.id, canSwitch, summary.id in runningIds,
+                            if (summary.updatedAt != 0L) conversationTime(summary.updatedAt, now) else "")
+                    }
+                }
                 // 能勾的就是此刻列在侧栏里的对话;别处删了、列表变了,勾选里已经不存在的当场去掉。归档视图里换成归档的对话
                 val selectableIds = remember(sections, archivedRows, archivedView) {
                     drawerSelectableIds(sections, archivedRows, archivedView)
@@ -1290,6 +1413,18 @@ fun ChatWithDrawer(
                     searchFilter = searchFilter,
                     onSearchFilterChange = { searchFilter = it },
                     onNew = { close { vm.newConversation(); onRegularChat() } },
+                    channels = channelRows,
+                    onCreateChannel = { creatingChannel = true },
+                    onMainChat = { close { vm.openMainChat(); onRegularChat() } },
+                    onNewSideChat = {
+                        if (vm.createSideChat()) close { onRegularChat() }
+                        else android.widget.Toast.makeText(context, context.getString(R.string.orbit_side_create_failed), android.widget.Toast.LENGTH_SHORT).show()
+                    },
+                    sideChats = sideRows.filterNot { it.archived }.take(2),
+                    allSideChats = sideRows,
+                    sideHistoryView = sideHistoryView,
+                    onSideHistory = { query = ""; sideHistoryView = true },
+                    onExitSideHistory = { query = ""; sideHistoryView = false },
                     onPersonal = { leave(onPersonal) },
                     onPlans = { leave(onPlans) },
                     onMemory = { leave(onMemory) },
@@ -1382,12 +1517,48 @@ fun ChatWithDrawer(
                 onPin = { closeMenu { vm.setPinned(id, !item.pinned) } },
                 onArchive = { closeMenu { archiveWithUndo(id, item.title) } },
                 onUnarchive = { closeMenu { vm.unarchiveConversation(id) } },
-                onRename = { closeMenu { renaming = item } },
+                onRename = { closeMenu {
+                    val channel = vm.channelInfo(id)
+                    if (channel != null) editingChannel = id to channel else renaming = item
+                } },
                 onTerminal = { closeMenu { activity?.let { a -> com.wangzan101.mika.ui.terminal.TerminalLauncher.open(a, id, item.title) } } },
-                onDelete = { closeMenu { confirming = item to vm.deleteImpact(id) } },
+                onDelete = { closeMenu {
+                    if (vm.channelInfo(id) != null) removingChannel = item else confirming = item to vm.deleteImpact(id)
+                } },
                 onDismiss = { closeMenu() },
             )
         }
+    }
+    if (creatingChannel) {
+        ChannelEditor("", "", creating = true, onSave = { name, description ->
+            if (vm.createChannel(name, description)) {
+                creatingChannel = false
+                close { onRegularChat() }
+            } else android.widget.Toast.makeText(context, context.getString(R.string.orbit_channel_failed), android.widget.Toast.LENGTH_SHORT).show()
+        }, onDismiss = { creatingChannel = false })
+    }
+    editingChannel?.let { (id, channel) ->
+        ChannelEditor(channel.name, channel.description, creating = false, onSave = { name, description ->
+            if (vm.updateChannel(id, name, description)) editingChannel = null
+            else android.widget.Toast.makeText(context, context.getString(R.string.orbit_channel_failed), android.widget.Toast.LENGTH_SHORT).show()
+        }, onDismiss = { editingChannel = null })
+    }
+    removingChannel?.let { item ->
+        MikaDialog(onDismissRequest = { removingChannel = null },
+            title = { Text(stringResource(R.string.orbit_channel_remove)) },
+            text = { Text(stringResource(R.string.orbit_channel_remove_body, item.title)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    val ok = item.id?.let(vm::removeChannel) == true
+                    if (ok) removingChannel = null
+                    else {
+                        val reason = if (!vm.canSwitch() && item.id == ui.conversationId) R.string.drawer_busy else R.string.orbit_channel_failed
+                        android.widget.Toast.makeText(context, context.getString(reason), android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                }) { Text(stringResource(R.string.orbit_channel_remove), color = MikaTheme.colors.bad) }
+            },
+            dismissButton = { TextButton(onClick = { removingChannel = null }) { Text(stringResource(R.string.cancel)) } },
+        )
     }
     renaming?.let { item ->
         RenameConversationDialog(

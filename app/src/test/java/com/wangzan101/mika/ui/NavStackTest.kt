@@ -57,6 +57,17 @@ class NavStackTest {
         assertFalse(nav.reopenDrawer)
     }
 
+    @Test fun primaryTabsKeepChatAsRootAndBackReturnsToIt() {
+        val nav = NavStack()
+        nav.show(Route.Tasks)
+        assertEquals(listOf(Route.Chat, Route.Tasks), nav.stack)
+        nav.show(Route.Make)
+        assertEquals(listOf(Route.Chat, Route.Make), nav.stack)
+        assertTrue(nav.back())
+        assertEquals(Route.Chat, nav.current)
+        assertFalse(nav.reopenDrawer)
+    }
+
     @Test fun pagesNotOpenedFromTheDrawerReturnToChatOnly() {
         val nav = NavStack()
         nav.push(Route.Settings)

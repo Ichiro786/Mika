@@ -8,6 +8,8 @@ import android.os.Process
 import android.provider.Settings
 import android.telecom.TelecomManager
 import com.wangzan101.mika.shell.IMikaShell
+import com.wangzan101.mika.R
+import com.wangzan101.mika.i18n.AppLanguage
 
 /** Only modifies Mika's own Telecom registration and single app-op; never changes the dialer. */
 internal class CallTelecomAccess(private val context: Context) {
@@ -36,7 +38,7 @@ internal class CallTelecomAccess(private val context: Context) {
 
     fun prepare(shell: IMikaShell): String? {
         if (!supported) return "电话伴侣模式需要 Android 12 及以上、主用户及运营商通话功能"
-        if (!hasPhonePermissions()) return "请在 Mika 的系统权限中允许电话权限"
+        if (!hasPhonePermissions()) return AppLanguage.resources(context).getString(R.string.orbit_call_system_permission)
         val original = readOp(shell) ?: return "无法读回电话权限状态"
         val systemDialer = runCatching { telecom?.defaultDialerPackage }.getOrNull()
             ?: return "无法读回系统默认拨号器"
@@ -49,7 +51,7 @@ internal class CallTelecomAccess(private val context: Context) {
                 return change.appOpsFailureMessage
             }
         } else if (!managePermission()) {
-            return "此系统不允许 Mika 管理运营商通话"
+            return AppLanguage.resources(context).getString(R.string.orbit_call_management_unavailable)
         }
         // No public API lists this test override. Reuse external setup when the allow was
         // already granted independently; only remove a registration made by this runtime.

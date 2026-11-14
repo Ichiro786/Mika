@@ -74,6 +74,20 @@ class AutoArchiveTest {
         assertEquals(0, AutoArchive.run(store, days = 30, running = listOf("running"), currentId = "current", now = now + day))
     }
 
+    @Test fun oldChannelRemainsVisibleWhileOrdinaryHistoryCanArchive() {
+        val dir = tmp.newFolder()
+        val now = System.currentTimeMillis()
+        val store = ConversationStore(dir)
+        assertTrue(store.createChannel("project", "Project", "", null))
+        store.append("project", Turn("Old project", "Done", "succeeded", atMs = now - 40 * day))
+        store.append("ordinary", Turn("Old chat", "Done", "succeeded", atMs = now - 40 * day))
+        assertEquals(1, AutoArchive.run(store, days = 30, now = now))
+        assertNull(store.archivedAt("project"))
+        assertEquals(now, store.archivedAt("ordinary"))
+        val channel = store.list().single { it.id == "project" }
+        assertTrue(AutoArchive.candidates(listOf(channel.copy(updatedAt = now - 40 * day)), now - 30 * day).isEmpty())
+    }
+
     /** 从归档里手动恢复的老对话,下次自动归档不会马上又收走。 */
     @Test fun runLeavesAJustRestoredChatAlone() {
         val dir = tmp.newFolder()

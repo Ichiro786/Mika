@@ -101,6 +101,40 @@ class FeatureFlags(private val prefs: SharedPreferences) {
         prefs.edit().putString(THEME_MODE, mode.name).commit()
     }
 
+    fun orbitIdentity(): OrbitIdentityMode = OrbitIdentityMode.parse(prefs.getString(ORBIT_IDENTITY, null))
+
+    fun orbitIdentityChanges(): Flow<OrbitIdentityMode> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || key == ORBIT_IDENTITY) trySend(orbitIdentity())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        send(orbitIdentity())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    fun setOrbitIdentity(mode: OrbitIdentityMode) {
+        prefs.edit().putString(ORBIT_IDENTITY, mode.name).commit()
+    }
+
+    fun orbitPresence(): OrbitPresenceSize = OrbitPresenceSize(
+        prefs.getInt(ORBIT_HEADER_SIZE, OrbitPresenceSize.DEFAULT_HEADER),
+        prefs.getInt(ORBIT_HUB_SIZE, OrbitPresenceSize.DEFAULT_HUB),
+    ).clamped()
+
+    fun orbitPresenceChanges(): Flow<OrbitPresenceSize> = callbackFlow {
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+            if (key == null || key == ORBIT_HEADER_SIZE || key == ORBIT_HUB_SIZE) trySend(orbitPresence())
+        }
+        prefs.registerOnSharedPreferenceChangeListener(listener)
+        send(orbitPresence())
+        awaitClose { prefs.unregisterOnSharedPreferenceChangeListener(listener) }
+    }.distinctUntilChanged()
+
+    fun setOrbitPresence(size: OrbitPresenceSize) {
+        val safe = size.clamped()
+        prefs.edit().putInt(ORBIT_HEADER_SIZE, safe.headerDp).putInt(ORBIT_HUB_SIZE, safe.hubDp).apply()
+    }
+
     /** 强调色(见 [ThemeAccent]),默认蓝色。和外观一样跟着 [themeAccentChanges] 当场换,不用重建。 */
     fun themeAccent(): ThemeAccent = ThemeAccent.parse(prefs.getString(THEME_ACCENT, null))
 
@@ -337,6 +371,9 @@ class FeatureFlags(private val prefs: SharedPreferences) {
         private const val PIP_OPERATE = "pip_operate"
         private const val EXTERNAL_SCHEDULE = "external_schedule"
         private const val THEME_MODE = "theme_mode"
+        private const val ORBIT_IDENTITY = "orbit_identity"
+        private const val ORBIT_HEADER_SIZE = "orbit_header_size"
+        private const val ORBIT_HUB_SIZE = "orbit_hub_size"
         private const val PERSONAL_START = "personal_start"
         private const val THEME_ACCENT = "theme_accent"
         private const val SKIN_VERSION = "skin_version"

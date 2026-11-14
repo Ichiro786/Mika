@@ -130,6 +130,94 @@ class ChatViewModelTest {
         runCurrent()
     }
 
+    @Test fun sideChatSwitchingKeepsParentAndSideDraftsSeparate() = runTest {
+        for (parallel in listOf(false, true)) {
+            val store = ConversationStore(tmp.newFolder())
+            store.append("parent", Turn("Parent question", "Parent answer", "succeeded"))
+            val vm = ChatViewModel(backgroundScope, MutableStateFlow(TaskState.Idle), stage, actions, store,
+                parallelFlag = { parallel })
+            runCurrent()
+            vm.openConversation("parent")
+            vm.input("Parent draft")
+            assertTrue(vm.createSideChat())
+            val side = requireNotNull(vm.ui.value.conversationId)
+            assertEquals("parent", store.sideChat(side)?.parentId)
+            assertEquals(1, store.sideChat(side)?.parentTurn)
+            assertTrue(vm.ui.value.exchanges.isEmpty())
+            vm.input("Side draft")
+            vm.openMainChat()
+            assertEquals("parent", vm.ui.value.conversationId)
+            assertEquals("Parent draft", vm.ui.value.input)
+            assertEquals("Parent question", store.turns("parent").single().userText)
+            vm.openConversation(side)
+            assertEquals("Side draft", vm.ui.value.input)
+        }
+    }
+
+    @Test fun channelSwitchingAndRemovalPreserveConversationAndDrafts() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        store.append("main", Turn("Main question", "Main answer", "succeeded"))
+        val vm = vm(store)
+        vm.openConversation("main")
+        vm.input("Main draft")
+        assertTrue(vm.createChannel("Project", "Notes"))
+        val channel = requireNotNull(vm.ui.value.conversationId)
+        assertEquals("Project", store.channel(channel)?.name)
+        vm.input("Project draft")
+        vm.openMainChat()
+        assertEquals("Main draft", vm.ui.value.input)
+        vm.openConversation(channel)
+        assertEquals("Project draft", vm.ui.value.input)
+        assertTrue(vm.createSideChat())
+        val side = requireNotNull(vm.ui.value.conversationId)
+        assertEquals(channel, store.sideChat(side)?.parentId)
+        assertEquals("main", store.sideChat(side)?.mainId)
+        vm.openMainChat()
+        assertEquals("main", vm.ui.value.conversationId)
+        vm.openConversation(channel)
+        assertEquals("Project draft", vm.ui.value.input)
+        assertTrue(vm.removeChannel(channel))
+        assertEquals("main", vm.ui.value.conversationId)
+        assertEquals("Main question", store.turns("main").single().userText)
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
+    @Test fun removingCurrentChannelDuringSerialRunDoesNotCancelIt() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        val vm = vm(store)
+        assertTrue(vm.createChannel("Project", ""))
+        val channel = requireNotNull(vm.ui.value.conversationId)
+        assertTrue(vm.send("Working", ok))
+        assertFalse(vm.removeChannel(channel))
+        assertEquals(channel, vm.ui.value.conversationId)
+        assertEquals("Project", store.channel(channel)?.name)
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
+    @Test fun cancellingAttachmentPickerPreservesDraftAndExistingAttachments() = runTest {
+        val vm = ChatViewModel(backgroundScope, state, stage, actions, ConversationStore(tmp.newFolder()),
+            sandboxReady = MutableStateFlow(true))
+        runCurrent()
+        vm.input("Keep this draft")
+        vm.attach(listOf("content://files/a.pdf"))
+        runCurrent()
+        vm.attach(emptyList())
+        runCurrent()
+        assertEquals("Keep this draft", vm.ui.value.input)
+        assertEquals(listOf("content://files/a.pdf"), vm.ui.value.attachments.map { it.uri })
+    }
+
+    @Test fun serialRunCannotBeCancelledOrSwitchedByCreatingSideChat() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        val vm = vm(store)
+        assertTrue(vm.send("Working", ok))
+        val parent = vm.ui.value.conversationId
+        assertFalse(vm.createSideChat())
+        assertEquals(parent, vm.ui.value.conversationId)
+        assertTrue(store.list().none { it.sideChat != null })
+        assertTrue(calls.none { it.startsWith("cancel") })
+    }
+
     @Test fun draftsStayWithTheirConversationInSerialAndParallelModes() = runTest {
         for (parallel in listOf(false, true)) {
             val vm = ChatViewModel(backgroundScope, MutableStateFlow(TaskState.Idle), stage, actions,
@@ -3577,6 +3665,29 @@ class ChatViewModelTest {
         assertEquals("尚未发送", vm.ui.value.input)
         vm.openConversation("saved")
         assertEquals("已有对话的草稿", vm.ui.value.input)
+    }
+
+    @Test fun openingTaskConversationsKeepsEachDraftAndSameConversationState() = runTest {
+        val store = ConversationStore(tmp.newFolder())
+        store.append("a", Turn("first", "done", "succeeded"))
+        store.append("b", Turn("second", "done", "succeeded"))
+        val vm = ChatViewModel(backgroundScope, state, stage, actions, store, sandboxReady = MutableStateFlow(true)).also { runCurrent() }
+        vm.openConversation("a")
+        vm.input("draft A")
+        assertEquals(LibraryAttachmentResult.Added, vm.addLibraryAttachment("a", PendingAttachment("content://a.pdf", "a.pdf", 1)))
+        vm.quote(QuoteMessage.From.Mika, "quoted answer")
+        vm.openPersonalTask("b")
+        assertEquals("", vm.ui.value.input)
+        vm.input("draft B")
+        vm.openPersonalTask("b")
+        assertEquals("draft B", vm.ui.value.input)
+        vm.openPersonalTask("a")
+        assertEquals("draft A", vm.ui.value.input)
+        assertEquals("a.pdf", vm.ui.value.attachments.single().name)
+        assertNotNull(vm.ui.value.quote)
+        vm.openPersonalTask("b")
+        assertEquals("draft B", vm.ui.value.input)
+        assertTrue(calls.none { it.startsWith("start:") })
     }
 
     @Test fun personalTaskCanBeOpenedWhileOrdinaryConversationIsBusyWithoutStartingWork() = runTest {

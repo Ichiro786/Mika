@@ -66,9 +66,11 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -96,21 +98,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -119,6 +125,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.MikaApp
@@ -148,6 +155,7 @@ import com.wangzan101.mika.ui.components.cardSurface
 import com.wangzan101.mika.ui.components.floatShadow
 import com.wangzan101.mika.ui.components.glassSource
 import com.wangzan101.mika.ui.components.rememberGlassBackdrop
+import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
@@ -160,6 +168,7 @@ import com.wangzan101.mika.voice.VoiceSource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
@@ -201,7 +210,13 @@ fun ChatScreen(
     onOpenTeach: (String) -> Unit = {},
     /** 首页推荐任务。不传时用本机保存的那一份;测试传入单独的存储,避免改到用户的数据。 */
     recommendations: RecommendedTaskStore? = null,
+    onOpenOrbitHub: () -> Unit = {},
+    onVoiceListeningChanged: (Boolean) -> Unit = {},
+    primaryBottomInset: Dp = 0.dp,
 ) {
+    DisposableEffect(vm) {
+        onDispose { onVoiceListeningChanged(false) }
+    }
     val recommendationStore = recommendations
         ?: (LocalContext.current.applicationContext as? MikaApp)?.recommendedTasks
     val recommendedTasksFlow = remember(recommendationStore) {
@@ -210,6 +225,12 @@ fun ChatScreen(
     }
     val recommendedTasks by recommendedTasksFlow.collectAsState()
     val ui by vm.ui.collectAsState()
+    val isSideChat = remember(ui.conversationId) { vm.isSideChat(ui.conversationId) }
+    var channel by remember(ui.conversationId) { mutableStateOf(vm.channelInfo(ui.conversationId)) }
+    LaunchedEffect(vm, ui.conversationId) {
+        val id = ui.conversationId
+        vm.workspaceChanges.collect { changed -> if (changed == id) channel = vm.channelInfo(id) }
+    }
     val pendingJump by vm.jump.collectAsState()
     val others by vm.otherRunning.collectAsState()
     val keptAny by vm.keptPage.collectAsState()
@@ -240,6 +261,7 @@ fun ChatScreen(
     var pendingExample by remember { mutableStateOf<String?>(null) }
     var retryFailures by remember { mutableStateOf<Pair<String, String>?>(null) }
     var voiceHolding by remember { mutableStateOf(false) }
+    var voiceListening by remember { mutableStateOf(false) }
     var editRequest by remember { mutableIntStateOf(0) }
     var composerHeight by rememberSaveable { mutableIntStateOf(0) }
     var topHeight by rememberSaveable { mutableIntStateOf(0) }
@@ -259,6 +281,18 @@ fun ChatScreen(
     var followingTail by rememberSaveable { mutableStateOf(true) }
     var previousScrollMarker by rememberSaveable { mutableStateOf<String?>(null) }
     var previousConversation by rememberSaveable { mutableStateOf<String?>(null) }
+    // Store small per-conversation viewport snapshots in the existing saved UI state.
+    var savedPositions by rememberSaveable { mutableStateOf(arrayListOf<String>()) }
+    DisposableEffect(ui.conversationId) {
+        val id = ui.conversationId
+        onDispose {
+            if (id != null) {
+                val other = savedPositions.chunked(4).filter { it.size == 4 && it[0] != id }.flatten()
+                savedPositions = ArrayList((other + listOf(id, listState.firstVisibleItemIndex.toString(),
+                    listState.firstVisibleItemScrollOffset.toString(), if (followingTail) "1" else "0")).takeLast(400))
+            }
+        }
+    }
     val tailThresholdPx = with(density) { 240.dp.roundToPx() }
     LaunchedEffect(listState, tailThresholdPx) {
         var wasScrolling = false
@@ -299,7 +333,17 @@ fun ChatScreen(
         val changedConversation = previousConversation != ui.conversationId
         previousScrollMarker = scrollMarker
         previousConversation = ui.conversationId
-        if (changedConversation) followingTail = true
+        if (changedConversation) {
+            val saved = savedPositions.chunked(4).lastOrNull { it.size == 4 && it[0] == ui.conversationId }
+            val index = saved?.get(1)?.toIntOrNull()
+            val offset = saved?.get(2)?.toIntOrNull()
+            if (index != null && offset != null && rowCount > 0) {
+                followingTail = saved?.get(3) == "1"
+                listState.scrollToItem(index.coerceIn(0, rowCount - 1), offset.coerceAtLeast(0))
+                return@LaunchedEffect
+            }
+            followingTail = true
+        }
         if (!firstEntry && !changedConversation && !followingTail) return@LaunchedEffect
         if (rowCount > 0) {
             if (firstEntry || changedConversation || reduceMotion) listState.scrollToItem(rowCount - 1)
@@ -378,7 +422,14 @@ fun ChatScreen(
             ) {
                 if (ui.exchanges.isEmpty() && ui.blocked == null) {
                     item("empty") {
-                        EmptyState(ui.conversationId, recommendedTasks) { prompt ->
+                        if (isSideChat || channel != null) {
+                            Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 52.dp)) {
+                                Text(channel?.name ?: stringResource(R.string.orbit_side_chat), style = MikaType.LargeTitle, color = c.ink)
+                                val description = channel?.description?.takeIf { it.isNotBlank() }
+                                    ?: stringResource(if (isSideChat) R.string.orbit_side_context else R.string.orbit_channel_empty)
+                                Text(description, Modifier.padding(top = 12.dp), style = MikaType.Body, color = c.ink2)
+                            }
+                        } else EmptyState(ui.conversationId, recommendedTasks, others.size, onOpenDrawer) { prompt ->
                             if (input.isEmpty()) vm.input(prompt) else pendingExample = prompt
                         }
                     }
@@ -417,7 +468,7 @@ fun ChatScreen(
             ?: ChatTokensCopy.conversationSubtitle(endedRuns, runMetrics)?.let { it to null }
         Column(Modifier.behindMenu(menuOpen) { lift.value }.onSizeChanged { topHeight = it.height }) {
             TopBar(
-                ChatCopy.APP_TITLE,
+                "",
                 left = MikaIcons.Menu, leftLabel = stringResource(R.string.chat_menu), onLeft = onOpenDrawer,
                 // 别的对话里还有任务在跑(并行时):菜单上一个小圆点,侧栏「进行中」里能切过去
                 leftBadge = others.isNotEmpty(),
@@ -425,7 +476,14 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
-                subtitle = sub?.first,
+                titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub) },
+                centerTitle = true,
+                barHeight = orbitHeaderBarHeight(hasSubtitle = sub != null || isSideChat || channel != null),
+                subtitle = when {
+                    channel != null -> listOfNotNull(channel?.name, sub?.first).joinToString(" · ")
+                    isSideChat -> listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ")
+                    else -> sub?.first
+                },
                 subtitleColor = when (sub?.second) {
                     ChatCopy.Tone.Accent -> c.accent
                     ChatCopy.Tone.Warn -> c.warn
@@ -436,7 +494,8 @@ fun ChatScreen(
         }
 
         Composer(
-            Modifier.align(Alignment.BottomCenter).behindMenu(menuOpen) { lift.value }.onSizeChanged { composerHeight = it.height },
+            Modifier.align(Alignment.BottomCenter).behindMenu(menuOpen) { lift.value }
+                .onSizeChanged { composerHeight = it.height }.padding(bottom = primaryBottomInset),
             backdrop = backdrop,
             text = input,
             draftKey = ui.conversationId,
@@ -458,7 +517,7 @@ fun ChatScreen(
             attachPanel = if (ui.attachEnabled && (ui.composer == ComposerMode.Idle ||
                     (ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue))) ({
                 androidx.compose.runtime.key(ui.conversationId) {
-                    AttachPanelHost(ui.attachments, onPicked = { vm.attach(it, ui.conversationId) }, onToggle = vm::toggleAttachment)
+                    AttachPanelHost(onPicked = { vm.attach(it, ui.conversationId) })
                 }
             }) else null,
             // 附件功能开着但此刻不能加(任务在跑、插话模式):「＋」保留,点了提示切队列
@@ -484,6 +543,8 @@ fun ChatScreen(
             onPickSpeech = openSpeechModel,
             steerTarget = if (ui.followUpMode == FollowUpMode.Steer) last?.goal?.let(ChatCopy::plainTitle) else null,
             onVoiceHolding = { voiceHolding = it },
+            onVoiceListening = { voiceListening = it; onVoiceListeningChanged(it) },
+            editorial = true,
             editRequest = editRequest,
         )
 
@@ -645,41 +706,68 @@ private fun LazyListState.nearTail(thresholdPx: Int): Boolean {
 
 /** 问候、一句「想让 Mika 做什么？」和推荐任务。点一条把提示词填进输入框,改好了再发;一条都没有时不显示列表。 */
 @Composable
-private fun EmptyState(conversation: String?, tasks: List<RecommendedTask>, onPick: (String) -> Unit) {
+private fun EmptyState(
+    conversation: String?, tasks: List<RecommendedTask>, runningElsewhere: Int, onOpenDrawer: () -> Unit, onPick: (String) -> Unit,
+) {
     val c = MikaTheme.colors
     val hour = remember(conversation) { LocalTime.now().hour }
+    val greeting = ChatCopy.greeting(hour)
+    val locale = LocalConfiguration.current.locales[0]
+    val english = locale.language == "en"
+    val latin = locale.language in setOf("en", "es", "in", "pt")
+    var expanded by rememberSaveable(conversation) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 52.dp)) {
-            Text(ChatCopy.greeting(hour), style = MikaType.LargeTitle, color = c.ink)
-            Text(ChatCopy.EMPTY_PROMPT, Modifier.padding(top = 6.dp), style = EmptyLead, color = c.ink2)
+            Text(buildAnnotatedString {
+                if (english && greeting.startsWith("Good ")) {
+                    append("Good ")
+                    pushStyle(SpanStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Normal))
+                    append(greeting.removePrefix("Good "))
+                    append('.')
+                    pop()
+                } else append(greeting)
+            }, style = MikaType.LargeTitle, color = c.ink)
+            Text(stringResource(R.string.home_editorial_subtitle), Modifier.padding(top = 8.dp), style = EmptyLead, color = c.ink2)
+        }
+        if (runningElsewhere > 0) {
+            Row(Modifier.fillMaxWidth().padding(top = 28.dp).cardSurface(c).clip(MikaShapes.Card)
+                .clickable(role = Role.Button, onClick = onOpenDrawer).heightIn(min = 56.dp).padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Box(Modifier.size(8.dp).background(c.accent, CircleShape))
+                Text(pluralStringResource(R.plurals.task_active, runningElsewhere, runningElsewhere), style = MikaType.BodyStrong, color = c.ink)
+            }
         }
         if (tasks.isNotEmpty()) {
-            MikaCard(Modifier.padding(top = 28.dp)) {
-                tasks.forEachIndexed { i, task ->
-                    ExampleRow(MikaIcons.Message, task.title, first = i == 0) { onPick(task.prompt) }
+            Row(Modifier.fillMaxWidth().padding(start = 8.dp, top = 30.dp, end = 4.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.recommendations_title).uppercase(locale), Modifier.weight(1f),
+                    style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold, letterSpacing = if (latin) 0.8.sp else 0.sp), color = c.ink3)
+                if (tasks.size > 2) {
+                    Text(stringResource(if (expanded) R.string.collapse else R.string.more),
+                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { expanded = !expanded }
+                            .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 8.dp),
+                        style = MikaType.Caption, color = c.ink)
+                }
+            }
+            val featured = tasks.first()
+            MikaCard {
+                Column(Modifier.fillMaxWidth().clickable(role = Role.Button) { onPick(featured.prompt) }.padding(20.dp)) {
+                    Text(featured.title,
+                        style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, lineHeight = 23.sp),
+                        color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            val secondary = if (expanded) tasks.drop(1) else tasks.drop(1).take(1)
+            secondary.forEach { task ->
+                Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.Top) {
+                    MikaPresenceAvatar(Modifier.size(28.dp), reduceMotion = true, framed = true)
+                    Text(task.title, Modifier.weight(1f).clip(MikaShapes.Card).background(c.answer)
+                        .clickable(role = Role.Button) { onPick(task.prompt) }.heightIn(min = 48.dp).padding(14.dp),
+                        style = ExampleText, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun ExampleRow(icon: ImageVector, text: String, first: Boolean, onClick: () -> Unit) {
-    val c = MikaTheme.colors
-    Row(
-        Modifier.fillMaxWidth()
-            .then(if (first) Modifier else Modifier.drawBehind {
-                val y = 0.25.dp.toPx()
-                drawLine(c.hair, Offset(52.dp.toPx(), y), Offset(size.width, y), strokeWidth = 0.5.dp.toPx())
-            })
-            .clickable(role = Role.Button, onClick = onClick)
-            .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
-    ) {
-        Icon(icon, null, Modifier.size(MikaSize.Icon), tint = c.ink2)
-        Text(text, Modifier.weight(1f), style = ExampleText, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -779,7 +867,7 @@ internal fun ExchangeStatus.isActive() =
     this !is ExchangeStatus.Done && this !is ExchangeStatus.Failed && this !is ExchangeStatus.Cancelled
 
 /**
- * 用户的话:蓝色气泡,圆角 20、右下尾角 6,最宽八成。[note] 是插话的去向。
+ * 用户的话:圆角气泡,右下尾角 6,最宽八成。[note] 是插话的去向。
  * 带着用户此刻的屏幕时上面是截图缩略图和「你此刻的屏幕 · App · 时刻」,附言在下面的气泡里(见 [UserMessage])。
  * 带着附件时上面是照片格子和文件卡片(见 [SentAttachments]),点开在 App 里的查看页看;写的话在下面另起一个气泡,路径那几行不显示。
  * 引用了前面的消息时最上面是引的那条(见 [SentQuote])。长按气泡弹出复制 / 引用 / 选择文字([key] 认是哪一条,见 [MessageArea])。
@@ -805,13 +893,13 @@ internal fun UserBubble(text: String, conversationId: String?, note: String? = n
             }
             if (attached.hasAttachments && attached.words.isNotEmpty()) Spacer(Modifier.size(6.dp))
             if ((!attached.hasAttachments || attached.words.isNotEmpty()) && (paged.page == null || quoted.words.isNotEmpty())) UserMessage(conversationId, attached.words.takeIf { attached.hasAttachments } ?: quoted.words, ChatThumbWidth) { words ->
-                // 选择文字时蓝底上选中的底色用白色半透明,把手照旧是蓝色(画在气泡外面)
                 val colors = MikaTheme.colors
-                CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(colors.accent, colors.onAccent.copy(alpha = 0.35f))) {
+                val bubble = if (colors.isDark) Color(0xFF54372F) else Color(0xFFF9D5CA)
+                CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(colors.ink, colors.ink.copy(alpha = 0.25f))) {
                     MessageArea(
                         key, QuoteMessage.From.You, words, "selectable-user",
-                        Modifier.widthIn(max = max).background(colors.accent, MikaShapes.UserBubble),
-                        lifted = { LiftedMessage(MikaShapes.UserBubble, colors.accent) { UserBubbleText(words) } },
+                        Modifier.widthIn(max = max).background(bubble, MikaShapes.UserBubble),
+                        lifted = { LiftedMessage(MikaShapes.UserBubble, bubble) { UserBubbleText(words) } },
                     ) { UserBubbleText(words) }
                 }
             }
@@ -822,7 +910,7 @@ internal fun UserBubble(text: String, conversationId: String?, note: String? = n
 
 @Composable
 private fun UserBubbleText(words: String) {
-    Text(words, Modifier.padding(horizontal = 14.dp, vertical = 10.dp), style = BubbleText, color = MikaTheme.colors.onAccent)
+    Text(words, Modifier.padding(horizontal = 14.dp, vertical = 10.dp), style = BubbleText, color = MikaTheme.colors.ink)
 }
 
 /** 长按抬起的那条消息:[color] 底、带阴影;太长时(最高半屏)只露开头,下面裁掉。 */
@@ -890,7 +978,7 @@ private fun Modifier.answerSurface(): Modifier =
 // ---------- 进度 ----------
 
 /**
- * 进行中:一行状态(转圈 + 此刻的进展 + 用时),下面一条竖线步骤(做完的灰点、当前的蓝点;停下来等你时当前步是橙点)。
+ * 进行中:一行状态和用时;步骤按需展开,停下来等你时当前步是橙点。
  * 在后台操作手机时最下面一行小字。
  */
 @Composable
@@ -898,7 +986,8 @@ private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boole
     val c = MikaTheme.colors
     val paused = ChatCopy.paused(ex.status)
     val elapsed = rememberElapsed(ex.startedAt)
-    Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
+    var showSteps by rememberSaveable { mutableStateOf(false) }
+    Column(Modifier.fillMaxWidth().padding(bottom = 10.dp).background(c.surface, MikaShapes.Card).border(0.5.dp, c.edge, MikaShapes.Card).padding(12.dp)) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -914,7 +1003,15 @@ private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boole
             )
             if (elapsed != null) Text(ChatCopy.clock(elapsed), style = ClockText, color = c.ink3)
         }
-        if (ex.steps.isNotEmpty()) StepLine(ex.steps, ex.stepActions, live = true, paused = paused)
+        if (ex.steps.isNotEmpty()) {
+            Text(
+                stringResource(if (showSteps) R.string.chat_collapse_steps else R.string.chat_expand_steps),
+                Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { showSteps = !showSteps }
+                    .heightIn(min = 48.dp).padding(horizontal = 8.dp, vertical = 8.dp),
+                style = MikaType.Caption, color = c.ink2,
+            )
+            if (showSteps) StepLine(ex.steps, ex.stepActions, live = true, paused = paused)
+        }
         // 跑的时候就能进运行过程(页面按秒接着长);结束后收进「做了 N 步 · 查看过程」那一行
         ex.runId?.let { id ->
             Text(
@@ -1179,10 +1276,10 @@ private fun StatusCard(
                 if (options.isEmpty()) CardButton(stringResource(R.string.action_cancel_task), onClick = vm::cancel)
             }
         }
-        // 只有花钱的操作要你同意,每次只同意这一次
-        is ExchangeStatus.NeedsConfirmation -> NeedCard(status.title, status.body + "\n" + ConfirmationCopy.NOTE) {
-            CardButton(stringResource(R.string.chat_refuse), onClick = { vm.decline(status.key) })
-            CardButton(stringResource(R.string.chat_allow_once), primary = true, onClick = { vm.approve(status.key) })
+        // Keep the runtime request key and wait for its next state before claiming any outcome.
+        is ExchangeStatus.NeedsConfirmation -> androidx.compose.runtime.key(status.key) {
+            val submission = rememberSaveable(saver = ApprovalSubmission.Saver) { ApprovalSubmission() }
+            ApprovalCard(status, submission, onApprove = { vm.approve(status.key) }, onDecline = { vm.decline(status.key) })
         }
         is ExchangeStatus.Paused -> NeedCard(stringResource(if (status.resumable) R.string.chat_paused else R.string.chat_waiting_for_you), status.why) {
             CardButton(stringResource(R.string.action_cancel_task), onClick = vm::cancel)
@@ -1233,6 +1330,71 @@ private fun StatusCard(
             }
             RecoveryActions(runId, recover)
         }
+    }
+}
+
+/** Shows only the request fields supplied by the existing confirmation flow. */
+@Composable
+internal fun ApprovalCard(
+    status: ExchangeStatus.NeedsConfirmation,
+    submission: ApprovalSubmission,
+    onApprove: () -> Unit,
+    onDecline: () -> Unit,
+) {
+    val c = MikaTheme.colors
+    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
+    val errorInk = if (c.isDark) c.bad else Color(0xFFAB3028)
+    MikaCard(Modifier.padding(top = 8.dp, bottom = 12.dp)) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(40.dp).border(1.dp, c.hair, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+                    Icon(MikaIcons.Doc, null, Modifier.size(20.dp), tint = c.ink)
+                }
+                Column(Modifier.weight(1f)) {
+                    Text(status.title, style = NeedTitle, color = c.ink)
+                    Text(stringResource(R.string.chat_wait_approval), style = MikaType.Caption, color = attention)
+                }
+            }
+            HorizontalDivider(color = c.hair)
+            Column(Modifier.padding(16.dp)) {
+                Text(status.body, style = CardBody, color = c.ink)
+                Text(ConfirmationCopy.NOTE, Modifier.padding(top = 12.dp), style = MikaType.Caption, color = c.ink2)
+                if (submission.pending) Text(stringResource(R.string.relay_busy), Modifier.padding(top = 8.dp),
+                    style = MikaType.Caption, color = c.ink2)
+                if (submission.failed) Text(stringResource(R.string.op_failed), Modifier.padding(top = 8.dp),
+                    style = MikaType.Caption, color = errorInk)
+                if (LocalConfiguration.current.fontScale >= 1.5f) {
+                    Column(Modifier.fillMaxWidth().padding(top = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.fillMaxWidth().testTag("confirmation-decline"), enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.fillMaxWidth().testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
+                    }
+                } else {
+                    Row(Modifier.fillMaxWidth().padding(top = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
+                            Modifier.weight(1f).testTag("confirmation-decline"), enabled = !submission.pending)
+                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
+                            Modifier.weight(1f).testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ApprovalAction(text: String, onClick: () -> Unit, modifier: Modifier, primary: Boolean = false, enabled: Boolean) {
+    val c = MikaTheme.colors
+    Box(
+        modifier.heightIn(min = 48.dp).background(if (primary) c.ink else c.surface, MikaShapes.Pill)
+            .border(1.dp, if (primary) c.ink else c.hair, MikaShapes.Pill).clip(MikaShapes.Pill)
+            .clickable(enabled = enabled, role = Role.Button, onClick = onClick).alpha(if (enabled) 1f else 0.5f)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(text, style = MikaType.BodyStrong, color = if (primary) c.bg else c.ink, textAlign = TextAlign.Center)
     }
 }
 
@@ -1403,6 +1565,8 @@ internal fun Composer(
     onVoiceHolding: (Boolean) -> Unit = {},
     sendFromIme: Boolean = false,
     draftKey: String? = null,
+    onVoiceListening: (Boolean) -> Unit = {},
+    editorial: Boolean = false,
 ) {
     val c = MikaTheme.colors
     var fieldFocused by remember { mutableStateOf(false) }
@@ -1424,6 +1588,8 @@ internal fun Composer(
     val vState = voiceState(vh)
     val voiceHolding = vh?.holding == true
     LaunchedEffect(voiceHolding) { onVoiceHolding(voiceHolding) }
+    val voiceListening = voiceHolding && (vState as? HoldToTalk.State.Listening)?.ended == false
+    LaunchedEffect(voiceListening) { onVoiceListening(voiceListening) }
     LaunchedEffect(editRequest) {
         if (editRequest > 0) {
             panel = Panel.Closed
@@ -1451,7 +1617,9 @@ internal fun Composer(
     var fieldValue by remember { mutableStateOf(TextFieldValue(text, TextRange(text.length))) }
     val shownValue = if (fieldValue.text == text) fieldValue else TextFieldValue(text, TextRange(text.length))
     val panelPx = with(density) {
-        if (keyboardPx > 0) keyboardPx.coerceIn(PanelMin.roundToPx(), PanelMax.roundToPx()) else PanelDefault.roundToPx()
+        val extra = 80.dp * (fontScale.coerceIn(1f, 2f) - 1f)
+        if (keyboardPx > 0) keyboardPx.coerceIn((PanelMin + extra).roundToPx(), (PanelMax + extra).roundToPx())
+        else (PanelDefault + extra).roundToPx()
     }
     LaunchedEffect(attachPanel == null) { if (attachPanel == null) panel = Panel.Closed }
     BackHandler(enabled = panel == Panel.Open) { panel = Panel.Closed }
@@ -1479,7 +1647,7 @@ internal fun Composer(
         modifier.fillMaxWidth()
             .pageBackground(c.bg, fade)
             .windowInsetsPadding(WindowInsets.navigationBars.union(WindowInsets.ime))
-            .padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 6.dp),
+            .padding(start = if (editorial) 16.dp else 12.dp, end = if (editorial) 16.dp else 12.dp, top = 10.dp, bottom = if (editorial) 8.dp else 6.dp),
     ) {
         Column(Modifier.fillMaxWidth()) {
             if (busy || (mode == ComposerMode.Answer && (showAttach || attachments.isNotEmpty()))) {
@@ -1565,7 +1733,7 @@ internal fun Composer(
                 }
                 val canSend = AttachTray.canSend(text, attachments, importing)
                 // 键盘出来以后长按输入框留给系统选字;话筒按住才听,点一下只提示按住
-                if (fieldFocused && vh != null) {
+                if (vh != null) {
                     val hint = stringResource(R.string.voice_hold_to_talk)
                     Box(
                         Modifier.size(MikaSize.IconButton).testTag("composer-mic").holdToTalk(vh) { vh.toast = hint },
@@ -1587,12 +1755,12 @@ internal fun Composer(
                 if (!busy || canSend) {
                     Box(
                         Modifier.size(MikaSize.IconButton)
-                            .background(if (canSend) c.accent else c.greySoft, CircleShape)
+                            .background(if (canSend) { if (editorial) c.ink else c.accent } else c.greySoft, CircleShape)
                             .clip(CircleShape)
                             .clickable(enabled = canSend, onClickLabel = stringResource(R.string.chat_send)) { panel = Panel.Closed; onSend() },
                         contentAlignment = Alignment.Center,
                     ) {
-                        Icon(MikaIcons.Up, stringResource(R.string.chat_send), Modifier.size(20.dp), tint = if (canSend) c.onAccent else c.ink3)
+                        Icon(MikaIcons.Up, stringResource(R.string.chat_send), Modifier.size(20.dp), tint = if (canSend) { if (editorial) c.bg else c.onAccent } else c.ink3)
                     }
                 }
             }
@@ -1627,9 +1795,9 @@ internal fun Composer(
 }
 
 /** 面板高度:没见过键盘时的默认值,以及跟着键盘时的上下限。 */
-private val PanelDefault = 320.dp
-private val PanelMin = 280.dp
-private val PanelMax = 420.dp
+private val PanelDefault = 220.dp
+private val PanelMin = 200.dp
+private val PanelMax = 260.dp
 /** 让给键盘时最多等这么久(毫秒)。 */
 private const val YIELD_MS = 700L
 

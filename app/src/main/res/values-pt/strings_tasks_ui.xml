@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">Conversa</string>
+    <string name="nav_make">Criar</string>
+    <string name="tasks_title">Seu trabalho.</string>
+    <string name="tasks_subtitle">Uma visão mais tranquila de tudo o que está acontecendo.</string>
+    <string name="tasks_active">Ativas</string>
+    <string name="tasks_up_next">A seguir</string>
+    <string name="tasks_review">Prontas para revisão</string>
+    <string name="tasks_scheduled">Agendadas</string>
+    <string name="tasks_resolved">Finalizadas</string>
+    <string name="tasks_waiting">Aguardando</string>
+    <string name="tasks_empty_up_next">Nenhuma tarefa na fila ou agendada.</string>
+</resources>

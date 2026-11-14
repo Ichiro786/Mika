@@ -2,10 +2,10 @@
 <resources>
     <string name="about_tagline">مساعدك الشخصي على هاتفك، ينجز المهام نيابةً عنك</string>
     <string name="about_check">التحقق من وجود تحديثات</string>
-    <string name="about_check_sub">احصل على الإصدارات الجديدة من GitHub Releases</string>
-    <string name="about_check_sub_new">يتوفر إصدار جديد</string>
-    <string name="about_up_to_date">محدّث</string>
-    <string name="about_up_to_date_toast">لديك أحدث إصدار</string>
+    <string name="about_check_sub">Check the upstream Mika project on GitHub</string>
+    <string name="about_check_sub_new">New upstream Mika release available</string>
+    <string name="about_up_to_date">No newer upstream release</string>
+    <string name="about_up_to_date_toast">No newer upstream Mika release found.</string>
     <string name="about_offline">تعذر الاتصال بـ GitHub</string>
     <string name="about_offline_toast">يتعذر الاتصال بـ GitHub حالياً. حاول مجدداً لاحقاً.</string>
     <string name="about_changelog">ملاحظات الإصدار</string>
@@ -31,7 +31,7 @@
     <string name="about_repo_sub">%1$s · نرحب بنجوم GitHub</string>
     <string name="about_guide">الدليل والمساهمة</string>
     <string name="about_guide_sub">البدء؛ أضف معرفة بالتطبيق حتى دون كتابة شيفرة</string>
-    <string name="about_data_note">كل ما ترسله إلى Mika — الرسائل ومحتوى الشاشة ولقطات الشاشة — يُرسل فقط إلى موفر النموذج الذي أعددته. لا تملك Mika خوادم خاصة بها ولا تجمع أي بيانات عنك؛ ولا يتصل التحقق من التحديثات إلا بـ GitHub.</string>
+    <string name="about_data_note">كل ما ترسله إلى Orbit — الرسائل ومحتوى الشاشة ولقطات الشاشة — يُرسل فقط إلى موفر النموذج الذي أعددته. لا تملك Orbit خوادم خاصة بها ولا تجمع أي بيانات عنك؛ ولا يتصل التحقق من التحديثات إلا بـ GitHub.</string>
     <string name="about_license_link">ترخيص Apache-2.0</string>
     <string name="about_author">من إعداد Wang Zan · © 2026</string>
     <string name="about_license_title">ترخيص Apache-2.0</string>
@@ -44,21 +44,21 @@
     <string name="about_update_retry">إعادة التنزيل</string>
     <string name="about_update_cancel">حذف التنزيل</string>
     <string name="about_update_working">جارٍ العمل…</string>
-    <string name="about_update_install_hint">بعد التنزيل، انقر على «تثبيت التحديث» وأكّد ذلك في أداة تثبيت النظام. قد تحتاج أولاً إلى السماح لـ Mika بتثبيت تطبيقات غير معروفة.</string>
+    <string name="about_update_install_hint">بعد التنزيل، انقر على «تثبيت التحديث» وأكّد ذلك في أداة تثبيت النظام. قد تحتاج أولاً إلى السماح لـ Orbit بتثبيت تطبيقات غير معروفة.</string>
     <string name="about_update_error">لم يكتمل التنزيل أو التثبيت. يُرجى المحاولة مجدداً لاحقاً.</string>
     <string name="about_update_bad_file">الحزمة التي تم تنزيلها غير مكتملة أو لا تطابق الإصدار. حُذفت؛ يُرجى تنزيلها مجدداً.</string>
-    <string name="about_update_not_newer">الحزمة التي تم تنزيلها ليست أحدث من Mika المثبتة. حُذفت.</string>
-    <string name="about_update_bad_signer">وُقّعت هذه الحزمة بطريقة مختلفة عن Mika المثبتة، لذا لا يمكنها تحديثها. حُذفت. إذا أنشأت Mika بنفسك، فأزل تثبيتها أولاً ثم ثبّت الإصدار الرسمي.</string>
+    <string name="about_update_not_newer">الحزمة التي تم تنزيلها ليست أحدث من Orbit المثبتة. حُذفت.</string>
+    <string name="about_update_bad_signer">This upstream Mika package is signed differently and cannot update Orbit.</string>
     <string name="about_update_later">لاحقاً</string>
     <string name="about_no_browser">لا يتوفر متصفح لفتح الرابط</string>
     <string name="about_version">الإصدار %1$s</string>
     <string name="about_build">البنية %1$s</string>
     <string name="about_available">يتوفر %1$s</string>
-    <string name="about_update_title">الإصدار الجديد %1$s</string>
+    <string name="about_update_title">Upstream Mika release %1$s</string>
     <string name="about_current">الحالي %1$s</string>
     <string name="about_released_on">" · صدر في %1$s"</string>
     <string name="about_released_under">صدر بموجب %1$s</string>
-    <string name="issue_body">- الجهاز: %1$s\n- إصدار Android: %2$s (SDK %3$d)\n- إصدار Mika: %4$s (البنية %5$s)\n\n### ما المشكلة؟\n\n\n### خطوات إعادة المشكلة\n\n\n### ما الذي توقعته؟\n\n\n### معلومات التشخيص\n(اختياري) في Mika، افتح «حول» › «إرسال ملاحظات» › «نسخ معلومات التشخيص»، ثم ألصقها هنا\n\n</string>
+    <string name="issue_body">- الجهاز: %1$s\n- إصدار Android: %2$s (SDK %3$d)\n- إصدار Orbit: %4$s (البنية %5$s)\n\n### ما المشكلة؟\n\n\n### خطوات إعادة المشكلة\n\n\n### ما الذي توقعته؟\n\n\n### معلومات التشخيص\n(اختياري) في Orbit، افتح «حول» › «إرسال ملاحظات» › «نسخ معلومات التشخيص»، ثم ألصقها هنا\n\n</string>
     <string name="licenses_third_party">مكونات الجهات الخارجية · %1$d</string>
     <string name="licenses_footer">توجد النصوص الكاملة للتراخيص وإشعارات حقوق النشر في LICENSE ومجلد licenses/ (بما في ذلك THIRD_PARTY_NOTICES.md) في مستودع المصدر.</string>
     <string name="diagnostics_copy">نسخ معلومات التشخيص</string>
@@ -70,10 +70,10 @@
     <string name="diagnostics_copied">تم النسخ</string>
     <string name="diagnostics_loading">جارٍ الجمع…</string>
     <string name="about_auto_update">التحديث التلقائي</string>
-    <string name="about_auto_update_detail">تنزيل الإصدارات الجديدة في الخلفية عبر Wi-Fi فقط وطلب التأكيد قبل التثبيت</string>
+    <string name="about_auto_update_detail">Download upstream Mika releases over Wi-Fi. Orbit asks before installing.</string>
     <string name="about_auto_update_disable">إيقاف التحديث التلقائي</string>
-    <string name="about_auto_update_ready">تم تنزيل Mika %1$s</string>
-    <string name="about_auto_update_confirm_title">الإصدار الجديد من Mika جاهز</string>
-    <string name="about_auto_update_confirm_detail">ثبّت %1$s الآن، أو أوقف التحديث التلقائي وتحقق يدوياً في الإعدادات.</string>
+    <string name="about_auto_update_ready">Upstream Mika %1$s downloaded</string>
+    <string name="about_auto_update_confirm_title">An upstream Mika release is ready</string>
+    <string name="about_auto_update_confirm_detail">This is an upstream Mika release, not an Orbit build. Install %1$s, or turn off auto-update.</string>
     <string name="about_auto_update_now">حدّث الآن</string>
 </resources>

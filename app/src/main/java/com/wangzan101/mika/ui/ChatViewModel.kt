@@ -13,6 +13,7 @@ import com.wangzan101.mika.chat.RetryAttachmentResult
 import com.wangzan101.mika.chat.RetryAttachmentStatus
 import com.wangzan101.mika.chat.ConversationStore
 import com.wangzan101.mika.chat.ConversationSummary
+import com.wangzan101.mika.chat.WorkspaceChannel
 import com.wangzan101.mika.chat.CurrentChat
 import com.wangzan101.mika.chat.DeleteBatch
 import com.wangzan101.mika.chat.DeleteImpact
@@ -205,6 +206,8 @@ data class Exchange(
     val keptPageClosed: String? = null,
     /** 每一步实际做的动作(按步号):标题是汇总,点开一步时看这里的明细。 */
     val stepActions: Map<Int, List<StepAction>> = emptyMap(),
+    /** Current task state names a tool being handled. */
+    val toolRunning: Boolean = false,
 )
 
 /** 在跑时的一行进展:等你时说等什么;模型请求在途时只给中性状态;否则是这一步的话,没有就是最近做的事。 */
@@ -1357,13 +1360,16 @@ class ChatViewModel(
 
     /** 个人助手打开其委派任务：只切换展示，不启动另一项工作。 */
     fun openPersonalTask(conversationId: String) {
+        if (conversationId == _ui.value.conversationId) return
         refreshParallel()
+        cancelPendingSharedDraft()
+        keepDraft()
         lingerJob?.cancel()
-        if (conversationId != _ui.value.conversationId) parkLive()
+        parkLive()
         val past = saved(conversationId)
         liveIndex = -1
-        // 没有任务的对话不带别的任务的接管进度
-        _ui.update { ChatUi(conversationId = conversationId, exchanges = past, takeoverStage = Takeover.Stage.None) }
+        // Preserve each conversation's composer while switching to an existing task.
+        _ui.update { restoreDraft(it.rebuildForConversation(conversationId = conversationId, exchanges = past)) }
         markCurrent(CurrentChat.Open(conversationId))
         if (conversationId !in activeConversations.value) { unpark(conversationId); return }
         follow(conversationId, unpark(conversationId))
@@ -1733,6 +1739,54 @@ class ChatViewModel(
         markCurrent(CurrentChat.Fresh)
     }
 
+    /** Workspaces use the existing execution and draft owners, with separate conversation IDs. */
+    val workspaceChanges = store.changes
+    fun isSideChat(id: String?): Boolean = id != null && store.sideChat(id) != null
+    fun channelInfo(id: String?): WorkspaceChannel? = id?.let(store::channel)
+
+    private fun mainConversationOf(id: String): String =
+        store.sideChat(id)?.let { it.mainId ?: it.parentId } ?: store.channel(id)?.mainId ?: id
+
+    fun createSideChat(): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val id = store.newConversation()
+        if (!store.createSideChat(id, parent, store.turns(parent).size, mainConversationOf(parent))) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun createChannel(name: String, description: String): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val id = store.newConversation()
+        if (!store.createChannel(id, name, description, mainConversationOf(parent))) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun updateChannel(id: String, name: String, description: String): Boolean = store.updateChannel(id, name, description)
+
+    fun removeChannel(id: String): Boolean {
+        val channel = store.channel(id) ?: return false
+        refreshParallel()
+        if (_ui.value.conversationId == id && !canSwitch()) return false
+        if (!store.removeChannel(id)) return false
+        if (_ui.value.conversationId == id) {
+            val main = channel.mainId
+            if (main == null || main == id) newConversation() else openConversation(main)
+        }
+        return true
+    }
+
+    fun openMainChat() {
+        val current = _ui.value.conversationId ?: return
+        val main = mainConversationOf(current)
+        if (main != current) openConversation(main)
+    }
+
     /** 屏上这个对话此刻有没有任务在跑或排队。 */
     fun currentRunning(): Boolean = _ui.value.conversationId?.let { it in activeConversations.value } == true
 
@@ -2094,7 +2148,8 @@ class ChatViewModel(
 
         internal fun reduce(ex: Exchange, s: TaskState, appLabel: (String) -> String = { it }, toolLabel: (String) -> String = { it }): Exchange =
             state(ex, s, appLabel).let {
-                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel))
+                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel),
+                    toolRunning = s is TaskState.Running && s.tool != null)
             }
 
         /** 按步号归好的动作明细:点开一步时列出来。 */
@@ -2282,7 +2337,7 @@ class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames =
     }
 
     companion object {
-        /** 工具声明里的 label → 界面文字;中文资源与 label 一字不差(ToolLabelsTest 核对每个工具都有)。 */
+        /** Upstream tool labels remain stable keys; localized display text may use the Orbit name. */
         val TOOL_LABELS: Map<String, Int> = mapOf(
             "查看已装的 App" to R.string.tool_list_apps,
             "打开 App" to R.string.tool_open_app,

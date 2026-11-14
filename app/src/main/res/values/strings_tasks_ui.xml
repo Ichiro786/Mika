@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">Chat</string>
+    <string name="nav_make">Make</string>
+    <string name="tasks_title">Your work.</string>
+    <string name="tasks_subtitle">A quieter view of everything in motion.</string>
+    <string name="tasks_active">Active</string>
+    <string name="tasks_up_next">Up next</string>
+    <string name="tasks_review">Ready for review</string>
+    <string name="tasks_scheduled">Scheduled</string>
+    <string name="tasks_resolved">Resolved</string>
+    <string name="tasks_waiting">Waiting</string>
+    <string name="tasks_empty_up_next">Nothing queued or scheduled.</string>
+</resources>

@@ -62,8 +62,8 @@
     <string name="tool_tap">タップ</string>
     <string name="tool_type">テキストを入力</string>
     <string name="tool_clear">入力欄をクリア</string>
-    <string name="tool_mika_status">Mika の状態</string>
-    <string name="tool_mika_open_screen">Mika のページを開く</string>
+    <string name="tool_mika_status">Orbit の状態</string>
+    <string name="tool_mika_open_screen">Orbit のページを開く</string>
     <string name="tool_mika_open_file">ファイルを開く</string>
     <string name="tool_mika_notify">通知を送る</string>
     <string name="tool_mika_copy">テキストをコピー</string>
