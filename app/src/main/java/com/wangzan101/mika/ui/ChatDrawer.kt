@@ -431,7 +431,7 @@ fun ChatDrawer(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            MikaLogo(36.dp, corner = 10.dp)
+            MikaLogo(40.dp, corner = 12.dp)
             Column(Modifier.weight(1f)) {
                 Text(stringResource(R.string.app_name), style = MikaType.Title, color = c.ink)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -450,10 +450,15 @@ fun ChatDrawer(
         // 搜索时搜索框下面按归档状态筛;归档视图里没有搜索,自然也没有这一行
         if (searchActive) SearchArchiveFilterRow(searchFilter, onSearchFilterChange)
         // 搜索、多选、归档视图时把几个入口收起来，把高度让给列表;退出后原样回来
-        if (!searchActive && !selecting && !archivedView && !sideHistoryView) Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
-            NavEntry(MikaIcons.Message, stringResource(R.string.orbit_main_chat), enabled = canSwitch, onClick = onMainChat)
-            NavEntry(MikaIcons.New, stringResource(R.string.orbit_side_new), enabled = canSwitch, onClick = onNewSideChat)
-            NavEntry(MikaIcons.New, stringResource(R.string.chat_new), enabled = canSwitch, onClick = onNew)
+        if (!searchActive && !selecting && !archivedView && !sideHistoryView) {
+            Column(
+                Modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth()
+                    .cardSurface(c, NavGroupShape).clip(NavGroupShape).padding(4.dp)
+                    .testTag("drawer-primary"),
+            ) {
+                NavEntry(MikaIcons.Message, stringResource(R.string.orbit_main_chat), enabled = canSwitch, onClick = onMainChat)
+                NavEntry(MikaIcons.New, stringResource(R.string.orbit_side_new), enabled = canSwitch, onClick = onNewSideChat)
+            }
         }
         // 侧栏关着时列表只剩末尾那一项;打开时对话插在它前面,列表会按原来那一项停在最底下。最上面一项变了就回到顶上
         val list = rememberLazyListState()
@@ -566,8 +571,6 @@ fun ChatDrawer(
             }
             if (!searchActive && !selecting && !archivedView && !sideHistoryView) {
                 if (archived.isNotEmpty()) item("archive-entry") { ArchiveEntry(archived.size, onOpenArchive) }
-                item("personal-entry") { NavEntry(MikaIcons.Message, stringResource(R.string.drawer_personal), onClick = onPersonal) }
-                item("quit-entry") { NavEntry(MikaIcons.Power, stringResource(R.string.quit_title), onClick = onQuit) }
             }
             item("end") { Box(Modifier.height(12.dp)) }
         }
@@ -827,8 +830,9 @@ private fun RunningLabel(onScreens: () -> Unit) {
 
 @Composable
 private fun SectionLabel(text: String) {
+    val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     Text(
-        text, Modifier.padding(start = 24.dp, end = 24.dp, top = 14.dp, bottom = 6.dp),
+        text.uppercase(locale), Modifier.padding(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 6.dp),
         style = SectionText, color = MikaTheme.colors.ink3,
     )
 }
@@ -1097,7 +1101,8 @@ internal const val MENU_OUT_MS = 140
 private val DrawerWidth = 304.dp
 private val DrawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
 internal val NavShape = RoundedCornerShape(12.dp)
-private val SectionText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, fontWeight = FontWeight.Medium)
+private val SectionText = TextStyle(fontSize = 11.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
+private val NavGroupShape = RoundedCornerShape(18.dp)
 private val ConversationTitle = TextStyle(fontSize = 14.5.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
 private val ConversationTime = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
 private val ConversationTag = TextStyle(fontSize = 10.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)

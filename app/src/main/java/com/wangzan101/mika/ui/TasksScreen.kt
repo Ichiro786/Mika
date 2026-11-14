@@ -60,6 +60,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
+import com.wangzan101.mika.task.ExactAlarmGuide
+import com.wangzan101.mika.ui.components.ButtonKind
+import com.wangzan101.mika.ui.components.ButtonSize
+import com.wangzan101.mika.ui.components.MikaButton
+import com.wangzan101.mika.ui.components.StateCard
+import com.wangzan101.mika.ui.components.TileTone
 import com.wangzan101.mika.R
 import com.wangzan101.mika.core.agent.TaskState
 import com.wangzan101.mika.core.personal.PersonalTask
@@ -77,7 +83,6 @@ import com.wangzan101.mika.personal.personalStopErrorText
 import com.wangzan101.mika.task.TaskCenterState
 import com.wangzan101.mika.task.TaskRun
 import com.wangzan101.mika.task.TriggerRuntime
-import com.wangzan101.mika.ui.components.BarIconButton
 import com.wangzan101.mika.ui.components.TopBar
 import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -139,8 +144,11 @@ internal fun TasksScreen(
     var replay by rememberSaveable { mutableStateOf<String?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
     var creatingPlan by rememberSaveable { mutableStateOf<String?>(null) }
+    // Exact alarms can be switched off in system settings; reread on return so the notice goes away.
+    var exact by remember { mutableStateOf(TriggerRuntime.canScheduleExactly(context)) }
     LifecycleResumeEffect(Unit) {
         refresh++
+        exact = TriggerRuntime.canScheduleExactly(context)
         onPauseOrDispose {}
     }
     val schedules by produceState<Result<TriggerSnapshot>?>(null, refresh) {
@@ -175,7 +183,7 @@ internal fun TasksScreen(
     } + history?.getOrNull().orEmpty().filter {
         it.threadId !in personalConversations && (it.recordId == null || it.recordId !in liveRecords)
     }.map { TaskItem(stored = it, section = TaskSection.Resolved) }
-    val plans = schedules?.getOrNull()?.triggers.orEmpty().filter { it.enabled }.sortedBy { it.nextAtMs }
+    val (plans, stoppedPlans) = schedules?.getOrNull()?.triggers.orEmpty().sortedBy { it.nextAtMs }.partition { it.enabled }
     val visibleSections = if (tab == 0) listOf(
         TaskSection.Review, TaskSection.NeedsYou, TaskSection.Working, TaskSection.Waiting,
         TaskSection.Resolved,
@@ -191,7 +199,6 @@ internal fun TasksScreen(
             titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) },
             centerTitle = true,
             barHeight = orbitHeaderBarHeight(),
-            right = { BarIconButton(MikaIcons.Alarm, stringResource(R.string.drawer_plans), { onPlans(null, false) }) },
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {
             LazyColumn(
@@ -243,9 +250,24 @@ internal fun TasksScreen(
                         TextButton(onClick = { refresh++ }) { Text(stringResource(R.string.retry)) }
                     }
                 }
+                if (!exact && (tab == 1 || plans.isNotEmpty())) item("exact-alarm") {
+                    StateCard(
+                        MikaIcons.Alarm, ExactAlarmGuide.TITLE, stringResource(R.string.plans_alarm_body),
+                        tone = TileTone.Warn, modifier = Modifier.padding(top = 20.dp),
+                    ) {
+                        MikaButton(stringResource(R.string.turn_on_go), {
+                            runCatching { context.startActivity(TriggerRuntime.exactAlarmSettings(context)) }
+                        }, kind = ButtonKind.Primary, size = ButtonSize.Small)
+                    }
+                }
                 if (plans.isNotEmpty()) {
                     item("header-scheduled") { TaskSectionTitle(stringResource(R.string.tasks_scheduled), plans.size) }
                     items(plans, key = { "plan-${it.id}" }) { plan -> ScheduleRow(plan) { onPlans(plan.id, false) } }
+                }
+                // Schedules that are switched off live here too, so nothing needs a separate schedules page to find.
+                if (tab == 1 && stoppedPlans.isNotEmpty()) {
+                    item("header-stopped") { TaskSectionTitle(stringResource(R.string.chat_paused), stoppedPlans.size) }
+                    items(stoppedPlans, key = { "stopped-${it.id}" }) { plan -> ScheduleRow(plan, stopped = true) { onPlans(plan.id, false) } }
                 }
                 if (tab == 0) {
                     val resolved = visibleTasks.filter { it.section == TaskSection.Resolved }
@@ -259,7 +281,7 @@ internal fun TasksScreen(
                         }
                     }
                 }
-                if (visibleTasks.isEmpty() && plans.isEmpty() && schedules?.isSuccess == true && history?.isSuccess == true && historyError == null) {
+                if (visibleTasks.isEmpty() && plans.isEmpty() && (tab == 0 || stoppedPlans.isEmpty()) && schedules?.isSuccess == true && history?.isSuccess == true && historyError == null) {
                     item("empty") {
                         Text(stringResource(if (tab == 0) R.string.personal_no_tasks else R.string.tasks_empty_up_next),
                             Modifier.padding(top = 30.dp), style = MikaType.Body, color = c.ink2)
@@ -396,7 +418,7 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ScheduleRow(plan: TriggerDefinition, onClick: () -> Unit) {
+private fun ScheduleRow(plan: TriggerDefinition, stopped: Boolean = false, onClick: () -> Unit) {
     val c = MikaTheme.colors
     val locale = LocalConfiguration.current.locales[0]
     val format = remember(locale) { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale) }
@@ -406,7 +428,8 @@ private fun ScheduleRow(plan: TriggerDefinition, onClick: () -> Unit) {
         Box(Modifier.padding(top = 3.dp).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(6.dp)))
         Column(Modifier.weight(1f)) {
             Text(plan.reminderText ?: plan.goal, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(time, Modifier.padding(top = 4.dp), style = MikaType.Caption, color = c.ink2)
+            Text(if (stopped) stringResource(R.string.chat_paused) else time, Modifier.padding(top = 4.dp), style = MikaType.Caption,
+                color = if (stopped) c.ink3 else c.ink2)
         }
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
     }

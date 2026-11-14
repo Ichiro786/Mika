@@ -50,4 +50,9 @@
     <string name="orbit_picker_unavailable">No compatible picker is available.</string>
     <string name="orbit_make_subtitle">Everything Orbit has made for you.</string>
     <string name="orbit_make_empty">Nothing here yet. Files Orbit creates in your chats will show up here.</string>
+    <string name="orbit_settings_reach">Calls &amp; messages</string>
+    <string name="orbit_settings_look">Look &amp; feel</string>
+    <string name="orbit_plan_pick_time">Pick a date and time</string>
+    <string name="orbit_plan_add_time">Add a time</string>
+    <string name="orbit_plan_zone_change">Change</string>
 </resources>

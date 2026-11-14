@@ -161,6 +161,8 @@ internal fun OrbitHub(
     onMemory: () -> Unit,
     onFiles: () -> Unit,
     onPersonalization: () -> Unit,
+    /** The voice personal assistant; it lives here, with Orbit, rather than in the side panel. */
+    onPersonal: () -> Unit = {},
 ) {
     BackHandler(onBack = onClose)
     val c = MikaTheme.colors
@@ -211,7 +213,7 @@ internal fun OrbitHub(
                     Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
                         modifier = Modifier.padding(bottom = 14.dp))
                     when (selected) {
-                        0 -> HubToday(personal, taskState, runStore, cache, onTasks, onPlans, onOpenTask)
+                        0 -> HubToday(personal, taskState, runStore, cache, onTasks, onPlans, onOpenTask, onPersonal)
                         1 -> HubBrowser(onBrowser)
                         2 -> HubMemory(memory, cache, onMemory)
                         3 -> HubFiles(cache, onFiles)
@@ -283,7 +285,7 @@ private fun HubIconButton(icon: ImageVector, label: String, onClick: () -> Unit)
 }
 
 @Composable
-private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, cache: HubSectionCache, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit) {
+private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, cache: HubSectionCache, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit, onPersonal: () -> Unit) {
     val c = MikaTheme.colors
     val context = LocalContext.current
     val snapshot by personal.state.collectAsState()
@@ -353,7 +355,10 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
             }
             if (schedules == null || history == null) Text(stringResource(R.string.loading), style = MikaType.Caption, color = c.ink2)
             if (schedules?.isFailure == true || history?.isFailure == true) Text(stringResource(R.string.op_failed), style = MikaType.Caption, color = c.bad)
-            TextButton(onClick = onTasks) { Text(stringResource(R.string.orbit_hub_tasks)) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                TextButton(onClick = onTasks) { Text(stringResource(R.string.orbit_hub_tasks)) }
+                TextButton(onClick = onPersonal, modifier = Modifier.testTag("hub-personal")) { Text(stringResource(R.string.drawer_personal)) }
+            }
         }
     }
 }

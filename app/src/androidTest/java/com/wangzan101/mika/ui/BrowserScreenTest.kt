@@ -88,13 +88,15 @@ class BrowserScreenTest {
             MikaTheme {
                 ChatDrawer(Prerequisites.Check(emptyList()), DrawerSections(emptyList(), emptyList()), canSwitch = true,
                     onNew = { calls += "new" }, onPlans = {}, onMemory = {}, onBrowser = {},
-                    onSettings = {}, onOpen = {})
+                    onSettings = {}, onOpen = {}, onNewSideChat = { calls += "side" })
             }
         }
-        listOf(R.string.drawer_plans, R.string.memory_and_skills, R.string.drawer_browser, R.string.file_library_title)
+        // One way to start a conversation from the side panel; the chat header keeps "New chat".
+        listOf(R.string.drawer_plans, R.string.memory_and_skills, R.string.drawer_browser, R.string.file_library_title,
+            R.string.chat_new, R.string.drawer_personal, R.string.quit_title)
             .forEach { compose.onNodeWithText(tr(it)).assertDoesNotExist() }
-        compose.onNodeWithText(tr(R.string.chat_new)).assertIsDisplayed().performClick()
-        assertEquals(listOf("new"), calls)
+        compose.onNodeWithText(tr(R.string.orbit_side_new)).assertIsDisplayed().performClick()
+        assertEquals(listOf("side"), calls)
     }
 
     @Test

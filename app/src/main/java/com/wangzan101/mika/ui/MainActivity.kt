@@ -722,6 +722,7 @@ private fun MikaRoot(
                             onMemory = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
                             onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                             onPersonalization = { nav.push(Route.Settings) },
+                            onPersonal = { orbitHubOpen = false; nav.show(Route.Personal) },
                         )
                     }
                 }

@@ -17,6 +17,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaSpace
 
@@ -38,6 +46,7 @@ fun PageScaffold(
             TopBar(title, MikaIcons.Back, onBack, stringResource(R.string.back))
             Column(
                 Modifier.weight(1f).fillMaxWidth().then(viewportModifier)
+                    .scrollEdgeFade(scrollState)
                     .verticalScroll(scrollState)
                     .windowInsetsPadding(WindowInsets.navigationBars)
                     .padding(horizontal = MikaSpace.Page),
@@ -49,3 +58,21 @@ fun PageScaffold(
         }
     }
 }
+
+/**
+ * Content scrolled up under the top bar dissolves over a short band instead of being cut on a hard line.
+ * Works over any page background (plain or skinned) because it masks the content itself.
+ */
+fun Modifier.scrollEdgeFade(state: ScrollState): Modifier =
+    graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+        .drawWithContent {
+            drawContent()
+            if (state.value > 0) {
+                val band = 18.dp.toPx()
+                drawRect(
+                    Brush.verticalGradient(0f to Color.Transparent, 1f to Color.Black, startY = 0f, endY = band),
+                    size = Size(size.width, band),
+                    blendMode = BlendMode.DstIn,
+                )
+            }
+        }
