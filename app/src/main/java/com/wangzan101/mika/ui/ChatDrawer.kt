@@ -1377,8 +1377,9 @@ fun ChatWithDrawer(
                 }
                 val channelRows = remember(all, current, canSwitch, deleted, runningIds) {
                     val now = System.currentTimeMillis()
-                    all.filter { it.id !in deleted && it.channel != null && it.archivedAt == null }
-                        .sortedByDescending { it.updatedAt }.map { summary ->
+                    all.filter { it.id !in deleted && it.channel != null }
+                        .sortedWith(compareByDescending<ConversationSummary> { it.pinnedAt != null }
+                            .thenByDescending { it.pinnedAt ?: 0L }.thenByDescending { it.updatedAt }).map { summary ->
                             drawerEntry(summary, current.id, canSwitch, summary.id in runningIds,
                                 if (summary.updatedAt != 0L) conversationTime(summary.updatedAt, now) else "",
                                 subtitle = summary.channel?.description.orEmpty())

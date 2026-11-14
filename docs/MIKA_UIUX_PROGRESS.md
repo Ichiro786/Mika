@@ -214,3 +214,5 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - Replaced the permission-driven recent-photo grid with a compact chooser for the existing camera, Android photo/video picker and document picker. Multiple selection still uses the existing attachment limit, tray, import validation and draft state; cancellation leaves the draft alone. Removed media-library permission declarations that were used only by the old grid. Videos use the existing file attachment path; model video understanding is not implied.
 - Picker, camera, keyboard transitions and attachment handling still require device verification. The new Kotlin and device regression tests and Android compilation remain **UNVERIFIED** while Actions dispatch is blocked. New labels use the documented English fallback in other locales.
+
+- Review follow-up: Channels are excluded from automatic archiving and remain listed if already archived; their existing unarchive action remains available. The change has a source regression test but awaits Android CI.

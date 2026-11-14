@@ -96,7 +96,7 @@ internal fun ConversationMenu(
             if (item.archived) null else MenuEntry(stringResource(if (item.pinned) R.string.unpin else R.string.pin), MikaIcons.Pin, "drawer-menu-pin", onClick = onPin),
             when {
                 item.archived -> MenuEntry(stringResource(R.string.drawer_unarchive), MikaIcons.Archive, "drawer-menu-unarchive", onClick = onUnarchive)
-                item.saved && !item.running -> MenuEntry(stringResource(R.string.drawer_archive), MikaIcons.Archive, "drawer-menu-archive", onClick = onArchive)
+                item.saved && !item.running && !item.channel -> MenuEntry(stringResource(R.string.drawer_archive), MikaIcons.Archive, "drawer-menu-archive", onClick = onArchive)
                 else -> null
             },
             MenuEntry(stringResource(if (item.channel) R.string.orbit_channel_edit else R.string.drawer_rename), MikaIcons.Edit, "drawer-menu-rename", onClick = onRename),

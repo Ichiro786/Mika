@@ -400,7 +400,7 @@ class ConversationStore(
     ): Boolean {
         val id = candidate.id
         val f = file(id)
-        fun eligible(): Boolean = !isRunning(id) &&
+        fun eligible(): Boolean = !isRunning(id) && channel(id) == null &&
             (archiveVersions[id] ?: 0L) == candidate.version &&
             pinnedAt(id) == null && archivedAt(id) == null &&
             (restoredAt(id)?.let { it >= cutoff } != true) &&
