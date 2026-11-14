@@ -50,13 +50,15 @@ internal fun PrimaryNavigation(
     )
     val selected = if (current == Route.Personal) Route.Chat else current
     GlassBar(
-        modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 4.dp, bottom = 8.dp),
+        // Floats: inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
+        modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 6.dp, bottom = 16.dp),
         backdrop = backdrop,
+        frosted = true,
     ) {
         Row(Modifier.weight(1f).selectableGroup(), verticalAlignment = Alignment.CenterVertically) {
             tabs.forEach { (route, label, icon) ->
                 val active = selected == route
-                val selectedColor = c.answer
+                val selectedColor = if (c.isDark) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f) else c.answer
                 val background by animateColorAsState(
                     if (active) selectedColor else androidx.compose.ui.graphics.Color.Transparent,
                     animationSpec = if (MikaTheme.reduceMotion) snap() else tween(MikaMotion.SWITCH_MS, easing = MikaMotion.Decelerate),

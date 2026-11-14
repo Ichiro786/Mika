@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">撥打給 Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">連線中…</string>
+    <string name="orbit_call_listening">聆聽中</string>
+    <string name="orbit_call_thinking">思考中</string>
+    <string name="orbit_call_speaking">Orbit 正在說話</string>
+    <string name="orbit_call_needs_screen">Orbit 需要你在螢幕上操作</string>
+    <string name="orbit_call_ended">通話已結束</string>
+    <string name="orbit_call_failed">通話無法使用麥克風</string>
+    <string name="orbit_call_needs_mic">Orbit 需要麥克風才能和你通話</string>
+    <string name="orbit_call_open_settings">開啟設定</string>
+    <string name="orbit_call_no_voice">選擇語音模型即可撥打給 Orbit</string>
+    <string name="orbit_call_choose_voice">選擇</string>
+    <string name="orbit_call_screen_line">我現在無法處理,請看一下螢幕。</string>
+    <string name="orbit_call_hang_up">結束通話</string>
+    <string name="drawer_status_fix">設定</string>
+    <string name="drawer_everything">全部</string>
+    <string name="drawer_everything_sub">所有對話、頻道和空間</string>
+    <string name="drawer_spaces">空間</string>
+    <string name="drawer_chats">對話</string>
+    <string name="orbit_channel_new">新頻道</string>
+    <string name="space_create">建立空間</string>
+    <string name="space_create_body">用一句話描述。Orbit 會為它建立即時面板,並放在側邊欄。</string>
+    <string name="space_description">用途</string>
+    <string name="space_description_example">記錄我的喝水和睡眠</string>
+    <string name="space_name_optional">名稱(選填)</string>
+    <string name="space_create_action">建立</string>
+    <string name="space_updated">%1$s更新</string>
+    <string name="space_updated_now">剛剛更新</string>
+    <string name="space_hide">隱藏</string>
+    <string name="space_show">在側邊欄顯示</string>
+    <string name="space_delete">刪除空間</string>
+    <string name="space_delete_body">刪除「%1$s」?它的頁面和對話也會一起刪除。</string>
+    <string name="space_working">Orbit 正在處理…</string>
+    <string name="space_building">Orbit 正在建立這個空間…</string>
+    <string name="space_empty">還沒有頁面。點「修改」請 Orbit 建立。</string>
+    <string name="space_refresh">重新整理</string>
+    <string name="space_change">修改</string>
+</resources>

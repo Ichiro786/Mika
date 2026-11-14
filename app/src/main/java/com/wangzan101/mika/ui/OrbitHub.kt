@@ -2,8 +2,8 @@ package com.wangzan101.mika.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -11,6 +11,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -55,6 +59,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -110,14 +115,16 @@ internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     val keyboard = LocalSoftwareKeyboardController.current
     val label = stringResource(R.string.orbit_hub_open)
+    val status = stringResource(presenceLabel(state))
     Box(Modifier.size(maxOf(size, 48.dp)).clip(MikaShapes.Pill)
-        .semantics { contentDescription = label }
+        .semantics { contentDescription = label; stateDescription = status }
         .clickable(role = Role.Button) {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             keyboard?.hide()
             onClick()
         }.testTag("orbit-hub-open"), contentAlignment = Alignment.Center) {
-        MikaPresenceAvatar(Modifier.size(size), state = state, framed = true)
+        val hidden = LocalOrbitHubShowing.current
+        MikaPresenceAvatar(Modifier.size(size).graphicsLayer { alpha = if (hidden) 0f else 1f }, state = state, framed = true)
     }
 }
 
@@ -127,7 +134,13 @@ private class HubSectionCache {
     var memory by mutableStateOf<Result<HubMemoryData>?>(null)
     var files by mutableStateOf<Result<FileLibrarySnapshot>?>(null)
     var filesRevision by mutableIntStateOf(0)
+    // Today keeps its last read too, so coming back to the tab never flashes "Loading" again.
+    var schedules by mutableStateOf<Result<TriggerSnapshot>?>(null)
+    var history by mutableStateOf<Result<List<StoredRun>>?>(null)
 }
+
+/** Whether the Orbit hub is on screen (or animating); header avatars hide so only one presence shows. */
+internal val LocalOrbitHubShowing = androidx.compose.runtime.compositionLocalOf { false }
 private val hubSections = listOf(
     HubSection(R.string.orbit_hub_today, MikaIcons.Clock),
     HubSection(R.string.drawer_browser, MikaIcons.Globe),
@@ -154,6 +167,8 @@ internal fun OrbitHub(
     onMemory: () -> Unit,
     onFiles: () -> Unit,
     onPersonalization: () -> Unit,
+    /** The voice personal assistant; it lives here, with Orbit, rather than in the side panel. */
+    onPersonal: () -> Unit = {},
 ) {
     BackHandler(onBack = onClose)
     val c = MikaTheme.colors
@@ -180,8 +195,12 @@ internal fun OrbitHub(
     val presenceVisible by remember(list, presenceLimit) {
         derivedStateOf { list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset < presenceLimit }
     }
-    Box(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding().testTag("orbit-hub")) {
-        LazyColumn(Modifier.fillMaxSize().padding(top = 48.dp).testTag("orbit-hub-scroll"), state = list) {
+    // The page goes opaque quickly while the presence grows out of the header, then the content fades in:
+    // nothing from the screen underneath shows through, and there is only ever one avatar.
+    val backdropAlpha = (expansion * 2.2f).coerceIn(0f, 1f)
+    val contentAlpha = ((expansion - 0.35f) / 0.65f).coerceIn(0f, 1f)
+    Box(Modifier.fillMaxSize().background(c.bg.copy(alpha = backdropAlpha)).statusBarsPadding().navigationBarsPadding().testTag("orbit-hub")) {
+        LazyColumn(Modifier.fillMaxSize().padding(top = 48.dp).graphicsLayer { alpha = contentAlpha }.testTag("orbit-hub-scroll"), state = list) {
             item(key = "presence") {
                 Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     // Space for the presence, drawn above the list to preserve its entrance path.
@@ -200,7 +219,7 @@ internal fun OrbitHub(
                     Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
                         modifier = Modifier.padding(bottom = 14.dp))
                     when (selected) {
-                        0 -> HubToday(personal, taskState, runStore, onTasks, onPlans, onOpenTask)
+                        0 -> HubToday(personal, taskState, runStore, cache, onTasks, onPlans, onOpenTask, onPersonal)
                         1 -> HubBrowser(onBrowser)
                         2 -> HubMemory(memory, cache, onMemory)
                         3 -> HubFiles(cache, onFiles)
@@ -221,7 +240,7 @@ internal fun OrbitHub(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth().align(Alignment.TopCenter)
+        Row(Modifier.fillMaxWidth().align(Alignment.TopCenter).graphicsLayer { alpha = contentAlpha }
             .background(if (collapsed) c.bg else c.bg.copy(alpha = 0f)).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
@@ -240,24 +259,33 @@ internal fun OrbitHub(
     }
 }
 
+/**
+ * The hub's section bar. One pill slides under the chosen section on a spring, so a switch never shows
+ * two highlights at once; with reduced motion it jumps.
+ */
 @Composable
 internal fun OrbitHubTabs(selected: Int, onSelect: (Int) -> Unit) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp)
-        .clip(MikaShapes.Pill).background(c.surface).padding(4.dp).selectableGroup(),
-        horizontalArrangement = Arrangement.SpaceEvenly) {
-        hubSections.forEachIndexed { index, section ->
-            val label = stringResource(section.label)
-            val background by animateColorAsState(
-                if (selected == index) c.answer else c.surface,
-                animationSpec = MikaMotion.switch(MikaTheme.reduceMotion), label = "hub-tab-background",
-            )
-            Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(MikaShapes.Pill)
-                .background(background)
-                .selectable(selected == index, role = Role.Tab) { onSelect(index) }
-                .semantics { contentDescription = label }
-                .testTag("orbit-hub-section-$index"), contentAlignment = Alignment.Center) {
-                Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
+    val count = hubSections.size
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 18.dp)
+        .clip(MikaShapes.Pill).background(c.surface).padding(4.dp)) {
+        val slot = maxWidth / count
+        val offset by animateDpAsState(
+            slot * selected.coerceIn(0, count - 1),
+            animationSpec = MikaMotion.spatial(MikaTheme.reduceMotion), label = "hub-tab-indicator",
+        )
+        Box(Modifier.matchParentSize()) {
+            Box(Modifier.offset(x = offset).width(slot).fillMaxHeight().clip(MikaShapes.Pill).background(c.answer))
+        }
+        Row(Modifier.fillMaxWidth().selectableGroup()) {
+            hubSections.forEachIndexed { index, section ->
+                val label = stringResource(section.label)
+                Box(Modifier.weight(1f).heightIn(min = 48.dp).clip(MikaShapes.Pill)
+                    .selectable(selected == index, role = Role.Tab) { onSelect(index) }
+                    .semantics { contentDescription = label }
+                    .testTag("orbit-hub-section-$index"), contentAlignment = Alignment.Center) {
+                    Icon(section.icon, contentDescription = null, Modifier.size(21.dp), tint = if (selected == index) c.ink else c.ink3)
+                }
             }
         }
     }
@@ -272,13 +300,13 @@ private fun HubIconButton(icon: ImageVector, label: String, onClick: () -> Unit)
 }
 
 @Composable
-private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit) {
+private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runStore: RunStore, cache: HubSectionCache, onTasks: () -> Unit, onPlans: () -> Unit, onOpenTask: (String) -> Unit, onPersonal: () -> Unit) {
     val c = MikaTheme.colors
     val context = LocalContext.current
     val snapshot by personal.state.collectAsState()
     val runs by taskState.runs.collectAsState()
     val locale = LocalConfiguration.current.locales[0]
-    val schedules by produceState<Result<TriggerSnapshot>?>(null) {
+    val schedules by produceState(cache.schedules) {
         value = try {
             Result.success(withContext(Dispatchers.IO) { TriggerRuntime.snapshot(context) })
         } catch (e: CancellationException) {
@@ -286,11 +314,12 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
         } catch (e: Exception) {
             Result.failure(e)
         }
+        cache.schedules = value
     }
     val tasks = remember(snapshot.tasks) { snapshot.tasks.sortedByDescending { it.at }.take(4) }
     val otherRuns = runs.filter { run -> snapshot.tasks.none { it.conversationId == run.conversationId } }.take(4)
     val plans = schedules?.getOrNull()?.triggers.orEmpty().filter { it.enabled }.sortedBy { it.nextAtMs }.take(3)
-    val history by produceState<Result<List<StoredRun>>?>(null, runs.map { it.key }) {
+    val history by produceState(cache.history, runs.map { it.key }) {
         value = try {
             Result.success(withContext(Dispatchers.IO) {
                 val conversations = ConversationStore.shared(context).list(includeArchived = true).mapTo(mutableSetOf()) { it.id }
@@ -301,6 +330,7 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
         } catch (e: Exception) {
             Result.failure(e)
         }
+        cache.history = value
     }
     val personalIds = snapshot.tasks.mapTo(mutableSetOf()) { it.conversationId }
     val liveIds = runs.mapNotNullTo(mutableSetOf()) { it.runId.value }
@@ -340,7 +370,10 @@ private fun HubToday(personal: PersonalRuntime, taskState: TaskCenterState, runS
             }
             if (schedules == null || history == null) Text(stringResource(R.string.loading), style = MikaType.Caption, color = c.ink2)
             if (schedules?.isFailure == true || history?.isFailure == true) Text(stringResource(R.string.op_failed), style = MikaType.Caption, color = c.bad)
-            TextButton(onClick = onTasks) { Text(stringResource(R.string.orbit_hub_tasks)) }
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                TextButton(onClick = onTasks) { Text(stringResource(R.string.orbit_hub_tasks)) }
+                TextButton(onClick = onPersonal, modifier = Modifier.testTag("hub-personal")) { Text(stringResource(R.string.drawer_personal)) }
+            }
         }
     }
 }
@@ -515,7 +548,7 @@ private fun HubHint(text: String) {
     Text(text, Modifier.padding(top = 12.dp), style = MikaType.Caption, color = MikaTheme.colors.ink2)
 }
 
-private fun presenceLabel(state: PresenceState, ready: Boolean): Int = when (state) {
+internal fun presenceLabel(state: PresenceState, ready: Boolean = true): Int = when (state) {
     PresenceState.Idle -> if (ready) R.string.orbit_hub_ready else R.string.banner_no_model
     PresenceState.Listening -> R.string.orbit_hub_listening
     PresenceState.Thinking -> R.string.orbit_hub_thinking

@@ -1,6 +1,7 @@
 package com.wangzan101.mika.ui.theme
 
 import android.content.Context
+import android.os.Build
 import android.provider.Settings
 import android.view.View
 import androidx.compose.animation.core.AnimationSpec
@@ -15,6 +16,8 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -25,6 +28,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -68,6 +72,10 @@ object MikaTheme {
 
     val reduceMotion: Boolean
         @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
+
+    /** The user's own message bubble colors (Material You). */
+    val userBubble: UserBubbleColors
+        @Composable @ReadOnlyComposable get() = LocalUserBubble.current
 
     val identity: OrbitIdentityMode
         @Composable @ReadOnlyComposable get() = LocalOrbitIdentity.current
@@ -144,11 +152,23 @@ fun MikaTheme(
 ) {
     // 背景图片设了「强调色跟随图片」时,用图上的主色代替设置里选的强调色
     val imageHue = appearanceSkin().accentHue
-    val colors = remember(dark, accent, imageHue) {
+    val dynamic = if (accent == ThemeAccent.Dynamic && imageHue == null) wallpaperScheme(dark) else null
+    val wallpaper = dynamic?.let { it.primary to it.onPrimary }
+    val colors = remember(dark, accent, imageHue, wallpaper) {
         val base = palette(dark, accent)
-        if (imageHue == null) base else SkinAccent.tone(imageHue, dark).let { (color, on) -> base.withAccent(color, on) }
+        when {
+            imageHue != null -> SkinAccent.tone(imageHue, dark).let { (color, on) -> base.withAccent(color, on) }
+            wallpaper != null -> base.withAccent(wallpaper.first, wallpaper.second)
+            else -> base
+        }
     }
     val materialColors = remember(colors) { scheme(colors) }
+    // The user's bubbles: the wallpaper's own primary container when there is one, else a tone of the accent.
+    val userBubble = remember(colors, dynamic) {
+        dynamic?.let { UserBubbleColors(it.primaryContainer, it.onPrimaryContainer) }
+            ?.takeIf { contrast(it.bg, it.fg) >= 4.5 }
+            ?: userBubbleTone(colors.accent, dark)
+    }
     val layoutDirection = if (LocalContext.current.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
         LayoutDirection.Rtl
     } else {
@@ -157,6 +177,7 @@ fun MikaTheme(
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
         LocalMikaColors provides colors,
+        LocalUserBubble provides userBubble,
         LocalReduceMotion provides reduceMotion,
         LocalOrbitIdentity provides identity,
         LocalOrbitPresence provides presence,
@@ -164,6 +185,26 @@ fun MikaTheme(
         MaterialTheme(colorScheme = materialColors, typography = MikaTypography) {
             CompositionLocalProvider(LocalContentColor provides colors.ink, content = content)
         }
+    }
+}
+
+/**
+ * Material You accent from the wallpaper: the dynamic scheme's primary and on-primary, Android 12 and newer.
+ * Only the accent is taken, so the AMOLED black page and the glass surfaces stay as they are. Null before
+ * Android 12, where the default palette is used.
+ */
+@Composable
+fun wallpaperAccent(dark: Boolean): Pair<Color, Color>? = wallpaperScheme(dark)?.let { it.primary to it.onPrimary }
+
+/** The wallpaper's Material You scheme, Android 12 and newer; null before. */
+@Composable
+fun wallpaperScheme(dark: Boolean): ColorScheme? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+    val context = LocalContext.current
+    // The scheme is read again when the configuration changes, which is how a new wallpaper reaches the app.
+    val config = LocalConfiguration.current
+    return remember(context, dark, config) {
+        if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
     }
 }
 

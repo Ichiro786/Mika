@@ -135,7 +135,7 @@ class FeatureFlags(private val prefs: SharedPreferences) {
         prefs.edit().putInt(ORBIT_HEADER_SIZE, safe.headerDp).putInt(ORBIT_HUB_SIZE, safe.hubDp).apply()
     }
 
-    /** 强调色(见 [ThemeAccent]),默认蓝色。和外观一样跟着 [themeAccentChanges] 当场换,不用重建。 */
+    /** 强调色(见 [ThemeAccent]),默认跟随壁纸(Material You),Android 12 以前是蓝色。和外观一样跟着 [themeAccentChanges] 当场换,不用重建。 */
     fun themeAccent(): ThemeAccent = ThemeAccent.parse(prefs.getString(THEME_ACCENT, null))
 
     /** 强调色的当前值,之后每次改动再发一次。 */

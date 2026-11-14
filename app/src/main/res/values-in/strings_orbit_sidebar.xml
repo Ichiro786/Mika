@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Telepon Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">Menghubungkan…</string>
+    <string name="orbit_call_listening">Mendengarkan</string>
+    <string name="orbit_call_thinking">Berpikir</string>
+    <string name="orbit_call_speaking">Orbit sedang berbicara</string>
+    <string name="orbit_call_needs_screen">Orbit memerlukan Anda di layar</string>
+    <string name="orbit_call_ended">Panggilan berakhir</string>
+    <string name="orbit_call_failed">Panggilan tidak bisa memakai mikrofon</string>
+    <string name="orbit_call_needs_mic">Orbit memerlukan mikrofon untuk berbicara dengan Anda</string>
+    <string name="orbit_call_open_settings">Buka setelan</string>
+    <string name="orbit_call_no_voice">Pilih model suara untuk menelepon Orbit</string>
+    <string name="orbit_call_choose_voice">Pilih</string>
+    <string name="orbit_call_screen_line">Saya belum bisa melakukannya sekarang. Lihat layar Anda.</string>
+    <string name="orbit_call_hang_up">Akhiri panggilan</string>
+    <string name="drawer_status_fix">Siapkan</string>
+    <string name="drawer_everything">Semua</string>
+    <string name="drawer_everything_sub">Semua chat, channel, dan space</string>
+    <string name="drawer_spaces">Space</string>
+    <string name="drawer_chats">Chat</string>
+    <string name="orbit_channel_new">Channel baru</string>
+    <string name="space_create">Buat space</string>
+    <string name="space_create_body">Jelaskan dalam satu kalimat. Orbit membuat panel langsung dan menyimpannya di sidebar.</string>
+    <string name="space_description">Untuk apa</string>
+    <string name="space_description_example">Pelacak minum dan tidur saya</string>
+    <string name="space_name_optional">Nama (opsional)</string>
+    <string name="space_create_action">Buat</string>
+    <string name="space_updated">Diperbarui %1$s</string>
+    <string name="space_updated_now">Baru diperbarui</string>
+    <string name="space_hide">Sembunyikan</string>
+    <string name="space_show">Tampilkan di sidebar</string>
+    <string name="space_delete">Hapus space</string>
+    <string name="space_delete_body">Hapus “%1$s”? Halaman dan chat-nya ikut terhapus.</string>
+    <string name="space_working">Orbit sedang mengerjakannya…</string>
+    <string name="space_building">Orbit sedang membuat space ini…</string>
+    <string name="space_empty">Belum ada halaman. Ketuk Ubah untuk meminta Orbit membuatnya.</string>
+    <string name="space_refresh">Muat ulang</string>
+    <string name="space_change">Ubah</string>
+</resources>

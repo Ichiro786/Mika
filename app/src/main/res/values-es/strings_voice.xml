@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Chat composer: hold to talk -->
-    <string name="voice_placeholder_idle">Mantén pulsado para hablar, toca para escribir</string>
-    <string name="voice_placeholder_busy">Mantén pulsado para hablarle a la tarea, toca para escribir</string>
-    <string name="voice_placeholder_answer">Mantén pulsado para responder, toca para escribir</string>
+    <string name="voice_placeholder_idle">Mensaje para Orbit</string>
+    <string name="voice_placeholder_busy">Añadir a la tarea</string>
+    <string name="voice_placeholder_answer">Responder a Orbit</string>
     <string name="voice_listening">Escuchando</string>
     <string name="voice_steer_to">Avisando a “%1$s”</string>
     <string name="voice_engine_phone">Teléfono</string>

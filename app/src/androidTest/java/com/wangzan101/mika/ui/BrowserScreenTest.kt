@@ -88,25 +88,31 @@ class BrowserScreenTest {
             MikaTheme {
                 ChatDrawer(Prerequisites.Check(emptyList()), DrawerSections(emptyList(), emptyList()), canSwitch = true,
                     onNew = { calls += "new" }, onPlans = {}, onMemory = {}, onBrowser = {},
-                    onSettings = {}, onOpen = {})
+                    onSettings = {}, onOpen = {}, onNewSideChat = { calls += "side" })
             }
         }
-        listOf(R.string.drawer_plans, R.string.memory_and_skills, R.string.drawer_browser, R.string.file_library_title)
+        // One way to start a conversation from the side panel; the chat header keeps "New chat".
+        listOf(R.string.drawer_plans, R.string.memory_and_skills, R.string.drawer_browser, R.string.file_library_title,
+            R.string.chat_new, R.string.drawer_personal, R.string.quit_title)
             .forEach { compose.onNodeWithText(tr(it)).assertDoesNotExist() }
-        compose.onNodeWithText(tr(R.string.chat_new)).assertIsDisplayed().performClick()
-        assertEquals(listOf("new"), calls)
+        compose.onNodeWithText(tr(R.string.orbit_side_new)).assertIsDisplayed().performClick()
+        assertEquals(listOf("side"), calls)
     }
 
     @Test
-    fun makeHasBrowserEntryThatOpensIt() {
+    fun makeShowsOnlyMadeArtifacts() {
+        val made = MadeArtifact(
+            "out", "report.pdf", "12 KB", 1_000L,
+            LibraryFileHandle.Exported(com.wangzan101.mika.chat.SharedFile("report.pdf", 12_000, "report.pdf", "content://made/1")),
+            com.wangzan101.mika.chat.FileSource("c1", 0, null, 1_000L),
+        )
         compose.setContent {
             MikaTheme {
-                MakeScreen(onOpenDrawer = {}, onTeach = {}, onSkills = {},
-                    onBrowser = { calls += "browser" }, onFiles = {})
+                MakeScreen(onOpenDrawer = {}, load = { listOf(made) })
             }
         }
-        compose.onNodeWithText("浏览器").assertIsDisplayed().performClick()
-        assertEquals(listOf("browser"), calls)
+        compose.onNodeWithText("report.pdf").assertIsDisplayed()
+        compose.onNodeWithText("浏览器").assertDoesNotExist()
     }
 
     @Test

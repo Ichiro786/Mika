@@ -132,6 +132,7 @@
     <string name="appearance_dark">항상 다크</string>
     <string name="accent_group">강조 색상</string>
     <string name="accent_default">기본값</string>
+    <string name="accent_dynamic">배경화면</string>
     <string name="accent_blue">파랑</string>
     <string name="accent_indigo">남색</string>
     <string name="accent_purple">보라</string>

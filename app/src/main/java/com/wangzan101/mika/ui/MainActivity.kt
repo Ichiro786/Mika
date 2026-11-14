@@ -2,20 +2,22 @@ package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.spring
+import com.wangzan101.mika.ui.theme.MikaMotion
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -39,7 +41,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -57,11 +59,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
@@ -436,10 +441,11 @@ private fun MikaRoot(
     var orbitHubOpen by rememberSaveable { mutableStateOf(false) }
     var voiceListening by remember { mutableStateOf(false) }
     val presenceFlow = remember(app.chat) {
-        app.chat.ui.map { presenceFor(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
+        app.chat.ui.map { presenceSignal(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
     }
-    val chatPresence by presenceFlow.collectAsState(initial = presenceFor(app.chat.ui.value.exchanges.lastOrNull(), false))
-    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else chatPresence
+    val chatPresence by presenceFlow.collectAsState(initial = presenceSignal(app.chat.ui.value.exchanges.lastOrNull(), false))
+    val settledChat = settledPresence(chatPresence)
+    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else settledChat
     LaunchedEffect(requestedConversation, requestedCalls, sharedDraft, openTeach) {
         if (requestedConversation != null || requestedCalls || sharedDraft != null || openTeach) orbitHubOpen = false
     }
@@ -537,11 +543,50 @@ private fun MikaRoot(
     }
     val phoneSetupNeeded by phoneSetup.needed.collectAsState()
     // 页面有自己的返回处理时(设置页里的子页、侧栏)由它们先接;这里只管退回上一页
-    BackHandler(enabled = nav.canGoBack) { nav.back() }
+    // Predictive back: while the back gesture is held, the page shrinks a little and follows the finger;
+    // letting go goes back, cancelling springs it into place. Reduced motion skips the preview.
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var backFromLeft by remember { mutableStateOf(true) }
+    PredictiveBackHandler(enabled = nav.canGoBack) { events ->
+        try {
+            events.collect { e ->
+                backFromLeft = e.swipeEdge == androidx.activity.BackEventCompat.EDGE_LEFT
+                backProgress = e.progress
+            }
+            backProgress = 0f
+            nav.back()
+        } catch (e: CancellationException) {
+            backProgress = 0f
+            throw e
+        }
+    }
     val back: () -> Unit = { nav.back() }
     // 聊天页离开组合树时保留列表位置和输入内容，返回设置页等子页面后原样恢复。
     val screenStates = rememberSaveableStateHolder()
-    when (nav.current) {
+    // Pushes slide in from the right and pops slide back, instead of cutting between screens.
+    val depth = nav.stack.size
+    val lastDepth = remember { mutableIntStateOf(depth) }
+    val forward = depth >= lastDepth.intValue
+    SideEffect { lastDepth.intValue = depth }
+    val stillPages = MikaTheme.reduceMotion
+    AnimatedContent(
+        targetState = nav.current,
+        transitionSpec = { pageTransition(forward, stillPages) },
+        contentKey = { if (isPrimaryRoute(it)) "primary" else it.name },
+        label = "pages",
+        modifier = Modifier.graphicsLayer {
+            val p = if (stillPages) 0f else backProgress
+            if (p > 0f) {
+                val scale = 1f - 0.08f * p
+                scaleX = scale
+                scaleY = scale
+                translationX = (if (backFromLeft) 1f else -1f) * 24.dp.toPx() * p
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp * p)
+                clip = true
+            }
+        },
+    ) { route ->
+    when (route) {
         Route.PhoneSetup -> PhoneSetupScreen(status, setupRepair, onFix, onboarding = onboarding == OnboardingStep.Phone) {
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
@@ -560,7 +605,9 @@ private fun MikaRoot(
                 },
             )
         }
-        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider(nav.current.name) {
+        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider("primary") {
+            // Each tab keeps its own scroll and input while the drawer, hub and bar stay in place.
+            val tabStates = rememberSaveableStateHolder()
             // 对话页重新看得见(回到前台、从别的页面回来):补上别处存进来的轮次,接上别处开始的任务
             LifecycleStartEffect(Unit) {
                 app.chat.refresh()
@@ -587,20 +634,33 @@ private fun MikaRoot(
                 onPersonal = { nav.show(Route.Personal) },
                 onRegularChat = nav::reset,
                 resetKey = nav.resetSerial,
-                onBackFromPrimary = if (nav.current == Route.Tasks || nav.current == Route.Make) ({ nav.back() }) else null,
+                onBackFromPrimary = if (route == Route.Tasks || route == Route.Make) ({ nav.back() }) else null,
+                onFixStatus = { onFix(Fix.OpenPhoneSetup) },
             ) { openDrawer ->
+                val hubState = remember { androidx.compose.animation.core.MutableTransitionState(orbitHubOpen) }
+                hubState.targetState = orbitHubOpen
+                val hubShowing = hubState.currentState || hubState.targetState
+                androidx.compose.runtime.CompositionLocalProvider(LocalOrbitHubShowing provides hubShowing) {
                 Box(Modifier.fillMaxSize()) {
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
                     val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
                     val navDensity = LocalDensity.current
-                    val navVisible = WindowInsets.ime.getBottom(navDensity) == 0
+                    // The bar stays put while the keyboard is up (the keyboard slides over it), so nothing
+                    // re-mounts and the composer never snaps when the keyboard closes.
                     var navHeight by remember(navDensity) { mutableIntStateOf(with(navDensity) { 74.dp.roundToPx() }) }
-                    val navInset = if (navVisible) with(navDensity) { navHeight.toDp() } else 0.dp
-                    val navBackdrop = if (navVisible) rememberGlassBackdrop() else null
+                    val navInset = with(navDensity) { navHeight.toDp() }
+                    val navBackdrop = rememberGlassBackdrop()
                     Box(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
                         Box(Modifier.fillMaxSize().glassSource(navBackdrop)) {
-                            if (nav.current == Route.Tasks) TasksScreen(
+                            val stillTabs = MikaTheme.reduceMotion
+                            AnimatedContent(
+                                targetState = route,
+                                transitionSpec = { tabTransition(stillTabs) },
+                                label = "tabs",
+                            ) { tab ->
+                            tabStates.SaveableStateProvider(tab.name) {
+                            if (tab == Route.Tasks) TasksScreen(
                                 runtime = app.personal,
                                 taskState = app.taskState,
                                 runStore = app.runStore,
@@ -610,16 +670,18 @@ private fun MikaRoot(
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
                                 bottomInset = navInset,
-                            ) else if (nav.current == Route.Make) MakeScreen(
+                            ) else if (tab == Route.Make) MakeScreen(
                                 onOpenDrawer = openDrawer,
-                                onTeach = { nav.push(Route.Teach) },
-                                onSkills = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
-                                onBrowser = { nav.push(Route.Browser) },
-                                onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
                                 bottomInset = navInset,
-                            ) else if (nav.current == Route.Personal) {
+                                onOpenSource = { id, target ->
+                                    app.chat.openConversationAt(id, target)
+                                    val opened = app.chat.ui.value.conversationId == id
+                                    if (opened) nav.reset()
+                                    opened
+                                },
+                            ) else if (tab == Route.Personal) {
                                 Box(Modifier.fillMaxSize().padding(bottom = navInset)) {
                                     PersonalAgentScreen(
                                         runtime = app.personal,
@@ -663,14 +725,20 @@ private fun MikaRoot(
                                 onVoiceListeningChanged = { voiceListening = it },
                                 primaryBottomInset = navInset,
                             )
-                        }
-                        if (navVisible) {
-                            PrimaryNavigation(nav.current,
-                                modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
-                                backdrop = navBackdrop,
-                            ) { route ->
-                                if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
                             }
+                            }
+                        }
+                        // A soft scrim under the floating bars, so text scrolling behind them never collides with them.
+                        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(navInset + 32.dp).background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(androidx.compose.ui.graphics.Color.Transparent, MikaTheme.colors.bg.copy(alpha = 0.82f)),
+                            ),
+                        ))
+                        PrimaryNavigation(route,
+                            modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
+                            backdrop = navBackdrop,
+                        ) { picked ->
+                            if (picked == Route.Chat) nav.reset() else if (nav.current != picked) nav.show(picked)
                         }
                     }
                     var installUpdate by remember { mutableStateOf<ReleaseInfo?>(null) }
@@ -693,13 +761,18 @@ private fun MikaRoot(
                     }
                     val still = MikaTheme.reduceMotion
                     AnimatedVisibility(
-                        visible = orbitHubOpen,
-                        enter = if (still) EnterTransition.None else fadeIn(tween(220)),
-                        exit = if (still) ExitTransition.None else fadeOut(tween(220)),
+                        visibleState = hubState,
+                        // The hub fades its own page and content against `expansion`; the presence stays solid.
+                        enter = EnterTransition.None,
+                        exit = ExitTransition.None,
                     ) {
                         // Keep the presence synchronized with the panel in both directions.
                         val expansion by transition.animateFloat(
-                            transitionSpec = { if (still) snap() else tween(220) },
+                            transitionSpec = {
+                                if (still) snap()
+                                else if (targetState == EnterExitState.Visible) spring(dampingRatio = 0.86f, stiffness = 380f)
+                                else tween(200, easing = MikaMotion.Decelerate)
+                            },
                             label = "orbit-hub-presence",
                         ) { if (it == EnterExitState.Visible) 1f else 0f }
                         OrbitHub(
@@ -713,8 +786,10 @@ private fun MikaRoot(
                             onMemory = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
                             onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                             onPersonalization = { nav.push(Route.Settings) },
+                            onPersonal = { orbitHubOpen = false; nav.show(Route.Personal) },
                         )
                     }
+                }
                 }
             }
         }
@@ -839,6 +914,7 @@ private fun MikaRoot(
             nav.reset()
         })
         Route.Calls -> CallSettingsScreen(app.calls, onBack = back, standalone = true, initialHistoryCallId = focusedCallHistoryId)
+    }
     }
 }
 

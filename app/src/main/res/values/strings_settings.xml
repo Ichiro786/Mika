@@ -147,6 +147,7 @@
     <string name="appearance_dark">Always dark</string>
     <string name="accent_group">Accent color</string>
     <string name="accent_default">Default</string>
+    <string name="accent_dynamic">Wallpaper</string>
     <string name="accent_blue">Blue</string>
     <string name="accent_indigo">Indigo</string>
     <string name="accent_purple">Purple</string>

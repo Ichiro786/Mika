@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Call Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">Connecting…</string>
+    <string name="orbit_call_listening">Listening</string>
+    <string name="orbit_call_thinking">Thinking</string>
+    <string name="orbit_call_speaking">Orbit is speaking</string>
+    <string name="orbit_call_needs_screen">Orbit needs you on screen</string>
+    <string name="orbit_call_ended">Call ended</string>
+    <string name="orbit_call_failed">The call couldn\'t use the microphone</string>
+    <string name="orbit_call_needs_mic">Orbit needs the microphone to talk with you</string>
+    <string name="orbit_call_open_settings">Open settings</string>
+    <string name="orbit_call_no_voice">Choose a voice model to call Orbit</string>
+    <string name="orbit_call_choose_voice">Choose</string>
+    <string name="orbit_call_screen_line">I can\'t take that right now. Have a look at your screen.</string>
+    <string name="orbit_call_hang_up">End call</string>
+    <string name="drawer_status_fix">Set up</string>
+    <string name="drawer_everything">Everything</string>
+    <string name="drawer_everything_sub">Every chat, channel and space</string>
+    <string name="drawer_spaces">Spaces</string>
+    <string name="drawer_chats">Chats</string>
+    <string name="orbit_channel_new">New channel</string>
+    <string name="space_create">Create a space</string>
+    <string name="space_create_body">Describe it in one sentence. Orbit builds a live panel for it and keeps it in your sidebar.</string>
+    <string name="space_description">What it\'s for</string>
+    <string name="space_description_example">A tracker for my water and sleep</string>
+    <string name="space_name_optional">Name (optional)</string>
+    <string name="space_create_action">Create</string>
+    <string name="space_updated">Updated %1$s</string>
+    <string name="space_updated_now">Updated just now</string>
+    <string name="space_hide">Hide</string>
+    <string name="space_show">Show in sidebar</string>
+    <string name="space_delete">Delete space</string>
+    <string name="space_delete_body">Delete “%1$s”? Its page and its chat go too.</string>
+    <string name="space_working">Orbit is working on it…</string>
+    <string name="space_building">Orbit is building this space…</string>
+    <string name="space_empty">No page yet. Tap Change it to ask Orbit for one.</string>
+    <string name="space_refresh">Refresh</string>
+    <string name="space_change">Change it</string>
+</resources>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Llamar a Orbit</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">Conectando…</string>
+    <string name="orbit_call_listening">Escuchando</string>
+    <string name="orbit_call_thinking">Pensando</string>
+    <string name="orbit_call_speaking">Orbit está hablando</string>
+    <string name="orbit_call_needs_screen">Orbit te necesita en la pantalla</string>
+    <string name="orbit_call_ended">Llamada finalizada</string>
+    <string name="orbit_call_failed">La llamada no pudo usar el micrófono</string>
+    <string name="orbit_call_needs_mic">Orbit necesita el micrófono para hablar contigo</string>
+    <string name="orbit_call_open_settings">Abrir ajustes</string>
+    <string name="orbit_call_no_voice">Elige un modelo de voz para llamar a Orbit</string>
+    <string name="orbit_call_choose_voice">Elegir</string>
+    <string name="orbit_call_screen_line">Ahora no puedo con eso. Mira tu pantalla.</string>
+    <string name="orbit_call_hang_up">Finalizar llamada</string>
+    <string name="drawer_status_fix">Configurar</string>
+    <string name="drawer_everything">Todo</string>
+    <string name="drawer_everything_sub">Todos los chats, canales y espacios</string>
+    <string name="drawer_spaces">Espacios</string>
+    <string name="drawer_chats">Chats</string>
+    <string name="orbit_channel_new">Nuevo canal</string>
+    <string name="space_create">Crear un espacio</string>
+    <string name="space_create_body">Descríbelo en una frase. Orbit crea un panel en vivo y lo guarda en tu barra lateral.</string>
+    <string name="space_description">Para qué es</string>
+    <string name="space_description_example">Un registro de mi agua y sueño</string>
+    <string name="space_name_optional">Nombre (opcional)</string>
+    <string name="space_create_action">Crear</string>
+    <string name="space_updated">Actualizado %1$s</string>
+    <string name="space_updated_now">Actualizado ahora</string>
+    <string name="space_hide">Ocultar</string>
+    <string name="space_show">Mostrar en la barra lateral</string>
+    <string name="space_delete">Eliminar espacio</string>
+    <string name="space_delete_body">¿Eliminar “%1$s”? También se eliminan su página y su chat.</string>
+    <string name="space_working">Orbit está trabajando en ello…</string>
+    <string name="space_building">Orbit está creando este espacio…</string>
+    <string name="space_empty">Aún no hay página. Toca Cambiarlo para pedírsela a Orbit.</string>
+    <string name="space_refresh">Actualizar</string>
+    <string name="space_change">Cambiarlo</string>
+</resources>

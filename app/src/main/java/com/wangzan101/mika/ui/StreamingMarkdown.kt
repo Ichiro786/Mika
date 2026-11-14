@@ -17,6 +17,52 @@ internal object StreamingMarkdown {
         return closeInline(softenPendingTable(visible))
     }
 
+    private val listItem = Regex("""^\s*([-*+]|\d{1,9}[.)])(\s|$)""")
+
+    /**
+     * Length of the longest prefix made only of finished top-level blocks: it ends at a blank line outside
+     * any code fence, and neither side of that gap is a list, table, quote or indented line that could still
+     * join the next block. That prefix parses the same on its own, so a streaming reply can reuse it and only
+     * re-parse the tail. 0 when there is no such prefix yet.
+     */
+    fun stableEnd(markdown: String): Int {
+        var end = 0
+        var fence: String? = null
+        var pos = 0
+        var gap = false
+        var previous: String? = null
+        val lines = markdown.split('\n')
+        for ((i, line) in lines.withIndex()) {
+            val start = pos
+            pos += line.length + 1
+            if (i == lines.lastIndex) break // the last line may still be growing
+            val marker = fenceLine.matchEntire(line)
+            if (fence != null) {
+                if (marker != null && marker.groupValues[1].let { it.first() == fence!!.first() && it.length >= fence!!.length } &&
+                    marker.groupValues[2].isBlank()) {
+                    fence = null
+                    previous = line
+                    gap = false
+                }
+                continue
+            }
+            if (line.isBlank()) {
+                gap = true
+                continue
+            }
+            if (gap && previous != null && standsAlone(previous) && standsAlone(line)) end = start
+            if (marker != null) fence = marker.groupValues[1]
+            previous = line
+            gap = false
+        }
+        return end
+    }
+
+    private fun standsAlone(line: String): Boolean {
+        val first = line.firstOrNull() ?: return false
+        return first != ' ' && first != '\t' && first != '|' && first != '>' && first != '[' && !listItem.containsMatchIn(line)
+    }
+
     private fun insideFence(source: String): Boolean {
         var fence: String? = null
         for (line in source.lineSequence()) {

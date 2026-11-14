@@ -88,6 +88,8 @@ internal fun ConversationMenu(
     onTerminal: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
+    /** Start selecting with this row ticked; null where a row can't be selected. */
+    onSelect: (() -> Unit)? = null,
 ) {
     val c = MikaTheme.colors
     LongPressMenu(
@@ -100,6 +102,7 @@ internal fun ConversationMenu(
                 else -> null
             },
             MenuEntry(stringResource(if (item.channel) R.string.orbit_channel_edit else R.string.drawer_rename), MikaIcons.Edit, "drawer-menu-rename", onClick = onRename),
+            onSelect?.let { MenuEntry(stringResource(R.string.drawer_select), MikaIcons.Check, "drawer-select", onClick = it) },
             MenuEntry(stringResource(R.string.terminal_open), MikaIcons.Terminal, "drawer-menu-terminal", onClick = onTerminal),
             MenuEntry(stringResource(if (item.channel) R.string.orbit_channel_remove else R.string.confirm_delete), MikaIcons.Trash, "drawer-menu-delete", c.bad, onDelete),
         ),

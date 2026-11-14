@@ -1,7 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="108dp" android:height="108dp" android:viewportWidth="100" android:viewportHeight="100">
-    <group android:scaleX="0.64" android:scaleY="0.64" android:pivotX="50" android:pivotY="50">
-    <path android:fillColor="#FFFFFFFF" android:fillType="evenOdd" android:pathData="M79,46 A24,24 0,1 1,31,46 A24,24 0,1 1,79,46 Z M5,54 C19,40 30,37 44,41 C58,45 72,63 95,48 L95,56 C72,71 58,53 44,49 C30,45 19,48 5,62 Z" />
-    <path android:fillColor="#FFFFFFFF" android:pathData="M5,58 C19,44 30,41 44,45 C58,49 72,67 95,52 C84,68 69,69 55,63 C37,54 25,48 5,58 Z" />
+<!-- Themed (monochrome) launcher layer. Generated from the Orbit mark: a sphere with a tapered wave sweeping across it.
+     The wave tips stay inside the 66dp adaptive-icon safe zone, and a cut above the wave
+     separates it from the sphere so the mark also reads in one color. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp" android:viewportWidth="108" android:viewportHeight="108">
+    <group android:name="sphere_upper">
+        <clip-path android:pathData="M23.04,58.39 C30.78,51.94 38.52,49.36 46.26,50.04 C54.86,50.73 61.74,57.96 69.48,58.47 C76.36,58.82 81.52,55.81 84.96,52.37 L120,52.37 L120,-12 L-12,-12 L-12,58.39 Z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M43.25,54.0 A15.91,15.91 0,1 1,75.07,54.0 A15.91,15.91 0,1 1,43.25,54.0 Z" />
     </group>
+    <group android:name="sphere_lower">
+        <clip-path android:pathData="M23.04,60.28 C30.78,53.83 38.52,51.25 46.26,51.94 C54.86,52.62 61.74,59.85 69.48,60.36 C76.36,60.71 81.52,57.7 84.96,54.26 L120,54.26 L120,120 L-12,120 L-12,60.28 Z" />
+        <path android:fillColor="#FFFFFFFF" android:pathData="M43.25,54.0 A15.91,15.91 0,1 1,75.07,54.0 A15.91,15.91 0,1 1,43.25,54.0 Z" />
+    </group>
+    <path android:name="wave" android:fillColor="#FFFFFFFF" android:pathData="M23.04,60.28 C30.78,53.83 38.52,51.25 46.26,51.94 C54.86,52.62 61.74,59.85 69.48,60.36 C76.36,60.71 81.52,57.7 84.96,54.26 C80.66,60.71 75.5,64.32 68.62,64.32 C60.88,64.32 54.86,59.85 46.26,56.41 C38.52,53.4 30.78,54.69 23.04,60.28 Z" />
 </vector>

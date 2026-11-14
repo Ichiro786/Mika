@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Stage 5: home header call, sidebar Everything, channels and spaces -->
+    <string name="orbit_call_orbit">Orbit에게 전화</string>
+    <string name="orbit_call_orbit_title">Orbit</string>
+    <string name="orbit_call_connecting">연결 중…</string>
+    <string name="orbit_call_listening">듣는 중</string>
+    <string name="orbit_call_thinking">생각 중</string>
+    <string name="orbit_call_speaking">Orbit가 말하는 중</string>
+    <string name="orbit_call_needs_screen">화면에서 확인이 필요해요</string>
+    <string name="orbit_call_ended">통화 종료</string>
+    <string name="orbit_call_failed">통화에서 마이크를 사용할 수 없어요</string>
+    <string name="orbit_call_needs_mic">Orbit와 대화하려면 마이크가 필요해요</string>
+    <string name="orbit_call_open_settings">설정 열기</string>
+    <string name="orbit_call_no_voice">Orbit에게 전화하려면 음성 모델을 고르세요</string>
+    <string name="orbit_call_choose_voice">선택</string>
+    <string name="orbit_call_screen_line">지금은 처리할 수 없어요. 화면을 확인해 주세요.</string>
+    <string name="orbit_call_hang_up">통화 종료</string>
+    <string name="drawer_status_fix">설정</string>
+    <string name="drawer_everything">전체</string>
+    <string name="drawer_everything_sub">모든 채팅, 채널, 스페이스</string>
+    <string name="drawer_spaces">스페이스</string>
+    <string name="drawer_chats">채팅</string>
+    <string name="orbit_channel_new">새 채널</string>
+    <string name="space_create">스페이스 만들기</string>
+    <string name="space_create_body">한 문장으로 설명하세요. Orbit가 라이브 패널을 만들어 사이드바에 둡니다.</string>
+    <string name="space_description">용도</string>
+    <string name="space_description_example">물과 수면 기록</string>
+    <string name="space_name_optional">이름(선택)</string>
+    <string name="space_create_action">만들기</string>
+    <string name="space_updated">%1$s 업데이트</string>
+    <string name="space_updated_now">방금 업데이트</string>
+    <string name="space_hide">숨기기</string>
+    <string name="space_show">사이드바에 표시</string>
+    <string name="space_delete">스페이스 삭제</string>
+    <string name="space_delete_body">“%1$s”을(를) 삭제할까요? 페이지와 채팅도 함께 삭제돼요.</string>
+    <string name="space_working">Orbit가 작업 중…</string>
+    <string name="space_building">Orbit가 스페이스를 만드는 중…</string>
+    <string name="space_empty">아직 페이지가 없어요. 바꾸기를 눌러 Orbit에게 요청하세요.</string>
+    <string name="space_refresh">새로고침</string>
+    <string name="space_change">바꾸기</string>
+</resources>

@@ -140,6 +140,7 @@
     <string name="appearance_dark">Siempre oscuro</string>
     <string name="accent_group">Color de énfasis</string>
     <string name="accent_default">Predeterminado</string>
+    <string name="accent_dynamic">Fondo de pantalla</string>
     <string name="accent_blue">Azul</string>
     <string name="accent_indigo">Índigo</string>
     <string name="accent_purple">Morado</string>

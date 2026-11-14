@@ -1,5 +1,6 @@
 package com.wangzan101.mika.ui
 
+import androidx.compose.foundation.ScrollState
 import com.wangzan101.mika.R
 import com.wangzan101.mika.i18n.tr
 import androidx.compose.ui.res.pluralStringResource
@@ -385,9 +386,11 @@ fun SettingsContent(
     onOpenAutoArchive: () -> Unit = {},
 ) {
     val check = Prerequisites.check(status, hasMainModel = mainModel != null)
-    PageScaffold(stringResource(R.string.settings_title), onBack) {
+    // A fresh scroll position each time Settings opens, so the status card at the top is never half under the bar.
+    PageScaffold(stringResource(R.string.settings_title), onBack, scrollState = remember { ScrollState(0) }) {
         StatusSummary(check, onProblem)
 
+        // How Orbit works: the model, phone control and how tasks run.
         GroupLabel(stringResource(R.string.settings_basic))
         GroupCard {
             ListRow(MikaIcons.Spark, stringResource(R.string.settings_model), stringResource(R.string.settings_model_sub), first = true, onClick = onOpenModels) {
@@ -398,29 +401,39 @@ fun SettingsContent(
                 PhoneOpsPill(status)
                 RowChevron()
             }
-            ListRow(MikaIcons.Phone, stringResource(R.string.calls_title), stringResource(R.string.calls_entry_sub), onClick = onOpenCalls) { RowChevron() }
-            ListRow(MikaIcons.Chats, stringResource(R.string.wechat_title), stringResource(R.string.wechat_settings_sub), onClick = onOpenWechat) {
-                WechatEntryStatus(wechatState, wechatBound)
-                RowChevron()
-            }
             ListRow(MikaIcons.Moon, stringResource(R.string.settings_during_work), stringResource(R.string.settings_during_work_sub), onClick = onOpenDuringWork) { RowChevron() }
-            ListRow(MikaIcons.Message, CapsuleSettingsCopy.TITLE, CapsuleSettingsCopy.SUBTITLE, onClick = onOpenCapsule) {
-                RowValue(CapsuleSettingsCopy.label(capsuleMode))
-                RowChevron()
-            }
-            ListRow(MikaIcons.Globe, stringResource(R.string.settings_language_appearance), onClick = onOpenLanguage) {
-                RowValue(languageLabel(language))
-                RowChevron()
-            }
             onPersonalStart?.let { change ->
                 val label = stringResource(R.string.settings_personal_start)
                 ListRow(MikaIcons.Spark, label, stringResource(R.string.settings_personal_start_sub)) {
                     MikaSwitch(personalStart, change, Modifier.semantics { contentDescription = label })
                 }
             }
+        }
+
+        // Where Orbit reaches you: calls, WeChat and notifications.
+        GroupLabel(stringResource(R.string.orbit_settings_reach))
+        GroupCard {
+            ListRow(MikaIcons.Phone, stringResource(R.string.calls_title), stringResource(R.string.calls_entry_sub), first = true, onClick = onOpenCalls) { RowChevron() }
+            ListRow(MikaIcons.Chats, stringResource(R.string.wechat_title), stringResource(R.string.wechat_settings_sub), onClick = onOpenWechat) {
+                WechatEntryStatus(wechatState, wechatBound)
+                RowChevron()
+            }
             val (notifText, notifTone) = StatusCopy.notificationSummary(status.notificationOverview().summary)
             ListRow(MikaIcons.Bell, StatusCopy.NOTIFICATIONS, stringResource(R.string.settings_notif_sub), onClick = onOpenNotifications) {
                 RowValue(notifText, notifTone)
+                RowChevron()
+            }
+        }
+
+        // How Orbit looks: language, theme and the floating capsule.
+        GroupLabel(stringResource(R.string.orbit_settings_look))
+        GroupCard {
+            ListRow(MikaIcons.Globe, stringResource(R.string.settings_language_appearance), first = true, onClick = onOpenLanguage) {
+                RowValue(languageLabel(language))
+                RowChevron()
+            }
+            ListRow(MikaIcons.Message, CapsuleSettingsCopy.TITLE, CapsuleSettingsCopy.SUBTITLE, onClick = onOpenCapsule) {
+                RowValue(CapsuleSettingsCopy.label(capsuleMode))
                 RowChevron()
             }
         }

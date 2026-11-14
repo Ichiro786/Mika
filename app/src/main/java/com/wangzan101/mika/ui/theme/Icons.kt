@@ -27,7 +27,17 @@ object MikaIcons {
             paths.forEach { addPath(addPathNodes(it), fill = SolidColor(Color.Black)) }
         }.build()
 
-    val Menu = stroke("menu", "M4 7 h16 M4 12 h16 M4 17 h10")
+    /** Open the sidebar: two lines, the lower one short. */
+    val Menu = stroke("menu", "M5 8 h14", "M5 16 h9", width = 2f)
+    /** Call Orbit: a filled handset. */
+    val Call = filled(
+        "call",
+        "M6.62 10.79 c1.44 2.83 3.76 5.14 6.59 6.59 l2.2 -2.2 c0.27 -0.27 0.67 -0.36 1.02 -0.24 c1.12 0.37 2.33 0.57 3.57 0.57 " +
+            "c0.55 0 1 0.45 1 1 V20 c0 0.55 -0.45 1 -1 1 C10.61 21 3 13.39 3 4 c0 -0.55 0.45 -1 1 -1 h3.5 c0.55 0 1 0.45 1 1 " +
+            "c0 1.25 0.2 2.45 0.57 3.57 c0.11 0.35 0.03 0.74 -0.25 1.02 z",
+    )
+    /** Everything: stacked layers. */
+    val Layers = stroke("layers", "M12 3.5 L20.5 8 L12 12.5 L3.5 8 Z", "M3.5 12 L12 16.5 L20.5 12", "M3.5 16 L12 20.5 L20.5 16")
     /** 新对话:一支笔。 */
     val New = stroke("new", "M12 20 h8", "M16.5 3.5 a2.1 2.1 0 0 1 3 3 L7 19 l-4 1 l1 -4 z")
     /** 改名:一支斜放的笔,笔头后面一道箍(和「新对话」不同,下面不带横线)。 */

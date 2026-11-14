@@ -225,4 +225,50 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - Restored CI run 43569132846: Android compilation, app unit tests and APK upload **PASSED**; CLI/localization and relay **PASSED**. Core had one documentation consistency failure caused by a historical test-count sentence; that wording is corrected. Emulator setup exited during AVD creation before any device tests or screenshots. The workflow now selects a standard device profile, removes the input pipe and requests the workspace, hub and attachment device tests on the next capture run. These fixes require CI verification.
 
-- CI run 43569822883: core, CLI/localization, relay, Android compilation and app unit tests **PASSED**; debug APK artifact 14104286451 was uploaded. The overall run **FAILED** because the AVD tool could not load a `devices.xml` file absent from the system image. The capture workflow now uses the Android CLI device-creation command; screenshots and device tests still require a new run.
+- CI run 43569822883: core, CLI/localization, relay, Android compilation and app unit tests **PASSED**; debug APK artifact 14104286451 was uploaded. The overall run **FAILED** because the AVD tool could not load a devices.xml file absent from the system image. The capture workflow now uses the Android CLI device-creation command; screenshots and device tests still require a new run.
+
+- Stage 1 redesign, 2026-11-14: Make now lists only files the agent produced (shared outputs, newest first, tap to preview, "Show in chat" to jump to the source turn); browser, files, memory and skills stay in the Orbit hub and drawer, and Teach Orbit moved into the composer's plus menu. The plus opens a compact smoked-glass menu above the composer (live RenderEffect blur on Android 12+, near-opaque fallback on 11) instead of a keyboard-height panel below it; pickers stay registered while the menu closes. The primary navigation stays composed while the keyboard is up and the composer sits at max(keyboard, navigation height), removing the overshoot and snap on keyboard close (ORB-003). The chat header gains a zero-height fade (ORB-004). Tasks + creates a scheduled task in place over Tasks (ORB-001). The hub caches Today so tab switches no longer flash Loading (ORB-002) and drives its page, content and single presence from one expansion value with header avatars hidden while it shows (ORB-005). Launcher, themed and splash marks are redrawn from the supplied logo with a separated, tapered wave inside the adaptive-icon safe zone (ORB-006). Android compilation and device behavior await CI.
+
+### Stage 2 redesign, 2026-11-14
+
+Side panel: one grouped card with Main chat and New side chat; the extra New chat row is gone (the chat header keeps it), the Personal Assistant row moved into the Orbit hub's Today card, and Quit lives only in Settings under Advanced. Section labels are small capitals with tracking. Tasks: the alarm shortcut is gone; Up next now lists switched-off schedules under Paused and shows the exact-alarm notice with its Turn on button. Settings home is regrouped into Common, Calls and messages, Look and feel, My data and Other, opens at the top, and every settings page fades content under the top bar instead of cutting it. Teach Orbit uses Orbit cards, rounded fields and full-width actions pinned above the keyboard. The schedule editor is a bottom sheet with rounded fields and date and time pickers that still write the same text format.
+
+## Stage 3 presence and focus header, 2026-11-14
+
+The Orbit presence now follows the presence study. Idle breathes, Listening sends out ripples, Thinking leaves soft trails of the sphere, Working sweeps a tilted orbit ring, Needs you shows three warm rays at one to two o'clock with a glow, and Success settles inside a halo. One phase value drives each loop and is read only while drawing, so the avatar does not recompose per frame. With reduced motion each state is drawn as a still frame.
+
+The states now follow the live run. A model request with nothing to show yet reads as Thinking (it used to read as Idle), any other live step reads as Working, and a locked phone or a pause waiting for the user reads as Needs you. Success shows for three seconds after the run ends, then settles to Idle, in the header, the hub and on the Tasks and Make headers alike.
+
+Side chats and channels get a focus header. The left button goes back to Main Chat, and the centre is a pill with the live presence, the channel name or Side Chat, and the run status or channel description. Tapping the pill opens the Orbit hub. Main Chat keeps the plain header with the drawer button. Drafts were already kept per conversation, so nothing changed there.
+
+## Stage 4 motion, streaming and accessibility, 2026-11-14
+
+Screens no longer cut. Opening a page slides it in from the right with a fade on a soft spring, and going back slides it the other way. Chat, Tasks and Make drift a little in the direction of the tab you picked and cross fade, while the drawer, the hub and the bottom bar stay in place. Each tab keeps its own scroll position and input. Reduced motion turns all of this into instant switches.
+
+Streaming replies parse less. Finished blocks of a reply (paragraphs and headings that a blank line has closed, outside any list, table, quote or code fence) are parsed once and reused, so only the growing tail is parsed again, and a reply parses at most about twenty times a second however fast text arrives. The chat state itself already merges updates to one per frame. The progress spinner now turns in its layer instead of recomposing every frame.
+
+Header icon buttons have a full 48 dp touch target around the same 40 dp look, and the centred header leaves room for them. The Orbit avatar and the focus pill tell TalkBack the current presence (for example Working or Needs you) as their state. The hub's section bar already used tab roles with labels. Continuous animations and the chat's auto scroll already respected reduced motion, so only the spinner needed work.
+
+On Files, the conversation and source filters scroll sideways instead of sharing the width, so the conversation name is no longer cut short, and they use tonal Orbit pills instead of outlines.
+
+While Orbit is working on a reply and nothing has streamed yet, the answer's place shows a typing bubble: a dark rounded pill with three light dots that rise and fall in turn. It disappears as soon as text arrives. The dots move in their own layers from one shared phase, and with reduced motion they sit still.
+
+### Stage 4: Material You, one-line title, floating frosted bars
+
+- Accent colors follow the wallpaper. A new Wallpaper accent is the default: on Android 12 and newer it takes the primary and on-primary colors of the system dynamic scheme, so buttons, the Tasks add button, progress, the dot in "Your work." and your own message bubbles all match the phone. The AMOLED black page and the glass surfaces stay as they were. Before Android 12 it falls back to the default blue, and the fixed accents (Blue, Indigo, Purple, Pink, Teal, Graphite) are still in Settings. A background image that sets its own accent still wins.
+- The hard-coded coral on the Tasks page and on your message bubble now comes from the accent.
+- "Your work." stays on one line (ORB-012): the title shrinks just enough to fit narrow screens and large font sizes, never below 22sp.
+- The bottom navigation floats: it is inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
+- The navigation and the message bar use frosted glass: a heavier live blur under a light, milky veil with a top-lit rim, instead of the dark smoke used for menus. Without blur (before Android 12) both fall back to a solid surface.
+
+## Stage 5 sidebar, spaces and calling Orbit, 2026-11-14
+
+- The sidebar is rebuilt. The header has the Orbit logo, the name and a status line, and when phone control needs setting up the status line takes you there. Under it sit a pill search field and a round compose button for a new side chat. One rounded card holds Everything (every chat, channel, side chat and space in one list) and Main chat with its latest title and time.
+- Channels have colored tiles, the open one sits raised, and each channel's side chats are nested under it with a thin connecting line. The list ends with New channel. Side chats that belong to no channel keep their own group.
+- Spaces are live panels, after Meta's Muse spaces. Create a space from one sentence and Orbit builds one self-contained page for it in the space's own chat. Opening a space shows the page full screen in a locked down web view (scripts run, nothing loads from the network, no file access) that reloads when Orbit rewrites it. Refresh asks Orbit to gather fresh data, and Change it opens the space's chat. Rows show when the page last changed and a green live dot. A space's chat stays out of Recent, and search still finds it.
+- Long press on a space pins, renames, hides or deletes it. Long press on a chat now also offers Select, which starts multi-select with that row ticked, since the header button became compose. Settings and About are round buttons at the foot.
+- The home header has two frosted round pills: a two-line sidebar button (Open sidebar) and a call button (Call Orbit) in place of Files and New chat, which stay reachable from the hub and the sidebar.
+- Calling Orbit is hands free: it listens, ends your turn after a short pause, sends what you said to the open chat, reads the reply aloud with the phone's text to speech and listens again. Steps that need a tap are said once and wait on screen. Everything said stays in the chat.
+- Your own message bubbles use the wallpaper's Material You primary container with its matching text color. Before Android 12, or with a fixed or image accent, they use a tone of the accent whose text reads at 4.5 to 1 or better.
+- Audit leftovers: the composer placeholder is shorter so it is no longer cut, the hub tabs use one sliding highlight so two never show at once, a soft scrim sits behind the floating navigation, and back gestures preview the page underneath (predictive back).
+- Not in this stage: a scheduled refresh for spaces (Refresh is manual for now).
