@@ -38,7 +38,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,8 +71,29 @@ internal class MessageTarget(
     val lifted: @Composable () -> Unit,
 )
 
-/** 对话页给消息的长按菜单:[selecting] 是此刻处在「选择文字」里的那一条,[open] 弹出菜单。 */
-internal class MessageMenuHost(val selecting: String?, val open: (MessageTarget) -> Unit)
+/**
+ * What can be done with one message. The long-press menu and TalkBack's actions menu both read it, so the two
+ * always offer the same things. A null entry isn't offered for that message.
+ */
+internal class MessageActions(
+    val copy: () -> Unit,
+    val quote: () -> Unit,
+    val select: () -> Unit,
+    val branch: (() -> Unit)? = null,
+    val branchRetry: (() -> Unit)? = null,
+    val edit: (() -> Unit)? = null,
+    val withdraw: (() -> Unit)? = null,
+)
+
+/**
+ * 对话页给消息的长按菜单:[selecting] 是此刻处在「选择文字」里的那一条,[open] 弹出菜单。
+ * [actions] gives a message's actions straight to TalkBack (custom actions), so they work without the menu.
+ */
+internal class MessageMenuHost(
+    val selecting: String?,
+    val actions: ((MessageTarget) -> MessageActions)? = null,
+    val open: (MessageTarget) -> Unit,
+)
 
 /** 没有时(单独测某个部件)消息照旧长按就选中文字。 */
 internal val LocalMessageMenu = compositionLocalOf<MessageMenuHost?> { null }
@@ -97,10 +120,17 @@ internal fun MessageArea(
     }
     val haptic = LocalHapticFeedback.current
     val label = stringResource(R.string.chat_message_actions)
+    val labels = MessageActionLabels(
+        copy = stringResource(R.string.chat_copy), quote = stringResource(R.string.chat_quote),
+        select = stringResource(R.string.chat_select_text), branch = stringResource(R.string.chat_branch),
+        branchRetry = stringResource(R.string.chat_branch_retry), edit = stringResource(R.string.chat_edit_message),
+        withdraw = stringResource(R.string.chat_withdraw_message),
+    )
     // 在窗口里的位置和大小(不裁掉滚出列表的部分);只在回调里读,不引起重组
     val bounds = remember { mutableStateOf(Rect.Zero) }
     // 手势一直用最新的这一份(流式回答时会不停重组),不因重组重启、丢掉按到一半的长按
     val open by rememberUpdatedState({ host.open(MessageTarget(key, from, text, bounds.value, lifted)) })
+    val target by rememberUpdatedState({ MessageTarget(key, from, text, bounds.value, lifted) })
     Box(
         Modifier
             .onGloballyPositioned { bounds.value = Rect(it.positionInWindow(), it.size.toSize()) }
@@ -112,9 +142,29 @@ internal fun MessageArea(
                     open()
                 })
             }
-            .semantics { onLongClick(label) { open(); true } }
+            .semantics {
+                onLongClick(label) { open(); true }
+                // TalkBack's actions menu: copy, quote, ask again, branch… without opening the long-press menu
+                host.actions?.let { actionsFor -> customActions = labels.of(actionsFor(target())) }
+            }
             .testTag("message-$key"),
     ) { content() }
+}
+
+private class MessageActionLabels(
+    val copy: String, val quote: String, val select: String, val branch: String,
+    val branchRetry: String, val edit: String, val withdraw: String,
+) {
+    fun of(a: MessageActions): List<CustomAccessibilityAction> = buildList {
+        fun put(label: String, run: (() -> Unit)?) { if (run != null) add(CustomAccessibilityAction(label) { run(); true }) }
+        put(copy, a.copy)
+        put(quote, a.quote)
+        put(branchRetry, a.branchRetry)
+        put(branch, a.branch)
+        put(edit, a.edit)
+        put(withdraw, a.withdraw)
+        put(select, a.select)
+    }
 }
 
 /**

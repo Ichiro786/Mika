@@ -833,8 +833,17 @@ class ChatViewModel(
         }
     }
 
-    private fun canAttach(ui: ChatUi) = ui.attachEnabled && !ui.importing &&
-        (ui.composer == ComposerMode.Idle || (ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue))
+    private fun canAttach(ui: ChatUi) = ui.attachEnabled && !ui.importing && attachesWithNextSend(ui)
+
+    /**
+     * Whether files in the tray go out with the next send: with a new task, with a queued next task, or
+     * (while a task runs and follow-ups steer it) with the message to the running task. A question the
+     * task asked you is answered in words only, so files wait there unless follow-ups are queued.
+     */
+    private fun attachesWithNextSend(ui: ChatUi) = when (ui.composer) {
+        ComposerMode.Idle, ComposerMode.Busy -> true
+        ComposerMode.Answer -> ui.followUpMode == FollowUpMode.Queue
+    }
 
     /** 从相机、相册、文件选择器拿到的文件:没有任务在跑、沙箱就绪时才收;读出名字和大小后挂在输入框上方,随下一句话发出去。 */
     fun attach(uris: List<String>, conversationId: String? = _ui.value.conversationId) {
@@ -1034,8 +1043,7 @@ class ChatViewModel(
         refreshParallel()
         val ui = _ui.value
         if (ui.importing) return false
-        val queuedAttachments = ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue
-        val sendingAttachments = ui.attachments.isNotEmpty() && (ui.composer == ComposerMode.Idle || queuedAttachments)
+        val sendingAttachments = ui.attachments.isNotEmpty() && attachesWithNextSend(ui)
         val sent = sendQuoted(text.trim(), ui, check)
         if (sent && !sendingAttachments) {
             val shared = ui.sharedDraft
@@ -1057,8 +1065,7 @@ class ChatViewModel(
 
     private fun sendQuoted(words: String, ui: ChatUi, check: Prerequisites.Check): Boolean {
         // 附件可跟新任务或明确排队的下一件走;先复制进工作区,再把路径随原话一起持久化。
-        val queuedAttachments = ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue
-        if ((ui.composer == ComposerMode.Idle || queuedAttachments) && ui.attachments.isNotEmpty()) {
+        if (attachesWithNextSend(ui) && ui.attachments.isNotEmpty()) {
             return sendWithAttachments(QuoteMessage.compose(ui.quote, words), ui.attachments, check)
         }
         // 只有引用、没写话时不发
@@ -1150,6 +1157,8 @@ class ChatViewModel(
             val accepted = when {
                 now.composer == ComposerMode.Idle -> { begin(goal, id, clearDraftAttachments = !keepNewerAttachments); true }
                 now.composer != ComposerMode.Idle && now.followUpMode == FollowUpMode.Queue -> enqueue(goal, check)
+                // Files sent while the task runs reach it with the message, like any other interjection.
+                now.composer == ComposerMode.Busy -> steer(goal, check)
                 else -> false
             }
             if (accepted) {
@@ -1159,7 +1168,7 @@ class ChatViewModel(
                         input = if (!draftReplaced && it.input == submitted.input) "" else it.input,
                         quote = if (!draftReplaced && it.quote == submitted.quote) null else it.quote,
                         attachments = if (keepNewerAttachments) currentAttachments else emptyList(),
-                        followUpMode = if (keepNewerAttachments && currentAttachments.isNotEmpty() && it.composer != ComposerMode.Idle) FollowUpMode.Queue else it.followUpMode,
+                        followUpMode = it.followUpMode,
                     )
                 }
                 releaseUnusedLibraryCopies()
@@ -1240,12 +1249,14 @@ class ChatViewModel(
 
     /** 切换任务进行中补充消息的默认去向;只影响下次发送,不改已经发出的消息。 */
     fun setFollowUpMode(mode: FollowUpMode) {
-        if (mode == FollowUpMode.Steer) {
+        if (mode == FollowUpMode.Steer && _ui.value.composer == ComposerMode.Answer) {
             _ui.value.sharedDraft?.takeIf { it.image != null }?.let(::clearSharedImage)
         }
         _ui.update {
-            if (it.followUpMode == mode) it else it.copy(followUpMode = mode,
-                attachments = if (mode == FollowUpMode.Steer) emptyList() else it.attachments)
+            // Files stay in the tray either way: steering now carries them to the running task.
+            if (it.followUpMode == mode) it
+            else it.copy(followUpMode = mode,
+                attachments = if (mode == FollowUpMode.Steer && it.composer == ComposerMode.Answer) emptyList() else it.attachments)
         }
         releaseUnusedLibraryCopies()
     }

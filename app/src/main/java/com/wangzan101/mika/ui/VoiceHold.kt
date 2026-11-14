@@ -10,7 +10,6 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
@@ -22,6 +21,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitEachGesture
@@ -52,6 +52,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -496,24 +497,66 @@ internal fun VoiceBarCover(vh: VoiceHold, state: HoldToTalk.State, reduceMotion:
     }
 }
 
-/** 波形:14 根细条,高低跟着音量走;关了动画时只跟音量,不自己摆。输入栏和悬浮胶囊的说话面板共用。 */
+/**
+ * Live waveform while holding to talk. Each bar is one recent microphone reading, newest on the right,
+ * so the line scrolls with the voice the way a voice memo does. Readings are kept in a small ring and
+ * drawn in one Canvas; a sample only invalidates the draw, never recomposition.
+ * With reduced motion the bars stop scrolling and the whole row just follows the current level.
+ * [flat] (finger over "release to cancel") lays every bar down.
+ */
 @Composable
 internal fun VoiceWave(level: Float, flat: Boolean, reduceMotion: Boolean, color: Color) {
-    val loud by animateFloatAsState(if (flat) 0f else level.coerceIn(0f, 1f), if (reduceMotion) snap() else tween(120), label = "wave-level")
-    val phase = if (reduceMotion || flat) 0f else rememberInfiniteTransition(label = "wave").animateFloat(
-        0f, (2 * Math.PI).toFloat(), infiniteRepeatable(tween(1000, easing = LinearEasing), RepeatMode.Restart), label = "wave-phase",
-    ).value
-    Row(Modifier.height(22.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
-        repeat(WAVE_BARS) { k ->
-            val peak = 8f + kotlin.math.abs(kotlin.math.sin(k * 1.7f)) * 14f
-            val swing = if (reduceMotion) 1f else 0.55f + 0.45f * kotlin.math.sin(phase + k * 0.9f)
-            val h = if (flat) 4f else 5f + (peak - 5f) * (0.25f + 0.75f * loud) * swing
-            Box(Modifier.width(3.dp).height(h.dp).background(color, RoundedCornerShape(2.dp)))
+    val latest by rememberUpdatedState(level.coerceIn(0f, 1f))
+    val isFlat by rememberUpdatedState(flat)
+    val history = remember { WaveHistory(WAVE_BARS) }
+    if (!reduceMotion) LaunchedEffect(history) {
+        while (true) {
+            delay(WAVE_STEP_MS)
+            history.push(if (isFlat) 0f else latest)
+        }
+    }
+    val loud = if (flat) 0f else level.coerceIn(0f, 1f)
+    Canvas(Modifier.width((WAVE_BARS * 6 - 3).dp).height(24.dp).testTag("voice-wave")) {
+        val barW = 3.dp.toPx()
+        val gap = 3.dp.toPx()
+        val minH = 4.dp.toPx()
+        val maxH = size.height
+        val radius = androidx.compose.ui.geometry.CornerRadius(barW / 2, barW / 2)
+        history.version // read in draw: a new sample redraws only this Canvas
+        for (k in 0 until WAVE_BARS) {
+            val v = when {
+                isFlat -> 0f
+                reduceMotion -> loud * (0.55f + 0.45f * kotlin.math.abs(kotlin.math.sin(k * 1.7f)))
+                else -> history[k]
+            }
+            // Speech levels sit low; a gentle curve lifts quiet talk so the line visibly moves.
+            val h = minH + (maxH - minH) * kotlin.math.sqrt(v.coerceIn(0f, 1f))
+            val x = k * (barW + gap)
+            drawRoundRect(color, androidx.compose.ui.geometry.Offset(x, (maxH - h) / 2),
+                androidx.compose.ui.geometry.Size(barW, h), radius)
         }
     }
 }
 
-private const val WAVE_BARS = 14
+/** Fixed-size ring of the last [n] levels; [get] 0 is the oldest. [version] bumps on every push. */
+@Stable
+internal class WaveHistory(private val n: Int) {
+    private val values = FloatArray(n)
+    private var head = 0
+    var version by androidx.compose.runtime.mutableIntStateOf(0)
+        private set
+
+    fun push(v: Float) {
+        values[head] = v
+        head = (head + 1) % n
+        version++
+    }
+
+    operator fun get(k: Int): Float = values[(head + k) % n]
+}
+
+private const val WAVE_BARS = 20
+private const val WAVE_STEP_MS = 70L
 
 /**
  * 输入栏上方浮起的那一层,不占布局(放在输入栏前面、高度算 0、往上画):

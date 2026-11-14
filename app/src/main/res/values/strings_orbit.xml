@@ -54,4 +54,5 @@
     <string name="orbit_plan_pick_time">Pick a date and time</string>
     <string name="orbit_plan_add_time">Add a time</string>
     <string name="orbit_plan_zone_change">Change</string>
+    <string name="orbit_suggestion_use">Put in message box</string>
 </resources>

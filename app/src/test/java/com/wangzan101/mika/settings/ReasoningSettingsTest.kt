@@ -82,7 +82,7 @@ class ReasoningSettingsTest {
 
     @Test fun providerReportedLevelsWorkForEveryProtocol() {
         val cfg = ProviderConfig("c", ProviderConfig.Kind.OpenAiCompat, "https://example.test", "m", caps)
-        assertNull(ReasoningOptions.of(cfg, null))
+        assertFalse(ReasoningOptions.of(cfg, null)!!.fromProvider)
         val chat = ListedModel(
             "m", endpoint = ModelEndpoint(ModelProtocol.ChatCompletions, "https://example.test"),
             reasoningEfforts = listOf("low", "high"),
@@ -105,9 +105,9 @@ class ReasoningSettingsTest {
         val viaMessages = ListedModel("m", endpoint = ModelEndpoint(ModelProtocol.Messages, "https://example.test"))
         assertFalse(ReasoningOptions.of(xai, viaMessages)!!.fromProvider)
         assertEquals(ProviderConfig.Kind.Xai, ProviderStore.adapterFor(xai, viaMessages.endpoint).first)
-        // 列表还没加载、或只说了能思考没给档位:兼容接口、Messages、generateContent 都不猜
+        // 列表还没加载、或只说了能思考没给档位:Messages、generateContent 都不猜
         val thinking = ListedModel("m", reasoning = true)
-        for (kind in listOf(ProviderConfig.Kind.OpenAiCompat, ProviderConfig.Kind.Anthropic, ProviderConfig.Kind.Gemini)) {
+        for (kind in listOf(ProviderConfig.Kind.Anthropic, ProviderConfig.Kind.Gemini)) {
             assertNull(ReasoningOptions.of(direct.copy(kind = kind), null))
             assertNull(ReasoningOptions.of(direct.copy(kind = kind), thinking))
         }
@@ -130,9 +130,13 @@ class ReasoningSettingsTest {
         val listed = ReasoningOptions.of(declared, ListedModel("m2", reasoningEfforts = listOf("low")))!!
         assertEquals(listOf("low"), listed.levels)
         assertTrue(listed.fromProvider)
-        // 对不上预设的地址(自定义)没有档位
+        // A custom address that matches no preset offers the common levels by hand; the default sends none
         val custom = ProviderConfig("c3", ProviderConfig.Kind.OpenAiCompat, "https://custom.example/v1", "m3", caps)
-        assertNull(ReasoningOptions.of(custom, ListedModel("m3")))
+        val manual = ReasoningOptions.of(custom, ListedModel("m3"))!!
+        assertEquals(listOf("low", "medium", "high"), manual.levels)
+        assertFalse(manual.fromProvider)
+        // …unless the listing says the model can't think at all
+        assertEquals(emptyList<String>(), ReasoningOptions.of(custom, ListedModel("m3", reasoning = false))!!.levels)
     }
 
     // DeepSeek 列表只写开着思考的强度(low / high / max),官方文档另写 none 关掉思考:读到列表后照样关得掉(#563)

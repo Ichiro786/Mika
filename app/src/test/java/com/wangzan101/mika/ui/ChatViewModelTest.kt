@@ -467,9 +467,10 @@ class ChatViewModelTest {
         var modeReleased = 0
         val second = PendingAttachment("content://library/second", "second.pdf", 1)
         vm.addLibraryAttachment("a", second) { modeReleased++ }
+        // Switching where follow-ups go keeps the tray: steering carries files to the running task too.
         vm.setFollowUpMode(FollowUpMode.Steer)
-        assertEquals(1, modeReleased)
-        assertTrue(vm.ui.value.attachments.isEmpty())
+        assertEquals(0, modeReleased)
+        assertEquals(listOf(second.uri), vm.ui.value.attachments.map { it.uri })
         assertEquals("replacement", vm.ui.value.input)
     }
 
@@ -629,6 +630,24 @@ class ChatViewModelTest {
         assertEquals("next task", vm.ui.value.input)
         assertEquals(1, vm.ui.value.attachments.size)
         assertTrue(vm.ui.value.queued.isEmpty())
+    }
+
+    @Test fun attachmentsWhileATaskRunsGoToItWithTheMessage() = runTest {
+        val vm = ChatViewModel(backgroundScope, state, stage, actions, ConversationStore(tmp.newFolder()),
+            sandboxReady = MutableStateFlow(true),
+            importAttachments = { _, _ -> ImportResult(listOf("/workspace/inbox/shot.png" to 3L), emptyList()) })
+        runCurrent()
+        assertTrue(vm.send("first task", ok))
+        emit(TaskState.Running(1, ""))
+        assertEquals(FollowUpMode.Steer, vm.ui.value.followUpMode)
+        vm.attach(listOf("content://shot.png"))
+        runCurrent()
+        assertEquals(1, vm.ui.value.attachments.size)
+        assertTrue(vm.send("use this screenshot", ok))
+        runCurrent()
+        assertTrue(calls.any { it.startsWith("steer:use this screenshot") && it.contains("/workspace/inbox/shot.png") })
+        assertTrue(vm.ui.value.attachments.isEmpty())
+        assertEquals(FollowUpMode.Steer, vm.ui.value.followUpMode)
     }
 
     @Test fun attachmentSendInterruptedBySwitchRetainsTheOriginalDraftWithoutSendingInAnotherChat() = runTest {
@@ -1399,15 +1418,17 @@ class ChatViewModelTest {
         assertEquals(FollowUpMode.Queue, vm.ui.value.followUpMode)
         assertEquals(listOf("content://mika.shared/busy.jpg"), vm.ui.value.attachments.map { it.uri })
 
-        // 用户改了文字后手动切回插话模式:图片副本被清理,改过的文字仍保留在草稿存储中。
-        vm.input("改成纯文字插话")
+        // Switching back to steering keeps the image: it goes to the running task with the message.
+        vm.input("插话带上这张图")
         vm.setFollowUpMode(FollowUpMode.Steer)
-        assertTrue(vm.ui.value.attachments.isEmpty())
-        assertFalse(drafts.imageFile("busy.jpg")!!.exists())
-        assertEquals("改成纯文字插话", drafts.read()?.text)
+        assertEquals(listOf("content://mika.shared/busy.jpg"), vm.ui.value.attachments.map { it.uri })
+        assertTrue(drafts.imageFile("busy.jpg")!!.exists())
 
-        // 发送插话后,分享草稿从存储中一并清除。
-        assertTrue(vm.send("改成纯文字插话", ok))
+        // 发送插话后,图片随插话交给任务,分享草稿从存储中一并清除。
+        assertTrue(vm.send("插话带上这张图", ok))
+        runCurrent()
+        assertTrue(calls.any { it.startsWith("steer:插话带上这张图") && it.contains("/workspace/inbox/answer.jpg") })
+        assertTrue(vm.ui.value.attachments.isEmpty())
         assertNull(vm.ui.value.sharedDraft)
         assertNull(drafts.read())
 

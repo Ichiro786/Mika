@@ -35,6 +35,28 @@ object ChatCopy {
 
     fun recommendationSeeds(): List<Pair<String, String>> = examples.map { it.text to it.text }
 
+    private val linkPattern = Regex("""https?://[^\s)\]>"'，。]+""")
+
+    /**
+     * A suggestion's title as the home card shows it: whitespace folded to single spaces, links without
+     * "https://" and "www.", and a long link cut to its site and first path part ("github.com/wangzan101/…").
+     * Only the card changes; the prompt put in the box is untouched.
+     */
+    fun tidySuggestion(title: String): String = linkPattern.replace(title.replace(Regex("\\s+"), " ").trim()) { m ->
+        val link = m.value.trimEnd('/', '.', ',', ';', ':', '!', '?')
+        val after = m.value.substring(link.length).trimStart('/')
+        val rest = link.substringAfter("://").removePrefix("www.")
+        val host = rest.substringBefore('/')
+        val path = rest.substringAfter('/', "").split('/').filter(String::isNotEmpty)
+        val full = (listOf(host) + path).joinToString("/")
+        val short = when {
+            full.length <= 32 -> full
+            path.isEmpty() -> host
+            else -> "$host/${path[0].take(20)}/…"
+        }
+        short + after
+    }
+
     /** 对话页顶栏的标题:固定是 App 名;副标题说此刻在做什么。 */
     const val APP_TITLE = "Orbit"
 

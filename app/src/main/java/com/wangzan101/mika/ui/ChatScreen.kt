@@ -82,6 +82,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -420,7 +421,73 @@ fun ChatScreen(
             menu = null
         }
     }
-    val menuHost = remember(selecting) { MessageMenuHost(selecting) { menu = it } }
+    // One place decides what a message offers: the long-press menu and TalkBack's custom actions both use it.
+    // closeMenu is harmless when no menu is open, so a TalkBack action runs the same handler.
+    val actionsFor: (MessageTarget) -> MessageActions = { m ->
+            val pending = withdrawableSteer(ui.exchanges, m.key)
+            val canEdit = input.isBlank() && ui.quote == null && ui.attachments.isEmpty() && !ui.importing
+            val branchTurn = vm.branchTurn(m.key)
+            val retryTurn = vm.retryTurn(m.key)
+            MessageActions(
+                copy = { closeMenu { copyMessage(context, m.text) } },
+                quote = { closeMenu { vm.quote(m.from, m.text) } },
+                select = {
+                    closeMenu {
+                        selecting = m.key
+                        Toast.makeText(context, context.getString(R.string.chat_select_hint), Toast.LENGTH_SHORT).show()
+                    }
+                },
+                branch = branchTurn?.let { turn -> {
+                    closeMenu {
+                        scope.launch {
+                            val id = vm.branchFrom(turn)
+                            val copy = vm.branchCopy.value
+                            val message = when {
+                                id == null -> R.string.chat_branch_failed
+                                copy?.truncated == true -> R.string.chat_branch_attachments_skipped
+                                else -> R.string.chat_branch_done
+                            }
+                            Toast.makeText(context, context.getString(message), Toast.LENGTH_SHORT).show()
+                            vm.clearBranchCopy()
+                        }
+                    }
+                } },
+                branchRetry = retryTurn?.let { turn -> {
+                    closeMenu {
+                        scope.launch {
+                            val result = vm.branchBefore(turn)
+                            val message = when {
+                                result == null -> R.string.chat_branch_failed
+                                result.needsReattach -> R.string.chat_branch_attachments_readd
+                                vm.branchCopy.value?.truncated == true -> R.string.chat_branch_attachments_skipped
+                                else -> R.string.chat_branch_done
+                            }
+                            if (result != null && result.failures.isNotEmpty() && vm.ui.value.conversationId == result.conversationId) {
+                                val details = result.failures.joinToString("\n") { failure ->
+                                    val reason = when (failure.status) {
+                                        com.wangzan101.mika.chat.RetryAttachmentStatus.MISSING -> R.string.chat_retry_missing
+                                        com.wangzan101.mika.chat.RetryAttachmentStatus.OVER_LIMIT -> R.string.chat_retry_limit
+                                        else -> R.string.chat_retry_failed
+                                    }
+                                    context.getString(reason, failure.path.substringAfterLast('/'))
+                                }
+                                val screenHint = if (result.screenNeedsReattach) "\n" + context.getString(R.string.chat_branch_attachments_readd) else ""
+                                retryFailures = result.conversationId to (details + screenHint)
+                            } else if (result == null || vm.ui.value.conversationId == result.conversationId) {
+                                Toast.makeText(context, context.getString(message), Toast.LENGTH_SHORT).show()
+                            }
+                            vm.clearBranchCopy()
+                        }
+                    }
+                } },
+                edit = if (pending != null && canEdit && editableSteer(pending.text)) ({ closeMenu {
+                    vm.editSteer(pending.id)?.let { editRequest++ }
+                } }) else null,
+                withdraw = pending?.let { n -> ({ closeMenu { vm.withdrawSteer(n.id) } }) },
+            )
+    }
+    val currentActions by rememberUpdatedState(actionsFor)
+    val menuHost = remember(selecting) { MessageMenuHost(selecting, actions = { currentActions(it) }) { menu = it } }
     val menuOpen = menu != null
     PageBackground {
         CompositionLocalProvider(LocalMessageMenu provides menuHost) {
@@ -531,7 +598,9 @@ fun ChatScreen(
             )
         }
 
-        val canAttachNow = ui.attachEnabled && (ui.composer == ComposerMode.Idle || ui.followUpMode == FollowUpMode.Queue)
+        // Files can go with a new task, a queued next task, or a message to the running task.
+        // Only an answer to the task's own question is words-only.
+        val canAttachNow = ui.attachEnabled && (ui.composer != ComposerMode.Answer || ui.followUpMode == FollowUpMode.Queue)
         // Pickers stay registered while attachments are enabled, so a result still arrives after the menu closes.
         val attachActions = if (ui.attachEnabled) androidx.compose.runtime.key(ui.conversationId) {
             val conversation = ui.conversationId
@@ -561,8 +630,8 @@ fun ChatScreen(
             followUpStatus = last?.status?.takeIf { it.isActive() },
             attachOpen = attachOpen && canAttachNow,
             onAttachOpen = if (canAttachNow) ({ attachOpen = it }) else null,
-            // 附件功能开着但此刻不能加(任务在跑、插话模式):「＋」保留,点了提示切队列
-            attachBlocked = ui.attachEnabled && ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Steer,
+            // Answering the task's question takes words only: the plus stays and a tap explains why.
+            attachBlocked = ui.attachEnabled && ui.composer == ComposerMode.Answer && ui.followUpMode == FollowUpMode.Steer,
             attachments = ui.attachments,
             importing = ui.importing,
             rejected = ui.rejectedAttachments,
@@ -631,68 +700,11 @@ fun ChatScreen(
         // 长按消息的菜单盖在最上面:复制纯文字;引用放到输入框上方;选择文字让那条换回系统的长按选中;
         // 已经答完的一轮还能从这里分支
         menu?.let { m ->
-            val pending = withdrawableSteer(ui.exchanges, m.key)
-            val canEdit = input.isBlank() && ui.quote == null && ui.attachments.isEmpty() && !ui.importing
-            val branchTurn = vm.branchTurn(m.key)
-            val retryTurn = vm.retryTurn(m.key)
+            val a = actionsFor(m)
             MessageMenu(
                 m, progress = { lift.value },
-                onCopy = { closeMenu { copyMessage(context, m.text) } },
-                onQuote = { closeMenu { vm.quote(m.from, m.text) } },
-                onSelect = {
-                    closeMenu {
-                        selecting = m.key
-                        Toast.makeText(context, context.getString(R.string.chat_select_hint), Toast.LENGTH_SHORT).show()
-                    }
-                },
-                onDismiss = { closeMenu() },
-                onBranch = branchTurn?.let { turn -> {
-                    closeMenu {
-                        scope.launch {
-                            val id = vm.branchFrom(turn)
-                            val copy = vm.branchCopy.value
-                            val message = when {
-                                id == null -> R.string.chat_branch_failed
-                                copy?.truncated == true -> R.string.chat_branch_attachments_skipped
-                                else -> R.string.chat_branch_done
-                            }
-                            Toast.makeText(context, context.getString(message), Toast.LENGTH_SHORT).show()
-                            vm.clearBranchCopy()
-                        }
-                    }
-                } },
-                onBranchRetry = retryTurn?.let { turn -> {
-                    closeMenu {
-                        scope.launch {
-                            val result = vm.branchBefore(turn)
-                            val message = when {
-                                result == null -> R.string.chat_branch_failed
-                                result.needsReattach -> R.string.chat_branch_attachments_readd
-                                vm.branchCopy.value?.truncated == true -> R.string.chat_branch_attachments_skipped
-                                else -> R.string.chat_branch_done
-                            }
-                            if (result != null && result.failures.isNotEmpty() && vm.ui.value.conversationId == result.conversationId) {
-                                val details = result.failures.joinToString("\n") { failure ->
-                                    val reason = when (failure.status) {
-                                        com.wangzan101.mika.chat.RetryAttachmentStatus.MISSING -> R.string.chat_retry_missing
-                                        com.wangzan101.mika.chat.RetryAttachmentStatus.OVER_LIMIT -> R.string.chat_retry_limit
-                                        else -> R.string.chat_retry_failed
-                                    }
-                                    context.getString(reason, failure.path.substringAfterLast('/'))
-                                }
-                                val screenHint = if (result.screenNeedsReattach) "\n" + context.getString(R.string.chat_branch_attachments_readd) else ""
-                                retryFailures = result.conversationId to (details + screenHint)
-                            } else if (result == null || vm.ui.value.conversationId == result.conversationId) {
-                                Toast.makeText(context, context.getString(message), Toast.LENGTH_SHORT).show()
-                            }
-                            vm.clearBranchCopy()
-                        }
-                    }
-                } },
-                onEdit = if (pending != null && canEdit && editableSteer(pending.text)) ({ closeMenu {
-                    vm.editSteer(pending.id)?.let { editRequest++ }
-                } }) else null,
-                onWithdraw = pending?.let { n -> ({ closeMenu { vm.withdrawSteer(n.id) } }) },
+                onCopy = a.copy, onQuote = a.quote, onSelect = a.select, onDismiss = { closeMenu() },
+                onBranch = a.branch, onBranchRetry = a.branchRetry, onEdit = a.edit, onWithdraw = a.withdraw,
             )
         }
     }
@@ -794,32 +806,42 @@ private fun EmptyState(
                 verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.recommendations_title).uppercase(locale), Modifier.weight(1f),
                     style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold, letterSpacing = if (latin) 0.8.sp else 0.sp), color = c.ink3)
-                if (tasks.size > 2) {
+                if (tasks.size > VISIBLE_SUGGESTIONS) {
                     Text(stringResource(if (expanded) R.string.collapse else R.string.more),
                         Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { expanded = !expanded }
                             .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 8.dp),
                         style = MikaType.Caption, color = c.ink)
                 }
             }
-            val featured = tasks.first()
-            MikaCard {
-                Column(Modifier.fillMaxWidth().clickable(role = Role.Button) { onPick(featured.prompt) }.padding(20.dp)) {
-                    Text(featured.title,
-                        style = TextStyle(fontFamily = FontFamily.Serif, fontSize = 17.sp, lineHeight = 23.sp),
-                        color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                }
-            }
-            val secondary = if (expanded) tasks.drop(1) else tasks.drop(1).take(1)
-            secondary.forEach { task ->
-                Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    verticalAlignment = Alignment.Top) {
-                    MikaPresenceAvatar(Modifier.size(28.dp), reduceMotion = true, framed = true)
-                    Text(task.title, Modifier.weight(1f).clip(MikaShapes.Card).background(c.answer)
-                        .clickable(role = Role.Button) { onPick(task.prompt) }.heightIn(min = 48.dp).padding(14.dp),
-                        style = ExampleText, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
-                }
+            // Every suggestion is the same card: one tidy line or two, links shortened, the whole card the tap target.
+            val shown = if (expanded) tasks else tasks.take(VISIBLE_SUGGESTIONS)
+            val useLabel = stringResource(R.string.orbit_suggestion_use)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                shown.forEach { task -> SuggestionCard(task.title, useLabel) { onPick(task.prompt) } }
             }
         }
+    }
+}
+
+private const val VISIBLE_SUGGESTIONS = 3
+
+/** One recommended task: spark badge, title on at most two lines, chevron. Tapping puts its prompt in the box. */
+@Composable
+private fun SuggestionCard(title: String, actionLabel: String, onClick: () -> Unit) {
+    val c = MikaTheme.colors
+    val shown = remember(title) { ChatCopy.tidySuggestion(title) }
+    Row(
+        Modifier.fillMaxWidth().cardSurface(c).clip(MikaShapes.Card)
+            .clickable(role = Role.Button, onClickLabel = actionLabel, onClick = onClick)
+            .heightIn(min = 64.dp).padding(start = 14.dp, end = 12.dp, top = 12.dp, bottom = 12.dp)
+            .testTag("suggestion-card"),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(Modifier.size(36.dp).background(c.accent.copy(alpha = 0.14f), CircleShape), contentAlignment = Alignment.Center) {
+            Icon(MikaIcons.Spark, null, Modifier.size(18.dp), tint = c.accent)
+        }
+        Text(shown, Modifier.weight(1f), style = ExampleText, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Icon(MikaIcons.Chevron, null, Modifier.size(16.dp), tint = c.ink3)
     }
 }
 
