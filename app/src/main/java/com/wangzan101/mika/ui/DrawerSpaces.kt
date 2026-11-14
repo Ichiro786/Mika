@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -308,7 +309,7 @@ internal fun SpaceEntry(space: Space, now: Long, onOpen: (Space) -> Unit, onActi
 }
 
 @Composable
-private fun SpaceRowContent(space: Space, now: Long) {
+private fun RowScope.SpaceRowContent(space: Space, now: Long) {
     val c = MikaTheme.colors
     SpaceTile(space)
     Column(Modifier.weight(1f)) {
