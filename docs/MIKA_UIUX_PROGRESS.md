@@ -204,3 +204,8 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - Added persistent header (44–76 dp) and hub bubble (130–220 dp) controls with live Original/Monochrome previews and reset. The header reserves space for the selected size; the hub clamps its rendered size to window dimensions and font scale without changing the saved preference. Existing avatar geometry and state mapping are unchanged.
 - Preference, clamping and header touch-target tests are included. They and Android layout, animation, font-scaling and restart behavior remain **UNVERIFIED** while GitHub Actions dispatch is blocked. New labels use the documented English fallback in other locales.
+
+## Conversation workspaces — stage E, 2026-11-14
+
+- Reused the existing Compose graphics-layer backdrop and RenderEffect blur for the floating primary navigation and composer; unsupported devices use a translucent surface. Primary content now extends behind navigation, while measured navigation height is reserved for the composer, task action and final list content. Selection color respects reduced motion.
+- No Android rendering, IME, scrolling, accessibility, GPU or performance measurements were possible. Blur appearance and the overlay/inset behavior remain **UNVERIFIED**, as does Android compilation, while Actions dispatch is blocked.

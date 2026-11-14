@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import com.wangzan101.mika.ui.components.KeyboardDismissArea
 import com.wangzan101.mika.ui.components.glassSource
 import com.wangzan101.mika.ui.components.rememberGlassBackdrop
@@ -56,6 +57,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
@@ -591,8 +593,13 @@ private fun MikaRoot(
                     val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
                     val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
-                    Column(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
-                        Box(Modifier.weight(1f)) {
+                    val navDensity = LocalDensity.current
+                    val navVisible = WindowInsets.ime.getBottom(navDensity) == 0
+                    var navHeight by remember(navDensity) { mutableIntStateOf(with(navDensity) { 74.dp.roundToPx() }) }
+                    val navInset = if (navVisible) with(navDensity) { navHeight.toDp() } else 0.dp
+                    val navBackdrop = if (navVisible) rememberGlassBackdrop() else null
+                    Box(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
+                        Box(Modifier.fillMaxSize().glassSource(navBackdrop)) {
                             if (nav.current == Route.Tasks) TasksScreen(
                                 runtime = app.personal,
                                 taskState = app.taskState,
@@ -602,6 +609,7 @@ private fun MikaRoot(
                                 onPlans = { id, create -> planToOpen = id; createPlanOnOpen = create; nav.push(Route.Plans) },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
+                                bottomInset = navInset,
                             ) else if (nav.current == Route.Make) MakeScreen(
                                 onOpenDrawer = openDrawer,
                                 onTeach = { nav.push(Route.Teach) },
@@ -610,15 +618,20 @@ private fun MikaRoot(
                                 onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
-                            ) else if (nav.current == Route.Personal) PersonalAgentScreen(
-                                runtime = app.personal,
-                                voice = app.voice,
-                                onOpenDrawer = openDrawer,
-                                onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
-                                memoryRuntime = memoryRuntime,
-                                onModels = { nav.push(Route.Models) },
-                                onPickSpeech = { nav.push(Route.SpeechModel) },
-                            ) else ChatScreen(
+                                bottomInset = navInset,
+                            ) else if (nav.current == Route.Personal) {
+                                Box(Modifier.fillMaxSize().padding(bottom = navInset)) {
+                                    PersonalAgentScreen(
+                                        runtime = app.personal,
+                                        voice = app.voice,
+                                        onOpenDrawer = openDrawer,
+                                        onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
+                                        memoryRuntime = memoryRuntime,
+                                        onModels = { nav.push(Route.Models) },
+                                        onPickSpeech = { nav.push(Route.SpeechModel) },
+                                    )
+                                }
+                            } else ChatScreen(
                                 vm = app.chat,
                                 check = check,
                                 frames = app.taskState.frames,
@@ -648,10 +661,14 @@ private fun MikaRoot(
                                 },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 onVoiceListeningChanged = { voiceListening = it },
+                                primaryBottomInset = navInset,
                             )
                         }
-                        if (WindowInsets.ime.getBottom(LocalDensity.current) == 0) {
-                            PrimaryNavigation(nav.current) { route ->
+                        if (navVisible) {
+                            PrimaryNavigation(nav.current,
+                                modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
+                                backdrop = navBackdrop,
+                            ) { route ->
                                 if (route == Route.Chat) nav.reset() else if (nav.current != route) nav.show(route)
                             }
                         }

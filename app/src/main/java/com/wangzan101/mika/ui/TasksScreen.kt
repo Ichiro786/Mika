@@ -56,6 +56,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.LifecycleResumeEffect
@@ -118,6 +119,7 @@ internal fun TasksScreen(
     onPlans: (String?, Boolean) -> Unit,
     onOpenOrbitHub: () -> Unit = {},
     presence: com.wangzan101.mika.ui.identity.PresenceState = com.wangzan101.mika.ui.identity.PresenceState.Idle,
+    bottomInset: Dp = 0.dp,
 ) {
     val context = LocalContext.current
     val c = MikaTheme.colors
@@ -193,7 +195,7 @@ internal fun TasksScreen(
         Box(Modifier.weight(1f).fillMaxWidth()) {
             LazyColumn(
                 state = list, modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = 88.dp),
+                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = bottomInset + 88.dp),
             ) {
                 item("heading") {
                     val title = stringResource(R.string.tasks_title)
@@ -264,7 +266,7 @@ internal fun TasksScreen(
                 }
             }
             Box(
-                Modifier.align(Alignment.BottomEnd).padding(20.dp).size(56.dp)
+                Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomInset + 20.dp).size(56.dp)
                     .clip(RoundedCornerShape(20.dp)).background(TaskCoral)
                     .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) { onPlans(null, true) },
                 contentAlignment = Alignment.Center,

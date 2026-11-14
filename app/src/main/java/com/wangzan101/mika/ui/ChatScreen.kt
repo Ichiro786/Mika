@@ -125,6 +125,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.MikaApp
@@ -211,6 +212,7 @@ fun ChatScreen(
     recommendations: RecommendedTaskStore? = null,
     onOpenOrbitHub: () -> Unit = {},
     onVoiceListeningChanged: (Boolean) -> Unit = {},
+    primaryBottomInset: Dp = 0.dp,
 ) {
     DisposableEffect(vm) {
         onDispose { onVoiceListeningChanged(false) }
@@ -492,7 +494,8 @@ fun ChatScreen(
         }
 
         Composer(
-            Modifier.align(Alignment.BottomCenter).behindMenu(menuOpen) { lift.value }.onSizeChanged { composerHeight = it.height },
+            Modifier.align(Alignment.BottomCenter).behindMenu(menuOpen) { lift.value }
+                .onSizeChanged { composerHeight = it.height }.padding(bottom = primaryBottomInset),
             backdrop = backdrop,
             text = input,
             draftKey = ui.conversationId,

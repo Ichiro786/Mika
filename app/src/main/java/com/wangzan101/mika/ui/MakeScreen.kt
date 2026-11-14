@@ -25,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.R
 import com.wangzan101.mika.ui.components.TopBar
@@ -44,13 +45,14 @@ internal fun MakeScreen(
     onFiles: () -> Unit,
     onOpenOrbitHub: () -> Unit = {},
     presence: com.wangzan101.mika.ui.identity.PresenceState = com.wangzan101.mika.ui.identity.PresenceState.Idle,
+    bottomInset: Dp = 0.dp,
 ) {
     val c = MikaTheme.colors
     Column(Modifier.fillMaxSize().background(c.bg).testTag("make-screen")) {
         TopBar("", MikaIcons.Menu, onOpenDrawer, stringResource(R.string.chat_menu),
             titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) }, centerTitle = true,
             barHeight = orbitHeaderBarHeight())
-        LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 20.dp, vertical = 26.dp)) {
+        LazyColumn(Modifier.fillMaxSize(), contentPadding = androidx.compose.foundation.layout.PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = bottomInset + 26.dp)) {
             item {
                 Text(stringResource(R.string.nav_make), style = MikaType.LargeTitle, color = c.ink,
                     modifier = Modifier.padding(bottom = 24.dp).semantics { heading() })

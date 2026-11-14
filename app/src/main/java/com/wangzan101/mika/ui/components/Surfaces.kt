@@ -158,7 +158,7 @@ fun StateCard(
 
 // ---------- 悬浮玻璃 ----------
 
-/** 能做背景模糊(安卓 12 起有 RenderEffect);不能时玻璃退回不透明的卡片底。 */
+/** Android 12 and later support in-app RenderEffect blur. */
 val GlassBlurSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 /** 玻璃后面那层内容的画面:内容用 [glassSource] 画进来,[GlassBar] 取它模糊后垫在自己底下。 */
@@ -167,7 +167,7 @@ class GlassBackdrop internal constructor(internal val layer: GraphicsLayer) {
     internal var origin by mutableStateOf(Offset.Zero)
 }
 
-/** 不支持模糊时为 null,[GlassBar] 就用不透明底。 */
+/** Unsupported devices return null and use a translucent surface. */
 @Composable
 fun rememberGlassBackdrop(): GlassBackdrop? {
     if (!GlassBlurSupported) return null
@@ -188,7 +188,7 @@ private val GlassBlur = BlurEffect(30f, 30f, TileMode.Clamp)
 
 /**
  * 玻璃输入栏的外壳:半透明底 + 背景模糊 + 悬浮阴影,高至少 52。
- * [backdrop] 为 null(不支持模糊、或后面没有内容)时用不透明底。
+ * [backdrop] is null when blur is unavailable; a translucent surface remains.
  */
 @Composable
 fun GlassBar(
@@ -214,7 +214,10 @@ fun GlassBar(
             )
         }
         Row(
-            Modifier.fillMaxWidth().background(if (backdrop != null) c.glass else c.surface)
+            Modifier.fillMaxWidth().background(
+                if (backdrop != null) c.glass.copy(alpha = if (c.isDark) 0.78f else 0.72f)
+                else c.surface.copy(alpha = 0.94f),
+            )
                 .border(0.5.dp, c.glassEdge, shape)
                 .heightIn(min = MikaSize.Composer).padding(6.dp),
             verticalAlignment = Alignment.CenterVertically,
