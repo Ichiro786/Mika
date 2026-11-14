@@ -121,14 +121,14 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
-          echo no | avdmanager create avd --force --name mika-visual --package 'system-images;android-35;google_apis;x86_64'
+          avdmanager --verbose create avd --force --name mika-visual --package 'system-images;android-35;google_apis;x86_64' --device pixel_2 <<< 'no'
           "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx mika-visual
           "$ANDROID_HOME/emulator/emulator" -avd mika-visual -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/mika-emulator.log 2>&1 &
           timeout 240 adb wait-for-device || { cat /tmp/mika-emulator.log; exit 1; }
           timeout 240 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done' || { cat /tmp/mika-emulator.log; exit 1; }
       - name: Run focused Android interaction tests
         if: ${{ inputs.capture_screenshots }}
-        run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.wangzan101.mika.ui.TaskTabsTest,com.wangzan101.mika.ui.EditorialHeaderTest,com.wangzan101.mika.ui.ChatRecommendationTest --stacktrace
+        run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.wangzan101.mika.ui.TaskTabsTest,com.wangzan101.mika.ui.EditorialHeaderTest,com.wangzan101.mika.ui.ChatRecommendationTest,com.wangzan101.mika.ui.ChatSearchTest,com.wangzan101.mika.ui.OrbitHubButtonTest,com.wangzan101.mika.ui.ChatAttachmentsTest --stacktrace
       - name: Capture actual Android screens
         if: ${{ !cancelled() && inputs.capture_screenshots && steps.visual_emulator.outcome == 'success' }}
         run: python3 tools/ui/capture_screens.py app/build/outputs/apk/debug/app-debug.apk build/visual-captures
