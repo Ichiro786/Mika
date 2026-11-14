@@ -699,9 +699,9 @@ class TaskRun(
                 return moveTask(taskId, id)
             }
             val app = service.application as MikaApp
-            // 微信只使用当前绑定会话的独立授权；仍保留 Channel 来源及原有确认/接管规则。
+            // WhatsApp tasks use their own unlock permission for the linked account; confirmation and takeover rules stay.
             val unlockAuthorized = taskUnlockAuthorization(provenance.origin, channelPeer) { peer ->
-                app.wechat.store.canUnlock(peer)
+                app.whatsapp.store.canUnlock(peer)
             }
             val taskGate = TaskGate(states.locked, shellUp,
                 refreshLocked = states::refresh,
@@ -714,7 +714,7 @@ class TaskRun(
                     }
                 },
                 unlockFailureMessage = {
-                    tr(if (provenance.origin == RunOrigin.Channel) R.string.wechat_unlock_failed else R.string.trigger_unlock_failed)
+                    tr(if (provenance.origin == RunOrigin.Channel) R.string.whatsapp_unlock_failed else R.string.trigger_unlock_failed)
                 },
             ) {
                 val t = phone?.screen?.target?.value
@@ -856,6 +856,7 @@ class TaskRun(
                 phoneCalls = (service.application as MikaApp).callPort.takeIf {
                     !conditionCheck && (service.application as MikaApp).calls.settings.state.value.enabled
                 },
+                whatsapp = (service.application as MikaApp).whatsapp.takeIf { !conditionCheck && it.toolsAvailable() }?.port,
                 // 设置里允许 Mika 改自己时,才把 settings_list、settings_set 发给模型
                 selfConfig = if (FeatureFlags.get(service).selfConfig()) {
                     com.wangzan101.mika.settings.SelfConfigImpl(FeatureFlags.get(service))

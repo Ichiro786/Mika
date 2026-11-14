@@ -2,16 +2,16 @@ package com.wangzan101.mika.task
 
 import com.wangzan101.mika.core.run.ChannelPeer
 import com.wangzan101.mika.core.run.RunOrigin
-import com.wangzan101.mika.wechat.WechatChannel
+import com.wangzan101.mika.whatsapp.WhatsappChannel
 
-/** 开跑时只为定时任务或已授权的微信任务提供解锁；实际解锁时仍重新读取微信授权。 */
+/** Unlock only for scheduled tasks or WhatsApp tasks the user allowed; the permission is read again at unlock time. */
 internal fun taskUnlockAuthorization(
     origin: RunOrigin,
     peer: ChannelPeer?,
-    canUnlockWechat: (ChannelPeer?) -> Boolean,
+    canUnlockChannel: (ChannelPeer?) -> Boolean,
 ): (() -> Boolean)? = when {
     origin == RunOrigin.Trigger -> ({ true })
-    origin == RunOrigin.Channel && peer?.channelId == WechatChannel.ID && canUnlockWechat(peer) ->
-        ({ canUnlockWechat(peer) })
+    origin == RunOrigin.Channel && peer?.channelId == WhatsappChannel.ID && canUnlockChannel(peer) ->
+        ({ canUnlockChannel(peer) })
     else -> null
 }

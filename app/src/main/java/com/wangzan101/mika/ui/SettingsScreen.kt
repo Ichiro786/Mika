@@ -67,13 +67,13 @@ import com.wangzan101.mika.ui.components.TileTone
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.i18n.AppLanguage
-import com.wangzan101.mika.wechat.WechatConnectionState
+import com.wangzan101.mika.whatsapp.WhatsappStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** 设置里能进入的子页面;[Home] 是设置首页,[Advanced] 集中放置连接、维护和工程能力。 */
-private enum class SettingsPage { Home, Advanced, AppAccess, PhoneOps, Calls, Wechat, DuringWork, Capsule, Language, Notifications, Recommendations, Sandbox, Recovery, SelfCheck, ComputerAccess, McpServers, Root, Developer, RunStats }
+private enum class SettingsPage { Home, Advanced, AppAccess, PhoneOps, Calls, Whatsapp, DuringWork, Capsule, Language, Notifications, Recommendations, Sandbox, Recovery, SelfCheck, ComputerAccess, McpServers, Root, Developer, RunStats }
 
 /**
  * 设置页:总状态卡 + 常用 / 我的数据 / 其他。高级与其他只增加一层,各子页返回来时的页面。
@@ -116,8 +116,8 @@ fun SettingsScreen(
     val root = remember { com.wangzan101.mika.cap.phone.PhoneServices.of(context).shellManager.root }
     val rootState by root.state.collectAsState()
     LaunchedEffect(Unit) { root.refresh() }
-    val wechat = remember { (context.applicationContext as com.wangzan101.mika.MikaApp).wechat }
-    val wechatState by wechat.state.collectAsState()
+    val whatsapp = remember { (context.applicationContext as com.wangzan101.mika.MikaApp).whatsapp }
+    val whatsappStatus by whatsapp.status.collectAsState()
     val flags = remember { FeatureFlags.get(context) }
     var personalStart by remember { mutableStateOf(flags.personalStart()) }
     var parallelMax by remember { mutableIntStateOf(flags.parallelMax()) }
@@ -193,8 +193,8 @@ fun SettingsScreen(
             onBack = onBack, onProblem = onProblem, onOpenModels = onOpenModels,
             onOpenPhoneOps = { page = SettingsPage.PhoneOps },
             onOpenCalls = { page = SettingsPage.Calls },
-            wechatState = wechatState, wechatBound = wechat.store.account() != null,
-            onOpenWechat = { page = SettingsPage.Wechat },
+            whatsappStatus = whatsappStatus,
+            onOpenWhatsapp = { page = SettingsPage.Whatsapp },
             onOpenAppAccess = { page = SettingsPage.AppAccess },
             onOpenDuringWork = { page = SettingsPage.DuringWork },
             capsuleMode = capsuleMode, onOpenCapsule = { page = SettingsPage.Capsule },
@@ -222,7 +222,7 @@ fun SettingsScreen(
             onQuit = { confirmingQuit = true },
         )
         SettingsPage.AppAccess -> AppAccessScreen(onBack = toHome)
-        SettingsPage.Wechat -> WechatSettingsScreen(wechat, onBack = toHome)
+        SettingsPage.Whatsapp -> WhatsappSettingsScreen(whatsapp, onBack = toHome)
         SettingsPage.PhoneOps -> PhoneOpsScreen(
             status, androidRelease, onProblem,
             onRepair = { onFix(Fix.RepairPhoneHelper) }, onUnpair = { onFix(Fix.UnpairPhoneHelper) }, onBack = toHome,
@@ -361,9 +361,8 @@ fun SettingsContent(
     onOpenModels: () -> Unit,
     onOpenPhoneOps: () -> Unit = {},
     onOpenCalls: () -> Unit = {},
-    wechatState: WechatConnectionState = WechatConnectionState.NeedsBinding,
-    wechatBound: Boolean = false,
-    onOpenWechat: () -> Unit = {},
+    whatsappStatus: WhatsappStatus = WhatsappStatus.NotLinked,
+    onOpenWhatsapp: () -> Unit = {},
     onOpenAppAccess: () -> Unit = {},
     onOpenDuringWork: () -> Unit = {},
     /** 悬浮胶囊此刻的选择,写在「悬浮胶囊」一行的右边。 */
@@ -410,12 +409,12 @@ fun SettingsContent(
             }
         }
 
-        // Where Orbit reaches you: calls, WeChat and notifications.
+        // Where Orbit reaches you: calls, WhatsApp and notifications.
         GroupLabel(stringResource(R.string.orbit_settings_reach))
         GroupCard {
             ListRow(MikaIcons.Phone, stringResource(R.string.calls_title), stringResource(R.string.calls_entry_sub), first = true, onClick = onOpenCalls) { RowChevron() }
-            ListRow(MikaIcons.Chats, stringResource(R.string.wechat_title), stringResource(R.string.wechat_settings_sub), onClick = onOpenWechat) {
-                WechatEntryStatus(wechatState, wechatBound)
+            ListRow(MikaIcons.Chats, stringResource(R.string.whatsapp_title), stringResource(R.string.whatsapp_settings_sub), onClick = onOpenWhatsapp) {
+                WhatsappEntryStatus(whatsappStatus)
                 RowChevron()
             }
             val (notifText, notifTone) = StatusCopy.notificationSummary(status.notificationOverview().summary)

@@ -172,7 +172,7 @@ class TaskService : Service() {
 
     private fun channelFor(peer: ChannelPeer): Channel = when (peer.channelId) {
         LocalChannel.ID -> localChannel
-        else -> checkNotNull((application as com.wangzan101.mika.MikaApp).wechat.channelFor(peer.channelId)) {
+        else -> checkNotNull((application as com.wangzan101.mika.MikaApp).whatsapp.channelFor(peer.channelId)) {
             "unknown channel ${peer.channelId}"
         }
     }
