@@ -14,7 +14,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.using
 import androidx.compose.ui.unit.IntOffset
 
 /** Chat, Tasks, Make and the personal assistant share one shell (drawer, hub and bottom bar). */
@@ -31,7 +30,7 @@ private fun tabOrder(route: Route): Int = when (route) {
 
 private val slideSpring = spring(dampingRatio = 0.9f, stiffness = Spring.StiffnessMediumLow, visibilityThreshold = IntOffset.VisibilityThreshold)
 
-private fun still(): ContentTransform = (EnterTransition.None togetherWith ExitTransition.None).using(SizeTransform(clip = false))
+private fun AnimatedContentTransitionScope<Route>.still(): ContentTransform = (EnterTransition.None togetherWith ExitTransition.None).using(SizeTransform(clip = false))
 
 /** Tabs: a quick fade with a small sideways drift in the direction of travel. */
 internal fun AnimatedContentTransitionScope<Route>.tabTransition(reduceMotion: Boolean): ContentTransform {
