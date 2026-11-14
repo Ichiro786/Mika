@@ -14,6 +14,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.using
 import androidx.compose.ui.unit.IntOffset
 
 /** Chat, Tasks, Make and the personal assistant share one shell (drawer, hub and bottom bar). */
