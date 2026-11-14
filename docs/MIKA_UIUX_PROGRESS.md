@@ -250,3 +250,5 @@ Streaming replies parse less. Finished blocks of a reply (paragraphs and heading
 Header icon buttons have a full 48 dp touch target around the same 40 dp look, and the centred header leaves room for them. The Orbit avatar and the focus pill tell TalkBack the current presence (for example Working or Needs you) as their state. The hub's section bar already used tab roles with labels. Continuous animations and the chat's auto scroll already respected reduced motion, so only the spinner needed work.
 
 On Files, the conversation and source filters scroll sideways instead of sharing the width, so the conversation name is no longer cut short, and they use tonal Orbit pills instead of outlines.
+
+While Orbit is working on a reply and nothing has streamed yet, the answer's place shows a typing bubble: a dark rounded pill with three light dots that rise and fall in turn. It disappears as soon as text arrives. The dots move in their own layers from one shared phase, and with reduced motion they sit still.

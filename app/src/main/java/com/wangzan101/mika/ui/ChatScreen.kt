@@ -112,6 +112,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextRange
@@ -178,6 +179,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalTime
+import kotlin.math.PI
+import kotlin.math.sin
 
 /**
  * 对话页:顶栏(左边打开侧栏、中间对话标题和此刻在做什么、右边新对话),对话在顶栏和玻璃输入栏之间滚动。
@@ -875,7 +878,10 @@ private fun LazyListScope.exchange(
     }
     val (joined, waiting) = steersAroundDraft(ex.steers)
     joined.forEach(::steer)
-    ex.draft?.takeIf(String::isNotBlank)?.let { draft -> item("d$index") { DraftText(draft, ex.waitingForModel) } }
+    val draftText = ex.draft?.takeIf(String::isNotBlank)
+    if (draftText != null) item("d$index") { DraftText(draftText, ex.waitingForModel) }
+    // While the model is on its reply and nothing has streamed yet, a typing bubble holds the answer's place.
+    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
     waiting.forEach(::steer)
     item("r$index") {
         JumpHighlight(highlightKey == "r$index", reduceMotion) {
@@ -971,6 +977,42 @@ private fun LiftedMessage(shape: Shape, color: Color, content: @Composable () ->
 private val ChatThumbWidth = 110.dp
 
 /** 正在生成的回答:和完成后的回答一样放在淡灰底上。 */
+@Composable
+internal fun TypingBubble(reduceMotion: Boolean) {
+    val c = MikaTheme.colors
+    val label = stringResource(R.string.chat_working)
+    // One phase for all three dots, read only in their layers, so the wave never recomposes.
+    val phase = if (reduceMotion) null else rememberInfiniteTransition(label = "typing").animateFloat(
+        0f, 1f, infiniteRepeatable(tween(1200, easing = LinearEasing), RepeatMode.Restart), label = "typing-phase",
+    )
+    val dot = if (c.isDark) Color(0xFFB4B6BA) else c.ink3
+    Row(
+        Modifier.padding(top = 2.dp, bottom = 12.dp)
+            .background(if (c.isDark) Color(0xFF222326) else c.surface, RoundedCornerShape(50))
+            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .semantics { contentDescription = label }
+            .testTag("typing-indicator"),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        repeat(3) { i ->
+            Box(
+                Modifier.size(8.dp).graphicsLayer {
+                    val lift = phase?.let { typingLift(it.value, i) } ?: 0f
+                    translationY = -lift * 4.dp.toPx()
+                    alpha = 0.6f + 0.4f * lift
+                }.background(dot, CircleShape),
+            )
+        }
+    }
+}
+
+/** Each dot rises and falls in turn, then all rest briefly before the wave repeats. */
+internal fun typingLift(phase: Float, dot: Int): Float {
+    val t = ((phase - dot * 0.15f) % 1f + 1f) % 1f
+    return if (t < 0.4f) sin(PI.toFloat() * t / 0.4f) else 0f
+}
+
 @Composable
 private fun DraftText(text: String, generating: Boolean) {
     MarkdownText(

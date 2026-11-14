@@ -55,4 +55,11 @@ class PresenceStateTest {
         val done = ChatViewModel.reduce(runningTool, TaskState.Succeeded("done"))
         assertEquals(false, done.toolRunning)
     }
+
+    @Test fun typingDotsRiseInTurn() {
+        assertEquals(1f, typingLift(0.2f, 0), 0.001f)
+        assertEquals(0f, typingLift(0.2f, 2), 0.001f)
+        assertEquals(1f, typingLift(0.5f, 2), 0.001f)
+        assertEquals(0f, typingLift(0.95f, 0), 0.001f)
+    }
 }
