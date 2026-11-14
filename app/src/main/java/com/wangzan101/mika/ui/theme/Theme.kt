@@ -166,7 +166,7 @@ fun MikaTheme(
     // The user's bubbles: the wallpaper's own primary container when there is one, else a tone of the accent.
     val userBubble = remember(colors, dynamic) {
         dynamic?.let { UserBubbleColors(it.primaryContainer, it.onPrimaryContainer) }
-            ?.takeIf { contrast(it.bg, it.fg) >= 4.5f }
+            ?.takeIf { contrast(it.bg, it.fg) >= 4.5 }
             ?: userBubbleTone(colors.accent, dark)
     }
     val layoutDirection = if (LocalContext.current.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {

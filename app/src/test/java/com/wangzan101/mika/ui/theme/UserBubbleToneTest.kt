@@ -14,7 +14,7 @@ class UserBubbleToneTest {
     @Test fun textReadsOnEveryAccent() {
         for (dark in listOf(true, false)) for (accent in accents) {
             val tone = userBubbleTone(accent, dark)
-            assertTrue("$accent dark=$dark", contrast(tone.bg, tone.fg) >= 4.5f)
+            assertTrue("$accent dark=$dark", contrast(tone.bg, tone.fg) >= 4.5)
         }
     }
 
