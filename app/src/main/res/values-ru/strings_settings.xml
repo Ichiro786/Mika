@@ -144,6 +144,7 @@
     <string name="appearance_dark">Всегда тёмное</string>
     <string name="accent_group">Цвет акцента</string>
     <string name="accent_default">По умолчанию</string>
+    <string name="accent_dynamic">Обои</string>
     <string name="accent_blue">Синий</string>
     <string name="accent_indigo">Индиго</string>
     <string name="accent_purple">Фиолетовый</string>

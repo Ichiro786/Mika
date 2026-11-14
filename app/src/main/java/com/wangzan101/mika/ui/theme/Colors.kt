@@ -142,7 +142,8 @@ val DarkColors = MikaColors(
 /** 按深浅色和强调色取整套颜色。蓝色就是 [LightColors] / [DarkColors] 本身;别的颜色只换强调色那三项。 */
 fun palette(dark: Boolean, accent: ThemeAccent): MikaColors {
     val base = if (dark) DarkColors else LightColors
-    if (accent == ThemeAccent.Blue) return base
+    // Wallpaper colors are applied in MikaTheme on Android 12+; here they fall back to the default blue.
+    if (accent == ThemeAccent.Blue || accent == ThemeAccent.Dynamic) return base
     val (color, on) = accentTone(accent, dark)
     return base.withAccent(color, on)
 }
@@ -152,7 +153,7 @@ fun palette(dark: Boolean, accent: ThemeAccent): MikaColors {
  * 文字的对比度不低于默认蓝色,和页面背景的对比度不低于 3:1(见 `AccentPaletteTest`)。
  */
 fun accentTone(accent: ThemeAccent, dark: Boolean): Pair<Color, Color> = when (accent) {
-    ThemeAccent.Blue -> (if (dark) DarkColors else LightColors).let { it.accent to it.onAccent }
+    ThemeAccent.Blue, ThemeAccent.Dynamic -> (if (dark) DarkColors else LightColors).let { it.accent to it.onAccent }
     ThemeAccent.Indigo -> Color(if (dark) 0xFF7D7AFF else 0xFF5856D6) to Color.White
     ThemeAccent.Purple -> Color(if (dark) 0xFFBF5AF2 else 0xFF9B3FD9) to Color.White
     ThemeAccent.Pink -> Color(if (dark) 0xFFFF4F80 else 0xFFE0306A) to Color.White

@@ -132,6 +132,7 @@
     <string name="appearance_dark">Selalu gelap</string>
     <string name="accent_group">Warna aksen</string>
     <string name="accent_default">Bawaan</string>
+    <string name="accent_dynamic">Wallpaper</string>
     <string name="accent_blue">Biru</string>
     <string name="accent_indigo">Nila</string>
     <string name="accent_purple">Ungu</string>

@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
@@ -52,9 +53,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -99,7 +102,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private val TaskCoral = Color(0xFFD9684A)
 
 private data class LiveTask(val run: TaskRun, val state: TaskState, val recordId: String?)
 private data class TaskItem(
@@ -207,16 +209,15 @@ internal fun TasksScreen(
             ) {
                 item("heading") {
                     val title = stringResource(R.string.tasks_title)
-                    val compactTitle = LocalConfiguration.current.screenWidthDp < 360
-                    Text(buildAnnotatedString {
+                    val styled = buildAnnotatedString {
                         if (title.endsWith('.')) {
                             append(title.dropLast(1))
-                            pushStyle(SpanStyle(color = TaskCoral))
+                            pushStyle(SpanStyle(color = c.accent))
                             append('.')
                             pop()
                         } else append(title)
-                    }, style = if (compactTitle) MikaType.LargeTitle.copy(fontSize = 28.sp, lineHeight = 36.sp) else MikaType.LargeTitle, color = c.ink,
-                        modifier = Modifier.semantics { heading() })
+                    }
+                    OneLineTitle(styled, color = c.ink, modifier = Modifier.semantics { heading() })
                     Text(stringResource(R.string.tasks_subtitle), style = MikaType.Body, color = c.ink2,
                         modifier = Modifier.padding(top = 6.dp, bottom = 24.dp))
                     TaskTabs(tab) { tab = it }
@@ -290,13 +291,13 @@ internal fun TasksScreen(
             }
             Box(
                 Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomInset + 20.dp).size(56.dp)
-                    .clip(RoundedCornerShape(20.dp)).background(TaskCoral)
+                    .clip(RoundedCornerShape(20.dp)).background(c.accent)
                     .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) {
                         // Create right here, over Tasks: no detour through the schedules page, and Cancel stays on Tasks.
                         creatingPlan = runCatching { ConversationStore.shared(context).newConversation() }.getOrNull()
                     },
                 contentAlignment = Alignment.Center,
-            ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = Color.White) }
+            ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = c.onAccent) }
         }
     }
 
@@ -409,7 +410,7 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
             if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
                 Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
             if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
-                color = TaskCoral, trackColor = c.fill)
+                color = c.accent, trackColor = c.fill)
         }
         if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = attention)
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
@@ -434,4 +435,25 @@ private fun ScheduleRow(plan: TriggerDefinition, stopped: Boolean = false, onCli
         Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
     }
     HorizontalDivider(color = c.hair)
+}
+
+/**
+ * The large page title kept to one line: it shrinks just enough to fit narrow screens and large font
+ * sizes instead of wrapping, never below 22sp.
+ */
+@Composable
+internal fun OneLineTitle(text: AnnotatedString, color: Color, modifier: Modifier = Modifier) {
+    val measurer = rememberTextMeasurer()
+    BoxWithConstraints(modifier.fillMaxWidth()) {
+        val full = MikaType.LargeTitle
+        val style = remember(text, maxWidth, measurer) {
+            val width = measurer.measure(text, full, maxLines = 1, softWrap = false).size.width
+            val room = constraints.maxWidth
+            if (width <= room || width == 0) full else {
+                val size = (full.fontSize.value * room / width * 0.98f).coerceAtLeast(22f)
+                full.copy(fontSize = size.sp, lineHeight = (size * 1.25f).sp)
+            }
+        }
+        Text(text, style = style, color = color, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+    }
 }

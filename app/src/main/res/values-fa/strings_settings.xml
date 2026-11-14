@@ -147,6 +147,7 @@
     <string name="appearance_dark">همیشه تیره</string>
     <string name="accent_group">رنگ تأکیدی</string>
     <string name="accent_default">پیش‌فرض</string>
+    <string name="accent_dynamic">تصویر زمینه</string>
     <string name="accent_blue">آبی</string>
     <string name="accent_indigo">نیلی</string>
     <string name="accent_purple">بنفش</string>

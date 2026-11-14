@@ -140,6 +140,7 @@
     <string name="appearance_dark">Sempre escuro</string>
     <string name="accent_group">Cor de destaque</string>
     <string name="accent_default">Padrão</string>
+    <string name="accent_dynamic">Papel de parede</string>
     <string name="accent_blue">Azul</string>
     <string name="accent_indigo">Índigo</string>
     <string name="accent_purple">Roxo</string>

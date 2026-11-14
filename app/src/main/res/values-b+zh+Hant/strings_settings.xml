@@ -132,6 +132,7 @@
     <string name="appearance_dark">一直深色</string>
     <string name="accent_group">強調色</string>
     <string name="accent_default">預設</string>
+    <string name="accent_dynamic">跟隨桌布</string>
     <string name="accent_blue">藍色</string>
     <string name="accent_indigo">靛藍</string>
     <string name="accent_purple">紫色</string>

@@ -187,6 +187,8 @@ fun Modifier.glassSource(backdrop: GlassBackdrop?): Modifier =
 private val GlassBlur = BlurEffect(30f, 30f, TileMode.Clamp)
 /** Heavier frost for small floating menus: more blur so text behind never reads through. */
 private val SmokeBlur = BlurEffect(44f, 44f, TileMode.Clamp)
+/** Frosted bars (nav and composer): heavy enough that what scrolls behind turns to soft colour. */
+private val FrostBlur = BlurEffect(48f, 48f, TileMode.Clamp)
 
 /**
  * 玻璃输入栏的外壳:半透明底 + 背景模糊 + 悬浮阴影,高至少 52。
@@ -199,13 +201,15 @@ fun GlassBar(
     backdrop: GlassBackdrop? = null,
     shape: Shape = MikaShapes.Pill,
     tint: Float? = null,
+    frosted: Boolean = false,
     content: @Composable RowScope.() -> Unit,
 ) {
     val c = MikaTheme.colors
-    GlassShell(modifier, backdrop, shape, GlassBlur) {
+    val surface = if (frosted) frostSurface(c, backdrop, shape) else
+        Modifier.background(glassFill(c, backdrop, tint)).border(0.5.dp, c.glassEdge, shape)
+    GlassShell(modifier, backdrop, shape, if (frosted && backdrop != null) FrostBlur else GlassBlur) {
         Row(
-            Modifier.fillMaxWidth().background(glassFill(c, backdrop, tint))
-                .border(0.5.dp, c.glassEdge, shape)
+            Modifier.fillMaxWidth().then(surface)
                 .heightIn(min = MikaSize.Composer).padding(6.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -238,6 +242,24 @@ fun SmokedGlassPanel(
             content = content,
         )
     }
+}
+
+/**
+ * Frosted glass (Material 3 Expressive): a light, milky veil over a heavy live blur with a top-lit rim,
+ * not the dark smoke of menus. Over the AMOLED black page the veil lifts the bar into a soft grey so it
+ * reads as glass; over content it lets colour glow through. Without blur it falls back to a solid surface.
+ */
+private fun frostSurface(c: MikaColors, backdrop: GlassBackdrop?, shape: Shape): Modifier {
+    val rim = Brush.verticalGradient(
+        if (c.isDark) listOf(Color.White.copy(alpha = 0.22f), Color.White.copy(alpha = 0.06f))
+        else listOf(Color.White.copy(alpha = 0.95f), Color.Black.copy(alpha = 0.06f)),
+    )
+    val fill = if (backdrop == null) Modifier.background(c.surface.copy(alpha = 0.96f))
+    else if (c.isDark) Modifier.background(c.glass.copy(alpha = 0.42f)).background(
+        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.12f), Color.White.copy(alpha = 0.07f))),
+    )
+    else Modifier.background(Color.White.copy(alpha = 0.58f))
+    return fill.border(0.75.dp, rim, shape)
 }
 
 private fun glassFill(c: MikaColors, backdrop: GlassBackdrop?, tint: Float?): Color =

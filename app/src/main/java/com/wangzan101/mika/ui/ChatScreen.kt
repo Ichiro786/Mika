@@ -97,6 +97,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
@@ -945,7 +946,8 @@ internal fun UserBubble(text: String, conversationId: String?, note: String? = n
             if (attached.hasAttachments && attached.words.isNotEmpty()) Spacer(Modifier.size(6.dp))
             if ((!attached.hasAttachments || attached.words.isNotEmpty()) && (paged.page == null || quoted.words.isNotEmpty())) UserMessage(conversationId, attached.words.takeIf { attached.hasAttachments } ?: quoted.words, ChatThumbWidth) { words ->
                 val colors = MikaTheme.colors
-                val bubble = if (colors.isDark) Color(0xFF54372F) else Color(0xFFF9D5CA)
+                // Your messages take a tint of the accent, so Material You wallpaper colors reach the bubble too.
+                val bubble = colors.accent.copy(alpha = if (colors.isDark) 0.30f else 0.20f).compositeOver(colors.bg)
                 CompositionLocalProvider(LocalTextSelectionColors provides TextSelectionColors(colors.ink, colors.ink.copy(alpha = 0.25f))) {
                     MessageArea(
                         key, QuoteMessage.From.You, words, "selectable-user",
@@ -1755,7 +1757,7 @@ internal fun Composer(
                 VoiceFloat(vh, vState, title, backdrop, reduceMotion)
             }
             Box(Modifier.fillMaxWidth()) {
-            GlassBar(Modifier.fillMaxWidth().keepsKeyboard(), backdrop) {
+            GlassBar(Modifier.fillMaxWidth().keepsKeyboard(), backdrop, frosted = true) {
                 if (showAttach) {
                     val label = if (attachOpen) AttachCopy.CLOSE else AttachCopy.ADD
                     val blockedHint = stringResource(R.string.attach_blocked_running)

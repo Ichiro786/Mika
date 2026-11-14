@@ -132,6 +132,7 @@
     <string name="appearance_dark">常にダーク</string>
     <string name="accent_group">アクセントカラー</string>
     <string name="accent_default">デフォルト</string>
+    <string name="accent_dynamic">壁紙</string>
     <string name="accent_blue">ブルー</string>
     <string name="accent_indigo">インディゴ</string>
     <string name="accent_purple">パープル</string>

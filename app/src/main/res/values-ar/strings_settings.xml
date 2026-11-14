@@ -152,6 +152,7 @@
     <string name="appearance_dark">داكن دائمًا</string>
     <string name="accent_group">لون التمييز</string>
     <string name="accent_default">الافتراضي</string>
+    <string name="accent_dynamic">الخلفية</string>
     <string name="accent_blue">أزرق</string>
     <string name="accent_indigo">نيلي</string>
     <string name="accent_purple">بنفسجي</string>

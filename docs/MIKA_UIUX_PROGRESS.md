@@ -252,3 +252,11 @@ Header icon buttons have a full 48 dp touch target around the same 40 dp look, a
 On Files, the conversation and source filters scroll sideways instead of sharing the width, so the conversation name is no longer cut short, and they use tonal Orbit pills instead of outlines.
 
 While Orbit is working on a reply and nothing has streamed yet, the answer's place shows a typing bubble: a dark rounded pill with three light dots that rise and fall in turn. It disappears as soon as text arrives. The dots move in their own layers from one shared phase, and with reduced motion they sit still.
+
+### Stage 4: Material You, one-line title, floating frosted bars
+
+- Accent colors follow the wallpaper. A new Wallpaper accent is the default: on Android 12 and newer it takes the primary and on-primary colors of the system dynamic scheme, so buttons, the Tasks add button, progress, the dot in "Your work." and your own message bubbles all match the phone. The AMOLED black page and the glass surfaces stay as they were. Before Android 12 it falls back to the default blue, and the fixed accents (Blue, Indigo, Purple, Pink, Teal, Graphite) are still in Settings. A background image that sets its own accent still wins.
+- The hard-coded coral on the Tasks page and on your message bubble now comes from the accent.
+- "Your work." stays on one line (ORB-012): the title shrinks just enough to fit narrow screens and large font sizes, never below 22sp.
+- The bottom navigation floats: it is inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
+- The navigation and the message bar use frosted glass: a heavier live blur under a light, milky veil with a top-lit rim, instead of the dark smoke used for menus. Without blur (before Android 12) both fall back to a solid surface.
