@@ -77,4 +77,19 @@ class SideChatPersistenceTest {
         assertEquals(listOf("a", "c"), ConversationStore(dir).list().take(2).map { it.id })
     }
 
+
+    @Test fun pagingMergesEmptySideChatsWithoutReadingOlderConversationBodies() {
+        val dir = tmp.newFolder()
+        val writer = ConversationStore(dir, clock = { 5_500L })
+        repeat(8) { i ->
+            writer.append("c$i", Turn("Question $i", "Answer", "succeeded"))
+            assertTrue(File(dir, "c$i.json").setLastModified(1_000L * (i + 1)))
+        }
+        assertTrue(writer.createSideChat("side", "c0", 1, "c0"))
+        val reads = mutableListOf<String>()
+        val store = ConversationStore(dir, readConversation = { file -> reads += file.name; file.readText() })
+        assertEquals(listOf("c7", "c6", "c5", "side"), store.listPage(0, 4).map { it.id })
+        assertEquals(setOf("c7.json", "c6.json", "c5.json"), reads.toSet())
+    }
+
 }

@@ -122,19 +122,23 @@ class ConversationStore(
         // Workspace metadata can exist before the first message. Legacy conversations
         // remain discoverable from their original JSON files, without reclassification.
         val saved = dir.listFiles { f -> f.isFile && (f.name.endsWith(".json") || f.name.endsWith(".workspace")) }.orEmpty()
-            .map { it.nameWithoutExtension }.distinct().asSequence()
+            .map { it.nameWithoutExtension }.distinct()
             .filter { it !in pendingIds }
             .mapNotNull { id ->
                 val f = file(id)
-                val first = firstMessage(f)
                 val side = sideChat(id)
+                if (!f.isFile && side == null) return@mapNotNull null
+                Triple(id, if (f.isFile) f.lastModified() else side!!.createdAt, side)
+            }
+            // Sort lightweight file metadata first; only parse bodies needed for this page.
+            .sortedWith(compareByDescending<Triple<String, Long, SideChatOrigin?>> { it.second }.thenBy { it.first })
+            .asSequence().mapNotNull { (id, updatedAt, side) ->
+                val first = firstMessage(file(id))
                 if (first == null && side == null) return@mapNotNull null
                 val archived = archivedAt(id)
                 if (!includeArchived && archived != null) return@mapNotNull null
-                val updatedAt = if (f.isFile && first != null) f.lastModified() else side!!.createdAt
                 ConversationSummary(id, title(id) ?: first.orEmpty(), updatedAt, pinnedAt(id), pageOrigin(id), branchOrigin(id), archived, restoredAt(id), side)
             }
-            .sortedWith(compareByDescending<ConversationSummary> { it.updatedAt }.thenBy { it.id })
         return (unsaved.asSequence() + saved).drop(offset).take(limit).toList()
     }
 
