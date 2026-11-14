@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -418,7 +419,8 @@ fun ChatDrawer(
     // 搜索时把几个入口收起来，把高度让给结果;清空后原样回来。搜索框在入口上面，位置不跳
     val searchActive = canSearch && !selecting && !archivedView && query.isNotBlank()
     Column(
-        Modifier.fillMaxHeight().widthIn(max = DrawerWidth).fillMaxWidth()
+        Modifier.fillMaxHeight()
+            .then(if (sideHistoryView) Modifier.fillMaxWidth() else Modifier.widthIn(max = DrawerWidth).fillMaxWidth())
             .clip(DrawerShape).background(c.bg, DrawerShape)
             .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.navigationBars))
             .testTag("drawer"),
@@ -789,7 +791,7 @@ private fun NavEntry(
 ) {
     val c = MikaTheme.colors
     Row(
-        modifier.height(46.dp).clip(NavShape)
+        modifier.heightIn(min = 48.dp).clip(NavShape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.4f)
             .padding(horizontal = 12.dp),
@@ -883,7 +885,7 @@ internal fun ConversationEntry(
                 )
                 .testTag("conversation-row")
                 .alpha(if (item.enabled || selectable) 1f else 0.45f)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+                .heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 9.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 if (selectable) SelectMark(selected)

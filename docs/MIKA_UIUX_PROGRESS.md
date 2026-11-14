@@ -216,3 +216,7 @@ Rollback: remove only the newly added program documents/references and root prog
 - Picker, camera, keyboard transitions and attachment handling still require device verification. The new Kotlin and device regression tests and Android compilation remain **UNVERIFIED** while Actions dispatch is blocked. New labels use the documented English fallback in other locales.
 
 - Review follow-up: Channels are excluded from automatic archiving and remain listed if already archived; their existing unarchive action remains available. The change has a source regression test but awaits Android CI.
+
+- Review follow-up: See All expands the Side Chat history to the available drawer width and preserves the existing search/actions. Conversation navigation rows now have at least 48 dp touch targets. Full-screen behavior and accessibility remain unverified on a device.
+
+- Final local source checks: translation validation **PASS** (2,868 resources, 11 languages), translation-tool unit tests **PASS** (12), XML parsing **PASS** (549 files), actionlint and `git diff --check` **PASS**. GitHub still has not scheduled a run for the paging fix or later commits. Ordinary drafts use the existing in-memory draft owner; restart persistence and all device behavior remain unverified.

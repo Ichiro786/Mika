@@ -147,8 +147,8 @@ class ChatSearchTest {
     @Test fun createsChannelWithoutChangingMainConversation() {
         store.append("main", Turn("Main question", "Main answer", "succeeded"))
         val vm = vm()
-        compose.runOnIdle { vm.openConversation("main") }
         show(vm)
+        compose.runOnIdle { vm.openConversation("main") }
         compose.onNodeWithTag("channel-create").performClick()
         compose.onNodeWithTag("channel-name").performTextInput("Studio")
         compose.onNodeWithTag("channel-description").performTextInput("Design notes")
