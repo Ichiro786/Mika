@@ -93,20 +93,31 @@ import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
+@Composable
+internal fun orbitHeaderSize(): Dp = MikaTheme.presence.headerForWidth(LocalConfiguration.current.screenWidthDp).dp
+
+@Composable
+internal fun orbitHeaderBarHeight(hasSubtitle: Boolean = false): Dp {
+    val avatar = maxOf(orbitHeaderSize(), 48.dp)
+    val subtitle = if (hasSubtitle) 17.dp * LocalDensity.current.fontScale else 0.dp
+    return maxOf(56.dp, avatar + subtitle + 4.dp)
+}
+
 /** The header and expanded hub use the same state-driven presence. */
 @Composable
-internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit, size: Dp = 52.dp) {
+internal fun OrbitHubButton(state: PresenceState, onClick: () -> Unit) {
+    val size = orbitHeaderSize()
     val haptic = LocalHapticFeedback.current
     val keyboard = LocalSoftwareKeyboardController.current
     val label = stringResource(R.string.orbit_hub_open)
-    Box(Modifier.size(size).clip(MikaShapes.Pill)
+    Box(Modifier.size(maxOf(size, 48.dp)).clip(MikaShapes.Pill)
         .semantics { contentDescription = label }
         .clickable(role = Role.Button) {
             haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             keyboard?.hide()
             onClick()
         }.testTag("orbit-hub-open"), contentAlignment = Alignment.Center) {
-        MikaPresenceAvatar(Modifier.fillMaxSize(), state = state, framed = true)
+        MikaPresenceAvatar(Modifier.size(size), state = state, framed = true)
     }
 }
 
@@ -156,11 +167,16 @@ internal fun OrbitHub(
     }
     var selected by rememberSaveable { mutableIntStateOf(0) }
     val list = rememberLazyListState()
-    val collapseOffset = with(LocalDensity.current) { 96.dp.roundToPx() }
+    val configuration = LocalConfiguration.current
+    val density = LocalDensity.current
+    val bubble = MikaTheme.presence.hubForWindow(configuration.screenWidthDp, configuration.screenHeightDp, density.fontScale).dp
+    val header = orbitHeaderSize()
+    val headerCenter = orbitHeaderBarHeight() / 2f
+    val collapseOffset = with(density) { maxOf(96.dp, bubble * 0.75f).roundToPx() }
     val collapsed by remember(list, collapseOffset) {
         derivedStateOf { list.firstVisibleItemIndex > 0 || list.firstVisibleItemScrollOffset >= collapseOffset }
     }
-    val presenceLimit = with(LocalDensity.current) { 200.dp.roundToPx() }
+    val presenceLimit = with(density) { (86.dp + bubble).roundToPx() }
     val presenceVisible by remember(list, presenceLimit) {
         derivedStateOf { list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset < presenceLimit }
     }
@@ -169,7 +185,7 @@ internal fun OrbitHub(
             item(key = "presence") {
                 Column(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     // Space for the presence, drawn above the list to preserve its entrance path.
-                    Box(Modifier.size(128.dp))
+                    Box(Modifier.size(bubble))
                     Text(stringResource(R.string.app_name), Modifier.padding(top = 14.dp), style = MikaType.Title, color = c.ink)
                     Text(stringResource(presenceLabel(state, ready)), Modifier.padding(top = 5.dp), style = MikaType.Caption, color = c.ink2)
                 }
@@ -195,12 +211,12 @@ internal fun OrbitHub(
         }
         if (presenceVisible) {
             // Draw outside the lazy viewport so the avatar can move from the compact header.
-            Box(Modifier.align(Alignment.TopCenter).padding(top = 66.dp).size(128.dp)
+            Box(Modifier.align(Alignment.TopCenter).padding(top = 66.dp).size(bubble)
                 .graphicsLayer { translationY = -list.firstVisibleItemScrollOffset.toFloat() },
                 contentAlignment = Alignment.Center) {
                 MikaPresenceAvatar(
-                    Modifier.size(52.dp + 76.dp * expansion).graphicsLayer {
-                        translationY = -102.dp.toPx() * (1f - expansion)
+                    Modifier.size(header + (bubble - header) * expansion).graphicsLayer {
+                        translationY = -(66.dp + bubble / 2f - headerCenter).toPx() * (1f - expansion)
                     }, state = state, framed = true,
                 )
             }

@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -34,6 +35,7 @@ import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
 import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.settings.OrbitPresenceSize
 
 /** 动效:时长和曲线。系统关了动画时([MikaTheme.reduceMotion])直接到位。 */
 object MikaMotion {
@@ -58,6 +60,7 @@ fun animationsOff(context: Context): Boolean =
 
 val LocalReduceMotion = staticCompositionLocalOf { false }
 val LocalOrbitIdentity = staticCompositionLocalOf { OrbitIdentityMode.Original }
+val LocalOrbitPresence = compositionLocalOf { OrbitPresenceSize() }
 
 object MikaTheme {
     val colors: MikaColors
@@ -68,6 +71,9 @@ object MikaTheme {
 
     val identity: OrbitIdentityMode
         @Composable @ReadOnlyComposable get() = LocalOrbitIdentity.current
+
+    val presence: OrbitPresenceSize
+        @Composable @ReadOnlyComposable get() = LocalOrbitPresence.current
 }
 
 /**
@@ -103,6 +109,14 @@ fun appearanceIdentity(): OrbitIdentityMode {
     return identity
 }
 
+@Composable
+fun appearancePresence(): OrbitPresenceSize {
+    val context = LocalContext.current
+    val flags = remember(context) { FeatureFlags.get(context) }
+    val size by remember(flags) { flags.orbitPresenceChanges() }.collectAsState(flags.orbitPresence())
+    return size
+}
+
 /** 状态栏、导航栏的图标深浅跟界面一致:界面强制浅色而系统是深色时,图标也得是深色的才看得见。 */
 fun ComponentActivity.systemBarsFor(dark: Boolean) {
     val transparent = android.graphics.Color.TRANSPARENT
@@ -125,6 +139,7 @@ fun MikaTheme(
     accent: ThemeAccent = appearanceAccent(),
     reduceMotion: Boolean = false,
     identity: OrbitIdentityMode = appearanceIdentity(),
+    presence: OrbitPresenceSize = appearancePresence(),
     content: @Composable () -> Unit,
 ) {
     // 背景图片设了「强调色跟随图片」时,用图上的主色代替设置里选的强调色
@@ -144,6 +159,7 @@ fun MikaTheme(
         LocalMikaColors provides colors,
         LocalReduceMotion provides reduceMotion,
         LocalOrbitIdentity provides identity,
+        LocalOrbitPresence provides presence,
     ) {
         MaterialTheme(colorScheme = materialColors, typography = MikaTypography) {
             CompositionLocalProvider(LocalContentColor provides colors.ink, content = content)

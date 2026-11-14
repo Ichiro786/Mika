@@ -41,4 +41,7 @@
     <string name="orbit_channel_remove_body">Remove %1$s from Channels? Its conversation, tasks, and files will remain in history.</string>
     <string name="orbit_channel_empty">Start a conversation in this channel.</string>
     <string name="orbit_channel_failed">Could not save this channel. Please try again.</string>
+    <string name="orbit_presence">Orbit presence</string>
+    <string name="orbit_presence_header">Header avatar size</string>
+    <string name="orbit_presence_hub">Hub bubble size</string>
 </resources>

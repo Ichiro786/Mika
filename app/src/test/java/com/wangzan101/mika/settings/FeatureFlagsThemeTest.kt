@@ -30,6 +30,33 @@ class FeatureFlagsThemeTest {
         job.join()
         assertEquals(listOf(OrbitIdentityMode.Original, OrbitIdentityMode.Monochrome), seen)
     }
+    @Test fun presenceSizeDefaultsClampsAndPersists() {
+        val prefs = FeatureFlagsCapsuleTest.MemoryPrefs()
+        val flags = FeatureFlags(prefs)
+        assertEquals(OrbitPresenceSize(), flags.orbitPresence())
+        flags.setOrbitPresence(OrbitPresenceSize(headerDp = 100, hubDp = 20))
+        assertEquals(OrbitPresenceSize(headerDp = 76, hubDp = 130), FeatureFlags(prefs).orbitPresence())
+        flags.setOrbitPresence(OrbitPresenceSize())
+        assertEquals(OrbitPresenceSize(), FeatureFlags(prefs).orbitPresence())
+    }
+
+    @Test fun presenceSizeChangesAreObserved() = runTest {
+        val flags = FeatureFlags(FeatureFlagsCapsuleTest.MemoryPrefs())
+        val seen = mutableListOf<OrbitPresenceSize>()
+        val job = launch { flags.orbitPresenceChanges().take(2).toList(seen) }
+        runCurrent()
+        flags.setOrbitPresence(OrbitPresenceSize(headerDp = 64, hubDp = 180))
+        job.join()
+        assertEquals(listOf(OrbitPresenceSize(), OrbitPresenceSize(64, 180)), seen)
+    }
+
+    @Test fun presenceSizeFitsSmallWindowsWithoutChangingStoredPreference() {
+        val preferred = OrbitPresenceSize(headerDp = 76, hubDp = 220)
+        assertEquals(48, preferred.headerForWidth(240))
+        assertEquals(120, preferred.hubForWindow(160, 360, 1f))
+        assertEquals(220, preferred.hubDp)
+    }
+
     @Test fun defaultsToSystemAndUnknownFallsBack() {
         val prefs = FeatureFlagsCapsuleTest.MemoryPrefs()
         assertEquals(ThemeMode.System, FeatureFlags(prefs).themeMode())

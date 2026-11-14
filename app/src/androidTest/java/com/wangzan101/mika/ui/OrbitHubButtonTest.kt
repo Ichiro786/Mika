@@ -1,6 +1,9 @@
 package com.wangzan101.mika.ui
 
 import androidx.compose.ui.test.assertHasClickAction
+import androidx.compose.ui.test.assertWidthIsEqualTo
+import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.assertIsDisplayed
@@ -17,6 +20,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.wangzan101.mika.R
 import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.settings.OrbitPresenceSize
 import com.wangzan101.mika.ui.identity.PresenceState
 import com.wangzan101.mika.ui.theme.MikaTheme
 import org.junit.Assert.assertEquals
@@ -37,6 +41,18 @@ class OrbitHubButtonTest {
         }
         compose.onNodeWithTag("orbit-hub-open").assertIsDisplayed().assertHasClickAction().performClick()
         compose.runOnIdle { assertEquals(1, opens) }
+    }
+
+    @Test fun headerSizeUpdatesAndKeepsMinimumTouchTarget() {
+        val size = mutableStateOf(OrbitPresenceSize(headerDp = 44))
+        compose.setContent {
+            MikaTheme(dark = true, reduceMotion = true, presence = size.value) {
+                OrbitHubButton(PresenceState.Idle, onClick = {})
+            }
+        }
+        compose.onNodeWithTag("orbit-hub-open").assertWidthIsEqualTo(48.dp)
+        compose.runOnIdle { size.value = size.value.copy(headerDp = 76) }
+        compose.onNodeWithTag("orbit-hub-open").assertWidthIsEqualTo(76.dp)
     }
 
     @Test fun hubSectionsHaveAccessibleLabelsWithoutVisibleTabText() {

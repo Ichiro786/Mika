@@ -474,9 +474,9 @@ fun ChatScreen(
                     BarIconButton(MikaIcons.Paperclip, stringResource(R.string.file_library_title), onOpenFiles)
                     BarIconButton(MikaIcons.New, stringResource(R.string.chat_new), { vm.newConversation() }, enabled = vm.canSwitch())
                 },
-                titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub,
-                    size = if (sub == null && !isSideChat && channel == null) 52.dp else 48.dp) },
+                titleIcon = { OrbitHubButton(presenceFor(last, voiceListening), onOpenOrbitHub) },
                 centerTitle = true,
+                barHeight = orbitHeaderBarHeight(hasSubtitle = sub != null || isSideChat || channel != null),
                 subtitle = when {
                     channel != null -> listOfNotNull(channel?.name, sub?.first).joinToString(" · ")
                     isSideChat -> listOfNotNull(stringResource(R.string.orbit_side_chat), sub?.first).joinToString(" · ")

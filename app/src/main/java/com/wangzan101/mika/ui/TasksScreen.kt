@@ -187,6 +187,7 @@ internal fun TasksScreen(
             leftLabel = stringResource(R.string.chat_menu),
             titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) },
             centerTitle = true,
+            barHeight = orbitHeaderBarHeight(),
             right = { BarIconButton(MikaIcons.Alarm, stringResource(R.string.drawer_plans), { onPlans(null, false) }) },
         )
         Box(Modifier.weight(1f).fillMaxWidth()) {

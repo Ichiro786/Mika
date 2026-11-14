@@ -257,6 +257,7 @@ fun TopBar(
     background: Color = MikaTheme.colors.bg,
     titleIcon: (@Composable () -> Unit)? = null,
     centerTitle: Boolean = false,
+    barHeight: Dp = MikaSize.TopBar,
 ) {
     val c = MikaTheme.colors
     Box(Modifier.fillMaxWidth().pageBackground(background).windowInsetsPadding(WindowInsets.statusBars)) {
@@ -279,7 +280,7 @@ fun TopBar(
             }
         }
         Row(
-            Modifier.fillMaxWidth().height(MikaSize.TopBar).padding(horizontal = 8.dp),
+            Modifier.fillMaxWidth().height(barHeight).padding(horizontal = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(4.dp),
         ) {

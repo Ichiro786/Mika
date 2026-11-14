@@ -199,3 +199,8 @@ Rollback: remove only the newly added program documents/references and root prog
 
 - Channels use small `.workspace` companion metadata and independent existing conversation IDs. Creation, editing, contextual chat labels and removal are wired to the existing drawer and chat state. Removing a channel retains its transcript, task records and files; serial active work is not cancelled. Channel-scoped model instructions are omitted because the existing execution path has no supported per-channel instruction interface.
 - Local localization validation **PASS** (2,862 resources in 11 languages); translation-tool tests **PASS** (12); XML parsing **PASS** (548 files); actionlint and `git diff --check` **PASS**. New Kotlin and device tests, Android compilation and device behavior remain **UNVERIFIED** because GitHub Actions rejected dispatch. New labels use the existing documented English fallback for non-English locales.
+
+## Conversation workspaces — stage D, 2026-11-14
+
+- Added persistent header (44–76 dp) and hub bubble (130–220 dp) controls with live Original/Monochrome previews and reset. The header reserves space for the selected size; the hub clamps its rendered size to window dimensions and font scale without changing the saved preference. Existing avatar geometry and state mapping are unchanged.
+- Preference, clamping and header touch-target tests are included. They and Android layout, animation, font-scaling and restart behavior remain **UNVERIFIED** while GitHub Actions dispatch is blocked. New labels use the documented English fallback in other locales.
