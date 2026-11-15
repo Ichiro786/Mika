@@ -12,6 +12,8 @@
     <string name="chat_example_follow">افتح X وابحث عن Wang Zan (@wangzan101)، ثم تابع الحساب.</string>
     <string name="chat_example_group_summary">افتح WhatsApp ولخّص رسائل اليوم غير المقروءة، مع إبراز كل ما يحتاج إلى ردي.</string>
     <string name="chat_example_alarms">اضبط المنبهات للساعة 9:40 و9:50 و10:00 صباح الغد.</string>
+    <string name="chat_example_wind_down">فعّل وضع عدم الإزعاج حتى السابعة صباح الغد واضبط منبهًا على الساعة 7:00.</string>
+    <string name="chat_example_nearby">ابحث عن مقهى قريب مني بتقييم جيد ومفتوح الآن.</string>
     <string name="chat_example_replace_title">استبدال المسودة الحالية؟</string>
     <string name="chat_example_replace_body">ستستبدل المهمة المقترحة ما كتبته بالفعل.</string>
     <string name="chat_example_replace_action">استبدال المسودة</string>

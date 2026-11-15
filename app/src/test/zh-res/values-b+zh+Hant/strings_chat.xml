@@ -12,6 +12,8 @@
     <string name="chat_example_follow">開啟小紅書，搜尋博主「王赞不赞」，點擊關注，然後加入群聊</string>
     <string name="chat_example_group_summary">幫我總結微信群聊，Mika內測體驗群今天都聊了些啥</string>
     <string name="chat_example_alarms">幫我訂明天早上9:40、9:50、10:00 的鬧鐘</string>
+    <string name="chat_example_wind_down">開啟勿擾模式到明天早上7點，並設一個7:00的鬧鐘</string>
+    <string name="chat_example_nearby">幫我找附近評價好、現在營業的咖啡店</string>
     <string name="chat_example_replace_title">取代目前草稿？</string>
     <string name="chat_example_replace_body">推薦任務會取代你已輸入的內容。</string>
     <string name="chat_example_replace_action">取代草稿</string>

@@ -12,6 +12,8 @@
     <string name="chat_example_follow">Открой X, найди Wang Zan (@wangzan101) и подпишись на этот аккаунт.</string>
     <string name="chat_example_group_summary">Открой WhatsApp и кратко перескажи сегодняшние непрочитанные сообщения, отметив те, на которые нужно ответить.</string>
     <string name="chat_example_alarms">Поставь будильники на завтра на 9:40, 9:50 и 10:00 утра.</string>
+    <string name="chat_example_wind_down">Включи режим «Не беспокоить» до 7 утра завтра и поставь будильник на 7:00.</string>
+    <string name="chat_example_nearby">Найди рядом со мной кофейню с хорошими отзывами, которая сейчас открыта.</string>
     <string name="chat_example_replace_title">Заменить текущий черновик?</string>
     <string name="chat_example_replace_body">Рекомендуемая задача заменит уже введённый текст.</string>
     <string name="chat_example_replace_action">Заменить черновик</string>

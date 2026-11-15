@@ -82,6 +82,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -235,7 +236,7 @@ fun ChatScreen(
     val recommendationStore = recommendations
         ?: (LocalContext.current.applicationContext as? MikaApp)?.recommendedTasks
     val recommendedTasksFlow = remember(recommendationStore) {
-        recommendationStore?.also { it.ensureLoaded { ChatCopy.recommendationSeeds() } }?.tasks
+        recommendationStore?.also { it.ensureLoaded { ChatCopy.recommendationSeeds() }; it.retire(ChatCopy.retiredSeeds) { ChatCopy.recommendationSeeds() } }?.tasks
             ?: MutableStateFlow<List<RecommendedTask>>(emptyList())
     }
     val recommendedTasks by recommendedTasksFlow.collectAsState()
@@ -902,7 +903,9 @@ private fun LazyListScope.exchange(
     val active = ex.status.isActive()
     val answering = ex.status == ExchangeStatus.Working && !ex.draft.isNullOrBlank()
     if (active) {
-        if (!answering) item("s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
+        // Only thinking so far: the plain "Thinking" line below says it, so no second indicator above it.
+        val onlyThinking = ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isEmpty() && !backgroundNote
+        if (!answering && !onlyThinking) item("s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
     } else if (ex.steps.isNotEmpty() || ex.runId != null) {
         item("s$index") { DoneLine(ex, reduceMotion, openRun, tokens) }
     }
@@ -930,7 +933,7 @@ private fun LazyListScope.exchange(
     joined.forEach(::steer)
     val draftText = ex.draft?.takeIf(String::isNotBlank)
     if (draftText != null) {
-        item("d$index") { DraftText(draftText, ex.waitingForModel) }
+        item("d$index") { DraftText(draftText, ex.waitingForModel, reduceMotion) }
         // While the answer is still streaming in, three dots under it say more is coming.
         if (active && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
     }
@@ -1120,10 +1123,30 @@ internal fun typingLift(phase: Float, dot: Int): Float {
 }
 
 @Composable
-private fun DraftText(text: String, generating: Boolean) {
+private fun DraftText(text: String, generating: Boolean, reduceMotion: Boolean = false) {
+    // The model sends text in uneven bursts. Instead of jumping a whole burst at once, the reply eases forward a few
+    // characters a frame, faster when it has more to catch up on, so it reads as one steady flow.
+    val latest by rememberUpdatedState(text)
+    var shown by remember { mutableIntStateOf(if (reduceMotion) text.length else 0) }
+    val smooth = generating && !reduceMotion
+    LaunchedEffect(smooth) {
+        if (!smooth) return@LaunchedEffect
+        while (true) {
+            withFrameNanos { }
+            val target = latest.length
+            if (shown > target) shown = target
+            if (shown < target) {
+                var next = (shown + maxOf(1, (target - shown) / 7)).coerceAtMost(target)
+                if (next < target && Character.isHighSurrogate(latest[next - 1])) next++
+                shown = next
+            }
+        }
+    }
+    val visible = if (smooth) text.take(shown.coerceAtMost(text.length)) else text
+    val appear by animateFloatAsState(if (visible.isEmpty()) 0f else 1f, tween(if (reduceMotion) 0 else 220), label = "draft-in")
     MarkdownText(
-        text, AnswerText.copy(color = MikaTheme.colors.ink),
-        Modifier.fillMaxWidth().padding(bottom = 12.dp).answerSurface(), streaming = generating,
+        visible, AnswerText.copy(color = MikaTheme.colors.ink),
+        Modifier.fillMaxWidth().padding(bottom = 12.dp).answerSurface().graphicsLayer { alpha = appear }, streaming = generating,
     )
 }
 
@@ -1197,7 +1220,8 @@ private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boole
     val paused = ChatCopy.paused(ex.status)
     val elapsed = rememberElapsed(ex.startedAt)
     var showSteps by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(bottom = 10.dp).background(c.surface, MikaShapes.Card).border(0.5.dp, c.edge, MikaShapes.Card).padding(12.dp)) {
+    // No card behind it: it sits in the chat like the "Thinking" line does.
+    Column(Modifier.fillMaxWidth().padding(bottom = 6.dp).padding(horizontal = 4.dp, vertical = 2.dp)) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 28.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -1783,6 +1807,8 @@ internal fun Composer(
 ) {
     val c = MikaTheme.colors
     var fieldFocused by remember { mutableStateOf(false) }
+    // Lines the message takes: past one, the bar keeps a fixed corner instead of turning into a tall oval.
+    var fieldLines by remember { mutableIntStateOf(1) }
     // 底部从页面底色淡出到透明,输入栏是浮在上面的玻璃
     val fade = remember(c) { Brush.verticalGradient(0f to c.bg.copy(alpha = 0f), 0.6f to c.bg, 1f to c.bg) }
     val busy = mode == ComposerMode.Busy
@@ -1878,7 +1904,10 @@ internal fun Composer(
                 VoiceFloat(vh, vState, title, backdrop, reduceMotion)
             }
             Box(Modifier.fillMaxWidth()) {
-            GlassBar(Modifier.fillMaxWidth().keepsKeyboard(), backdrop, frosted = true) {
+            GlassBar(
+                Modifier.fillMaxWidth().keepsKeyboard(), backdrop,
+                shape = if (fieldLines > 1 && text.isNotEmpty()) RoundedCornerShape(26.dp) else MikaShapes.Pill, frosted = true,
+            ) {
                 if (showAttach) {
                     val label = if (attachOpen) AttachCopy.CLOSE else AttachCopy.ADD
                     val blockedHint = stringResource(R.string.attach_blocked_running)
@@ -1911,7 +1940,9 @@ internal fun Composer(
                             },
                         textStyle = MikaType.Body.copy(color = c.ink, textDirection = TextDirection.Content),
                         cursorBrush = SolidColor(c.accent),
-                        maxLines = 5,
+                        // Four lines at most; longer text scrolls inside the field instead of growing the bar.
+                        maxLines = 4,
+                        onTextLayout = { fieldLines = it.lineCount },
                         keyboardOptions = if (sendFromIme) KeyboardOptions(imeAction = ImeAction.Send) else KeyboardOptions.Default,
                         keyboardActions = if (sendFromIme) KeyboardActions(onSend = {
                             if (AttachTray.canSend(text, attachments, importing)) onSend()

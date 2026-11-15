@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -75,12 +77,31 @@ enum class TileTone {
     }
 }
 
-/** 行左边的图标块:30dp、圆角 9,里面图形 18dp。 */
+/**
+ * The icon block at the start of a row: a small glass tile. A row's colour ([tint]) no longer fills the tile solid
+ * (the old phone-settings look); it shows as a soft wash from the top with a hairline edge, and the glyph takes a
+ * lighter shade of it. Without a tint the tile is neutral glass and the glyph is ink.
+ */
 @Composable
 fun IconTile(icon: ImageVector, tone: TileTone = TileTone.Neutral, tint: Color? = null) {
-    val (bg, fg) = if (tint != null) tint to Color.White else tone.colors(MikaTheme.colors)
-    Box(Modifier.size(MikaSize.Tile).background(bg, MikaShapes.Tile), contentAlignment = Alignment.Center) {
-        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = fg)
+    val c = MikaTheme.colors
+    val hue = tint ?: tone.colors(c).second.takeIf { tone != TileTone.Neutral }
+    val glyph = when {
+        hue == null -> c.ink
+        c.isDark -> lerp(hue, Color.White, 0.38f)
+        else -> lerp(hue, Color.Black, 0.12f)
+    }
+    val wash = if (hue == null) {
+        Brush.verticalGradient(listOf(c.ink.copy(alpha = if (c.isDark) 0.13f else 0.08f), c.ink.copy(alpha = if (c.isDark) 0.05f else 0.03f)))
+    } else {
+        Brush.verticalGradient(listOf(hue.copy(alpha = if (c.isDark) 0.34f else 0.22f), hue.copy(alpha = if (c.isDark) 0.12f else 0.08f)))
+    }
+    val edge = Brush.verticalGradient(listOf((hue ?: c.ink).copy(alpha = if (c.isDark) 0.38f else 0.22f), Color.Transparent))
+    Box(
+        Modifier.size(MikaSize.Tile).background(wash, MikaShapes.Tile).border(0.75.dp, edge, MikaShapes.Tile),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = glyph)
     }
 }
 

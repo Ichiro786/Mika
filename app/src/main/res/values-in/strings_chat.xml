@@ -12,6 +12,8 @@
     <string name="chat_example_follow">Buka X, cari Wang Zan (@wangzan101), lalu ikuti akun tersebut.</string>
     <string name="chat_example_group_summary">Buka WhatsApp dan rangkum pesan yang belum dibaca hari ini, dengan menandai semua yang perlu saya balas.</string>
     <string name="chat_example_alarms">Pasang alarm pukul 9.40, 9.50, dan 10.00 besok pagi.</string>
+    <string name="chat_example_wind_down">Aktifkan Jangan Ganggu sampai jam 7 pagi besok dan pasang alarm jam 7.00.</string>
+    <string name="chat_example_nearby">Cari kedai kopi dengan ulasan bagus di dekatku yang buka sekarang.</string>
     <string name="chat_example_replace_title">Ganti draf saat ini?</string>
     <string name="chat_example_replace_body">Tugas yang direkomendasikan akan mengganti teks yang sudah Anda ketik.</string>
     <string name="chat_example_replace_action">Ganti draf</string>

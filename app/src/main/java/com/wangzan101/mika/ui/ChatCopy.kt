@@ -27,13 +27,22 @@ object ChatCopy {
     data class Example(val kind: ExampleKind, val text: String)
 
     val examples get() = listOf(
-        Example(ExampleKind.Web, tr(R.string.chat_example_github_star)),
-        Example(ExampleKind.App, tr(R.string.chat_example_follow)),
         Example(ExampleKind.App, tr(R.string.chat_example_group_summary)),
-        Example(ExampleKind.Device, tr(R.string.chat_example_alarms)),
+        Example(ExampleKind.Device, tr(R.string.chat_example_wind_down)),
+        Example(ExampleKind.Web, tr(R.string.chat_example_nearby)),
     )
 
     fun recommendationSeeds(): List<Pair<String, String>> = examples.map { it.text to it.text }
+
+    /** The old Mika suggestions (starring its repo, following its author, a set of test alarms), dropped from saved lists once. */
+    val retiredSeeds = setOf(
+        "Open https://github.com/wangzan101/mika and star the project.",
+        "Open X, search for Wang Zan (@wangzan101), and follow the account.",
+        "Set alarms for 9:40, 9:50 and 10:00 tomorrow morning.",
+        "打开网页 https://github.com/wangzan101/mika，给这个项目点 star",
+        "打开小红书，搜索博主“王赞不赞”，点击关注，然后加入群聊",
+        "帮我订明天早上9:40、9:50、10:00 的闹钟",
+    )
 
     private val linkPattern = Regex("""https?://[^\s)\]>"'，。]+""")
 

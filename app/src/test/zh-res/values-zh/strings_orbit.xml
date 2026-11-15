@@ -50,6 +50,11 @@
     <string name="orbit_picker_unavailable">No compatible picker is available.</string>
     <string name="orbit_make_subtitle">Everything Orbit has made for you.</string>
     <string name="orbit_make_empty">Nothing here yet. Files Orbit creates in your chats will show up here.</string>
+    <string name="orbit_make_files">文件</string>
+    <string name="orbit_make_media">媒体</string>
+    <string name="orbit_make_empty_media">还没有图片、视频或音频。Orbit 在对话里生成的媒体会出现在这里。</string>
+    <string name="orbit_hub_memory_count">已保存：%1$d</string>
+    <string name="orbit_hub_skills_count">已学会：%1$d</string>
     <string name="orbit_settings_reach">Calls &amp; messages</string>
     <string name="orbit_settings_look">Look &amp; feel</string>
     <string name="orbit_plan_pick_time">Pick a date and time</string>

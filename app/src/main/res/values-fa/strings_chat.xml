@@ -11,6 +11,8 @@
     <string name="chat_example_follow">ایکس را باز کن، وانگ زان (@wangzan101) را جست‌وجو کن و حساب او را دنبال کن.</string>
     <string name="chat_example_group_summary">واتساپ را باز کن و پیام‌های خوانده‌نشدهٔ امروز را خلاصه کن؛ مواردی را که به پاسخ من نیاز دارند مشخص کن.</string>
     <string name="chat_example_alarms">برای فردا صبح در ساعت‌های ۹:۴۰، ۹:۵۰ و ۱۰:۰۰ زنگ هشدار تنظیم کن.</string>
+    <string name="chat_example_wind_down">حالت مزاحم نشوید را تا ساعت ۷ صبح فردا روشن کن و یک زنگ برای ساعت ۷:۰۰ بگذار.</string>
+    <string name="chat_example_nearby">یک کافه نزدیک من با امتیاز خوب پیدا کن که الان باز باشد.</string>
     <string name="chat_example_replace_title">پیش‌نویس فعلی جایگزین شود؟</string>
     <string name="chat_example_replace_body">این پیشنهاد جایگزین متنی می‌شود که تاکنون نوشته‌اید.</string>
     <string name="chat_example_replace_action">جایگزینی پیش‌نویس</string>
