@@ -10,8 +10,9 @@ go install golang.org/x/mobile/cmd/gomobile golang.org/x/mobile/cmd/gobind
 if [ -z "${ANDROID_NDK_HOME:-}" ]; then
   sdk="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
   ndk="$(ls -d "$sdk"/ndk/*/ 2>/dev/null | sort -V | tail -n1 || true)"
-  [ -n "$ndk" ] || { echo "No Android NDK found. Install one with: sdkmanager 'ndk;27.2.12479018'" >&2; exit 1; }
+  [ -n "$ndk" ] || { echo "No Android NDK found. Install one with: sdkmanager 'ndk;28.2.13676358'" >&2; exit 1; }
   export ANDROID_NDK_HOME="${ndk%/}"
 fi
 mkdir -p "$(dirname "$out")"
-gomobile bind -target=android/arm64,android/amd64 -androidapi 30 -trimpath -ldflags="-s -w" -o "$out" .
+# Android 15+ phones can use 16 KB memory pages; every native library must be aligned for them.
+gomobile bind -target=android/arm64,android/amd64 -androidapi 30 -trimpath -ldflags="-s -w -extldflags=-Wl,-z,max-page-size=16384" -o "$out" .

@@ -272,3 +272,10 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - Your own message bubbles use the wallpaper's Material You primary container with its matching text color. Before Android 12, or with a fixed or image accent, they use a tone of the accent whose text reads at 4.5 to 1 or better.
 - Audit leftovers: the composer placeholder is shorter so it is no longer cut, the hub tabs use one sliding highlight so two never show at once, a soft scrim sits behind the floating navigation, and back gestures preview the page underneath (predictive back).
 - Not in this stage: a scheduled refresh for spaces (Refresh is manual for now).
+
+## Test APK without compatibility warnings
+
+- The CI test APK is now the perf build, uploaded as Orbit-test-<commit>. It is not debuggable, so Android no longer shows the "debuggable app" warning, and it is signed with the committed test key, so it installs over earlier test builds.
+- Debug and perf builds take their versionCode from the commit time, so each new APK counts up.
+- The WhatsApp library is now linked for 16 KB memory pages (NDK r28 and max-page-size=16384). The sandbox programs were already aligned.
+- CI runs tools/ci/check_16kb.py and zipalign -P 16 on the built APKs and fails if any 64-bit native library is not 16 KB aligned.

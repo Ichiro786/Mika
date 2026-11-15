@@ -97,7 +97,7 @@ jobs:
       # compileSdk 36；构建工具版本取 AGP 8.7.3 的默认值。action 顺带接受 SDK 许可。
       - uses: android-actions/setup-android@v4
         with:
-          packages: "platform-tools platforms;android-36 build-tools;35.0.0 ndk;27.2.12479018"
+          packages: "platform-tools platforms;android-36 build-tools;35.0.0 ndk;28.2.13676358"
       # The WhatsApp linked-device library (whatsapp-bridge/) is Go, built into an .aar during the Gradle build.
       - uses: actions/setup-go@v6
         with:
@@ -110,11 +110,23 @@ jobs:
       # 编译设备测试以检查设置交互等回归用例；这里没有连接设备，不执行 instrumentation。
       - name: Unit tests, debug build, and device test compilation
         run: ./gradlew :app:testDebugUnitTest :app:assembleDebug :app:compileDebugAndroidTestKotlin --stacktrace
-      - name: Upload debug APK
+      # The APK people install to test: not debuggable (no "debuggable app" warning, full speed), signed with
+      # the same fixed test key as debug builds so each new one installs over the last. A separate Gradle run,
+      # because building perf turns on ABI splits, which would rename the debug APK above.
+      - name: Test APK (not debuggable)
+        run: ./gradlew :app:assemblePerf --stacktrace
+      # Android 15+ phones can use 16 KB memory pages; a library not aligned for them makes Android warn on launch.
+      - name: Check native libraries are 16 KB aligned
+        run: |
+          python3 tools/ci/check_16kb.py app/build/outputs/apk/perf/*.apk app/build/outputs/apk/debug/*.apk
+          for apk in app/build/outputs/apk/perf/*.apk; do
+            "$ANDROID_HOME/build-tools/35.0.0/zipalign" -c -P 16 -v 4 "$apk" > /dev/null && echo "zipalign -P 16 ok: $apk"
+          done
+      - name: Upload test APK
         uses: actions/upload-artifact@v7
         with:
-          name: Mika-debug-${{ github.sha }}
-          path: app/build/outputs/apk/debug/*.apk
+          name: Orbit-test-${{ github.sha }}
+          path: app/build/outputs/apk/perf/app-universal-perf.apk
           if-no-files-found: error
           retention-days: 14
           compression-level: 0

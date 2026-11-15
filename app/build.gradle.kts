@@ -162,8 +162,12 @@ tasks.withType<Test>().configureEach {
     inputs.file(rootProject.file("licenses/THIRD_PARTY_NOTICES.md")).withPropertyName("thirdPartyNotices")
 }
 
+// Test builds (debug, and the non-debuggable perf build CI hands out) share one signing key and count
+// versionCode up from the commit time, so each new APK installs over the last one and keeps its data.
 androidComponents {
-    onVariants(selector().withBuildType("debug")) { variant ->
-        variant.outputs.forEach { it.versionCode.set(debugVersionCode) }
+    onVariants { variant ->
+        if (variant.buildType == "debug" || variant.buildType == "perf") {
+            variant.outputs.forEach { it.versionCode.set(debugVersionCode) }
+        }
     }
 }
