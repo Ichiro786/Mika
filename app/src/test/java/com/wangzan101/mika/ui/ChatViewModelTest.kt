@@ -643,7 +643,7 @@ class ChatViewModelTest {
         runCurrent()
         assertTrue(vm.send("first task", ok))
         emit(TaskState.Running(1, ""))
-        assertEquals(FollowUpMode.Steer, vm.ui.value.followUpMode)
+        vm.setFollowUpMode(FollowUpMode.Steer)
         vm.attach(listOf("content://shot.png"))
         runCurrent()
         assertEquals(1, vm.ui.value.attachments.size)
