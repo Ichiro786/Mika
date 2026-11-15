@@ -18,10 +18,10 @@ data class OrbitPresenceSize(val headerDp: Int = DEFAULT_HEADER, val hubDp: Int 
 
     companion object {
         const val MIN_HEADER = 44
-        const val MAX_HEADER = 76
-        const val DEFAULT_HEADER = 52
+        const val MAX_HEADER = 104
+        const val DEFAULT_HEADER = 60
         const val MIN_HUB = 130
-        const val MAX_HUB = 220
-        const val DEFAULT_HUB = 130
+        const val MAX_HUB = 280
+        const val DEFAULT_HUB = 150
     }
 }

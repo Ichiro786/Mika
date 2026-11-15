@@ -294,3 +294,36 @@ private fun GlassShell(
         content()
     }
 }
+
+/**
+ * Soft glass behind a floating header: the content scrolling underneath is blurred and dimmed, strongest at the
+ * top (status bar) and fading out at the bottom edge, so there is no solid band and no hard line.
+ * Without blur support it is a plain dim gradient.
+ */
+@Composable
+fun FadingGlassScrim(modifier: Modifier, backdrop: GlassBackdrop?) {
+    val c = MikaTheme.colors
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    val mask = remember { Brush.verticalGradient(0f to Color.Black, 0.55f to Color.Black.copy(alpha = 0.9f), 1f to Color.Transparent) }
+    Box(
+        modifier
+            .then(if (backdrop != null) Modifier.onGloballyPositioned { origin = it.positionInRoot() } else Modifier)
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            .drawWithContent {
+                drawContent()
+                drawRect(mask, blendMode = BlendMode.DstIn)
+            },
+    ) {
+        if (backdrop != null) {
+            Box(
+                Modifier.matchParentSize()
+                    .graphicsLayer { renderEffect = FrostBlur; clip = true }
+                    .drawBehind {
+                        val d = backdrop.origin - origin
+                        translate(d.x, d.y) { drawLayer(backdrop.layer) }
+                    },
+            )
+        }
+        Box(Modifier.matchParentSize().background(c.bg.copy(alpha = if (backdrop != null) 0.55f else 0.9f)))
+    }
+}

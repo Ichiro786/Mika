@@ -34,8 +34,8 @@ class FeatureFlagsThemeTest {
         val prefs = FeatureFlagsCapsuleTest.MemoryPrefs()
         val flags = FeatureFlags(prefs)
         assertEquals(OrbitPresenceSize(), flags.orbitPresence())
-        flags.setOrbitPresence(OrbitPresenceSize(headerDp = 100, hubDp = 20))
-        assertEquals(OrbitPresenceSize(headerDp = 76, hubDp = 130), FeatureFlags(prefs).orbitPresence())
+        flags.setOrbitPresence(OrbitPresenceSize(headerDp = 200, hubDp = 20))
+        assertEquals(OrbitPresenceSize(headerDp = OrbitPresenceSize.MAX_HEADER, hubDp = OrbitPresenceSize.MIN_HUB), FeatureFlags(prefs).orbitPresence())
         flags.setOrbitPresence(OrbitPresenceSize())
         assertEquals(OrbitPresenceSize(), FeatureFlags(prefs).orbitPresence())
     }

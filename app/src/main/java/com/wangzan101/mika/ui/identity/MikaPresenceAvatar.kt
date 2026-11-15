@@ -108,7 +108,7 @@ fun MikaPresenceAvatar(
     val error = if (MikaTheme.identity == OrbitIdentityMode.Monochrome) glow else MikaTheme.colors.bad
     val surface = MikaTheme.colors.surface
     val edge = MikaTheme.colors.hair
-    val markScale = if (framed) 0.58f else 1f
+    val markScale = if (framed) 0.84f else 1f
     Box(modifier.size(40.dp), contentAlignment = Alignment.Center) {
         Canvas(Modifier.matchParentSize()) {
             val p = phase?.value ?: 0f

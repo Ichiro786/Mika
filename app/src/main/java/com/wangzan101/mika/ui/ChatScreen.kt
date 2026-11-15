@@ -133,6 +133,7 @@ import androidx.compose.ui.unit.offset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.coerceIn
 import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.MikaApp
 import com.wangzan101.mika.R
@@ -542,10 +543,9 @@ fun ChatScreen(
         }
 
         // 没有任务在跑、这个对话留着一页在后台运行时:顶栏写「后台保持着 1 个网页」;都没有时写这个对话用了多少 token
-        // (对话合计只在最后这一行,不要它时删掉这一行)
+        // The conversation token total no longer sits in the header (it crowded the orb); each turn still shows its own.
         val sub: Pair<String, ChatCopy.Tone?>? = ChatCopy.subtitle(last, last?.let(vm::livePlace))
             ?: kept?.let { ChatCopy.KEPT_PAGE to ChatCopy.Tone.Ok }
-            ?: ChatTokensCopy.conversationSubtitle(endedRuns, runMetrics)?.let { it to null }
         // Side chats and channels get a focus header: back to Main Chat, and a pill naming where you are.
         val focus = isSideChat || channel != null
         val presence = settledPresence(presenceSignal(last, voiceListening))
@@ -556,6 +556,17 @@ fun ChatScreen(
             null -> Color.Unspecified
         }
         Column(Modifier.behindMenu(menuOpen) { lift.value }.onSizeChanged { topHeight = it.height }) {
+            // Glass behind the header: messages scroll under it, blurred and dimmed, fading out below the bar.
+            // Laid out at zero height so it never pushes the header or the chat down.
+            val scrimHeight = with(LocalDensity.current) { topHeight.toDp() } + HeaderFade
+            Box(
+                Modifier.fillMaxWidth()
+                    .layout { m, cons ->
+                        val p = m.measure(cons.copy(minHeight = 0, maxHeight = androidx.compose.ui.unit.Constraints.Infinity))
+                        layout(p.width, 0) { p.place(0, 0) }
+                    }
+                    .height(scrimHeight),
+            ) { com.wangzan101.mika.ui.components.FadingGlassScrim(Modifier.fillMaxSize(), backdrop) }
             TopBar(
                 "",
                 left = if (focus) MikaIcons.Back else MikaIcons.Menu,
@@ -584,17 +595,7 @@ fun ChatScreen(
                 barHeight = if (focus) maxOf(orbitHeaderBarHeight(), 60.dp) else orbitHeaderBarHeight(hasSubtitle = sub != null),
                 subtitle = if (focus) null else sub?.first,
                 subtitleColor = subColor,
-            )
-            // Soft edge under the header: scrolled text feathers out instead of being cut on a hard line.
-            // Laid out at zero height so it never pushes the chat down.
-            val headerFade = remember(c) { Brush.verticalGradient(0f to c.bg, 1f to c.bg.copy(alpha = 0f)) }
-            Box(
-                Modifier.fillMaxWidth()
-                    .layout { m, cons ->
-                        val p = m.measure(cons.copy(minHeight = 0, maxHeight = androidx.compose.ui.unit.Constraints.Infinity))
-                        layout(p.width, 0) { p.place(0, 0) }
-                    }
-                    .height(HeaderFade).pageBackground(c.bg, headerFade),
+                background = Color.Transparent,
             )
         }
 
@@ -1918,7 +1919,7 @@ internal fun Composer(
 }
 
 /** Height of the fade under the chat header. */
-private val HeaderFade = 22.dp
+private val HeaderFade = 44.dp
 
 /** 跳转目标行高亮停留多久(毫秒)。 */
 private const val JUMP_HIGHLIGHT_MS = 1_800L
@@ -1964,7 +1965,7 @@ private fun FocusPill(state: PresenceState, title: String, status: String?, stat
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        MikaPresenceAvatar(Modifier.size(30.dp).graphicsLayer { alpha = if (hidden) 0f else 1f }, state = state, framed = true)
+        MikaPresenceAvatar(Modifier.size((orbitHeaderSize() * 0.62f).coerceIn(30.dp, 48.dp)).graphicsLayer { alpha = if (hidden) 0f else 1f }, state = state, framed = true)
         Column(Modifier.weight(1f, fill = false)) {
             Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (!status.isNullOrEmpty()) {
