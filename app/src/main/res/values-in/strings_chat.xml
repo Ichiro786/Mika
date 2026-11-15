@@ -215,7 +215,7 @@
     <string name="zoom_in">Perbesar</string>
     <string name="chat_message_actions">Opsi pesan</string>
     <string name="chat_copy">Salin</string>
-    <string name="chat_quote">Kutip</string>
+    <string name="chat_quote">Balas</string>
     <string name="chat_select_text">Pilih teks</string>
     <string name="chat_copied">Disalin</string>
     <string name="chat_branch">Cabang dari sini</string>
@@ -271,4 +271,10 @@
     </plurals>
     <string name="pip_step">Langkah %1$d</string>
     <string name="pip_swipe_hide">Geser ke bawah untuk menyembunyikan</string>
+    <string name="chat_share_message">Bagikan</string>
+    <string name="chat_react_with">Beri reaksi %1$s</string>
+    <string name="chat_reaction_yours">Anda memberi reaksi %1$s</string>
+    <string name="chat_reaction_orbit">Orbit memberi reaksi %1$s</string>
+    <string name="chat_replying_to">Membalas pesan Anda: %1$s</string>
+    <string name="chat_swipe_reply">Geser untuk membalas</string>
 </resources>

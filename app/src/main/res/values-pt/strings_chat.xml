@@ -239,7 +239,7 @@
     <string name="zoom_in">Ampliar</string>
     <string name="chat_message_actions">Opções da mensagem</string>
     <string name="chat_copy">Copiar</string>
-    <string name="chat_quote">Citar</string>
+    <string name="chat_quote">Responder</string>
     <string name="chat_select_text">Selecionar texto</string>
     <string name="chat_copied">Copiado</string>
     <string name="chat_branch">Ramificar daqui</string>
@@ -299,4 +299,10 @@
     </plurals>
     <string name="pip_step">Etapa %1$d</string>
     <string name="pip_swipe_hide">Deslize para baixo para ocultar</string>
+    <string name="chat_share_message">Compartilhar</string>
+    <string name="chat_react_with">Reagir com %1$s</string>
+    <string name="chat_reaction_yours">Você reagiu com %1$s</string>
+    <string name="chat_reaction_orbit">Orbit reagiu com %1$s</string>
+    <string name="chat_replying_to">Respondendo à sua mensagem: %1$s</string>
+    <string name="chat_swipe_reply">Deslize para responder</string>
 </resources>

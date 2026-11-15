@@ -579,6 +579,9 @@ class ConversationStore(
                 verified = field("verified")?.toBooleanStrictOrNull(),
                 remoteTaskId = field("remoteTaskId"),
                 outcomeSystemType = field("outcomeSystemType"),
+                reaction = field("reaction"),
+                orbitReaction = field("orbitReaction"),
+                replyTo = field("replyTo"),
             )
             turn to (o["files"] as? JsonArray).orEmpty().mapNotNull(::fileOf)
         }
@@ -644,6 +647,9 @@ class ConversationStore(
                 it.verified?.let { v -> put("verified", v) }
                 it.remoteTaskId?.let { id -> put("remoteTaskId", id) }
                 it.outcomeSystemType?.let { type -> put("outcomeSystemType", type) }
+                it.reaction?.let { r -> put("reaction", r) }
+                it.orbitReaction?.let { r -> put("orbitReaction", r) }
+                it.replyTo?.let { r -> put("replyTo", r) }
                 // 只存种类和编号:记忆内容只在加密的记忆文件里,界面现取
                 if (it.memoryNotes.isNotEmpty()) put("memoryNotes", JsonArray(it.memoryNotes.map { n ->
                     buildJsonObject {

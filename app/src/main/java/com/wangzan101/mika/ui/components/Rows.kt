@@ -36,6 +36,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaColors
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -124,14 +127,54 @@ fun ListRow(
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
         if (icon != null) IconTile(icon, tone, tint)
-        Column(Modifier.weight(1f).padding(vertical = 11.dp)) {
-            Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink })
-            if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
-            if (!detail.isNullOrEmpty()) Text(detail, Modifier.padding(top = 2.dp), style = MikaType.Hint, color = detailColor.takeOrElse { c.ink3 })
-        }
-        trailing()
+        TextAndTrailing(
+            text = {
+                Column(Modifier.padding(vertical = 11.dp)) {
+                    Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink }, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
+                    if (!detail.isNullOrEmpty()) Text(detail, Modifier.padding(top = 2.dp), style = MikaType.Hint, color = detailColor.takeOrElse { c.ink3 })
+                }
+            },
+            trailing = trailing,
+        )
     }
 }
+
+/**
+ * The text column and the row's trailing items (value, pill, switch, chevron). The trailing part is measured
+ * first but never gets more than [TrailingShare] of the room, so a long value ellipsizes instead of squeezing
+ * the title and subtitle into one word per line; the text takes everything else.
+ */
+@Composable
+private fun RowScope.TextAndTrailing(text: @Composable () -> Unit, trailing: @Composable RowScope.() -> Unit) {
+    Layout(
+        content = {
+            Box { text() }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { trailing() }
+        },
+        modifier = Modifier.weight(1f),
+    ) { measurables, constraints ->
+        val gap = 12.dp.roundToPx()
+        if (!constraints.hasBoundedWidth) {
+            val t = measurables[1].measure(Constraints(maxHeight = constraints.maxHeight))
+            val b = measurables[0].measure(Constraints(maxHeight = constraints.maxHeight))
+            val h = maxOf(b.height, t.height, constraints.minHeight)
+            val w = b.width + (if (t.width > 0) gap else 0) + t.width
+            return@Layout layout(w, h) { b.place(0, (h - b.height) / 2); t.place(w - t.width, (h - t.height) / 2) }
+        }
+        val width = constraints.maxWidth
+        val tail = measurables[1].measure(Constraints(maxWidth = (width * TrailingShare).toInt(), maxHeight = constraints.maxHeight))
+        val textWidth = (width - tail.width - if (tail.width > 0) gap else 0).coerceAtLeast(0)
+        val body = measurables[0].measure(Constraints(minWidth = textWidth, maxWidth = textWidth, maxHeight = constraints.maxHeight))
+        val height = maxOf(body.height, tail.height, constraints.minHeight)
+        layout(width, height) {
+            body.place(0, (height - body.height) / 2)
+            tail.place(width - tail.width, (height - tail.height) / 2)
+        }
+    }
+}
+
+private const val TrailingShare = 0.4f
 
 enum class ValueTone { Plain, Ok, Warn, Bad, Link }
 
@@ -150,6 +193,7 @@ fun RowValue(text: String, tone: ValueTone = ValueTone.Plain) {
             ValueTone.Link -> c.accent
         },
         maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
@@ -184,12 +228,16 @@ fun RadioRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         RadioMark(selected, enabled)
-        Column(Modifier.weight(1f).padding(vertical = 9.dp)) {
-            Text(title, style = titleStyle, color = if (enabled) c.ink else c.ink3)
-            if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
-            if (below != null) Box(Modifier.padding(top = 4.dp)) { below() }
-        }
-        trailing()
+        TextAndTrailing(
+            text = {
+                Column(Modifier.padding(vertical = 9.dp)) {
+                    Text(title, style = titleStyle, color = if (enabled) c.ink else c.ink3)
+                    if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
+                    if (below != null) Box(Modifier.padding(top = 4.dp)) { below() }
+                }
+            },
+            trailing = trailing,
+        )
     }
 }
 

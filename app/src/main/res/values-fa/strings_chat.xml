@@ -194,7 +194,7 @@
     <string name="zoom_in">بزرگ‌نمایی</string>
     <string name="chat_message_actions">گزینه‌های پیام</string>
     <string name="chat_copy">کپی</string>
-    <string name="chat_quote">نقل‌قول</string>
+    <string name="chat_quote">پاسخ</string>
     <string name="chat_select_text">انتخاب متن</string>
     <string name="chat_copied">کپی شد</string>
     <string name="chat_branch">ایجاد شاخه از اینجا</string>
@@ -285,4 +285,10 @@
     </plurals>
     <string name="pip_step">مرحله %1$d</string>
     <string name="pip_swipe_hide">برای پنهان کردن به پایین بکشید</string>
+    <string name="chat_share_message">اشتراک‌گذاری</string>
+    <string name="chat_react_with">واکنش با %1$s</string>
+    <string name="chat_reaction_yours">با %1$s واکنش دادی</string>
+    <string name="chat_reaction_orbit">Orbit با %1$s واکنش داد</string>
+    <string name="chat_replying_to">در پاسخ به پیامت: %1$s</string>
+    <string name="chat_swipe_reply">برای پاسخ بکشید</string>
 </resources>

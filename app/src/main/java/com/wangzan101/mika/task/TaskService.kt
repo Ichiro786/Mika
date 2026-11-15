@@ -686,8 +686,9 @@ class TaskService : Service() {
         val goal = run.triggerCondition ?: run.goal
         val turn = when (end) {
             // 没核对过的(聊天、回答里没有可核对的值)和核实过的一样记成 succeeded;核对过却没能核实的才记 unverified
-            is TaskState.Succeeded -> if (end.doubtful) Turn(goal, end.answer, "unverified", end.note, unconfirmed = end.unconfirmed, verified = false)
-                else Turn(goal, end.answer, "succeeded", verified = end.verified.takeIf { end.reviewed })
+            is TaskState.Succeeded -> (if (end.doubtful) Turn(goal, end.answer, "unverified", end.note, unconfirmed = end.unconfirmed, verified = false)
+                else Turn(goal, end.answer, "succeeded", verified = end.verified.takeIf { end.reviewed }))
+                .copy(orbitReaction = end.react, replyTo = end.replyTo)
             is TaskState.Failed -> Turn(goal, end.reason, "failed")
             TaskState.Cancelled -> Turn(goal, Conversation.CANCELLED_OUTCOME, "cancelled", outcomeSystemType = "task_cancelled")
             else -> return
