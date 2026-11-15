@@ -10,9 +10,27 @@ val gitHash: String = runCatching {
     providers.exec { commandLine("git", "rev-parse", "--short=7", "HEAD") }.standardOutput.asText.get().trim()
 }.getOrNull()?.takeIf { it.isNotEmpty() } ?: "dev"
 
+// Test builds count up with each commit (minutes since 2026-01-01 by commit time), so every new APK
+// installs over the last one. Release keeps the version in defaultConfig.
+val debugVersionCode: Int = runCatching {
+    val at = providers.exec { commandLine("git", "log", "-1", "--format=%ct") }.standardOutput.asText.get().trim().toLong()
+    ((at - 1_767_225_600L) / 60L).toInt().coerceAtLeast(1_000)
+}.getOrNull() ?: 1_000
+
 android {
     namespace = "com.wangzan101.mika"
     compileSdk = 36
+
+    // One fixed debug key for every machine and CI run, so test APKs update in place and keep their data.
+    // Debug only: it is public on purpose and never signs a release.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("app/signing/orbit-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.wangzan101.mika"
@@ -142,4 +160,10 @@ dependencies {
 // LicensesTest 读仓库的 licenses/THIRD_PARTY_NOTICES.md:让它参与测试的增量判断
 tasks.withType<Test>().configureEach {
     inputs.file(rootProject.file("licenses/THIRD_PARTY_NOTICES.md")).withPropertyName("thirdPartyNotices")
+}
+
+androidComponents {
+    onVariants(selector().withBuildType("debug")) { variant ->
+        variant.outputs.forEach { it.versionCode.set(debugVersionCode) }
+    }
 }
