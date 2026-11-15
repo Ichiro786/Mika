@@ -986,7 +986,15 @@ class AgentLoop(
      * 核对没对上:能退回([history] 不为 null,而且本任务还没退回过)就提醒模型一次、返回 null 接着做;
      * 否则照样交出,没对上的几处标成未确认。[facts] 是核对要看的任务情况(见 [ReviewFacts])。
      */
-    private suspend fun conclude(task: String, answer: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
+    private suspend fun conclude(task: String, raw: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
+        val markup = AnswerMarkup.parse(raw)
+        // A reaction or quote line alone isn't an answer: keep the original text so nothing is lost
+        val answer = markup.body.ifBlank { raw }
+        val end = concludeAnswer(task, answer, step, facts, history)
+        return if (end is TaskState.Succeeded && markup.body.isNotBlank()) end.copy(react = markup.react, replyTo = markup.replyTo) else end
+    }
+
+    private suspend fun concludeAnswer(task: String, answer: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
         if (!reviewFinalAnswer) {
             val sources = review.sourcesOnly(task, answer, media)
             if (sources.isNotEmpty()) emit(RunEvent.Sources(now(), sources))

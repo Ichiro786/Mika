@@ -215,7 +215,7 @@
     <string name="zoom_in">拡大</string>
     <string name="chat_message_actions">メッセージのオプション</string>
     <string name="chat_copy">コピー</string>
-    <string name="chat_quote">引用</string>
+    <string name="chat_quote">返信</string>
     <string name="chat_select_text">テキストを選択</string>
     <string name="chat_copied">コピーしました</string>
     <string name="chat_branch">ここから分岐</string>
@@ -271,4 +271,10 @@
     </plurals>
     <string name="pip_step">ステップ %1$d</string>
     <string name="pip_swipe_hide">下にスワイプして隠す</string>
+    <string name="chat_share_message">共有</string>
+    <string name="chat_react_with">%1$s でリアクション</string>
+    <string name="chat_reaction_yours">%1$s でリアクションしました</string>
+    <string name="chat_reaction_orbit">Orbit が %1$s でリアクション</string>
+    <string name="chat_replying_to">あなたのメッセージへの返信: %1$s</string>
+    <string name="chat_swipe_reply">スワイプして返信</string>
 </resources>

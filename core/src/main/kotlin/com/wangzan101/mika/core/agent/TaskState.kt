@@ -66,6 +66,8 @@ sealed interface TaskState {
         val answer: String, val verified: Boolean = true, val note: String? = null,
         val sources: List<AnswerSource> = emptyList(), val unconfirmed: List<String> = emptyList(),
         val reviewed: Boolean = true,
+        /** Orbit's reaction to the user's message and the earlier user message it quotes ([AnswerMarkup]); null when none. */
+        val react: String? = null, val replyTo: String? = null,
     ) : Terminal {
         /** 核对过却没能核实(界面标出、评测记成 unverified)。 */
         val doubtful: Boolean get() = reviewed && !verified

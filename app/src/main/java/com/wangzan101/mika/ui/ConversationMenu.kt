@@ -129,6 +129,8 @@ internal fun LongPressMenu(
     entries: List<MenuEntry>,
     onDismiss: () -> Unit,
     alignEnd: Boolean = false,
+    /** Sits just above the lifted row, like the reaction bar over a long-pressed message; null for none. */
+    header: (@Composable () -> Unit)? = null,
     lifted: @Composable () -> Unit,
 ) {
     val c = MikaTheme.colors
@@ -147,6 +149,7 @@ internal fun LongPressMenu(
                     MenuItem(e.text, e.icon, e.tag, e.color ?: c.ink, e.onClick)
                 }
             }
+            if (header != null) Box { header() }
         },
         modifier = Modifier.fillMaxSize()
             .drawBehind { drawRect(dim.copy(alpha = dim.alpha * progress())) }
@@ -164,15 +167,28 @@ internal fun LongPressMenu(
         val lifted = measurables[0].measure(Constraints(minWidth = rowW, maxWidth = rowW, maxHeight = (h / 2).coerceAtLeast(0)))
         val menuW = min(MenuWidth.roundToPx(), w).coerceAtLeast(0)
         val menu = measurables[1].measure(Constraints(minWidth = menuW, maxWidth = menuW, maxHeight = h))
+        val head = measurables.getOrNull(2)?.measure(Constraints(maxWidth = w, maxHeight = h))
+        // The header rides with the row: the two are placed as one block so neither covers the other
+        val headRoom = head?.let { it.height + MenuGap.roundToPx() } ?: 0
         layout(w, h) {
             // 那一行的位置是窗口坐标;这一层不一定从窗口左上角开始(没有铺到系统栏底下时)
             val origin = coordinates?.positionInWindow() ?: Offset.Zero
             val top = max(0f, insets.getTop(this@Layout) - origin.y)
             val bottom = min(h.toFloat(), view.rootView.height - insets.getBottom(this@Layout) - origin.y)
-            val at = placeMenu(bounds.top - origin.y, lifted.height.toFloat(), menu.height.toFloat(), MenuGap.toPx(), top, bottom)
+            val at = placeMenu(bounds.top - origin.y - headRoom, lifted.height.toFloat() + headRoom, menu.height.toFloat(), MenuGap.toPx(), top, bottom)
             val x = (bounds.left - origin.x).roundToInt()
             val menuX = (if (alignEnd) x + rowW - menuW else x).coerceIn(0, max(0, w - menuW))
-            lifted.placeWithLayer(x, at.rowTop.roundToInt()) {
+            head?.let { hp ->
+                val hx = (if (alignEnd) x + rowW - hp.width else x).coerceIn(0, max(0, w - hp.width))
+                hp.placeWithLayer(hx, at.rowTop.roundToInt()) {
+                    val p = progress()
+                    alpha = p
+                    scaleX = 0.85f + 0.15f * p
+                    scaleY = scaleX
+                    transformOrigin = TransformOrigin(if (alignEnd) 1f else 0f, 1f)
+                }
+            }
+            lifted.placeWithLayer(x, at.rowTop.roundToInt() + headRoom) {
                 scaleX = 1f + LiftScale * progress()
                 scaleY = scaleX
             }

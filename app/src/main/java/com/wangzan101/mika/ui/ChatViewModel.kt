@@ -27,6 +27,7 @@ import com.wangzan101.mika.confirm.ConfirmationCopy
 import com.wangzan101.mika.confirm.ConfirmationNotifier
 import com.wangzan101.mika.core.agent.AttachmentLines
 import com.wangzan101.mika.core.agent.Conversation
+import com.wangzan101.mika.core.agent.AnswerMarkup
 import com.wangzan101.mika.core.agent.QuoteMessage
 import com.wangzan101.mika.core.agent.TaskState
 import com.wangzan101.mika.task.TaskGate
@@ -208,6 +209,12 @@ data class Exchange(
     val stepActions: Map<Int, List<StepAction>> = emptyMap(),
     /** Current task state names a tool being handled. */
     val toolRunning: Boolean = false,
+    /** The user's reaction to Orbit's reply; null when none. */
+    val reaction: String? = null,
+    /** Orbit's reaction to the user's message; null when none. */
+    val orbitReaction: String? = null,
+    /** The earlier user message Orbit's reply quotes; null when none. */
+    val replyTo: String? = null,
 )
 
 /** 在跑时的一行进展:等你时说等什么;模型请求在途时只给中性状态;否则是这一步的话,没有就是最近做的事。 */
@@ -1038,6 +1045,26 @@ class ChatViewModel(
     }
 
     fun clearQuote() = _ui.update { it.copy(quote = null) }
+
+    /**
+     * The user reacts to Orbit's reply in the exchange with [runId]; the same emoji again takes it back. Kept in the
+     * conversation, so the next turn's context tells Orbit how that reply landed.
+     */
+    fun react(runId: String, emoji: String) {
+        val id = _ui.value.conversationId ?: return
+        val picked = AnswerMarkup.reaction(emoji) ?: return
+        var next: String? = null
+        _ui.update { ui ->
+            ui.copy(exchanges = ui.exchanges.map { ex ->
+                if (ex.runId != runId) ex else {
+                    next = if (ex.reaction == picked) null else picked
+                    ex.copy(reaction = next)
+                }
+            })
+        }
+        val value = next
+        scope.launch(io) { runCatching { store.updateTurn(id, runId) { it.copy(reaction = value) } } }
+    }
 
     /** 发送输入框里的话;有引用时引用写在话的前面(见 [QuoteMessage]),发出去后清掉。返回 false 表示没发出去(条件不满足,或任务在跑)。 */
     fun send(text: String, check: Prerequisites.Check): Boolean {
@@ -2207,7 +2234,7 @@ class ChatViewModel(
                 val said = (s.narration ?: s.reason)?.takeIf(String::isNotBlank)
                 val waiting = progress == null && s.tool == null && said == null
                 ex.copy(
-                    status = ExchangeStatus.Working, waitingForModel = waiting, draft = s.preview,
+                    status = ExchangeStatus.Working, waitingForModel = waiting, draft = s.preview?.let(AnswerMarkup::strip),
                     line = if (waiting) "" else progress ?: said.orEmpty(),
                     notes = if (s.step > 0 && said != null) ex.notes + (s.step to said) else ex.notes,
                 )
@@ -2234,7 +2261,7 @@ class ChatViewModel(
             )
             // 回答原样显示(不再有模型写的依据段);来源由运行记录里代码记下的那份给出
             is TaskState.Succeeded -> ex.copy(status = ExchangeStatus.Done(s.answer.trim(), null, s.verified, s.note, s.unconfirmed, s.reviewed),
-                waitingForModel = false, draft = null, line = "")
+                waitingForModel = false, draft = null, line = "", orbitReaction = s.react, replyTo = s.replyTo)
             is TaskState.Failed -> ex.copy(status = ExchangeStatus.Failed(s.reason), waitingForModel = false, draft = null, line = "")
             TaskState.Cancelled -> ex.copy(status = ExchangeStatus.Cancelled(), waitingForModel = false, draft = null, line = "")
         }
@@ -2295,6 +2322,7 @@ class ChatViewModel(
             return Exchange(t.userText, emptyList(), status, live = false, runId = t.runId,
                 memoryNotes = t.memoryNotes, usedMemory = t.usedMemory, skillNotes = t.skillNotes,
                 keptPage = t.keptPage, keptPageClosed = t.keptPageClosed,
+                reaction = t.reaction, orbitReaction = t.orbitReaction, replyTo = t.replyTo,
                 steers = t.steers.mapIndexed { i, text ->
                     SteerNote("turn-$i", text, SteerState.Joined, t.interruptedReplies.getOrNull(i)?.takeIf(String::isNotEmpty),
                         t.finishedReplies.getOrNull(i)?.takeIf(String::isNotEmpty))

@@ -251,7 +251,7 @@
     <string name="zoom_in">Увеличить</string>
     <string name="chat_message_actions">Действия с сообщением</string>
     <string name="chat_copy">Копировать</string>
-    <string name="chat_quote">Цитировать</string>
+    <string name="chat_quote">Ответить</string>
     <string name="chat_select_text">Выделить текст</string>
     <string name="chat_copied">Скопировано</string>
     <string name="chat_branch">Ответвить отсюда</string>
@@ -313,4 +313,10 @@
     </plurals>
     <string name="pip_step">Шаг %1$d</string>
     <string name="pip_swipe_hide">Смахните вниз, чтобы скрыть</string>
+    <string name="chat_share_message">Поделиться</string>
+    <string name="chat_react_with">Реакция %1$s</string>
+    <string name="chat_reaction_yours">Ваша реакция: %1$s</string>
+    <string name="chat_reaction_orbit">Реакция Orbit: %1$s</string>
+    <string name="chat_replying_to">Ответ на ваше сообщение: %1$s</string>
+    <string name="chat_swipe_reply">Смахните, чтобы ответить</string>
 </resources>

@@ -215,7 +215,7 @@
     <string name="zoom_in">확대</string>
     <string name="chat_message_actions">메시지 옵션</string>
     <string name="chat_copy">복사</string>
-    <string name="chat_quote">인용</string>
+    <string name="chat_quote">답장</string>
     <string name="chat_select_text">텍스트 선택</string>
     <string name="chat_copied">복사했어요</string>
     <string name="chat_branch">여기서 분기</string>
@@ -271,4 +271,10 @@
     </plurals>
     <string name="pip_step">%1$d단계</string>
     <string name="pip_swipe_hide">아래로 밀어서 숨기기</string>
+    <string name="chat_share_message">공유</string>
+    <string name="chat_react_with">%1$s 반응하기</string>
+    <string name="chat_reaction_yours">%1$s 반응함</string>
+    <string name="chat_reaction_orbit">Orbit이 %1$s 반응함</string>
+    <string name="chat_replying_to">내 메시지에 대한 답장: %1$s</string>
+    <string name="chat_swipe_reply">밀어서 답장</string>
 </resources>

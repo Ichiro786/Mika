@@ -130,6 +130,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.offset
+import androidx.compose.foundation.layout.offset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -429,6 +430,9 @@ fun ChatScreen(
             val canEdit = input.isBlank() && ui.quote == null && ui.attachments.isEmpty() && !ui.importing
             val branchTurn = vm.branchTurn(m.key)
             val retryTurn = vm.retryTurn(m.key)
+            // Orbit's finished reply in an exchange (key "r<index>") takes a reaction
+            val reactable = m.key.takeIf { m.from == QuoteMessage.From.Mika && it.startsWith("r") }?.drop(1)?.toIntOrNull()
+                ?.let(ui.exchanges::getOrNull)?.takeIf { it.status is ExchangeStatus.Done && it.runId != null }
             MessageActions(
                 copy = { closeMenu { copyMessage(context, m.text) } },
                 quote = { closeMenu { vm.quote(m.from, m.text) } },
@@ -485,10 +489,15 @@ fun ChatScreen(
                     vm.editSteer(pending.id)?.let { editRequest++ }
                 } }) else null,
                 withdraw = pending?.let { n -> ({ closeMenu { vm.withdrawSteer(n.id) } }) },
+                share = { closeMenu { shareMessage(context, m.text) } },
+                react = reactable?.runId?.let { runId -> { emoji: String -> closeMenu { vm.react(runId, emoji) } } },
+                reaction = reactable?.reaction,
             )
     }
     val currentActions by rememberUpdatedState(actionsFor)
-    val menuHost = remember(selecting) { MessageMenuHost(selecting, actions = { currentActions(it) }) { menu = it } }
+    val menuHost = remember(selecting) {
+        MessageMenuHost(selecting, actions = { currentActions(it) }, reply = { vm.quote(it.from, it.text) }) { menu = it }
+    }
     val menuOpen = menu != null
     PageBackground {
         CompositionLocalProvider(LocalMessageMenu provides menuHost) {
@@ -711,6 +720,7 @@ fun ChatScreen(
                 m, progress = { lift.value },
                 onCopy = a.copy, onQuote = a.quote, onSelect = a.select, onDismiss = { closeMenu() },
                 onBranch = a.branch, onBranchRetry = a.branchRetry, onEdit = a.edit, onWithdraw = a.withdraw,
+                onShare = a.share, onReact = a.react, reaction = a.reaction,
             )
         }
     }
@@ -876,7 +886,15 @@ private fun LazyListScope.exchange(
     recover: (Boolean) -> Unit = {},
 ) {
     if (ex.goal.isNotEmpty()) item("u$index") {
-        JumpHighlight(highlightKey == "u$index", reduceMotion) { UserBubble(ex.goal, conversationId, key = "u$index") }
+        JumpHighlight(highlightKey == "u$index", reduceMotion) {
+            Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
+                UserBubble(ex.goal, conversationId, key = "u$index")
+                ex.orbitReaction?.let { emoji ->
+                    ReactionBadge(emoji, stringResource(R.string.chat_reaction_orbit, emoji),
+                        Modifier.padding(end = 10.dp).offset(y = (-8).dp))
+                }
+            }
+        }
     }
     val paused = ex.status is ExchangeStatus.Paused || ex.status is ExchangeStatus.WaitingUnlock ||
         ex.status is ExchangeStatus.NeedsTakeover || ex.status is ExchangeStatus.NeedsConfirmation ||
@@ -921,7 +939,17 @@ private fun LazyListScope.exchange(
     waiting.forEach(::steer)
     item("r$index") {
         JumpHighlight(highlightKey == "r$index", reduceMotion) {
-            StatusCard(ex.status, stage, vm, ex.runId, loadSource, openSource, "r$index", recover)
+            val done = ex.status is ExchangeStatus.Done
+            Column(Modifier.fillMaxWidth()) {
+                if (done) ex.replyTo?.let { quoted -> RepliedTo(quoted) }
+                StatusCard(ex.status, stage, vm, ex.runId, loadSource, openSource, "r$index", recover)
+                if (done) ex.reaction?.let { emoji ->
+                    ReactionBadge(emoji, stringResource(R.string.chat_reaction_yours, emoji),
+                        Modifier.padding(start = 10.dp).offset(y = (-18).dp).clickable(role = Role.Button) {
+                            ex.runId?.let { vm.react(it, emoji) }
+                        })
+                }
+            }
         }
     }
     // 这一轮结束后留在后台运行的那一页:还开着是绿色一行(能关),关了是一句原因
@@ -1132,6 +1160,23 @@ private fun InterruptedReply(text: String) {
     Column(Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
         MarkdownText(text, AnswerText.copy(color = MikaTheme.colors.ink2), Modifier.fillMaxWidth().answerSurface(), streaming = false)
         Text(stringResource(R.string.steer_interrupted_reply), Modifier.padding(top = 3.dp, start = 4.dp), style = MikaType.Hint, color = MikaTheme.colors.ink3)
+    }
+}
+
+/** The user's earlier message Orbit's reply quotes: a slim line above the answer, like a reply in a messenger. */
+@Composable
+private fun RepliedTo(text: String) {
+    val c = MikaTheme.colors
+    val said = stringResource(R.string.chat_replying_to, text)
+    Row(
+        Modifier.padding(bottom = 4.dp).fillMaxWidth(0.85f).background(c.ink.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 6.dp)
+            .semantics(mergeDescendants = true) { contentDescription = said }
+            .testTag("replied-to"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Box(Modifier.width(2.dp).height(16.dp).background(MikaTheme.userBubble.bg, CircleShape))
+        Text(text, Modifier.padding(start = 8.dp), style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 

@@ -275,7 +275,7 @@
     <string name="zoom_in">تكبير</string>
     <string name="chat_message_actions">خيارات الرسالة</string>
     <string name="chat_copy">نسخ</string>
-    <string name="chat_quote">اقتباس</string>
+    <string name="chat_quote">رد</string>
     <string name="chat_select_text">تحديد النص</string>
     <string name="chat_copied">تم النسخ</string>
     <string name="chat_branch">إنشاء فرع من هنا</string>
@@ -341,4 +341,10 @@
     </plurals>
     <string name="pip_step">الخطوة %1$d</string>
     <string name="pip_swipe_hide">اسحب للأسفل للإخفاء</string>
+    <string name="chat_share_message">مشاركة</string>
+    <string name="chat_react_with">تفاعل بـ %1$s</string>
+    <string name="chat_reaction_yours">تفاعلت بـ %1$s</string>
+    <string name="chat_reaction_orbit">تفاعل Orbit بـ %1$s</string>
+    <string name="chat_replying_to">ردًا على رسالتك: %1$s</string>
+    <string name="chat_swipe_reply">اسحب للرد</string>
 </resources>

@@ -227,7 +227,7 @@
     <string name="zoom_in">Zoom in</string>
     <string name="chat_message_actions">Message options</string>
     <string name="chat_copy">Copy</string>
-    <string name="chat_quote">Quote</string>
+    <string name="chat_quote">Reply</string>
     <string name="chat_select_text">Select text</string>
     <string name="chat_copied">Copied</string>
     <string name="chat_branch">Branch from here</string>
@@ -285,4 +285,10 @@
     </plurals>
     <string name="pip_step">Step %1$d</string>
     <string name="pip_swipe_hide">Swipe down to hide</string>
+    <string name="chat_share_message">Share</string>
+    <string name="chat_react_with">React with %1$s</string>
+    <string name="chat_reaction_yours">You reacted %1$s</string>
+    <string name="chat_reaction_orbit">Orbit reacted %1$s</string>
+    <string name="chat_replying_to">Replying to your message: %1$s</string>
+    <string name="chat_swipe_reply">Swipe to reply</string>
 </resources>
