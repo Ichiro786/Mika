@@ -99,8 +99,8 @@ internal object SetAlarm : PhoneTool {
         val time = time(r) ?: return emptyList()
         val check = (r.content["check"] as? JsonPrimitive)?.contentOrNull
         val by = (r.content["handledBy"] as? JsonPrimitive)?.contentOrNull
-        val tail = if (check == AlarmCheck.Status.VERIFIED.wire) ",系统报的下一个闹钟就是它" else ",系统没报出它(未核实)"
-        return listOf(Observation(ObsKind.Fact, "$name 把 $time 的闹钟交给了 ${by ?: "时钟 App"}$tail", source = PHONE))
+        val tail = if (check == AlarmCheck.Status.VERIFIED.wire) "; the next alarm reported by the system is this one" else "; the system did not report it (unverified)"
+        return listOf(Observation(ObsKind.Fact, "$name handed the $time alarm to ${by ?: "the clock app"}$tail", source = PHONE))
     }
 }
 
@@ -132,7 +132,7 @@ internal object SetTimer : PhoneTool {
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (r.content["ok"] != JsonPrimitive(true)) return emptyList()
         val by = (r.content["handledBy"] as? JsonPrimitive)?.contentOrNull
-        return listOf(Observation(ObsKind.Fact, "$name 把 ${seconds(o)} 的计时器交给了 ${by ?: "时钟 App"}", source = PHONE))
+        return listOf(Observation(ObsKind.Fact, "$name handed the ${seconds(o)} timer to ${by ?: "the clock app"}", source = PHONE))
     }
 }
 
@@ -192,7 +192,7 @@ internal object AddCalendarEvent : PhoneTool {
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (r.content["ok"] != JsonPrimitive(true)) return emptyList()
         val by = (r.content["handledBy"] as? JsonPrimitive)?.contentOrNull ?: return emptyList()
-        return listOf(Observation(ObsKind.Fact, "$name 打开了 $by 的新日程页(还没保存)", source = PHONE))
+        return listOf(Observation(ObsKind.Fact, "$name opened the new-event page of $by (not saved yet)", source = PHONE))
     }
 }
 
@@ -253,13 +253,13 @@ internal object BulkAddCalendarEvents : PhoneTool {
         val first = (events.firstOrNull() as? JsonObject)?.get("title")?.let {
             (it as? JsonPrimitive)?.contentOrNull
         }
-        return listOfNotNull("${events.size} 条", first).joinToString(" · ")
+        return listOfNotNull("${events.size} events", first).joinToString(" · ")
     }
 
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (r.content["ok"] != JsonPrimitive(true)) return emptyList()
         val count = (r.content["inserted"] as? JsonPrimitive)?.contentOrNull ?: return emptyList()
-        return listOf(Observation(ObsKind.Fact, "日历提供方已确认保存 $count 条日程", source = PHONE))
+        return listOf(Observation(ObsKind.Fact, "The calendar provider confirmed saving $count event(s)", source = PHONE))
     }
 
     private fun eventId(uri: String): String? =

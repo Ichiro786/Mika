@@ -66,12 +66,14 @@ sealed interface TaskState {
         val answer: String, val verified: Boolean = true, val note: String? = null,
         val sources: List<AnswerSource> = emptyList(), val unconfirmed: List<String> = emptyList(),
         val reviewed: Boolean = true,
+        /** Orbit's reaction to the user's message and the earlier user message it quotes ([AnswerMarkup]); null when none. */
+        val react: String? = null, val replyTo: String? = null,
     ) : Terminal {
         /** 核对过却没能核实(界面标出、评测记成 unverified)。 */
         val doubtful: Boolean get() = reviewed && !verified
     }
     /** [kind] 由产生失败的代码自己给出,不从 [reason] 文字里猜。 */
-    data class Failed(val reason: String, val kind: FailKind) : Terminal
+    data class Failed(val reason: String, val kind: FailKind, val code: FailureCode? = null) : Terminal
     data object Cancelled : Terminal
 }
 
@@ -91,6 +93,9 @@ data class GateReason(val code: String, val why: String = "", val resumable: Boo
         fun queued(why: String) = GateReason(QUEUED, why)
     }
 }
+
+/** 程序生成的失败原因，供界面选择对应的本地化文案。 */
+enum class FailureCode { ModelRateLimited }
 
 /** 任务失败的来源。 */
 enum class FailKind {

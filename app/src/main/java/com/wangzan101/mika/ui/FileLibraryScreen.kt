@@ -9,6 +9,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -352,11 +353,12 @@ internal fun FileLibraryScreen(
                 )
                 Column(Modifier.padding(horizontal = 16.dp)) {
                     SearchField(query, { query = it }, stringResource(R.string.file_library_search), Modifier.testTag("file-library-search"))
+                    // The filters scroll sideways instead of splitting the width, so neither label is cut short.
                     Row(
-                        Modifier.fillMaxWidth().padding(top = 10.dp, bottom = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 10.dp, bottom = 10.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        val pillMaxWidth = ((LocalConfiguration.current.screenWidthDp.dp - 32.dp - 10.dp) / 2).coerceAtLeast(120.dp)
+                        val pillMaxWidth = (LocalConfiguration.current.screenWidthDp.dp * 0.7f).coerceAtLeast(160.dp)
                         LibraryFilterPill(
                             label = conversationLabel,
                             active = conversation != null,
@@ -694,8 +696,8 @@ private fun LibraryFilterPill(
     Box(modifier) {
         Row(
             Modifier.heightIn(min = 40.dp).clip(shape)
-                .border(1.dp, if (active || expanded) c.accent.copy(alpha = 0.55f) else c.edge, shape)
-                .background(if (expanded) c.fill else Color.Transparent)
+                .background(if (active) c.accent.copy(alpha = 0.14f) else c.fill)
+                .border(1.dp, if (active || expanded) c.accent.copy(alpha = 0.55f) else c.hair, shape)
                 .clickable(role = Role.Button, onClick = onToggle)
                 .padding(start = 14.dp, end = 10.dp),
             verticalAlignment = Alignment.CenterVertically,

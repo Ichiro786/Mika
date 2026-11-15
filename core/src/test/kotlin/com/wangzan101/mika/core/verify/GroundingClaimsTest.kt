@@ -73,7 +73,7 @@ class GroundingClaimsTest {
         val detail = listOf("标题:为什么秋天的天空特别蓝\n作者 小王")
         assertEquals(false, Grounding.found("文章标题", "标题:「秋天为什么容易犯困」\n依据: 详情页", detail))
         assertEquals(true, Grounding.found("文章标题", "标题:「为什么秋天的天空特别蓝」\n依据: 详情页", detail))
-        assertTrue(Verifier.PROMPT, "名称、标题" in Verifier.PROMPT)
+        assertTrue(Verifier.PROMPT, "a number, name, title, status" in Verifier.PROMPT)
         // 回答自己的结构(「结论:」)不是屏上的字段
         assertEquals(true, Grounding.found("热榜第一", "结论:第一条最热,是「为什么秋天的天空特别蓝」\n依据: 热榜页", listOf(hot)))
     }

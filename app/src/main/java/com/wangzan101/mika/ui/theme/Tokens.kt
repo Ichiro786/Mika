@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.sp
 /** 字号与字重。只定大小、字重、行高,颜色由用的地方给。 */
 object MikaType {
     /** 大标题:空状态、欢迎页。 */
-    val LargeTitle = TextStyle(fontSize = 28.sp, lineHeight = 35.sp, fontWeight = FontWeight.Bold)
+    val LargeTitle = TextStyle(fontSize = 32.sp, lineHeight = 40.sp, fontWeight = FontWeight.Bold)
     /** 页面标题:顶栏。 */
     val Title = TextStyle(fontSize = 17.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold)
     /** 正文、行标题。 */
@@ -35,6 +35,7 @@ object MikaSpace {
     val S16 = 16.dp
     val S20 = 20.dp
     val S24 = 24.dp
+    val S32 = 32.dp
     val Page = 16.dp
 }
 
@@ -42,6 +43,8 @@ object MikaSpace {
 object MikaSize {
     val TopBar = 56.dp
     val IconButton = 40.dp
+    /** Minimum touch target for icon-only buttons (Android accessibility guidance). */
+    val TouchTarget = 48.dp
     val RowMin = 52.dp
     val Button = 52.dp
     val Composer = 52.dp
@@ -56,10 +59,10 @@ object MikaSize {
 
 /** 圆角。 */
 object MikaRadius {
-    val Card = 16.dp
+    val Card = 20.dp
     val Bubble = 20.dp
     val BubbleTail = 6.dp
-    val Button = 14.dp
+    val Button = 20.dp
     val Tile = 9.dp
 }
 

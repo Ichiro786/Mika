@@ -41,8 +41,9 @@ class StringResourcesTest {
 
     @Test
     fun everyStringHasBothLanguages() {
-        assertEquals(en.strings.keys - fixed, zh.strings.keys)
-        assertEquals(en.plurals.keys, zh.plurals.keys)
+        // Chinese is no longer shipped; the test-only copy may lag behind English but must not hold unknown keys.
+        assertTrue((zh.strings.keys - en.strings.keys).isEmpty())
+        assertTrue((zh.plurals.keys - en.plurals.keys).isEmpty())
         assertTrue(en.strings.size > 300)
     }
 
@@ -132,14 +133,10 @@ class StringResourcesTest {
         fun of(tag: String?) = AppLanguage.fromTag(tag, likely)
         assertEquals(AppLanguage.System, of(null))
         assertEquals(AppLanguage.System, of(""))
-        // 以前选「中文」存下的是 zh-Hans
-        assertEquals(AppLanguage.SimplifiedChinese, of("zh-Hans"))
-        assertEquals(AppLanguage.TraditionalChinese, of("zh-Hant"))
-        assertEquals(AppLanguage.SimplifiedChinese, of("zh"))
-        // 没写文字体系时按补出来的算
-        assertEquals(AppLanguage.TraditionalChinese, of("zh-x-hant"))
-        // 写了文字体系就按写的,不再补
-        assertEquals(AppLanguage.SimplifiedChinese, AppLanguage.fromTag("zh-Hans") { "Hant" })
+        // Chinese was removed: a saved Chinese tag falls back to English
+        assertEquals(AppLanguage.English, of("zh-Hans"))
+        assertEquals(AppLanguage.English, of("zh-Hant"))
+        assertEquals(AppLanguage.English, of("zh"))
         assertEquals(AppLanguage.English, of("en"))
         assertEquals(AppLanguage.English, of("fr-FR"))
         assertEquals(AppLanguage.Arabic, of("ar"))

@@ -106,7 +106,7 @@ internal object Navigate : WebTool {
 internal fun pageFact(name: String, r: ToolExecution): Observation? {
     if (r.content["ok"] != JsonPrimitive(true)) return null
     fun res(k: String) = (r.content[k] as? JsonPrimitive)?.contentOrNull
-    return webFact("$name:网址 ${res("url")},网页标题「${res("title").orEmpty()}」" + (res("httpStatus")?.let { ",HTTP 状态 $it" } ?: ""))
+    return webFact("$name: url ${res("url")}, page title \"${res("title").orEmpty()}\"" + (res("httpStatus")?.let { ", HTTP status $it" } ?: ""))
 }
 
 /** 网页给出的一条事实(网址、标题、标签)。 */
@@ -162,7 +162,7 @@ internal object Tabs : WebTool {
         val tabs = (r.content["tabs"] as? JsonArray)?.mapNotNull { it as? JsonObject } ?: listOf(r.content)
         return listOfNotNull(tabs.mapNotNull { t ->
             val title = (t["title"] as? JsonPrimitive)?.contentOrNull ?: return@mapNotNull null
-            "标签 ${(t["tabId"] as? JsonPrimitive)?.contentOrNull}:网址 ${(t["url"] as? JsonPrimitive)?.contentOrNull},网页标题「$title」"
+            "tab ${(t["tabId"] as? JsonPrimitive)?.contentOrNull}: url ${(t["url"] as? JsonPrimitive)?.contentOrNull}, page title \"$title\""
         }.takeIf { it.isNotEmpty() }?.let { webFact(it.joinToString("\n", "$name:\n")) })
     }
 }

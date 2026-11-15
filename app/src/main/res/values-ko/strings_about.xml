@@ -2,10 +2,10 @@
 <resources>
     <string name="about_tagline">내 휴대전화 속 개인 비서, 일을 대신 해 줘요</string>
     <string name="about_check">업데이트 확인</string>
-    <string name="about_check_sub">GitHub Releases에서 새 버전 받기</string>
-    <string name="about_check_sub_new">새 버전이 있어요</string>
-    <string name="about_up_to_date">최신 버전</string>
-    <string name="about_up_to_date_toast">최신 버전을 사용 중이에요</string>
+    <string name="about_check_sub">Check the upstream Mika project on GitHub</string>
+    <string name="about_check_sub_new">New upstream Mika release available</string>
+    <string name="about_up_to_date">No newer upstream release</string>
+    <string name="about_up_to_date_toast">No newer upstream Mika release found.</string>
     <string name="about_offline">GitHub에 연결할 수 없어요</string>
     <string name="about_offline_toast">지금은 GitHub에 연결할 수 없어요. 나중에 다시 시도하세요.</string>
     <string name="about_changelog">릴리스 노트</string>
@@ -48,17 +48,17 @@
     <string name="about_update_error">다운로드 또는 설치를 완료하지 못했어요. 나중에 다시 시도하세요.</string>
     <string name="about_update_bad_file">다운로드한 패키지가 불완전하거나 릴리스와 달라서 삭제했어요. 다시 다운로드하세요.</string>
     <string name="about_update_not_newer">다운로드한 패키지가 설치된 Mika보다 새롭지 않아서 삭제했어요.</string>
-    <string name="about_update_bad_signer">이 패키지는 설치된 Mika와 서명이 달라 업데이트할 수 없어서 삭제했어요. Mika를 직접 빌드했다면 먼저 삭제한 다음 공식 버전을 설치하세요.</string>
+    <string name="about_update_bad_signer">This upstream Mika package is signed differently and cannot update Orbit.</string>
     <string name="about_update_later">나중에</string>
     <string name="about_no_browser">링크를 열 수 있는 브라우저가 없어요</string>
     <string name="about_version">버전 %1$s</string>
     <string name="about_build">빌드 %1$s</string>
     <string name="about_available">%1$s 사용 가능</string>
-    <string name="about_update_title">새 버전 %1$s</string>
+    <string name="about_update_title">Upstream Mika release %1$s</string>
     <string name="about_current">현재 %1$s</string>
     <string name="about_released_on">" · %1$s 릴리스"</string>
     <string name="about_released_under">%1$s 라이선스로 배포</string>
-    <string name="issue_body">- 기기: %1$s\n- Android 버전: %2$s (SDK %3$d)\n- Mika 버전: %4$s (빌드 %5$s)\n\n### 어떤 문제가 있었나요\n\n\n### 어떻게 했나요\n\n\n### 기대한 동작\n\n\n### 진단 정보\n(선택) Mika에서 정보 › 의견 보내기 › 진단 정보 복사를 눌러 여기에 붙여넣으세요\n\n</string>
+    <string name="issue_body">- 기기: %1$s\n- Android 버전: %2$s (SDK %3$d)\n- Orbit 버전: %4$s (빌드 %5$s)\n\n### 어떤 문제가 있었나요\n\n\n### 어떻게 했나요\n\n\n### 기대한 동작\n\n\n### 진단 정보\n(선택) Mika에서 정보 › 의견 보내기 › 진단 정보 복사를 눌러 여기에 붙여넣으세요\n\n</string>
     <string name="licenses_third_party">서드파티 구성 요소 · %1$d</string>
     <string name="licenses_footer">전체 라이선스 문서와 저작권 고지는 소스 저장소의 LICENSE와 licenses/ 폴더(THIRD_PARTY_NOTICES.md 포함)에 있어요.</string>
     <string name="diagnostics_copy">진단 정보 복사</string>
@@ -70,10 +70,10 @@
     <string name="diagnostics_copied">복사했어요</string>
     <string name="diagnostics_loading">수집 중…</string>
     <string name="about_auto_update">자동 업데이트</string>
-    <string name="about_auto_update_detail">Wi-Fi 연결 시에만 새 버전을 백그라운드에서 다운로드하고 설치 전에 확인합니다</string>
+    <string name="about_auto_update_detail">Download upstream Mika releases over Wi-Fi. Orbit asks before installing.</string>
     <string name="about_auto_update_disable">자동 업데이트 끄기</string>
-    <string name="about_auto_update_ready">Mika %1$s 다운로드 완료</string>
-    <string name="about_auto_update_confirm_title">새 Mika 버전이 준비됐어요</string>
-    <string name="about_auto_update_confirm_detail">지금 %1$s을 설치하거나 자동 업데이트를 끄고 설정에서 수동으로 확인할 수 있습니다.</string>
+    <string name="about_auto_update_ready">Upstream Mika %1$s downloaded</string>
+    <string name="about_auto_update_confirm_title">An upstream Mika release is ready</string>
+    <string name="about_auto_update_confirm_detail">This is an upstream Mika release, not an Orbit build. Install %1$s, or turn off auto-update.</string>
     <string name="about_auto_update_now">지금 업데이트</string>
 </resources>

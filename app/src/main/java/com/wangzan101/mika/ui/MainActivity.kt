@@ -1,13 +1,31 @@
 package com.wangzan101.mika.ui
 
 import com.wangzan101.mika.i18n.AppLanguage
+import androidx.compose.foundation.background
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterExitState
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.spring
+import com.wangzan101.mika.ui.theme.MikaMotion
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onSizeChanged
 import com.wangzan101.mika.ui.components.KeyboardDismissArea
 import com.wangzan101.mika.ui.components.glassSource
 import com.wangzan101.mika.ui.components.rememberGlassBackdrop
@@ -23,7 +41,7 @@ import android.provider.Settings
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.BackHandler
+import androidx.activity.compose.PredictiveBackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -35,19 +53,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.cap.web.WebHandover
 import com.wangzan101.mika.cap.web.WebSites
@@ -232,11 +257,7 @@ class MainActivity : ComponentActivity() {
         monitor.start()
         // 每次打开都悄悄查一次新版本(两分钟内连着打开的只查一次),失败不吭声
         val app = application as MikaApp
-        val check = app.updates.autoCheckInBackground()
-        updateWatch = lifecycleScope.launch {
-            check.join()
-            app.automaticUpdates.watch(app.updates.state)
-        }
+        // Orbit: no background check for upstream Mika releases, so no update prompt either.
         // 电脑连接开着、服务却不在(被系统停过、从后台没能起来):界面在前台时补起来
         (application as MikaApp).mcp.ensureRunning()
     }
@@ -381,6 +402,14 @@ private fun MikaRoot(
     var focusedCallHistoryId by remember { mutableStateOf<String?>(null) }
     val personalStart = remember { FeatureFlags.get(context).personalStart() }
     val nav = rememberNavStack(if (personalStart && requestedConversation == null) Route.Personal else Route.Chat)
+    var planToOpen by rememberSaveable { mutableStateOf<String?>(null) }
+    var createPlanOnOpen by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(nav.current) {
+        if (nav.current != Route.Plans) {
+            planToOpen = null
+            createPlanOnOpen = false
+        }
+    }
     var filesFromDrawer by rememberSaveable { mutableStateOf(false) }
     var filesConversation by rememberSaveable { mutableStateOf<String?>(null) }
     // 从设置页「重新配对」进来时先回到配对一步
@@ -405,6 +434,17 @@ private fun MikaRoot(
     val hasMain = roles.main != null
     val check = Prerequisites.check(status, hasMain)
     val app = context.applicationContext as MikaApp
+    var orbitHubOpen by rememberSaveable { mutableStateOf(false) }
+    var voiceListening by remember { mutableStateOf(false) }
+    val presenceFlow = remember(app.chat) {
+        app.chat.ui.map { presenceSignal(it.exchanges.lastOrNull(), false) }.distinctUntilChanged()
+    }
+    val chatPresence by presenceFlow.collectAsState(initial = presenceSignal(app.chat.ui.value.exchanges.lastOrNull(), false))
+    val settledChat = settledPresence(chatPresence)
+    val orbitPresence = if (voiceListening) com.wangzan101.mika.ui.identity.PresenceState.Listening else settledChat
+    LaunchedEffect(requestedConversation, requestedCalls, sharedDraft, openTeach) {
+        if (requestedConversation != null || requestedCalls || sharedDraft != null || openTeach) orbitHubOpen = false
+    }
     // 查到的新版本:侧栏、设置首页、关于页的红点都看它
     val updateState by app.updates.state.collectAsState()
     val autoUpdate by app.automaticUpdates.enabled.collectAsState()
@@ -499,11 +539,50 @@ private fun MikaRoot(
     }
     val phoneSetupNeeded by phoneSetup.needed.collectAsState()
     // 页面有自己的返回处理时(设置页里的子页、侧栏)由它们先接;这里只管退回上一页
-    BackHandler(enabled = nav.canGoBack) { nav.back() }
+    // Predictive back: while the back gesture is held, the page shrinks a little and follows the finger;
+    // letting go goes back, cancelling springs it into place. Reduced motion skips the preview.
+    var backProgress by remember { mutableFloatStateOf(0f) }
+    var backFromLeft by remember { mutableStateOf(true) }
+    PredictiveBackHandler(enabled = nav.canGoBack) { events ->
+        try {
+            events.collect { e ->
+                backFromLeft = e.swipeEdge == androidx.activity.BackEventCompat.EDGE_LEFT
+                backProgress = e.progress
+            }
+            backProgress = 0f
+            nav.back()
+        } catch (e: CancellationException) {
+            backProgress = 0f
+            throw e
+        }
+    }
     val back: () -> Unit = { nav.back() }
     // 聊天页离开组合树时保留列表位置和输入内容，返回设置页等子页面后原样恢复。
     val screenStates = rememberSaveableStateHolder()
-    when (nav.current) {
+    // Pushes slide in from the right and pops slide back, instead of cutting between screens.
+    val depth = nav.stack.size
+    val lastDepth = remember { mutableIntStateOf(depth) }
+    val forward = depth >= lastDepth.intValue
+    SideEffect { lastDepth.intValue = depth }
+    val stillPages = MikaTheme.reduceMotion
+    AnimatedContent(
+        targetState = nav.current,
+        transitionSpec = { pageTransition(forward, stillPages) },
+        contentKey = { if (isPrimaryRoute(it)) "primary" else it.name },
+        label = "pages",
+        modifier = Modifier.graphicsLayer {
+            val p = if (stillPages) 0f else backProgress
+            if (p > 0f) {
+                val scale = 1f - 0.08f * p
+                scaleX = scale
+                scaleY = scale
+                translationX = (if (backFromLeft) 1f else -1f) * 24.dp.toPx() * p
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp * p)
+                clip = true
+            }
+        },
+    ) { route ->
+    when (route) {
         Route.PhoneSetup -> PhoneSetupScreen(status, setupRepair, onFix, onboarding = onboarding == OnboardingStep.Phone) {
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
@@ -522,7 +601,9 @@ private fun MikaRoot(
                 },
             )
         }
-        Route.Chat, Route.Personal -> screenStates.SaveableStateProvider(nav.current.name) {
+        Route.Chat, Route.Personal, Route.Tasks, Route.Make -> screenStates.SaveableStateProvider("primary") {
+            // Each tab keeps its own scroll and input while the drawer, hub and bar stay in place.
+            val tabStates = rememberSaveableStateHolder()
             // 对话页重新看得见(回到前台、从别的页面回来):补上别处存进来的轮次,接上别处开始的任务
             LifecycleStartEffect(Unit) {
                 app.chat.refresh()
@@ -536,61 +617,125 @@ private fun MikaRoot(
                 conversationChanges = ConversationStore.shared(context).changes,
                 conversationTitle = { ConversationStore.shared(context).title(it) },
                 search = ConversationStore.shared(context).search,
-                onPlans = { nav.pushFromDrawer(Route.Plans) },
+                onPlans = { planToOpen = null; createPlanOnOpen = false; nav.pushFromDrawer(Route.Plans) },
                 onMemory = { nav.pushFromDrawer(Route.Memory) },
                 onSettings = { nav.pushFromDrawer(Route.Settings) },
                 onBrowser = { nav.pushFromDrawer(Route.Browser) },
                 onFiles = { filesFromDrawer = true; filesConversation = app.chat.ui.value.conversationId; nav.pushFromDrawer(Route.Files) },
                 onScreens = { nav.pushFromDrawer(Route.Screens) },
                 onAbout = { nav.pushFromDrawer(Route.About) },
-                updateAvailable = AboutCopy.drawerDot(updateState),
+                updateAvailable = false,
                 reopen = nav.reopenDrawer,
                 onReopened = nav::drawerReopened,
                 onPersonal = { nav.show(Route.Personal) },
                 onRegularChat = nav::reset,
                 resetKey = nav.resetSerial,
+                onBackFromPrimary = if (route == Route.Tasks || route == Route.Make) ({ nav.back() }) else null,
+                onFixStatus = { onFix(Fix.OpenPhoneSetup) },
             ) { openDrawer ->
+                val hubState = remember { androidx.compose.animation.core.MutableTransitionState(orbitHubOpen) }
+                hubState.targetState = orbitHubOpen
+                val hubShowing = hubState.currentState || hubState.targetState
+                androidx.compose.runtime.CompositionLocalProvider(LocalOrbitHubShowing provides hubShowing) {
                 Box(Modifier.fillMaxSize()) {
-                    val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
+                    val readyRelease: ReleaseInfo? = null
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
-                    Box(Modifier.fillMaxSize().glassSource(updateBackdrop)) {
-                        if (nav.current == Route.Personal) PersonalAgentScreen(
-                            runtime = app.personal,
-                            voice = app.voice,
-                            onOpenDrawer = openDrawer,
-                            onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
-                            memoryRuntime = memoryRuntime,
-                            onModels = { nav.push(Route.Models) },
-                            onPickSpeech = { nav.push(Route.SpeechModel) },
-                        ) else ChatScreen(
-                            vm = app.chat,
-                            check = check,
-                            frames = app.taskState.frames,
-                            webOpen = app.tasks.webScreenOpen,
-                            pipInput = app.taskState.pipInput,
-                            pipOperateEnabled = FeatureFlags.get(context).pipOperate(),
-                            reduceMotion = MikaTheme.reduceMotion,
-                            onOpenDrawer = openDrawer,
-                            onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
-                            openSettings = { nav.push(Route.Settings) },
-                            openRun = { runId = it; nav.push(Route.Run) },
-                            phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
-                            openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
-                            loadSource = { id ->
-                                withContext(Dispatchers.IO) { evidenceSource(RunStore(context).events(id)) { ConfirmationNotifier.appLabel(context, it) } }
-                            },
-                            openSource = { id, legacy ->
-                                sourceRunId = id
-                                sourceLegacyText = legacy
-                                nav.push(Route.Source)
-                            },
-                            voice = app.voice,
-                            openSpeechModel = { nav.push(Route.SpeechModel) },
-                            onOpenTeach = { hint ->
-                                app.teach.prefill(hint)
-                                nav.push(Route.Teach)
-                            },
-                        )
+                    val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
+                    val navDensity = LocalDensity.current
+                    // The bar stays put while the keyboard is up (the keyboard slides over it), so nothing
+                    // re-mounts and the composer never snaps when the keyboard closes.
+                    var navHeight by remember(navDensity) { mutableIntStateOf(with(navDensity) { 74.dp.roundToPx() }) }
+                    val navInset = with(navDensity) { navHeight.toDp() }
+                    val navBackdrop = rememberGlassBackdrop()
+                    Box(Modifier.fillMaxSize().background(MikaTheme.colors.bg).glassSource(updateBackdrop).navigationBarsPadding().then(primarySemantics)) {
+                        Box(Modifier.fillMaxSize().glassSource(navBackdrop)) {
+                            val stillTabs = MikaTheme.reduceMotion
+                            AnimatedContent(
+                                targetState = route,
+                                transitionSpec = { tabTransition(stillTabs) },
+                                label = "tabs",
+                            ) { tab ->
+                            tabStates.SaveableStateProvider(tab.name) {
+                            if (tab == Route.Tasks) TasksScreen(
+                                runtime = app.personal,
+                                taskState = app.taskState,
+                                runStore = app.runStore,
+                                onOpenDrawer = openDrawer,
+                                onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
+                                onPlans = { id, create -> planToOpen = id; createPlanOnOpen = create; nav.push(Route.Plans) },
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                presence = orbitPresence,
+                                bottomInset = navInset,
+                            ) else if (tab == Route.Make) MakeScreen(
+                                onOpenDrawer = openDrawer,
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                presence = orbitPresence,
+                                bottomInset = navInset,
+                                onOpenSource = { id, target ->
+                                    app.chat.openConversationAt(id, target)
+                                    val opened = app.chat.ui.value.conversationId == id
+                                    if (opened) nav.reset()
+                                    opened
+                                },
+                            ) else if (tab == Route.Personal) {
+                                Box(Modifier.fillMaxSize().padding(bottom = navInset)) {
+                                    PersonalAgentScreen(
+                                        runtime = app.personal,
+                                        voice = app.voice,
+                                        onOpenDrawer = openDrawer,
+                                        onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
+                                        memoryRuntime = memoryRuntime,
+                                        onModels = { nav.push(Route.Models) },
+                                        onPickSpeech = { nav.push(Route.SpeechModel) },
+                                    )
+                                }
+                            } else ChatScreen(
+                                vm = app.chat,
+                                check = check,
+                                frames = app.taskState.frames,
+                                webOpen = app.tasks.webScreenOpen,
+                                pipInput = app.taskState.pipInput,
+                                pipOperateEnabled = FeatureFlags.get(context).pipOperate(),
+                                reduceMotion = MikaTheme.reduceMotion,
+                                onOpenDrawer = openDrawer,
+                                onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                                openSettings = { nav.push(Route.Settings) },
+                                openRun = { runId = it; nav.push(Route.Run) },
+                                phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
+                                openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
+                                loadSource = { id ->
+                                    withContext(Dispatchers.IO) { evidenceSource(RunStore(context).events(id)) { ConfirmationNotifier.appLabel(context, it) } }
+                                },
+                                openSource = { id, legacy ->
+                                    sourceRunId = id
+                                    sourceLegacyText = legacy
+                                    nav.push(Route.Source)
+                                },
+                                voice = app.voice,
+                                openSpeechModel = { nav.push(Route.SpeechModel) },
+                                onOpenTeach = { hint ->
+                                    app.teach.prefill(hint)
+                                    nav.push(Route.Teach)
+                                },
+                                onOpenOrbitHub = { orbitHubOpen = true },
+                                onVoiceListeningChanged = { voiceListening = it },
+                                primaryBottomInset = navInset,
+                            )
+                            }
+                            }
+                        }
+                        // A soft scrim under the floating bars, so text scrolling behind them never collides with them.
+                        Box(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(navInset + 32.dp).background(
+                            androidx.compose.ui.graphics.Brush.verticalGradient(
+                                listOf(androidx.compose.ui.graphics.Color.Transparent, MikaTheme.colors.bg.copy(alpha = 0.82f)),
+                            ),
+                        ))
+                        PrimaryNavigation(route,
+                            modifier = Modifier.align(Alignment.BottomCenter).onSizeChanged { if (it.height > 0) navHeight = it.height },
+                            backdrop = navBackdrop,
+                        ) { picked ->
+                            if (picked == Route.Chat) nav.reset() else if (nav.current != picked) nav.show(picked)
+                        }
                     }
                     var installUpdate by remember { mutableStateOf<ReleaseInfo?>(null) }
                     readyRelease?.let { release ->
@@ -610,6 +755,37 @@ private fun MikaRoot(
                         UpdateSheet(release, BuildConfig.VERSION_NAME, BuildConfig.BETA,
                             onOpenUrl = { openInBrowser(context, it) }, onDismiss = { installUpdate = null })
                     }
+                    val still = MikaTheme.reduceMotion
+                    AnimatedVisibility(
+                        visibleState = hubState,
+                        // The hub fades its own page and content against `expansion`; the presence stays solid.
+                        enter = EnterTransition.None,
+                        exit = ExitTransition.None,
+                    ) {
+                        // Keep the presence synchronized with the panel in both directions.
+                        val expansion by transition.animateFloat(
+                            transitionSpec = {
+                                if (still) snap()
+                                else if (targetState == EnterExitState.Visible) spring(dampingRatio = 0.86f, stiffness = 380f)
+                                else tween(200, easing = MikaMotion.Decelerate)
+                            },
+                            label = "orbit-hub-presence",
+                        ) { if (it == EnterExitState.Visible) 1f else 0f }
+                        OrbitHub(
+                            state = orbitPresence, expansion = expansion, ready = check.canStartTask, personal = app.personal, taskState = app.taskState,
+                            runStore = app.runStore, memory = memoryRuntime,
+                            onClose = { orbitHubOpen = false },
+                            onTasks = { orbitHubOpen = false; nav.show(Route.Tasks) },
+                            onPlans = { planToOpen = null; createPlanOnOpen = false; nav.push(Route.Plans) },
+                            onOpenTask = { id -> orbitHubOpen = false; app.chat.openPersonalTask(id); nav.reset() },
+                            onBrowser = { url -> if (url == null) nav.push(Route.Browser) else openSelfUrl(url) },
+                            onMemory = { memoryRuntime.requestOpen(com.wangzan101.mika.memory.MemoryOpen()); nav.push(Route.Memory) },
+                            onFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
+                            onPersonalization = { nav.push(Route.Settings) },
+                            onPersonal = { orbitHubOpen = false; nav.show(Route.Personal) },
+                        )
+                    }
+                }
                 }
             }
         }
@@ -618,8 +794,8 @@ private fun MikaRoot(
             SettingsScreen(store, status, release, onFix, onBack = back, onOpenMemory = { nav.push(Route.Memory) },
                 onOpenModels = { nav.push(Route.Models) },
                 autonomous = autonomous, onAutonomous = app.approvalControl::setAutonomous,
-                updateVersion = updateState.update?.version, onOpenAbout = { nav.push(Route.About) },
-                mcpServers = app.mcpServers)
+                updateVersion = null, onOpenAbout = { nav.push(Route.About) },
+                mcpServers = app.mcpServers, onOpenSpeech = { nav.push(Route.SpeechModel) })
         }
         Route.Models -> ModelsScreen(store, onBack = back, onOpenSpeech = { nav.push(Route.SpeechModel) }, onOpenUsage = { nav.push(Route.Usage) })
         Route.Usage -> UsageScreen(app.usage, store, onBack = back, onOpenUrl = { openInBrowser(context, it) })
@@ -720,7 +896,7 @@ private fun MikaRoot(
         Route.Plans -> PlansScreen(context, onBack = back, onOpenConversation = {
             app.chat.openConversation(it)
             nav.reset()
-        })
+        }, initialPlanId = planToOpen, createOnOpen = createPlanOnOpen)
         Route.Teach -> TeachScreen(
             app.teach,
             onBack = { nav.back() },
@@ -734,6 +910,7 @@ private fun MikaRoot(
             nav.reset()
         })
         Route.Calls -> CallSettingsScreen(app.calls, onBack = back, standalone = true, initialHistoryCallId = focusedCallHistoryId)
+    }
     }
 }
 

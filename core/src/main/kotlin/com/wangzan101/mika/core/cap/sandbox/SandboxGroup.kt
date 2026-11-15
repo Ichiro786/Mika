@@ -130,7 +130,7 @@ internal object WriteFile : SandboxTool {
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (!ok(r)) return emptyList()
         res(r, "path")?.let { log.writtenPaths += it }
-        return listOf(output("write_file 写入 ${res(r, "path")}(${res(r, "bytesWritten")} 字节,文件现为 ${res(r, "size")} 字节)"))
+        return listOf(output("write_file wrote ${res(r, "path")} (${res(r, "bytesWritten")} bytes; the file is now ${res(r, "size")} bytes)"))
     }
 }
 
@@ -173,7 +173,7 @@ internal object ShareFile : SandboxTool {
     override suspend fun execute(a: Args, ctx: ToolContext) = ctx.sandboxRunner!!.run { ws, _ -> shareFile(a, ws) }
     override fun logTarget(o: JsonObject, r: ToolExecution, ctx: ToolContext) = o.argStr("path")
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog) =
-        listOfNotNull(if (ok(r)) output("share_file 已存到 ${res(r, "savedAs")}") else null)
+        listOfNotNull(if (ok(r)) output("share_file saved to ${res(r, "savedAs")}") else null)
 }
 
 /** 沙箱给出的一条观察:命令输出、文件内容、写入与导出的路径。[authored] 是助手自己写的命令(输出里的回显不记)。 */

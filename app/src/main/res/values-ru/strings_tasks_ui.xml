@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">Чат</string>
+    <string name="nav_make">Создать</string>
+    <string name="tasks_title">Ваши задачи.</string>
+    <string name="tasks_subtitle">Спокойный взгляд на всё, что происходит.</string>
+    <string name="tasks_active">Активные</string>
+    <string name="tasks_up_next">Далее</string>
+    <string name="tasks_review">Готово к проверке</string>
+    <string name="tasks_scheduled">Запланировано</string>
+    <string name="tasks_resolved">Завершено</string>
+    <string name="tasks_waiting">Ожидание</string>
+    <string name="tasks_empty_up_next">Нет задач в очереди или по расписанию.</string>
+</resources>

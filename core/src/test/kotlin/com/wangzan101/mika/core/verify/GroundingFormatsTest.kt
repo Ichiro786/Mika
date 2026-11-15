@@ -81,6 +81,6 @@ class GroundingFormatsTest {
             Evidence(freshOf(shown.single()), null, EvidenceLedger(), emptyList(), protected = false))
         assertEquals(Verdict.CannotVerify, v.verdict)
         assertEquals(Verifier.TRUNCATED, v.reason)
-        assertTrue("截断" in Verifier.PROMPT)
+        assertTrue("truncated" in Verifier.PROMPT)
     }
 }

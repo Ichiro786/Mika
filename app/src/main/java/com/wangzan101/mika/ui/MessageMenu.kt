@@ -5,6 +5,21 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.unit.sp
+import com.wangzan101.mika.core.agent.AnswerMarkup
+import com.wangzan101.mika.ui.components.floatShadow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -38,7 +53,9 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.onLongClick
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -69,8 +86,36 @@ internal class MessageTarget(
     val lifted: @Composable () -> Unit,
 )
 
-/** 对话页给消息的长按菜单:[selecting] 是此刻处在「选择文字」里的那一条,[open] 弹出菜单。 */
-internal class MessageMenuHost(val selecting: String?, val open: (MessageTarget) -> Unit)
+/**
+ * What can be done with one message. The long-press menu and TalkBack's actions menu both read it, so the two
+ * always offer the same things. A null entry isn't offered for that message.
+ */
+internal class MessageActions(
+    val copy: () -> Unit,
+    val quote: () -> Unit,
+    val select: () -> Unit,
+    val branch: (() -> Unit)? = null,
+    val branchRetry: (() -> Unit)? = null,
+    val edit: (() -> Unit)? = null,
+    val withdraw: (() -> Unit)? = null,
+    val share: (() -> Unit)? = null,
+    /** React to Orbit's reply with one of [AnswerMarkup.REACTIONS]; null where the message takes no reaction. */
+    val react: ((String) -> Unit)? = null,
+    /** The reaction already on that reply, shown picked in the bar. */
+    val reaction: String? = null,
+)
+
+/**
+ * 对话页给消息的长按菜单:[selecting] 是此刻处在「选择文字」里的那一条,[open] 弹出菜单。
+ * [actions] gives a message's actions straight to TalkBack (custom actions), so they work without the menu.
+ */
+internal class MessageMenuHost(
+    val selecting: String?,
+    val actions: ((MessageTarget) -> MessageActions)? = null,
+    /** Swiping a message to the right replies to it (puts it above the input as a quote); null turns the swipe off. */
+    val reply: ((MessageTarget) -> Unit)? = null,
+    val open: (MessageTarget) -> Unit,
+)
 
 /** 没有时(单独测某个部件)消息照旧长按就选中文字。 */
 internal val LocalMessageMenu = compositionLocalOf<MessageMenuHost?> { null }
@@ -97,10 +142,64 @@ internal fun MessageArea(
     }
     val haptic = LocalHapticFeedback.current
     val label = stringResource(R.string.chat_message_actions)
+    val labels = MessageActionLabels(
+        copy = stringResource(R.string.chat_copy), quote = stringResource(R.string.chat_quote),
+        select = stringResource(R.string.chat_select_text), branch = stringResource(R.string.chat_branch),
+        branchRetry = stringResource(R.string.chat_branch_retry), edit = stringResource(R.string.chat_edit_message),
+        withdraw = stringResource(R.string.chat_withdraw_message), share = stringResource(R.string.chat_share_message),
+    )
     // 在窗口里的位置和大小(不裁掉滚出列表的部分);只在回调里读,不引起重组
     val bounds = remember { mutableStateOf(Rect.Zero) }
     // 手势一直用最新的这一份(流式回答时会不停重组),不因重组重启、丢掉按到一半的长按
     val open by rememberUpdatedState({ host.open(MessageTarget(key, from, text, bounds.value, lifted)) })
+    val target by rememberUpdatedState({ MessageTarget(key, from, text, bounds.value, lifted) })
+    val reply = host.reply
+    val replyNow by rememberUpdatedState(reply)
+    val swipe = remember { Animatable(0f) }
+    val swipeScope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val trigger = with(density) { SwipeTrigger.toPx() }
+    val limit = with(density) { SwipeLimit.toPx() }
+    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    Box(
+        Modifier
+            .then(if (reply == null) Modifier else Modifier.pointerInput(Unit) {
+                var armed = false
+                var pulled = 0f
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        if (pulled >= trigger) replyNow?.invoke(target())
+                        armed = false
+                        pulled = 0f
+                        swipeScope.launch { swipe.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) }
+                    },
+                    onDragCancel = { armed = false; pulled = 0f; swipeScope.launch { swipe.animateTo(0f) } },
+                ) { change, dx ->
+                    val toward = if (rtl) -dx else dx
+                    val next = (pulled + toward * (if (pulled > trigger) 0.35f else 1f)).coerceIn(0f, limit)
+                    if (next != pulled) change.consume()
+                    pulled = next
+                    if (!armed && next >= trigger) {
+                        armed = true
+                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                    } else if (next < trigger) armed = false
+                    swipeScope.launch { swipe.snapTo(next) }
+                }
+            })
+            .graphicsLayer { translationX = if (rtl) -swipe.value else swipe.value },
+    ) {
+    // The reply arrow fades in behind the message as it slides
+    if (reply != null) Icon(
+        MikaIcons.Quote, null,
+        Modifier.align(Alignment.CenterStart).graphicsLayer {
+            val p = (swipe.value / trigger).coerceIn(0f, 1f)
+            alpha = p
+            scaleX = 0.6f + 0.4f * p
+            scaleY = scaleX
+            translationX = (if (rtl) 1 else -1) * 34.dp.toPx()
+        }.size(20.dp),
+        tint = MikaTheme.colors.ink3,
+    )
     Box(
         Modifier
             .onGloballyPositioned { bounds.value = Rect(it.positionInWindow(), it.size.toSize()) }
@@ -112,9 +211,35 @@ internal fun MessageArea(
                     open()
                 })
             }
-            .semantics { onLongClick(label) { open(); true } }
+            .semantics {
+                onLongClick(label) { open(); true }
+                // TalkBack's actions menu: copy, quote, ask again, branch… without opening the long-press menu
+                host.actions?.let { actionsFor -> customActions = labels.of(actionsFor(target())) }
+            }
             .testTag("message-$key"),
     ) { content() }
+    }
+}
+
+/** How far a message slides before letting go replies to it, and how far it can be pulled. */
+private val SwipeTrigger = 56.dp
+private val SwipeLimit = 84.dp
+
+private class MessageActionLabels(
+    val copy: String, val quote: String, val select: String, val branch: String,
+    val branchRetry: String, val edit: String, val withdraw: String, val share: String = "",
+) {
+    fun of(a: MessageActions): List<CustomAccessibilityAction> = buildList {
+        fun put(label: String, run: (() -> Unit)?) { if (run != null) add(CustomAccessibilityAction(label) { run(); true }) }
+        put(copy, a.copy)
+        put(quote, a.quote)
+        put(branchRetry, a.branchRetry)
+        put(branch, a.branch)
+        put(edit, a.edit)
+        put(withdraw, a.withdraw)
+        put(share, a.share)
+        put(select, a.select)
+    }
 }
 
 /**
@@ -133,13 +258,17 @@ internal fun MessageMenu(
     onWithdraw: (() -> Unit)? = null,
     onBranch: (() -> Unit)? = null,
     onBranchRetry: (() -> Unit)? = null,
+    onShare: (() -> Unit)? = null,
+    onReact: ((String) -> Unit)? = null,
+    reaction: String? = null,
 ) {
     LongPressMenu(
         target.bounds, progress, pane = stringResource(R.string.chat_message_actions), tag = "message-menu",
         entries = buildList {
-            add(MenuEntry(stringResource(R.string.chat_copy), MikaIcons.Copy, "message-menu-copy", onClick = onCopy))
             add(MenuEntry(stringResource(R.string.chat_quote), MikaIcons.Quote, "message-menu-quote", onClick = onQuote))
+            add(MenuEntry(stringResource(R.string.chat_copy), MikaIcons.Copy, "message-menu-copy", onClick = onCopy))
             add(MenuEntry(stringResource(R.string.chat_select_text), MikaIcons.SelectText, "message-menu-select", onClick = onSelect))
+            onShare?.let { add(MenuEntry(stringResource(R.string.chat_share_message), MikaIcons.Share, "message-menu-share", onClick = it)) }
             onBranch?.let { add(MenuEntry(stringResource(R.string.chat_branch), MikaIcons.Route, "message-menu-branch", onClick = it)) }
             onBranchRetry?.let { add(MenuEntry(stringResource(R.string.chat_branch_retry), MikaIcons.Route, "message-menu-branch-retry", onClick = it)) }
             onEdit?.let { add(MenuEntry(stringResource(R.string.chat_edit_message), MikaIcons.Edit, "message-menu-edit", onClick = it)) }
@@ -147,8 +276,47 @@ internal fun MessageMenu(
         },
         onDismiss = onDismiss,
         alignEnd = target.from == QuoteMessage.From.You,
+        header = onReact?.let { react -> { ReactionBar(reaction, react) } },
         lifted = target.lifted,
     )
+}
+
+/** The row of reactions over a long-pressed reply; the one already picked sits on a tinted circle. */
+@Composable
+internal fun ReactionBar(picked: String?, onPick: (String) -> Unit) {
+    val c = MikaTheme.colors
+    val shape = RoundedCornerShape(28.dp)
+    Row(
+        Modifier.floatShadow(c, shape).background(c.surface, shape).border(0.5.dp, c.hair, shape)
+            .padding(horizontal = 6.dp, vertical = 4.dp).testTag("reaction-bar"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AnswerMarkup.REACTIONS.forEach { emoji ->
+            val on = emoji == picked
+            val label = stringResource(R.string.chat_react_with, emoji)
+            Box(
+                Modifier.size(44.dp).clip(CircleShape)
+                    .background(if (on) c.fill else Color.Transparent, CircleShape)
+                    .clickable(role = Role.Button, onClickLabel = label) { onPick(emoji) }
+                    .semantics { contentDescription = label; selected = on }
+                    .testTag("react-$emoji"),
+                contentAlignment = Alignment.Center,
+            ) { Text(emoji, fontSize = 24.sp) }
+        }
+    }
+}
+
+/** A reaction under a bubble, overlapping its bottom edge a little, like a sticker. */
+@Composable
+internal fun ReactionBadge(emoji: String, description: String, modifier: Modifier = Modifier) {
+    val c = MikaTheme.colors
+    Box(
+        modifier.background(c.surface, CircleShape).border(1.5.dp, c.bg, CircleShape)
+            .padding(horizontal = 7.dp, vertical = 3.dp)
+            .semantics { contentDescription = description }
+            .testTag("reaction-badge"),
+        contentAlignment = Alignment.Center,
+    ) { Text(emoji, fontSize = 15.sp) }
 }
 
 /** 菜单开着时后面那层:安卓 12 起按出现的进度模糊([MenuBlur]),无障碍也只读菜单。菜单没开时什么也不加。 */
@@ -166,6 +334,15 @@ internal fun Modifier.behindMenu(open: Boolean, progress: () -> Float): Modifier
 internal fun copyMessage(context: Context, text: String) {
     context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("Mika", text))
     Toast.makeText(context, context.getString(R.string.chat_copied), Toast.LENGTH_SHORT).show()
+}
+
+/** Hands the message's plain text to the system share sheet. */
+internal fun shareMessage(context: Context, text: String) {
+    val send = android.content.Intent(android.content.Intent.ACTION_SEND).setType("text/plain")
+        .putExtra(android.content.Intent.EXTRA_TEXT, text)
+    runCatching {
+        context.startActivity(android.content.Intent.createChooser(send, null).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))
+    }
 }
 
 /** 引用怎么念给读屏:「引用 Mika:……」「引用你的话:……」。 */

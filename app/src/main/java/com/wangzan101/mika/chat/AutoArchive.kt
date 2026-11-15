@@ -18,7 +18,7 @@ object AutoArchive {
      */
     fun candidates(all: List<ConversationSummary>, cutoff: Long, keep: Set<String> = emptySet()): List<String> =
         all.asSequence()
-            .filter { it.archivedAt == null && it.pinnedAt == null }
+            .filter { it.channel == null && it.archivedAt == null && it.pinnedAt == null }
             .filter { it.updatedAt < cutoff }
             .filter { it.restoredAt == null || it.restoredAt < cutoff }
             .filter { it.id !in keep }

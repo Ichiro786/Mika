@@ -7,6 +7,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.wangzan101.mika.ChineseUi
@@ -69,6 +70,15 @@ class ChatRecommendationTest {
         compose.onNodeWithText(recommendation).performClick()
         compose.onNodeWithTag("composer-field").assertTextEquals(recommendation)
         compose.onNodeWithText("替换当前草稿？").assertDoesNotExist()
+    }
+
+    @Test fun remainingRecommendationsCanBeExpandedAndPrefilled() {
+        show()
+        val recommendation = ChatCopy.examples.last().text
+        compose.onNodeWithText(recommendation).assertDoesNotExist()
+        compose.onNodeWithText("更多").performClick()
+        compose.onNodeWithText(recommendation).performScrollTo().performClick()
+        compose.onNodeWithTag("composer-field").assertTextEquals(recommendation)
     }
 
     @Test fun nonemptyDraftIsReplacedOnlyAfterConfirmation() {

@@ -22,8 +22,6 @@ import java.util.Locale
  */
 enum class AppLanguage(val tag: String?, val speechTag: String?) {
     System(null, null),
-    SimplifiedChinese("zh-Hans", "zh-CN"),
-    TraditionalChinese("zh-Hant", "zh-TW"),
     Arabic("ar", "ar-MA"),
     Persian("fa", "fa-IR"),
     English("en", "en-US"),
@@ -72,7 +70,7 @@ enum class AppLanguage(val tag: String?, val speechTag: String?) {
             if (tag.isNullOrEmpty()) return System
             val l = Locale.forLanguageTag(tag)
             val code = modernCode(l.language)
-            if (code == "zh") return if (l.script.ifEmpty { likelyScript(tag) } == "Hant") TraditionalChinese else SimplifiedChinese
+            // Orbit ships English and a few other languages; Chinese was removed, so a saved zh tag falls back to English.
             return entries.firstOrNull { it.tag != null && it.language == code } ?: English
         }
 

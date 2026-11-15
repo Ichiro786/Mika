@@ -223,7 +223,7 @@ class AgentLoopVerifyTest {
         val main = FakeModel(tools(call("hand_to_user", """{"reason":"payment","message":"请付款"}""")), observe(), text(GROUNDED))
         val checker = FakeModel(text(CANNOT))
         val l = loop(main, checker)
-        val run = async { l.run("t") }
+        val run = async { l.run("去付款") }
         advanceUntilIdle()
         l.resumeAfterTakeover(AgentLoop.USER_FINISHED_NOTE)
         assertEquals(TaskState.Succeeded(GROUNDED, verified = false, note = "结果页看不到", sources = (run.await() as TaskState.Succeeded).sources), run.await())

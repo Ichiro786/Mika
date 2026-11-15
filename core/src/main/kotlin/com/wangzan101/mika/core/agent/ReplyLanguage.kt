@@ -25,6 +25,8 @@ internal object ReplyLanguage {
     const val MISMATCH_SHARE = 0.6
     const val NAME_UNITS = 6
     const val KANA_SHARE = 0.1
+    /** Orbit is English-first: a CJK answer this long to a message with no CJK in it is always sent back once. */
+    const val MIN_DEFAULT_UNITS = 4
 
     /** 语族;[display] 是写给模型的说法。 */
     data class Family(val display: String)
@@ -32,6 +34,8 @@ internal object ReplyLanguage {
     val CHINESE = Family("Chinese")
     val JAPANESE = Family("Japanese")
     val KOREAN = Family("Korean")
+    val ENGLISH = Family("English")
+    private val CJK = setOf(CHINESE, JAPANESE, KOREAN)
 
     /** 回答 [answer] 的语族和用户那句 [user] 的语族。 */
     data class Mismatch(val answer: Family, val user: Family)
@@ -42,6 +46,17 @@ internal object ReplyLanguage {
         val a = units(stripQuoted(answer), skipNames = true)
         val uTotal = u.values.sum()
         val aTotal = a.values.sum()
+        // English-first: the user wrote no Chinese, Japanese or Korean (or too little to tell, like a single name),
+        // yet the answer is mostly in one of them. Ask for a rewrite even when the answer is short.
+        if (u.keys.none { it in CJK }) {
+            // A short all-CJK answer ("蓝牙已开启。") is one cell and would be skipped as a name; count it when the
+            // answer has no Latin letters at all, so a list of foreign app names inside English still passes.
+            val full = if (aTotal < MIN_DEFAULT_UNITS && answer.none { it in 'a'..'z' || it in 'A'..'Z' }) units(stripQuoted(answer), skipNames = false) else a
+            val top = full.maxByOrNull { it.value }
+            if (top != null && top.key in CJK && top.value >= MIN_DEFAULT_UNITS && top.value >= full.values.sum() * MISMATCH_SHARE) {
+                return Mismatch(top.key, if (uTotal < MIN_USER_UNITS) ENGLISH else u.maxBy { it.value }.key)
+            }
+        }
         if (uTotal < MIN_USER_UNITS || aTotal < MIN_ANSWER_UNITS) return null
         val userFamily = u.maxBy { it.value }.key
         val (answerFamily, count) = a.maxBy { it.value }

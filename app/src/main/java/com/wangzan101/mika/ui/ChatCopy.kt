@@ -27,16 +27,47 @@ object ChatCopy {
     data class Example(val kind: ExampleKind, val text: String)
 
     val examples get() = listOf(
-        Example(ExampleKind.Web, tr(R.string.chat_example_github_star)),
-        Example(ExampleKind.App, tr(R.string.chat_example_follow)),
         Example(ExampleKind.App, tr(R.string.chat_example_group_summary)),
-        Example(ExampleKind.Device, tr(R.string.chat_example_alarms)),
+        Example(ExampleKind.Device, tr(R.string.chat_example_wind_down)),
+        Example(ExampleKind.Web, tr(R.string.chat_example_nearby)),
     )
 
     fun recommendationSeeds(): List<Pair<String, String>> = examples.map { it.text to it.text }
 
+    /** The old Mika suggestions (starring its repo, following its author, a set of test alarms), dropped from saved lists once. */
+    val retiredSeeds = setOf(
+        "Open https://github.com/wangzan101/mika and star the project.",
+        "Open X, search for Wang Zan (@wangzan101), and follow the account.",
+        "Set alarms for 9:40, 9:50 and 10:00 tomorrow morning.",
+        "打开网页 https://github.com/wangzan101/mika，给这个项目点 star",
+        "打开小红书，搜索博主“王赞不赞”，点击关注，然后加入群聊",
+        "帮我订明天早上9:40、9:50、10:00 的闹钟",
+    )
+
+    private val linkPattern = Regex("""https?://[^\s)\]>"'，。]+""")
+
+    /**
+     * A suggestion's title as the home card shows it: whitespace folded to single spaces, links without
+     * "https://" and "www.", and a long link cut to its site and first path part ("github.com/wangzan101/…").
+     * Only the card changes; the prompt put in the box is untouched.
+     */
+    fun tidySuggestion(title: String): String = linkPattern.replace(title.replace(Regex("\\s+"), " ").trim()) { m ->
+        val link = m.value.trimEnd('/', '.', ',', ';', ':', '!', '?')
+        val after = m.value.substring(link.length).trimStart('/')
+        val rest = link.substringAfter("://").removePrefix("www.")
+        val host = rest.substringBefore('/')
+        val path = rest.substringAfter('/', "").split('/').filter(String::isNotEmpty)
+        val full = (listOf(host) + path).joinToString("/")
+        val short = when {
+            full.length <= 32 -> full
+            path.isEmpty() -> host
+            else -> "$host/${path[0].take(20)}/…"
+        }
+        short + after
+    }
+
     /** 对话页顶栏的标题:固定是 App 名;副标题说此刻在做什么。 */
-    const val APP_TITLE = "Mika"
+    const val APP_TITLE = "Orbit"
 
     /** 对话的名字:第一句话(只取第一行,附件那几行不算;只发了屏幕时是「你此刻的屏幕」);空对话为空。侧栏里用它称呼对话。 */
     fun title(exchanges: List<Exchange>): String =
@@ -108,7 +139,7 @@ object ChatCopy {
 
     /**
      * 一个动作的结果(记录里的 effect 代号 → 给人看的一句话)。错误码只对开发有意义,
-     * 给人看的一律说「没成功」。运行过程页用的是同一份说法。
+     * 给人看的一律说「没成功」;按规矩没收的那几种除外([declinedLabel])。运行过程页用的是同一份说法。
      */
     fun effectLabel(effect: String?): String = when (effect) {
         "changed", "done", "place_changed" -> tr(R.string.result_effective)
@@ -116,7 +147,19 @@ object ChatCopy {
         "unchanged", "no_effect" -> tr(R.string.result_unchanged)
         "completed" -> tr(R.string.result_completed)
         null, "" -> ""
-        else -> tr(R.string.step_failed)
+        else -> declinedLabel(effect) ?: tr(R.string.step_failed)
+    }
+
+    /**
+     * 写记忆、存技能、改资料时按规矩没收(不是用户亲口说的、敏感、没明确要改删):这不是出了故障,
+     * 写「没成功」会让人以为坏了。说清没收和原因;别的错误码返回 null。
+     */
+    fun declinedLabel(code: String?): String? = when (code) {
+        "quote_not_from_user", "content_not_from_user" -> tr(R.string.step_declined_not_said)
+        "inference_not_requested" -> tr(R.string.step_declined_not_requested)
+        "sensitive" -> tr(R.string.step_declined_sensitive)
+        "edit_not_requested" -> tr(R.string.step_declined_not_asked)
+        else -> null
     }
 
     /** 点开一步后每件事一行:做了什么 · 对什么 · 结果(结果为空时不写)。 */

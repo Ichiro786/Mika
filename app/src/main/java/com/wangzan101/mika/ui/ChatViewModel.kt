@@ -13,6 +13,7 @@ import com.wangzan101.mika.chat.RetryAttachmentResult
 import com.wangzan101.mika.chat.RetryAttachmentStatus
 import com.wangzan101.mika.chat.ConversationStore
 import com.wangzan101.mika.chat.ConversationSummary
+import com.wangzan101.mika.chat.WorkspaceChannel
 import com.wangzan101.mika.chat.CurrentChat
 import com.wangzan101.mika.chat.DeleteBatch
 import com.wangzan101.mika.chat.DeleteImpact
@@ -26,6 +27,7 @@ import com.wangzan101.mika.confirm.ConfirmationCopy
 import com.wangzan101.mika.confirm.ConfirmationNotifier
 import com.wangzan101.mika.core.agent.AttachmentLines
 import com.wangzan101.mika.core.agent.Conversation
+import com.wangzan101.mika.core.agent.AnswerMarkup
 import com.wangzan101.mika.core.agent.QuoteMessage
 import com.wangzan101.mika.core.agent.TaskState
 import com.wangzan101.mika.task.TaskGate
@@ -205,6 +207,14 @@ data class Exchange(
     val keptPageClosed: String? = null,
     /** 每一步实际做的动作(按步号):标题是汇总,点开一步时看这里的明细。 */
     val stepActions: Map<Int, List<StepAction>> = emptyMap(),
+    /** Current task state names a tool being handled. */
+    val toolRunning: Boolean = false,
+    /** The user's reaction to Orbit's reply; null when none. */
+    val reaction: String? = null,
+    /** Orbit's reaction to the user's message; null when none. */
+    val orbitReaction: String? = null,
+    /** The earlier user message Orbit's reply quotes; null when none. */
+    val replyTo: String? = null,
 )
 
 /** 在跑时的一行进展:等你时说等什么;模型请求在途时只给中性状态;否则是这一步的话,没有就是最近做的事。 */
@@ -298,8 +308,8 @@ data class ChatUi(
     val blocked: List<Problem>? = null,
     val pip: PipUi = PipUi(),
     val composer: ComposerMode = ComposerMode.Idle,
-    /** 任务进行中补充消息交给谁;新任务开始时回到引导。 */
-    val followUpMode: FollowUpMode = FollowUpMode.Steer,
+    /** 任务进行中补充消息交给谁;默认排队(upstream b412c78),用户可切到引导当前任务。 */
+    val followUpMode: FollowUpMode = FollowUpMode.Queue,
     /** 这个对话明确排队、还没开始的下一件(按先后);开始或取消后从这里拿掉。 */
     val queued: List<QueuedFollowUp> = emptyList(),
     val takeoverStage: Takeover.Stage = Takeover.Stage.None,
@@ -329,7 +339,7 @@ private data class ComposerDraft(
     val input: String = "",
     val attachments: List<PendingAttachment> = emptyList(),
     val quote: QuoteMessage.Quote? = null,
-    val followUpMode: FollowUpMode = FollowUpMode.Steer,
+    val followUpMode: FollowUpMode = FollowUpMode.Queue,
     val sharedDraft: SharedDraft? = null,
     val importing: Boolean = false,
     val rejected: List<AttachmentFailure> = emptyList(),
@@ -362,7 +372,7 @@ private fun ChatUi.rebuildForConversation(
     pip = PipUi(),
     composer = ComposerMode.Idle,
     input = input,
-    followUpMode = FollowUpMode.Steer,
+    followUpMode = FollowUpMode.Queue,
     queued = emptyList(),
     takeoverStage = takeoverStage,
     attachments = attachments,
@@ -494,6 +504,9 @@ class ChatViewModel(
     }
     /** 每次有分享放进当前会话就加一;异步操作靠它分辨草稿是被新分享换掉了,还是用户只改了文字。 */
     private var sharedDraftSerial = 0L
+
+    /** Sends per conversation, so a file still being read when its message went out doesn't reappear in the tray afterwards. */
+    private val sendsByConversation = mutableMapOf<String, Int>()
 
     /** 尚未发送第一句话的草稿也能从侧栏找回来;已有历史的对话由侧栏沿用原标题。 */
     val draftConversations = combine(drafts, _ui) { saved, current ->
@@ -830,8 +843,17 @@ class ChatViewModel(
         }
     }
 
-    private fun canAttach(ui: ChatUi) = ui.attachEnabled && !ui.importing &&
-        (ui.composer == ComposerMode.Idle || (ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue))
+    private fun canAttach(ui: ChatUi) = ui.attachEnabled && !ui.importing && attachesWithNextSend(ui)
+
+    /**
+     * Whether files in the tray go out with the next send: with a new task, with a queued next task, or
+     * (while a task runs and follow-ups steer it) with the message to the running task. A question the
+     * task asked you is answered in words only, so files wait there unless follow-ups are queued.
+     */
+    private fun attachesWithNextSend(ui: ChatUi) = when (ui.composer) {
+        ComposerMode.Idle, ComposerMode.Busy -> true
+        ComposerMode.Answer -> ui.followUpMode == FollowUpMode.Queue
+    }
 
     /** 从相机、相册、文件选择器拿到的文件:没有任务在跑、沙箱就绪时才收;读出名字和大小后挂在输入框上方,随下一句话发出去。 */
     fun attach(uris: List<String>, conversationId: String? = _ui.value.conversationId) {
@@ -839,8 +861,10 @@ class ChatViewModel(
         val id = draftConversation()
         val sharedBefore = _ui.value.sharedDraft
         val serialBefore = sharedDraftSerial
+        val sendsBefore = sendsByConversation[id] ?: 0
         scope.launch {
             val items = try { describeAttachments(uris) } catch (e: CancellationException) { throw e } catch (e: Exception) { emptyList() }
+            if ((sendsByConversation[id] ?: 0) != sendsBefore) return@launch
             if (_ui.value.conversationId == id && (!canAttach(_ui.value) || sharedDraftSerial != serialBefore)) return@launch
             if (_ui.value.conversationId != id && drafts.value[id]?.sharedDraft != sharedBefore) return@launch
             updateDraft(id) { draft ->
@@ -1022,6 +1046,26 @@ class ChatViewModel(
 
     fun clearQuote() = _ui.update { it.copy(quote = null) }
 
+    /**
+     * The user reacts to Orbit's reply in the exchange with [runId]; the same emoji again takes it back. Kept in the
+     * conversation, so the next turn's context tells Orbit how that reply landed.
+     */
+    fun react(runId: String, emoji: String) {
+        val id = _ui.value.conversationId ?: return
+        val picked = AnswerMarkup.reaction(emoji) ?: return
+        var next: String? = null
+        _ui.update { ui ->
+            ui.copy(exchanges = ui.exchanges.map { ex ->
+                if (ex.runId != runId) ex else {
+                    next = if (ex.reaction == picked) null else picked
+                    ex.copy(reaction = next)
+                }
+            })
+        }
+        val value = next
+        scope.launch(io) { runCatching { store.updateTurn(id, runId) { it.copy(reaction = value) } } }
+    }
+
     /** 发送输入框里的话;有引用时引用写在话的前面(见 [QuoteMessage]),发出去后清掉。返回 false 表示没发出去(条件不满足,或任务在跑)。 */
     fun send(text: String, check: Prerequisites.Check): Boolean {
         if (teaching()) {
@@ -1031,9 +1075,9 @@ class ChatViewModel(
         refreshParallel()
         val ui = _ui.value
         if (ui.importing) return false
-        val queuedAttachments = ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue
-        val sendingAttachments = ui.attachments.isNotEmpty() && (ui.composer == ComposerMode.Idle || queuedAttachments)
+        val sendingAttachments = ui.attachments.isNotEmpty() && attachesWithNextSend(ui)
         val sent = sendQuoted(text.trim(), ui, check)
+        ui.conversationId?.let { id -> if (sent) sendsByConversation[id] = (sendsByConversation[id] ?: 0) + 1 }
         if (sent && !sendingAttachments) {
             val shared = ui.sharedDraft
             if (shared != null) {
@@ -1054,8 +1098,7 @@ class ChatViewModel(
 
     private fun sendQuoted(words: String, ui: ChatUi, check: Prerequisites.Check): Boolean {
         // 附件可跟新任务或明确排队的下一件走;先复制进工作区,再把路径随原话一起持久化。
-        val queuedAttachments = ui.composer != ComposerMode.Idle && ui.followUpMode == FollowUpMode.Queue
-        if ((ui.composer == ComposerMode.Idle || queuedAttachments) && ui.attachments.isNotEmpty()) {
+        if (attachesWithNextSend(ui) && ui.attachments.isNotEmpty()) {
             return sendWithAttachments(QuoteMessage.compose(ui.quote, words), ui.attachments, check)
         }
         // 只有引用、没写话时不发
@@ -1147,6 +1190,8 @@ class ChatViewModel(
             val accepted = when {
                 now.composer == ComposerMode.Idle -> { begin(goal, id, clearDraftAttachments = !keepNewerAttachments); true }
                 now.composer != ComposerMode.Idle && now.followUpMode == FollowUpMode.Queue -> enqueue(goal, check)
+                // Files sent while the task runs reach it with the message, like any other interjection.
+                now.composer == ComposerMode.Busy -> steer(goal, check)
                 else -> false
             }
             if (accepted) {
@@ -1156,7 +1201,7 @@ class ChatViewModel(
                         input = if (!draftReplaced && it.input == submitted.input) "" else it.input,
                         quote = if (!draftReplaced && it.quote == submitted.quote) null else it.quote,
                         attachments = if (keepNewerAttachments) currentAttachments else emptyList(),
-                        followUpMode = if (keepNewerAttachments && currentAttachments.isNotEmpty() && it.composer != ComposerMode.Idle) FollowUpMode.Queue else it.followUpMode,
+                        followUpMode = it.followUpMode,
                     )
                 }
                 releaseUnusedLibraryCopies()
@@ -1187,7 +1232,7 @@ class ChatViewModel(
                 attachments = nextAttachments,
                 pip = gated(PipUi(visible = true)),
                 composer = ComposerMode.Busy,
-                followUpMode = if (nextAttachments.isNotEmpty()) FollowUpMode.Queue else FollowUpMode.Steer,
+                followUpMode = FollowUpMode.Queue,
                 // 这一句如果本来在排队条上乐观挂着、现在已经开始,就不能再显示一行
                 queued = it.queued.filterNot { q -> q.text == goal },
             )
@@ -1237,12 +1282,14 @@ class ChatViewModel(
 
     /** 切换任务进行中补充消息的默认去向;只影响下次发送,不改已经发出的消息。 */
     fun setFollowUpMode(mode: FollowUpMode) {
-        if (mode == FollowUpMode.Steer) {
+        if (mode == FollowUpMode.Steer && _ui.value.composer == ComposerMode.Answer) {
             _ui.value.sharedDraft?.takeIf { it.image != null }?.let(::clearSharedImage)
         }
         _ui.update {
-            if (it.followUpMode == mode) it else it.copy(followUpMode = mode,
-                attachments = if (mode == FollowUpMode.Steer) emptyList() else it.attachments)
+            // Files stay in the tray either way: steering now carries them to the running task.
+            if (it.followUpMode == mode) it
+            else it.copy(followUpMode = mode,
+                attachments = if (mode == FollowUpMode.Steer && it.composer == ComposerMode.Answer) emptyList() else it.attachments)
         }
         releaseUnusedLibraryCopies()
     }
@@ -1263,6 +1310,20 @@ class ChatViewModel(
     fun startQueued() {
         val id = _ui.value.conversationId ?: return
         actions.drainFollowUps(id)
+    }
+
+    /** 把一条还没开始的排队改为当前任务的引导;竞争失败时保留或恢复排队。 */
+    fun guideQueued(id: String, check: Prerequisites.Check): Boolean {
+        val ui = _ui.value
+        if (ui.composer != ComposerMode.Busy) return false
+        val item = ui.queued.firstOrNull { it.id == id } ?: return false
+        if (!check.canStartTask) {
+            _ui.update { it.copy(blocked = check.blockers) }
+            return false
+        }
+        if (!cancelQueued(id)) return false
+        if (steer(item.text, check)) return true
+        return enqueue(item.text, check)
     }
 
     /** 取消一条还没开始的持久排队;已经轮到了返回 false。 */
@@ -1357,13 +1418,16 @@ class ChatViewModel(
 
     /** 个人助手打开其委派任务：只切换展示，不启动另一项工作。 */
     fun openPersonalTask(conversationId: String) {
+        if (conversationId == _ui.value.conversationId) return
         refreshParallel()
+        cancelPendingSharedDraft()
+        keepDraft()
         lingerJob?.cancel()
-        if (conversationId != _ui.value.conversationId) parkLive()
+        parkLive()
         val past = saved(conversationId)
         liveIndex = -1
-        // 没有任务的对话不带别的任务的接管进度
-        _ui.update { ChatUi(conversationId = conversationId, exchanges = past, takeoverStage = Takeover.Stage.None) }
+        // Preserve each conversation's composer while switching to an existing task.
+        _ui.update { restoreDraft(it.rebuildForConversation(conversationId = conversationId, exchanges = past)) }
         markCurrent(CurrentChat.Open(conversationId))
         if (conversationId !in activeConversations.value) { unpark(conversationId); return }
         follow(conversationId, unpark(conversationId))
@@ -1387,7 +1451,7 @@ class ChatViewModel(
                     followUpMode = when {
                         it.attachments.isNotEmpty() -> FollowUpMode.Queue
                         it.draft().hasContent -> it.followUpMode
-                        else -> FollowUpMode.Steer
+                        else -> FollowUpMode.Queue
                     },
                     queued = it.queued.filterNot { q -> q.text == live.goal })
             }
@@ -1733,6 +1797,63 @@ class ChatViewModel(
         markCurrent(CurrentChat.Fresh)
     }
 
+    /** Workspaces use the existing execution and draft owners, with separate conversation IDs. */
+    val workspaceChanges = store.changes
+    fun isSideChat(id: String?): Boolean = id != null && store.sideChat(id) != null
+    fun channelInfo(id: String?): WorkspaceChannel? = id?.let(store::channel)
+
+    private fun mainConversationOf(id: String): String =
+        store.sideChat(id)?.let { it.mainId ?: it.parentId } ?: store.channel(id)?.mainId ?: id
+
+    fun createSideChat(): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val id = store.newConversation()
+        if (!store.createSideChat(id, parent, store.turns(parent).size, mainConversationOf(parent))) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun createChannel(name: String, description: String): Boolean {
+        refreshParallel()
+        if (!canSwitch()) return false
+        val parent = draftConversation()
+        val id = store.newConversation()
+        if (!store.createChannel(id, name, description, mainConversationOf(parent))) return false
+        openConversation(id)
+        return _ui.value.conversationId == id
+    }
+
+    fun updateChannel(id: String, name: String, description: String): Boolean = store.updateChannel(id, name, description)
+
+    /** A fresh conversation of its own for a new space, opened so its first message can go out; null while switching isn't possible. */
+    fun createSpaceConversation(): String? {
+        refreshParallel()
+        if (!canSwitch()) return null
+        val id = store.newConversation()
+        openConversation(id)
+        return id.takeIf { _ui.value.conversationId == id }
+    }
+
+    fun removeChannel(id: String): Boolean {
+        val channel = store.channel(id) ?: return false
+        refreshParallel()
+        if (_ui.value.conversationId == id && !canSwitch()) return false
+        if (!store.removeChannel(id)) return false
+        if (_ui.value.conversationId == id) {
+            val main = channel.mainId
+            if (main == null || main == id) newConversation() else openConversation(main)
+        }
+        return true
+    }
+
+    fun openMainChat() {
+        val current = _ui.value.conversationId ?: return
+        val main = mainConversationOf(current)
+        if (main != current) openConversation(main)
+    }
+
     /** 屏上这个对话此刻有没有任务在跑或排队。 */
     fun currentRunning(): Boolean = _ui.value.conversationId?.let { it in activeConversations.value } == true
 
@@ -1992,7 +2113,7 @@ class ChatViewModel(
                     followUpMode = when {
                         it.attachments.isNotEmpty() -> FollowUpMode.Queue
                         it.draft().hasContent -> it.followUpMode
-                        else -> FollowUpMode.Steer
+                        else -> FollowUpMode.Queue
                     },
                     queued = it.queued.filterNot { q -> q.text == goal })
             }
@@ -2094,7 +2215,8 @@ class ChatViewModel(
 
         internal fun reduce(ex: Exchange, s: TaskState, appLabel: (String) -> String = { it }, toolLabel: (String) -> String = { it }): Exchange =
             state(ex, s, appLabel).let {
-                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel))
+                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel),
+                    toolRunning = s is TaskState.Running && s.tool != null)
             }
 
         /** 按步号归好的动作明细:点开一步时列出来。 */
@@ -2112,7 +2234,7 @@ class ChatViewModel(
                 val said = (s.narration ?: s.reason)?.takeIf(String::isNotBlank)
                 val waiting = progress == null && s.tool == null && said == null
                 ex.copy(
-                    status = ExchangeStatus.Working, waitingForModel = waiting, draft = s.preview,
+                    status = ExchangeStatus.Working, waitingForModel = waiting, draft = s.preview?.let(AnswerMarkup::strip),
                     line = if (waiting) "" else progress ?: said.orEmpty(),
                     notes = if (s.step > 0 && said != null) ex.notes + (s.step to said) else ex.notes,
                 )
@@ -2139,7 +2261,7 @@ class ChatViewModel(
             )
             // 回答原样显示(不再有模型写的依据段);来源由运行记录里代码记下的那份给出
             is TaskState.Succeeded -> ex.copy(status = ExchangeStatus.Done(s.answer.trim(), null, s.verified, s.note, s.unconfirmed, s.reviewed),
-                waitingForModel = false, draft = null, line = "")
+                waitingForModel = false, draft = null, line = "", orbitReaction = s.react, replyTo = s.replyTo)
             is TaskState.Failed -> ex.copy(status = ExchangeStatus.Failed(s.reason), waitingForModel = false, draft = null, line = "")
             TaskState.Cancelled -> ex.copy(status = ExchangeStatus.Cancelled(), waitingForModel = false, draft = null, line = "")
         }
@@ -2149,6 +2271,9 @@ class ChatViewModel(
          * 动作写「点击 · 微信」,那一步模型写了话就用它的话;没成功只说没成功,不显示错误码。
          * 最后一行的状态跟着这一问一答:在跑、等你、结束。
          */
+        /** 没办成的一步下面那行小字:按规矩没收的说原因,其余说「没成功」。 */
+        private fun failedLabel(a: RunEvent.Activity) = ChatCopy.declinedLabel(a.effect) ?: tr(R.string.step_failed)
+
         internal fun rows(ex: Exchange, toolLabel: (String) -> String, appLabel: (String) -> String): List<StepRow> {
             val out = mutableListOf<StepRow>()
             val said = mutableSetOf<Int>()
@@ -2159,13 +2284,13 @@ class ChatViewModel(
                     if (where == null && !a.failed) continue
                     val text = if (where == null) toolLabel(a.label)
                         else a.title?.takeIf(String::isNotBlank)?.let { tr(R.string.step_viewed_part, where, it) } ?: tr(R.string.step_viewed, where)
-                    val subtitle = if (a.failed) tr(R.string.step_failed) else ""
+                    val subtitle = if (a.failed) failedLabel(a) else ""
                     val last = out.lastOrNull()
                     if (last?.title != text || last.subtitle != subtitle) out += StepRow(a.step, text, subtitle, StepState.Ok)
                 } else {
                     val reason = if (said.add(a.step)) ex.notes[a.step].orEmpty() else ""
                     val title = listOfNotNull(toolLabel(a.label), where).joinToString(" · ")
-                    out += StepRow(a.step, title, if (a.failed) tr(R.string.step_failed) else "", StepState.Ok, reason)
+                    out += StepRow(a.step, title, if (a.failed) failedLabel(a) else "", StepState.Ok, reason)
                 }
             }
             if (out.isEmpty()) return out
@@ -2197,6 +2322,7 @@ class ChatViewModel(
             return Exchange(t.userText, emptyList(), status, live = false, runId = t.runId,
                 memoryNotes = t.memoryNotes, usedMemory = t.usedMemory, skillNotes = t.skillNotes,
                 keptPage = t.keptPage, keptPageClosed = t.keptPageClosed,
+                reaction = t.reaction, orbitReaction = t.orbitReaction, replyTo = t.replyTo,
                 steers = t.steers.mapIndexed { i, text ->
                     SteerNote("turn-$i", text, SteerState.Joined, t.interruptedReplies.getOrNull(i)?.takeIf(String::isNotEmpty),
                         t.finishedReplies.getOrNull(i)?.takeIf(String::isNotEmpty))
@@ -2282,7 +2408,7 @@ class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames =
     }
 
     companion object {
-        /** 工具声明里的 label → 界面文字;中文资源与 label 一字不差(ToolLabelsTest 核对每个工具都有)。 */
+        /** Upstream tool labels remain stable keys; localized display text may use the Orbit name. */
         val TOOL_LABELS: Map<String, Int> = mapOf(
             "查看已装的 App" to R.string.tool_list_apps,
             "打开 App" to R.string.tool_open_app,
@@ -2302,6 +2428,9 @@ class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames =
             "系统命令" to R.string.tool_shell,
             "root 命令" to R.string.tool_root,
             "通话状态" to R.string.calls_tool_state,
+            "WhatsApp 对话" to R.string.whatsapp_tool_chats,
+            "读取 WhatsApp" to R.string.whatsapp_tool_read,
+            "发送 WhatsApp 消息" to R.string.whatsapp_tool_send,
             "拨打电话" to R.string.calls_tool_dial,
             "AI 接听" to R.string.calls_answer,
             "挂断电话" to R.string.calls_tool_hangup,
@@ -2334,6 +2463,9 @@ class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames =
             "查看 App/网站知识" to R.string.tool_read_knowledge,
             "查看技能" to R.string.tool_read_skill,
             "保存技能" to R.string.tool_save_skill,
+            "查找记忆" to R.string.tool_memory_search,
+            "写入记忆" to R.string.tool_memory_save,
+            "修改记忆" to R.string.tool_memory_edit,
             "查看设置" to R.string.tool_list_settings,
             "改设置" to R.string.tool_set_setting,
             "查看自身状态" to R.string.tool_mika_status,

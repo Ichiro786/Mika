@@ -144,7 +144,7 @@ class OpenAiCompatModel(
             put("name", t.name)
             put("description", t.description)
             put("parameters", try { json.parseToJsonElement(t.parametersJsonSchema) } catch (e: Exception) {
-                throw IllegalArgumentException("工具 ${t.name} 的参数 schema 不是合法 JSON", e)
+                throw IllegalArgumentException("Parameter schema of tool ${t.name} is not valid JSON", e)
             })
         }
     }
@@ -265,8 +265,8 @@ class OpenAiCompatModel(
         try {
             val root = json.parseToJsonElement(text).jsonObject
             val choice = root["choices"]?.jsonArray?.firstOrNull()?.jsonObject
-                ?: throw ModelError.BadResponse("缺少 choices")
-            val msg = choice["message"]?.jsonObject ?: throw ModelError.BadResponse("缺少 message")
+                ?: throw ModelError.BadResponse("Missing choices")
+            val msg = choice["message"]?.jsonObject ?: throw ModelError.BadResponse("Missing message")
             val parts = mutableListOf<Part>()
             ReasoningVia.fields.firstNotNullOfOrNull { via ->
                 (msg[via.field!!] as? JsonPrimitive)?.contentOrNull?.takeIf { it.isNotEmpty() }?.let { it to via }
@@ -342,7 +342,7 @@ private class OpenAiStream(
     fun accept(data: String): Boolean {
         if (data == "[DONE]") { done = true; return true }
         val root = try { json.parseToJsonElement(data).jsonObject }
-        catch (e: Exception) { throw ModelError.BadResponse("流式响应不是合法 JSON", e) }
+        catch (e: Exception) { throw ModelError.BadResponse("The streamed response is not valid JSON", e) }
         // 有的服务流式请求一开头就出错时回 200,在事件流里给一帧错误;说的是超长,和 400 一样按超长处理
         root["error"]?.toString()?.let { e -> throw if (ModelHttp.saysContextTooLong(e)) ModelError.ContextTooLong() else ModelError.BadResponse(e.take(200)) }
         chunks++
@@ -391,12 +391,12 @@ private class OpenAiStream(
     fun finish(): ModelReply {
         // 收到 finish_reason 就算回复完整:有的兼容端点不发 [DONE]。两样都没有是连接中途被断开
         if (!done && reason == null) throw ModelError.StreamCut()
-        if (chunks == 0) throw ModelError.BadResponse("流式响应没有内容")
+        if (chunks == 0) throw ModelError.BadResponse("The streamed response is empty")
         val parts = buildList<Part> {
             thinkingVia?.takeIf { thinking.isNotEmpty() }?.let { add(thinkingOf(thinking.toString(), it)) }
             if (visible.isNotEmpty()) add(Part.Text(visible.toString()))
             calls.values.forEach { c ->
-                if (c.name.isEmpty() || c.id.isEmpty()) throw ModelError.BadResponse("工具调用流缺少名称或编号")
+                if (c.name.isEmpty() || c.id.isEmpty()) throw ModelError.BadResponse("Streamed tool call is missing a name or id")
                 add(Part.ToolCall(c.id.toString(), c.name.toString(), c.args.toString().ifEmpty { "{}" }))
             }
         }

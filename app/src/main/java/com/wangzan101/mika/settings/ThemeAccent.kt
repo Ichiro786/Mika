@@ -5,9 +5,10 @@ package com.wangzan101.mika.settings
  * 不提供绿、橙、红:它们已经表示成功、需要你、出错。各色的取值见 `ui/theme/Colors.kt` 的 `palette`。
  */
 enum class ThemeAccent {
-    Blue, Indigo, Purple, Pink, Teal, Graphite;
+    /** Material You: the system's wallpaper colors on Android 12 and newer, default blue before that. */
+    Dynamic, Blue, Indigo, Purple, Pink, Teal, Graphite;
 
     companion object {
-        fun parse(s: String?): ThemeAccent = entries.firstOrNull { it.name == s } ?: Blue
+        fun parse(s: String?): ThemeAccent = entries.firstOrNull { it.name == s } ?: Dynamic
     }
 }

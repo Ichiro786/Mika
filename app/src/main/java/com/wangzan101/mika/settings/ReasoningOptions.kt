@@ -13,6 +13,9 @@ data class ReasoningOptions(val levels: List<String>, val fromProvider: Boolean)
         // 列表没说明档位时供手动选择,不声称每个模型都支持;界面会说明,默认始终不指定。
         private val manualLevels = listOf("none", "minimal", "low", "medium", "high", "xhigh", "max")
 
+        /** Custom OpenAI-compatible gateways: the levels nearly every such server accepts. */
+        private val customGatewayLevels = listOf("low", "medium", "high")
+
         fun of(config: ProviderConfig, listed: ListedModel?): ReasoningOptions? {
             listed?.reasoningEfforts?.let { declared ->
                 // 套餐接口的模型目录曾把服务端不接受的 ultra 列为可选。目录也是外部输入:
@@ -25,10 +28,14 @@ data class ReasoningOptions(val levels: List<String>, val fromProvider: Boolean)
             return when (ProviderStore.adapterFor(config, listed?.endpoint).first) {
                 ProviderConfig.Kind.OpenAiResponses, ProviderConfig.Kind.ChatGpt, ProviderConfig.Kind.Xai ->
                     ReasoningOptions(manualLevels, fromProvider = false)
-                // 预设里这家官方文档写明了几档就给几档;自定义地址对不上预设,照旧不猜
-                ProviderConfig.Kind.OpenAiCompat ->
-                    ProviderPresets.forBaseUrl(config.baseUrl)?.reasoningLevels
-                        ?.takeIf { it.isNotEmpty() }?.let { ReasoningOptions(it, fromProvider = false) }
+                // 预设里这家官方文档写明了几档就给几档。A custom address that matches no preset gets the three common
+                // `reasoning_effort` levels to pick by hand (#562): the default still sends nothing, the dialog says the
+                // gateway didn't declare levels, and a gateway that rejects the value is reported as such (see ModelHttp).
+                ProviderConfig.Kind.OpenAiCompat -> {
+                    val preset = ProviderPresets.forBaseUrl(config.baseUrl)
+                    if (preset == null) ReasoningOptions(customGatewayLevels, fromProvider = false)
+                    else preset.reasoningLevels.takeIf { it.isNotEmpty() }?.let { ReasoningOptions(it, fromProvider = false) }
+                }
                 ProviderConfig.Kind.Anthropic, ProviderConfig.Kind.Gemini -> null
             }
         }

@@ -36,7 +36,7 @@ class FileFollowUpStoreTest {
         val dir = Files.createTempDirectory("mika-followups").toFile()
         try {
             val file = dir.resolve("followups.json")
-            val peer = ChannelPeer("wechat", "owner", "thread")
+            val peer = ChannelPeer("whatsapp", "owner", "thread")
             val item = QueuedFollowUp(
                 "message-2", "thread", "第二项", 2L, QueuedSource.Fallback,
                 provenance = RunProvenance(RunOrigin.Channel, Attendance.Reachable),

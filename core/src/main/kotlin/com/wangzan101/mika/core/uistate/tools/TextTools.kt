@@ -152,7 +152,7 @@ internal class TypeText(f: ScreenFamily) : ScreenTool(f, "type_text") {
 
     // 只有端口明确说不是密码框才写出输入的字
     override fun logTyped(o: JsonObject, r: ToolExecution) =
-        o.argStr("text")?.takeIf { r.content["secret"] == JsonPrimitive(false) }?.let { "「${it.take(40)}」" }
+        o.argStr("text")?.takeIf { r.content["secret"] == JsonPrimitive(false) }?.let { "\"${it.take(40)}\"" }
 }
 
 internal class ClearText(f: ScreenFamily) : ScreenTool(f, "clear_text") {

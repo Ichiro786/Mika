@@ -210,14 +210,12 @@ class ChatScreenDeviceTest {
         assertEquals(2, compose.onAllNodesWithText("查看过程").fetchSemanticsNodes().size)
         shot("07-done")
 
-        // 侧栏:对话页上返回(侧滑)先打开侧栏;五个入口和最近的对话
+        // Back opens the conversation-focused drawer; tools remain reachable from the hub.
         compose.runOnUiThread { compose.activity.onBackPressedDispatcher.onBackPressed() }
         compose.waitForIdle()
         compose.onNodeWithTag("drawer").assertIsDisplayed()
-        compose.onNodeWithText("定时任务").assertIsDisplayed()
-        compose.onNodeWithText("记忆与技能").assertIsDisplayed()
-        compose.onNodeWithText("浏览器").assertIsDisplayed()
-        compose.onNodeWithText("最近").assertIsDisplayed()
+        compose.onNodeWithText("Main Chat").assertIsDisplayed()
+        compose.onNodeWithText("New Side Chat").assertIsDisplayed()
         shot("08-drawer")
     }
 

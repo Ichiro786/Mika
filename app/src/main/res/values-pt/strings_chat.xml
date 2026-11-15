@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">Para você hoje</string>
+    <string name="home_editorial_subtitle">Um passo à frente no seu dia, com Orbit.</string>
     <string name="chat_greeting_morning">Bom dia</string>
     <string name="chat_greeting_noon">Boa tarde</string>
     <string name="chat_greeting_afternoon">Boa tarde</string>
     <string name="chat_greeting_evening">Boa noite</string>
     <string name="chat_greeting_night">Já é madrugada</string>
-    <string name="chat_empty_prompt">O que o Mika deve fazer?</string>
+    <string name="chat_empty_prompt">O que o Orbit deve fazer?</string>
     <string name="chat_example_github_star">Abra https://github.com/wangzan101/mika e dê uma estrela ao projeto.</string>
     <string name="chat_example_follow">Abra o X, pesquise Wang Zan (@wangzan101) e siga a conta.</string>
     <string name="chat_example_group_summary">Abra o WhatsApp e resuma as mensagens não lidas de hoje, destacando tudo o que precisa da minha resposta.</string>
     <string name="chat_example_alarms">Defina alarmes para amanhã às 9:40, 9:50 e 10:00.</string>
+    <string name="chat_example_wind_down">Ative o Não perturbe até as 7 da manhã de amanhã e coloque um alarme para as 7:00.</string>
+    <string name="chat_example_nearby">Encontre um café bem avaliado perto de mim que esteja aberto agora.</string>
     <string name="chat_example_replace_title">Substituir o rascunho atual?</string>
     <string name="chat_example_replace_body">A tarefa recomendada substituirá o que você já digitou.</string>
     <string name="chat_example_replace_action">Substituir rascunho</string>
@@ -51,20 +55,20 @@
         <item quantity="many">%1$d passos anteriores</item>
         <item quantity="other">%1$d passos anteriores</item>
     </plurals>
-    <string name="chat_background_note">Rodando em segundo plano — continue usando o celular. Toque na miniatura para ampliar.</string>
+    <string name="chat_background_note">Executando em segundo plano, continue usando o celular. Toque na pílula acima da barra de mensagens para assistir ao vivo.</string>
     <string name="chat_placeholder_busy">Adicione ou altere detalhes…</string>
-    <string name="chat_placeholder_answer">Responda à pergunta do Mika</string>
+    <string name="chat_placeholder_answer">Responda à pergunta do Orbit</string>
     <string name="chat_placeholder_more">Diga mais alguma coisa…</string>
     <string name="chat_cannot_start">Ainda não é possível iniciar tarefas</string>
     <string name="chat_missing">Falta: %1$s</string>
     <string name="chat_go_settings">Abrir Configurações</string>
-    <string name="chat_menu">Menu</string>
+    <string name="chat_menu">Abrir barra lateral</string>
     <string name="drawer_personal">Assistente pessoal</string>
     <string name="chat_new">Nova conversa</string>
     <string name="chat_expand_steps">Mostrar passos</string>
     <string name="chat_collapse_steps">Ocultar passos</string>
     <string name="chat_view_process">Ver como foi</string>
-    <string name="chat_unlock_body">Seu celular está bloqueado. O Mika continuará quando você o desbloquear.</string>
+    <string name="chat_unlock_body">Seu celular está bloqueado. O Orbit continuará quando você o desbloquear.</string>
     <string name="chat_input_body">%1$s\nToque em uma opção ou digite abaixo. %2$s</string>
     <string name="chat_refuse">Recusar</string>
     <string name="chat_allow_once">Permitir só desta vez</string>
@@ -182,6 +186,10 @@
     <string name="step_viewed">Viu %1$s</string>
     <string name="step_viewed_part">Viu %2$s em %1$s</string>
     <string name="step_failed">Falhou</string>
+    <string name="step_declined_not_said">Não foi gravado: não são palavras suas</string>
+    <string name="step_declined_sensitive">Não foi gravado: informação sensível</string>
+    <string name="step_declined_not_asked">Sem alterações: você não pediu</string>
+    <string name="step_declined_not_requested">Não foi gravado: esta mensagem não pedia para lembrar</string>
     <string name="step_number">Passo %1$d</string>
     <string name="source_label">Origem</string>
     <plurals name="screenshots">
@@ -196,11 +204,11 @@
     <string name="attach_album">Fotos</string>
     <string name="attach_files">Arquivos</string>
     <string name="attach_recent">Fotos recentes</string>
-    <string name="attach_recent_partial">Fotos que você permitiu o Mika acessar</string>
+    <string name="attach_recent_partial">Fotos que você permitiu o Orbit acessar</string>
     <string name="attach_all">Todas as fotos</string>
     <string name="attach_change">Alterar acesso</string>
     <string name="attach_no_photos">Ainda não há fotos</string>
-    <string name="attach_need_access">Para escolher fotos aqui, permita que o Mika acesse suas fotos</string>
+    <string name="attach_need_access">Para escolher fotos aqui, permita que o Orbit acesse suas fotos</string>
     <string name="attach_grant">Permitir acesso às fotos</string>
     <string name="attach_grant_hint">Você também pode tocar em “Fotos” acima para usar o seletor de fotos do sistema</string>
     <string name="attach_full">No máximo %1$d anexos por vez</string>
@@ -222,10 +230,10 @@
     <string name="attach_file_and_more">%1$s e mais %2$d arquivos</string>
     <string name="screen_tag">Sua tela agora</string>
     <string name="screen_blocked">Não foi possível capturar: esta página não permite capturas de tela</string>
-    <string name="screen_camera">Capturar esta tela para o Mika</string>
+    <string name="screen_camera">Capturar esta tela para o Orbit</string>
     <string name="screen_remove">Remover esta captura de tela</string>
-    <string name="screen_send">Enviar sua tela atual para o Mika</string>
-    <string name="pip_screen">Tela virtual do Mika</string>
+    <string name="screen_send">Enviar sua tela atual para o Orbit</string>
+    <string name="pip_screen">Tela virtual do Orbit</string>
     <string name="collapse">Recolher</string>
     <string name="no_app_for_link">Nenhum app consegue abrir este link</string>
     <string name="source_none">Nenhuma origem foi salva para esta resposta</string>
@@ -233,7 +241,7 @@
     <string name="zoom_in">Ampliar</string>
     <string name="chat_message_actions">Opções da mensagem</string>
     <string name="chat_copy">Copiar</string>
-    <string name="chat_quote">Citar</string>
+    <string name="chat_quote">Responder</string>
     <string name="chat_select_text">Selecionar texto</string>
     <string name="chat_copied">Copiado</string>
     <string name="chat_branch">Ramificar daqui</string>
@@ -254,7 +262,7 @@
     <string name="chat_retry_failed">%1$s: não foi possível copiar</string>
     <string name="chat_select_hint">Toque e segure o texto para selecioná-lo</string>
     <string name="chat_quote_remove">Remover citação</string>
-    <string name="chat_quoting_mika">Citando o Mika: %1$s</string>
+    <string name="chat_quoting_mika">Citando o Orbit: %1$s</string>
     <string name="chat_quoting_you">Citando você: %1$s</string>
     <string name="chat_edit_message">Editar mensagem</string>
     <string name="chat_withdraw_message">Retirar mensagem</string>
@@ -263,7 +271,7 @@
     <string name="pip_back">Voltar na tela virtual</string>
     <string name="pip_reopen">Mostrar tela</string>
     <string name="pip_closed_needs_you">Precisa de você</string>
-    <string name="pip_closed_hint">Fechada para esta tarefa. Toque em “Mostrar tela” no canto inferior direito ou abra “Telas em segundo plano” no menu lateral.</string>
+    <string name="pip_closed_hint">Fechada para esta tarefa. Toque em “Mostrar tela” acima da barra de mensagens ou abra “Telas em segundo plano” no menu lateral.</string>
     <string name="chat_conversation_tokens">Esta conversa: %1$s</string>
     <string name="chat_conversation_tokens_partial">Esta conversa: pelo menos %1$s</string>
     <string name="follow_up_steer">Guiar</string>
@@ -291,4 +299,12 @@
         <item quantity="many">%1$d não arquivadas</item>
         <item quantity="other">%1$d não arquivadas</item>
     </plurals>
+    <string name="pip_step">Etapa %1$d</string>
+    <string name="pip_swipe_hide">Deslize para baixo para ocultar</string>
+    <string name="chat_share_message">Compartilhar</string>
+    <string name="chat_react_with">Reagir com %1$s</string>
+    <string name="chat_reaction_yours">Você reagiu com %1$s</string>
+    <string name="chat_reaction_orbit">Orbit reagiu com %1$s</string>
+    <string name="chat_replying_to">Respondendo à sua mensagem: %1$s</string>
+    <string name="chat_swipe_reply">Deslize para responder</string>
 </resources>

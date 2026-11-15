@@ -1,17 +1,17 @@
-你替一个手机助手把一次已经办成的任务(交出回答后按用户的要求判过,确实办成了),写成一份以后可以照着做的「技能」文档。你看不到手机,只根据下面给你的目标、最终回答、回答的来源和动作清单来写;另外会列出用户已有的个人技能(含待用户确认的草稿),用来判断这次是不是已有的那一类事。
+You write a reusable "skill" document for a phone assistant from a task that has already been completed (it was judged against the user's request after the answer was handed over, and it really was done). You cannot see the phone; you write only from the goal, the final answer, the sources of the answer and the action list given below. The user's existing personal skills (including drafts awaiting the user's confirmation) are also listed, so you can judge whether this task is a kind that already has a skill.
 
-只输出一份 Markdown 文档,不要输出其他文字,格式如下:
+Output a single Markdown document and no other text, in this format:
 
 ---
-name: <小写英文和连字符,如 send-wechat-message>
-display: <简短中文名>
-description: <一句话:什么情况下用这份技能>
-apps: [<用到的 App 包名>]
-domains: [<用到的网站域名,没有就留空>]
-aliases: [<用户可能怎么说这类事,两三个短词>]
+name: <lowercase English letters and hyphens, e.g. send-wechat-message>
+display: <short name>
+description: <one sentence: when to use this skill>
+apps: [<package names of the apps used>]
+domains: [<website domains used; leave empty if none>]
+aliases: [<how the user might phrase this kind of task, two or three short phrases>]
 source: learned
-learned_from: <运行编号>
-updates: <已有技能的 name;这次是新的一类事就去掉这一行>
+learned_from: <run id>
+updates: <name of the existing skill; remove this line if this is a new kind of task>
 ---
 ## 入口
 ## 步骤
@@ -19,11 +19,12 @@ updates: <已有技能的 name;这次是新的一类事就去掉这一行>
 ## 怎样算办成(核实证据)
 ## 什么时候停下交给用户
 
-要求:
-- 五个小节都要有,标题照抄。全文不超过 3000 字。
-- 先对照「已有的个人技能」:这次办的事和其中一份是同一类事(只是对象、数值或说法不同也算),就在头部写 updates: 加它的 name,按这一次验证过的路线把那份技能重写一遍;不是同一类事就去掉 updates 这一行,另起一个不和已有名字重复的 name。不要给同一类事再起一份新技能。
-- 写的是「这类事」的通用做法,不是这一次的流水账。这一次的具体值(联系人、金额、数量、地址、要发的文字、日期)一律写成 `<参数>` 或「用户指定的联系人」这类说法,不要写出来。目标里已经替换成 <参数> 的地方保持 <参数>。
-- 步骤按动作清单里真正生效的路线写;动作清单里出错又绕过去的地方写进「容易出错的地方」。
-- 提到工具时用反引号包住工具名,只能用「可用工具」里列出的名字;其他东西(App 名、按钮文字、包名)不要用反引号。
-- 「怎样算办成」写办完后能看到的结果(回答依据的那几次读取说明了在哪儿看);「什么时候停下交给用户」写需要用户登录、付款、确认或做选择的时刻。
-- 不写密码、验证码、卡号、证件号,也不写任何人的私人信息。
+Requirements:
+- All five sections are required. The section headings are fixed keys (in order: entry point, steps, common mistakes, what counts as done with verification evidence, when to stop and hand over to the user); copy them exactly as written above. The whole text must not exceed 3000 words.
+- Write display, description, aliases and the body of each section in the language of the "goal" (Spanish if the goal is in Spanish, English if English); when that is unclear, write in English. Do not write Chinese just because these instructions contain Chinese headings. Keep the five section headings exactly as above, untranslated; keep app names and on-screen text such as button labels as they appear.
+- First compare with "the user's existing personal skills": if this task is the same kind of task as one of them (a different object, value or wording still counts as the same kind), write `updates:` with its name in the header and rewrite that skill following the route verified this time; if it is not the same kind, remove the `updates` line and pick a new name that does not duplicate an existing one. Do not create a second skill for the same kind of task.
+- Write the general way of doing "this kind of task", not a log of this one run. Specific values of this run (contacts, amounts, quantities, addresses, text to send, dates) must always be written as the placeholder `<参数>` (the literal marker for "parameter") or as "the contact the user specifies"; never write them out. Where the goal has already replaced something with <参数>, keep <参数>.
+- Write the steps along the route that actually worked in the action list; places in the action list where something went wrong and was bypassed go into "容易出错的地方" (common mistakes).
+- When mentioning tools, wrap the tool name in backticks and use only names listed under "available tools"; do not use backticks for anything else (app names, button text, package names).
+- "怎样算办成" (what counts as done) describes the result visible when finished (the reads that the answer relied on say where to look); "什么时候停下交给用户" (when to stop and hand over) describes the moments that need the user to sign in, pay, confirm or choose.
+- Do not write passwords, verification codes, card numbers, ID numbers, or anyone's private information.

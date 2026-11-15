@@ -101,6 +101,14 @@ private fun cleanReplyParts(parts: List<Part>, text: String): List<Part> {
     }
 }
 
+/**
+ * 写、改 Mika 自己的记忆不先问「是讨论还是要操作」。那个判断管的是要不要去读、去动 App 和网站;这两个工具只动 Mika 自己的记忆,
+ * 各有校验(引文必须出自用户这一轮的话,改删还要话里明说了要改、要删,见 MemoryTools),改动在结果卡上可以撤销。
+ * 交给它判的话,「总结一下写进记忆」「把那几条改得简洁一点」这样的话在真机上都被判成了讨论:调用被丢掉、改成不带工具重问,
+ * 模型只好把调用写成文字,任务以「工具调用没被识别」结束。
+ * 「如果我让你把那条删了,你会怎么做」这种只是问问的,由 memory_edit 自己拒(见 MemoryEdit 里的 onlyAsking)。
+ */
+private val MEMORY_WRITE_VERBS = setOf(Verb.MemorySave, Verb.MemoryEdit)
 private val MEMORY_VERBS = setOf(Verb.MemorySearch, Verb.MemorySave, Verb.MemoryEdit)
 /** 讨论历史时仍可查本地记忆与技能资料、之前几轮的记录；这些调用不会打开 App 或网站。 */
 private val DISCUSSION_LOOKUP_VERBS = setOf(Verb.MemorySearch, Verb.KnowledgeSearch, Verb.KnowledgeRead, Verb.SkillSearch, Verb.SkillRead, Verb.HistoryRead)
@@ -526,7 +534,7 @@ class AgentLoop(
             var (reply, used) = routed
             val proposed = reply.parts.filterIsInstance<Part.ToolCall>().firstOrNull()
             if (provenance.origin == RunOrigin.Ui && intentGate != null && proposed != null &&
-                tools.verb(proposed.name) !in DISCUSSION_LOOKUP_VERBS) {
+                tools.verb(proposed.name).let { it !in DISCUSSION_LOOKUP_VERBS && it !in MEMORY_WRITE_VERBS }) {
                 if (!intentAssessed) intent = assessIntent()
                 if (intent == IntentGate.Intent.Discuss) {
                     // 提议的调用尚未写进历史、也没有执行；重问一次，只给直接回答的机会。
@@ -603,7 +611,8 @@ class AgentLoop(
                     continue
                 }
                 // 回答的正文不是用户最近那句的语言:退回一次整段改写;改写后还不对照样交出
-                if (!languageNudged) {
+                // Nothing typed (only a screen was sent): no language to follow, so no check
+                if (!languageNudged && latestWords.isNotBlank()) {
                     val mismatch = ReplyLanguage.mismatch(latestWords, text)
                     if (mismatch != null) {
                         languageNudged = true
@@ -966,7 +975,7 @@ class AgentLoop(
      */
     private fun owedFollowUp(answered: String?): String? {
         confirmations?.granted?.let { r ->
-            val what = listOfNotNull(r.action.name, r.target.takeIf(String::isNotBlank), r.content.takeIf(String::isNotBlank)?.let { "「$it」" }).joinToString(" ")
+            val what = listOfNotNull(r.action.name, r.target.takeIf(String::isNotBlank), r.content.takeIf(String::isNotBlank)?.let { "\"$it\"" }).joinToString(" ")
             return Feedback.format("followup_approved", "action" to what)
         }
         return answered?.let { Feedback.format("followup_answered", "prompt" to it.take(200)) }
@@ -977,7 +986,15 @@ class AgentLoop(
      * 核对没对上:能退回([history] 不为 null,而且本任务还没退回过)就提醒模型一次、返回 null 接着做;
      * 否则照样交出,没对上的几处标成未确认。[facts] 是核对要看的任务情况(见 [ReviewFacts])。
      */
-    private suspend fun conclude(task: String, answer: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
+    private suspend fun conclude(task: String, raw: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
+        val markup = AnswerMarkup.parse(raw)
+        // A reaction or quote line alone isn't an answer: keep the original text so nothing is lost
+        val answer = markup.body.ifBlank { raw }
+        val end = concludeAnswer(task, answer, step, facts, history)
+        return if (end is TaskState.Succeeded && markup.body.isNotBlank()) end.copy(react = markup.react, replyTo = markup.replyTo) else end
+    }
+
+    private suspend fun concludeAnswer(task: String, answer: String, step: Int, facts: ReviewFacts, history: MutableList<Message>?): TaskState? {
         if (!reviewFinalAnswer) {
             val sources = review.sourcesOnly(task, answer, media)
             if (sources.isNotEmpty()) emit(RunEvent.Sources(now(), sources))
@@ -996,7 +1013,7 @@ class AgentLoop(
         if (missing.isNotEmpty()) emit(RunEvent.Unconfirmed(now(), step, missing.map(::detail)))
         if (r.sources.isNotEmpty()) emit(RunEvent.Sources(now(), r.sources))
         return if (missing.isEmpty()) TaskState.Succeeded(answer, r.verified, r.note, r.sources, reviewed = r.reviewed)
-        else TaskState.Succeeded(answer, verified = false, note = UNCONFIRMED_NOTE + missing.joinToString("、"), sources = r.sources, unconfirmed = missing)
+        else TaskState.Succeeded(answer, verified = false, note = UNCONFIRMED_NOTE + missing.joinToString(", "), sources = r.sources, unconfirmed = missing)
     }
 
     /**

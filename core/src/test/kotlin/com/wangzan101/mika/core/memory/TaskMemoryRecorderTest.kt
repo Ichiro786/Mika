@@ -35,7 +35,7 @@ class TaskMemoryRecorderTest {
         )!!
         assertEquals("r1", m.id)
         assertEquals("在淘宝下单", m.goal)
-        assertEquals("办成：订单已下", m.conclusion)
+        assertEquals("done: 订单已下", m.conclusion)
         assertEquals(listOf("com.taobao"), m.apps)
         assertEquals(listOf("example.com"), m.sites)
         assertEquals(9_000L, m.createdAt)
@@ -51,7 +51,7 @@ class TaskMemoryRecorderTest {
             act(1, "click", "tap", target = "com.x"),
             RunEvent.TaskEnded(400L, "failed", "没找到按钮"),
         )
-        assertEquals("失败：没找到按钮", TaskMemoryRecorder.record("试一下", events, 0L, "id")!!.conclusion)
+        assertEquals("failed: 没找到按钮", TaskMemoryRecorder.record("试一下", events, 0L, "id")!!.conclusion)
     }
 
     @Test fun sitesFromSitePrefixedTargetsAndObservedPlace() {

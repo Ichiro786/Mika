@@ -96,8 +96,13 @@ class SystemStatusMonitor(context: Context, private val shell: BuiltinShellContr
         app.getSystemService(NotificationManager::class.java).getNotificationChannel(id)?.importance
 
     /** 频道已建好、但重要程度低于「弹出」(用户或系统调低的,App 改不回来)。 */
+    /**
+     * Only a channel turned down to silent (or off) counts as lowered. Some phones, ColorOS among them, keep pop-ups on
+     * their own switch and report the channel one level lower even when the user has pop-ups on, so "below high" warned
+     * people whose notifications were working.
+     */
     private fun channelLowered(id: String) = app.getSystemService(NotificationManager::class.java).getNotificationChannel(id)
-        ?.let { it.importance < NotificationManager.IMPORTANCE_HIGH } ?: false
+        ?.let { it.importance < NotificationManager.IMPORTANCE_DEFAULT } ?: false
 
     /**
      * 系统会不会拦着不让打开无障碍。按能力判断:安卓 13 起有「受限制的设置」这项权限,读得到且已允许就不拦;

@@ -59,13 +59,19 @@ import java.time.format.DateTimeFormatter
  * 点一行升起操作面板(看对话、立即执行、编辑、删除)。右上角可手动新建；保存后让调度器重新布置系统闹钟。
  */
 @Composable
-fun PlansScreen(context: Context, onBack: () -> Unit, onOpenConversation: (String) -> Unit) {
+fun PlansScreen(
+    context: Context,
+    onBack: () -> Unit,
+    onOpenConversation: (String) -> Unit,
+    initialPlanId: String? = null,
+    createOnOpen: Boolean = false,
+) {
     BackHandler(onBack = onBack)
     var snapshot by remember { mutableStateOf(TriggerRuntime.snapshot(context)) }
-    var creating by remember { mutableStateOf<String?>(null) }
+    var creating by rememberSaveable { mutableStateOf(if (createOnOpen) ConversationStore.shared(context).newConversation() else null) }
     var editing by remember { mutableStateOf<TriggerDefinition?>(null) }
     var deleting by remember { mutableStateOf<TriggerDefinition?>(null) }
-    var acting by remember { mutableStateOf<TriggerDefinition?>(null) }
+    var acting by remember { mutableStateOf(snapshot.triggers.firstOrNull { it.id == initialPlanId }) }
     var error by remember { mutableStateOf<String?>(null) }
     var segment by rememberSaveable { mutableIntStateOf(0) }
     // 从系统设置回来时重读:刚开了权限,提示就该消失

@@ -502,6 +502,79 @@ class TaskRun(
         return RetestHint.apply(end, ProviderStore.get(service).untestedMainProvider()) { tr(R.string.fail_model_untested, it) }
     }
 
+    /** execute 收尾用的本地状态;把 finally 拆成独立函数以缩小 execute 的 suspend 状态机(超大 suspend 函数会被 ART 校验器拒绝)。 */
+    private class RunCleanup(
+        val side: CoroutineScope,
+        val resources: ResourceScope,
+        val tally: RunUsageTally,
+        val approvalControl: com.wangzan101.mika.settings.ApprovalControl,
+        val connection: com.wangzan101.mika.cap.phone.shell.ShellBinding?,
+        val watcher: DeviceStateWatcher?,
+        val mute: AudioMute?,
+        val afterTask: com.wangzan101.mika.core.uistate.AfterTaskMarks?,
+        val shellDeath: IBinder.DeathRecipient?,
+        val shellBinder: IBinder?,
+        val record: RunHandle?,
+        val runStore: RunStore?,
+        val mcpEvents: AutoCloseable?,
+        val liveFeed: AutoCloseable?,
+        val approval: RunApproval?,
+    )
+
+    private suspend fun cleanup(c: RunCleanup) {
+        if (resultReadyAtMs == 0L) resultReadyAtMs = SystemClock.elapsedRealtime()
+        handoffUnconsumed()
+        c.side.cancel()
+        _frames.value = null
+        _phoneFrames.value = null
+        _webOpen.value = false
+        synchronized(publishLock) { ended = true }
+        if (awake != null && service.hasQueuedRuns()) wakeHandoff = service.wakeLock.lease().also { it.acquire() }
+        awake?.close()
+        awake = null
+        c.shellDeath?.let { d -> runCatching { c.shellBinder?.unlinkToDeath(d, 0) } }
+        loop = null
+        children = null
+        // 早点关:后面收尾要等屏和网页;resources 关时还会再关一次(只关一次,不重复)
+        mcpConnections?.close()
+        mcpConnections = null
+        c.mcpEvents?.close()
+        c.liveFeed?.close()
+        c.approval?.let { c.approvalControl.end(it) }
+        gate = null
+        takeover = null
+        handoverRef = null
+        sideScope = null
+        // 借来的页面还回浏览器页(在关掉网页这一套之前)
+        withContext(Dispatchers.Main + NonCancellable) { runCatching { UserBrowser.existing()?.loans?.end(key) } }
+        withContext(Dispatchers.IO + NonCancellable) {
+            // 前面哪步抛错,屏和网页显示也照放(按建的反序)
+            try {
+                // 先定 Mika 屏上 App 的去留(留下的挪到主屏后面、正在出声的关掉)并释放屏,再还原静音:留下的不会突然出声
+                val apps = phone?.takeIf { !shellDied }?.let { p ->
+                    p.display.current?.let { d -> AppsAfterTaskEnd.finish(p.shell, d.displayId, c.afterTask) }
+                }
+                c.record?.let { r ->
+                    apps?.let { r.event(RunEvent.State(System.currentTimeMillis(), "apps_after_task", it.detail)) }
+                    r.event(c.tally.event(System.currentTimeMillis()))
+                    r.close()
+                    if (BuildConfig.DEBUG) c.runStore?.mirrorToExternal(r.runId)
+                }
+                // 恢复抛错也要撤掉「在跑」的登记,否则这份记录永远不归恢复处理
+                try { c.mute?.restoreAll() } finally { recovery.endRun(key) }
+                c.watcher?.close()
+            } finally {
+                c.resources.close()
+            }
+        }
+        phone = null
+        // 屏释放后、对外报结束前清掉:界面看到任务结束时已经没有屏了
+        _displayId.value = -1
+        _pipInput.value = null
+        _appShown.value = false
+        if (c.connection != null) phoneServices.sharedShell.release()
+    }
+
     suspend fun execute(priorTurns: List<Turn>): TaskState {
         // 手机一侧(内置助手、无障碍、虚拟屏)第一次 launch_app 时才接上:只用网页、沙箱的任务不需要它们
         var connection: com.wangzan101.mika.cap.phone.shell.ShellBinding? = null
@@ -543,7 +616,10 @@ class TaskRun(
             // 前一个任务替这个拿着的那份,自己的拿上了就放开
             wakeHandoff?.release()
             wakeHandoff = null
-            val model = env.modelFactory(service, session) ?: return TaskState.Failed(tr(R.string.fail_no_main_model), FailKind.Environment)
+            // Gemini plan: the user's Google plan runs this task through Antigravity (see GeminiEngine); Orbit's loop is not used.
+            val gemini = com.wangzan101.mika.gemini.GeminiEngine.get(service).takeIf { it.active && !conditionCheck }
+            val model = env.modelFactory(service, session) ?: gemini?.let { com.wangzan101.mika.gemini.GeminiPlanModel }
+                ?: return TaskState.Failed(tr(R.string.fail_no_main_model), FailKind.Environment)
             // 用户在浏览器页上对着一页问的:那一页借给这个任务当当前网页标签(见 PageLoans);开跑时页面还开着才借得到
             val pageLoan = if (provenance.origin == RunOrigin.Ui) withContext(Dispatchers.Main) { UserBrowser.existing()?.claim(conversationId, key) } else null
             val light = env.lightModelFactory(service, session)
@@ -699,9 +775,9 @@ class TaskRun(
                 return moveTask(taskId, id)
             }
             val app = service.application as MikaApp
-            // 微信只使用当前绑定会话的独立授权；仍保留 Channel 来源及原有确认/接管规则。
+            // WhatsApp tasks use their own unlock permission for the linked account; confirmation and takeover rules stay.
             val unlockAuthorized = taskUnlockAuthorization(provenance.origin, channelPeer) { peer ->
-                app.wechat.store.canUnlock(peer)
+                app.whatsapp.store.canUnlock(peer)
             }
             val taskGate = TaskGate(states.locked, shellUp,
                 refreshLocked = states::refresh,
@@ -714,7 +790,7 @@ class TaskRun(
                     }
                 },
                 unlockFailureMessage = {
-                    tr(if (provenance.origin == RunOrigin.Channel) R.string.wechat_unlock_failed else R.string.trigger_unlock_failed)
+                    tr(if (provenance.origin == RunOrigin.Channel) R.string.whatsapp_unlock_failed else R.string.trigger_unlock_failed)
                 },
             ) {
                 val t = phone?.screen?.target?.value
@@ -746,7 +822,7 @@ class TaskRun(
                 sw.copy(learnSkills = env.evalHooks.learnSkills ?: sw.learnSkills, autoRemember = env.evalHooks.rememberMemory ?: sw.autoRemember)
             }
             val memory = if (switches.useMemory) withContext(Dispatchers.IO) { memoryRuntime.store() } else null
-            val taskMemory = if (switches.rememberTasks) withContext(Dispatchers.IO) { memoryRuntime.taskMemory() } else null
+            val taskMemory = if (switches.taskMemoryEnabled) withContext(Dispatchers.IO) { memoryRuntime.taskMemory() } else null
             val profileSnapshot = if (switches.useMemory) withContext(Dispatchers.IO) {
                 runCatching { memoryRuntime.profile().snapshot() }.onFailure { Log.w(TAG, "profile unavailable", it) }.getOrDefault(emptyList())
             } else emptyList()
@@ -839,7 +915,7 @@ class TaskRun(
                         sandbox = sandbox, workspace = { conversationId }, runSpec = childSpec,
                         conversationId = conversationId, inlineScreen = speed.inlineScreen,
                         adaptiveVision = speed.adaptiveVision)
-                    AgentLoop(model, childTools, SystemPrompt.identity(), maxSteps = childSpec.stepBudget ?: AgentLoop.UNLIMITED_STEPS,
+                    AgentLoop(model, childTools, com.wangzan101.mika.settings.PromptFiles.get(service).identity(SystemPrompt.identity()), maxSteps = childSpec.stepBudget ?: AgentLoop.UNLIMITED_STEPS,
                         // 子任务跟着询问 / 自主;询问时它也过关卡,子任务里花钱的一步一律不做
                         confirmations = runApproval.gate(), approvals = runApproval, autonomous = runApproval.startedAutonomous,
                         reviewFinalAnswer = false, flags = speed, outwardPacing = OutwardPacing.human())
@@ -856,6 +932,7 @@ class TaskRun(
                 phoneCalls = (service.application as MikaApp).callPort.takeIf {
                     !conditionCheck && (service.application as MikaApp).calls.settings.state.value.enabled
                 },
+                whatsapp = (service.application as MikaApp).whatsapp.takeIf { !conditionCheck && it.toolsAvailable() }?.port,
                 // 设置里允许 Mika 改自己时,才把 settings_list、settings_set 发给模型
                 selfConfig = if (FeatureFlags.get(service).selfConfig()) {
                     com.wangzan101.mika.settings.SelfConfigImpl(FeatureFlags.get(service))
@@ -902,7 +979,7 @@ class TaskRun(
             dispatcher = tools
             val agent = AgentLoop(
                 model, tools,
-                SystemPrompt.identity(),
+                com.wangzan101.mika.settings.PromptFiles.get(service).identity(SystemPrompt.identity()),
                 // 助手断开、被挪走只在这一步用的是手机时才查
                 gate = { w ->
                     if (phoneScreen.acquired && dispatcher?.surface != WEB) phone?.screen?.let { awaitUserPick(it, taskGate, w) }
@@ -946,7 +1023,7 @@ class TaskRun(
             loop = agent
             liveFeed = agent.events.subscribe(liveEvents)
             mcpExternalId?.let { mcpEvents = (service.application as MikaApp).remoteTasks.attach(it, agent.events) }
-            kit = LearnKit(switches, memory, utterances, tools, agent, catalog, knowledge, model, light, runStore, agent.flags.replay, priorTurns)
+            kit = if (gemini != null) null else LearnKit(switches, memory, utterances, tools, agent, catalog, knowledge, model, light, runStore, agent.flags.replay, priorTurns)
             suspend fun <T> io(fallback: T, call: () -> T): T =
                 withContext(Dispatchers.IO) { runCatching(call).getOrDefault(fallback) }
             // 接管期间才订阅主屏的无障碍事件:平时没人订阅,服务不复制事件
@@ -1044,61 +1121,36 @@ class TaskRun(
                     service.refreshNotifications(this@TaskRun)
                 }
             }
-            val end = withContext(tally) { agent.run(runSpec, inbox) }
-            resultReadyAtMs = SystemClock.elapsedRealtime()
-            return end.also { usedGroups = agent.usedGroups.toList() }.let(::withRetestHint)
-        } finally {
-            if (resultReadyAtMs == 0L) resultReadyAtMs = SystemClock.elapsedRealtime()
-            handoffUnconsumed()
-            side.cancel()
-            _frames.value = null
-            _phoneFrames.value = null
-            _webOpen.value = false
-            synchronized(publishLock) { ended = true }
-            if (awake != null && service.hasQueuedRuns()) wakeHandoff = service.wakeLock.lease().also { it.acquire() }
-            awake?.close()
-            awake = null
-            shellDeath?.let { d -> runCatching { shellBinder?.unlinkToDeath(d, 0) } }
-            loop = null
-            children = null
-            // 早点关:后面收尾要等屏和网页;resources 关时还会再关一次(只关一次,不重复)
-            mcpConnections?.close()
-            mcpConnections = null
-            mcpEvents?.close()
-            liveFeed?.close()
-            approval?.let { approvalControl.end(it) }
-            gate = null
-            takeover = null
-            handoverRef = null
-            sideScope = null
-            // 借来的页面还回浏览器页(在关掉网页这一套之前)
-            withContext(Dispatchers.Main + NonCancellable) { runCatching { UserBrowser.existing()?.loans?.end(key) } }
-            withContext(Dispatchers.IO + NonCancellable) {
-                // 前面哪步抛错,屏和网页显示也照放(按建的反序)
-                try {
-                    // 先定 Mika 屏上 App 的去留(留下的挪到主屏后面、正在出声的关掉)并释放屏,再还原静音:留下的不会突然出声
-                    val apps = phone?.takeIf { !shellDied }?.let { p ->
-                        p.display.current?.let { d -> AppsAfterTaskEnd.finish(p.shell, d.displayId, afterTask) }
+            val end = if (gemini != null) {
+                val geminiState = kotlinx.coroutines.flow.MutableStateFlow<TaskState>(TaskState.Idle)
+                val geminiEvents = com.wangzan101.mika.core.run.RunEventBus()
+                val feeds = listOf(geminiEvents.subscribe(liveEvents), geminiEvents.subscribe(sink))
+                var turn: com.wangzan101.mika.core.acp.AcpTurn? = null
+                val phoneTools = com.wangzan101.mika.core.acp.AcpPhoneTools.create(
+                    tools, runApproval, provenance, runApproval.startedAutonomous, service.packageName, geminiEvents,
+                    onCall = { _, name -> turn?.phoneStep(name) },
+                )
+                val acpTurn = com.wangzan101.mika.core.acp.AcpTurn(gemini, phoneTools, geminiEvents, geminiState)
+                turn = acpTurn
+                val publisher = side.launch {
+                    geminiState.collect {
+                        if (it == TaskState.Idle || it is TaskState.Terminal) return@collect
+                        handover.onState(it)
+                        publish(it)
                     }
-                    record?.let { r ->
-                        apps?.let { r.event(RunEvent.State(System.currentTimeMillis(), "apps_after_task", it.detail)) }
-                        r.event(tally.event(System.currentTimeMillis()))
-                        r.close()
-                        if (BuildConfig.DEBUG) runStore?.mirrorToExternal(r.runId)
-                    }
-                    // 恢复抛错也要撤掉「在跑」的登记,否则这份记录永远不归恢复处理
-                    try { mute?.restoreAll() } finally { recovery.endRun(key) }
-                    watcher?.close()
-                } finally {
-                    resources.close()
                 }
-            }
-            phone = null
-            // 屏释放后、对外报结束前清掉:界面看到任务结束时已经没有屏了
-            _displayId.value = -1
-            _pipInput.value = null
-            _appShown.value = false
-            if (connection != null) phoneServices.sharedShell.release()
+                val background = profileSnapshot.joinToString("\n") { "- " + it.text }.takeIf { it.isNotBlank() }
+                try {
+                    withContext(tally) { acpTurn.run(conversationId, goal, priorTurns, background, inbox) }
+                } finally {
+                    publisher.cancel()
+                    feeds.forEach { it.close() }
+                }
+            } else withContext(tally) { agent.run(runSpec, inbox) }
+            resultReadyAtMs = SystemClock.elapsedRealtime()
+            return end.also { usedGroups = agent.usedGroups.toList() }.let(::localizeTaskFailure).let(::withRetestHint)
+        } finally {
+            cleanup(RunCleanup(side, resources, tally, approvalControl, connection, watcher, mute, afterTask, shellDeath, shellBinder, record, runStore, mcpEvents, liveFeed, approval))
         }
     }
 
@@ -1351,13 +1403,15 @@ class TaskRun(
      */
     private suspend fun rememberTask() {
         val runId = _runId.value ?: return
-        if (!memoryRuntime.settings().switches.value.rememberTasks) return
+        val settings = memoryRuntime.settings()
+        if (!settings.switches.value.taskMemoryEnabled) return
         val events = withContext(Dispatchers.IO) { runCatching { kit?.runStore?.events(runId) }.getOrNull() } ?: return
         val labels = ToolLabels(knownTools())
         val task = TaskMemoryRecorder.record(goal, events, System.currentTimeMillis(), UUID.randomUUID().toString(), labels::label) {
             ConfirmationNotifier.appLabel(service, it)
         } ?: return
         withContext(Dispatchers.IO) {
+            if (!settings.switches.value.taskMemoryEnabled) return@withContext
             runCatching { memoryRuntime.taskMemory().add(task) }
                 .onFailure { Log.w(TAG, "task memory not saved", it) }
         }

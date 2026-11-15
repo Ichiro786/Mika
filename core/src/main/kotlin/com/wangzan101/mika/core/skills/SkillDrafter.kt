@@ -145,13 +145,13 @@ object ActionDigest {
     fun render(lines: List<ActionLine>): String = lines.joinToString("\n") { l ->
         buildString {
             append(l.step).append(". ").append(l.tool)
-            l.target?.let { append(" 「").append(it).append("」") }
-            if (l.typed) append(" 输入 <输入内容>")
-            l.where?.let { append(" 在 ").append(it) }
+            l.target?.let { append(" \"").append(it).append("\"") }
+            if (l.typed) append(" typed <typed text>")
+            l.where?.let { append(" in ").append(it) }
             when {
-                l.error != null -> append(" 出错:").append(l.error)
-                l.changed == true -> append(" 生效")
-                l.changed == false -> append(" 画面没变")
+                l.error != null -> append(" error: ").append(l.error)
+                l.changed == true -> append(" took effect")
+                l.changed == false -> append(" screen unchanged")
             }
         }
     }
@@ -235,7 +235,7 @@ class SkillDrafter(private val model: ChatModel) {
             val meta = FrontMatter.parse(s.markdown).first
             "- ${s.name}(${meta["display"] as? String ?: s.name}):${meta["description"] as? String ?: ""}"
         }
-        return "已有的个人技能(含待用户确认的草稿):" + if (lines.isEmpty()) "无" else "\n" + lines.joinToString("\n")
+        return "Existing personal skills (including drafts awaiting user confirmation):" + if (lines.isEmpty()) " none" else "\n" + lines.joinToString("\n")
     }
 
 
@@ -253,16 +253,16 @@ class SkillDrafter(private val model: ChatModel) {
             .flatMap { Regex("\\d{2,}").findAll(SkillRedactor.norm(it)).map { m -> m.value }.toList() }.toSet()
 
     private fun request(input: DraftInput): String = buildString {
-        appendLine("运行编号:${input.runId}")
-        appendLine("目标:${input.goal}")
-        appendLine("最终回答:${input.answer}")
+        appendLine("Run id: ${input.runId}")
+        appendLine("Goal: ${input.goal}")
+        appendLine("Final answer: ${input.answer}")
         if (input.sources.isNotEmpty()) {
-            appendLine("回答的来源:")
-            input.sources.forEach { s -> appendLine("- 第 ${s.step} 步 ${s.kind} ${s.place.orEmpty()}" + s.title?.let { "「$it」" }.orEmpty()) }
+            appendLine("Sources of the answer:")
+            input.sources.forEach { s -> appendLine("- step ${s.step} ${s.kind} ${s.place.orEmpty()}" + s.title?.let { " \"$it\"" }.orEmpty()) }
         }
-        appendLine("动作清单:")
+        appendLine("Action list:")
         appendLine(ActionDigest.render(ActionDigest.of(input.events, input.tools)))
-        append("可用工具:").append(input.toolNames.sorted().joinToString(", "))
+        append("Available tools: ").append(input.toolNames.sorted().joinToString(", "))
     }
 
     companion object {

@@ -72,8 +72,8 @@ internal object ReadPage : WebTool {
         }
         p.netError?.let { return fail("page_not_loaded", Feedback.format("read_url_not_loaded", "url" to url.orEmpty(), "error" to it)) }
         // 模型看到的链接和图片说明也是可引用的事实,和正文一起记
-        val links = p.links.take(50).joinToString("\n") { (t, u) -> "链接「$t」$u" }
-        val images = p.images.take(20).filter { it.first.isNotBlank() }.joinToString("\n") { (alt, u) -> "图片「$alt」$u" }
+        val links = p.links.take(50).joinToString("\n") { (t, u) -> "link \"$t\" $u" }
+        val images = p.images.take(20).filter { it.first.isNotBlank() }.joinToString("\n") { (alt, u) -> "image \"$alt\" $u" }
         val read = listOf(p.text.take(max), links, images).filter { it.isNotBlank() }.joinToString("\n")
         val seen = if (read.isNotBlank()) webRead("网页正文(${p.url},从第 $offset 字起)\n$read", p.url, p.title) else null
         val q = p.quality

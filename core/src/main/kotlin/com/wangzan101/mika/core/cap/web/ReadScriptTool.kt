@@ -43,7 +43,7 @@ private suspend fun readScript(ctx: ToolContext, code: String, args: JsonObject?
             put("result", Untrusted.wrap(r.json))
             put("truncated", r.truncated)
             if (r.fresh) put("state", "new")
-        }.observing(webRead("$what(${url ?: "当前网页"})\n${r.json}", url))
+        }.observing(webRead("$what(${url ?: "the current page"})\n${r.json}", url))
     }
 }
 
@@ -64,7 +64,7 @@ internal object EvaluateJs : WebTool {
         val script = a.str("script", max = EVAL_SCRIPT_MAX_CHARS)!!
         PageScriptProtocol.codeProblem(script)?.let { throw ArgError("script", it) }
         val timeout = a.int("timeoutMs", 1000, READ_SCRIPT_MAX_TIMEOUT_MS) ?: READ_SCRIPT_DEFAULT_TIMEOUT_MS
-        return readScript(ctx, script, null, timeout, "网页数据脚本的结果")
+        return readScript(ctx, script, null, timeout, "Result of the page data script")
     }
 }
 
@@ -104,7 +104,7 @@ internal object RunSiteCommand : WebTool {
                 if (commands.isEmpty()) "$host has no site commands; read the page with web_read_page or web_evaluate_js."
                 else "$host has no command '$name'. Its commands: ${commands.joinToString { it.decl.name }}.")
         SiteCommandFile.checkArgs(command.decl, args)?.let { throw ArgError("args", it) }
-        return readScript(ctx, command.body, args, timeout, "站点命令 ${command.site}/${command.decl.name} 的结果")
+        return readScript(ctx, command.body, args, timeout, "Result of site command ${command.site}/${command.decl.name}")
     }
 
     /** 当前标签的网址:按标签列表,读不到时用最近一次读屏的。 */

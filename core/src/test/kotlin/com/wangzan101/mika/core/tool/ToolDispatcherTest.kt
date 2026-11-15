@@ -431,7 +431,7 @@ class ToolDispatcherTest {
         assertEquals(e.read(ObsKind.Read).distinct(), e.read(ObsKind.Read)) // 同样的读屏只记一次
         assertNull(e.freshImage)
         // 密码框不写原文
-        assertEquals(listOf("第5步 phone_tap(搜索) 生效", "第6步 phone_type_text(「天气」) 生效", "第7步 phone_type_text() 画面没变化", "第8步 phone_back() 画面没变化"), e.actions)
+        assertEquals(listOf("第5步 phone_tap(搜索) 生效", "第6步 phone_type_text(\"天气\") 生效", "第7步 phone_type_text() 画面没变化", "第8步 phone_back() 画面没变化"), e.actions)
         assertNotNull(d.evidence(withImage = true).freshImage)
     }
 

@@ -41,6 +41,12 @@ data class Turn(
     val remoteTaskId: String? = null,
     /** Source of runtime-owned outcome text; absent for summaries and legacy turns. */
     val outcomeSystemType: String? = null,
+    /** The user's reaction to Orbit's reply ([AnswerMarkup.REACTIONS]); null when none. */
+    val reaction: String? = null,
+    /** Orbit's reaction to the user's message; null when none. */
+    val orbitReaction: String? = null,
+    /** The earlier user message Orbit's reply quotes; null when it quotes none. */
+    val replyTo: String? = null,
 )
 
 object Conversation {
@@ -90,7 +96,9 @@ object Conversation {
             if (t.keptPageClosed == null) "; after it Mika kept the page on $host running in the background"
             else "; Mika kept the page on $host running after it, and that page has since been closed"
         }.orEmpty()
-        return "$n. The user said: ${t.userText.clip(clip)}; $result$kept"
+        // The user's reaction tells the next turn how the reply landed
+        val reacted = t.reaction?.let { "; the user reacted $it to Mika's reply" }.orEmpty()
+        return "$n. The user said: ${t.userText.clip(clip)}; $result$kept$reacted"
     }
 
     /** 截到 [max] 个 token(含末尾的「…」)。 */

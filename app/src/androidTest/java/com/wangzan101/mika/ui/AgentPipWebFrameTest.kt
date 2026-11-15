@@ -37,11 +37,11 @@ class AgentPipWebFrameTest {
             drawRect(960f, 0f, 1280f, 800f, Paint().apply { color = Color.BLUE })
         }
         compose.setContent {
-            AgentPip(PipUi(visible = true), frame, webContent = web, reduceMotion = true,
+            AgentPip(PipUi(visible = true, expanded = true), frame, webContent = web, reduceMotion = true,
                 topInset = 0f, bottomInset = 120f, onExpand = {}, onCollapse = {}, onAttention = {})
         }
         compose.waitForIdle()
-        val size = compose.onNodeWithTag("pip-window").fetchSemanticsNode().size
+        val size = compose.onNodeWithTag("pip-frame", useUnmergedTree = true).fetchSemanticsNode().size
         assertTrue("landscape preview stayed portrait: $size", size.width > size.height)
         val pixels = capture().toPixelMap()
         val y = pixels.height / 2
@@ -61,7 +61,7 @@ class AgentPipWebFrameTest {
             drawRect(0f, 714f, 360f, 794f, Paint().apply { color = Color.GREEN })
         }
         compose.setContent {
-            AgentPip(PipUi(visible = true), frame, webContent = false, reduceMotion = true,
+            AgentPip(PipUi(visible = true, expanded = true), frame, webContent = false, reduceMotion = true,
                 topInset = 0f, bottomInset = 120f, onExpand = {}, onCollapse = {}, onAttention = {})
         }
         compose.waitForIdle()
@@ -73,14 +73,14 @@ class AgentPipWebFrameTest {
 
     @Test fun phoneFrameRotatesWhileCollapsedAndExpanded() {
         var frame by mutableStateOf(Bitmap.createBitmap(360, 800, Bitmap.Config.ARGB_8888))
-        var expanded by mutableStateOf(false)
+        var expanded by mutableStateOf(true)
         compose.setContent {
             AgentPip(PipUi(visible = true, expanded = expanded), frame, webContent = false, reduceMotion = true,
                 topInset = 0f, bottomInset = 120f, onExpand = {}, onCollapse = {}, onAttention = {})
         }
         fun check(landscape: Boolean) {
             compose.waitForIdle()
-            val size = compose.onNodeWithTag("pip-window").fetchSemanticsNode().size
+            val size = compose.onNodeWithTag("pip-frame", useUnmergedTree = true).fetchSemanticsNode().size
             assertTrue("unexpected preview shape: $size", (size.width > size.height) == landscape)
         }
         check(false)

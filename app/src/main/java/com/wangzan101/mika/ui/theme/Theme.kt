@@ -1,27 +1,34 @@
 package com.wangzan101.mika.ui.theme
 
 import android.content.Context
+import android.os.Build
 import android.provider.Settings
 import android.view.View
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.dynamicDarkColorScheme
+import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -31,6 +38,8 @@ import androidx.activity.enableEdgeToEdge
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
+import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.settings.OrbitPresenceSize
 
 /** 动效:时长和曲线。系统关了动画时([MikaTheme.reduceMotion])直接到位。 */
 object MikaMotion {
@@ -38,6 +47,12 @@ object MikaMotion {
     const val SWITCH_MS = 200
     /** 减速曲线:起步快、落地慢。 */
     val Decelerate: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
+
+    // Expressive spatial and effects springs; keep existing page transitions unchanged.
+    fun <T> spatial(reduceMotion: Boolean): AnimationSpec<T> =
+        if (reduceMotion) snap() else spring(dampingRatio = 0.8f, stiffness = 380f)
+    fun <T> effects(reduceMotion: Boolean): AnimationSpec<T> =
+        if (reduceMotion) snap() else spring(dampingRatio = 1f, stiffness = 1600f)
 
     fun <T> page(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(PAGE_MS, easing = Decelerate)
     fun <T> switch(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(SWITCH_MS, easing = Decelerate)
@@ -48,6 +63,8 @@ fun animationsOff(context: Context): Boolean =
     Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
 val LocalReduceMotion = staticCompositionLocalOf { false }
+val LocalOrbitIdentity = staticCompositionLocalOf { OrbitIdentityMode.Original }
+val LocalOrbitPresence = compositionLocalOf { OrbitPresenceSize() }
 
 object MikaTheme {
     val colors: MikaColors
@@ -55,6 +72,16 @@ object MikaTheme {
 
     val reduceMotion: Boolean
         @Composable @ReadOnlyComposable get() = LocalReduceMotion.current
+
+    /** The user's own message bubble colors (Material You). */
+    val userBubble: UserBubbleColors
+        @Composable @ReadOnlyComposable get() = LocalUserBubble.current
+
+    val identity: OrbitIdentityMode
+        @Composable @ReadOnlyComposable get() = LocalOrbitIdentity.current
+
+    val presence: OrbitPresenceSize
+        @Composable @ReadOnlyComposable get() = LocalOrbitPresence.current
 }
 
 /**
@@ -82,6 +109,22 @@ fun appearanceAccent(): ThemeAccent {
     return accent
 }
 
+@Composable
+fun appearanceIdentity(): OrbitIdentityMode {
+    val context = LocalContext.current
+    val flags = remember(context) { FeatureFlags.get(context) }
+    val identity by remember(flags) { flags.orbitIdentityChanges() }.collectAsState(flags.orbitIdentity())
+    return identity
+}
+
+@Composable
+fun appearancePresence(): OrbitPresenceSize {
+    val context = LocalContext.current
+    val flags = remember(context) { FeatureFlags.get(context) }
+    val size by remember(flags) { flags.orbitPresenceChanges() }.collectAsState(flags.orbitPresence())
+    return size
+}
+
 /** 状态栏、导航栏的图标深浅跟界面一致:界面强制浅色而系统是深色时,图标也得是深色的才看得见。 */
 fun ComponentActivity.systemBarsFor(dark: Boolean) {
     val transparent = android.graphics.Color.TRANSPARENT
@@ -103,15 +146,29 @@ fun MikaTheme(
     dark: Boolean = appearanceDark(),
     accent: ThemeAccent = appearanceAccent(),
     reduceMotion: Boolean = false,
+    identity: OrbitIdentityMode = appearanceIdentity(),
+    presence: OrbitPresenceSize = appearancePresence(),
     content: @Composable () -> Unit,
 ) {
     // 背景图片设了「强调色跟随图片」时,用图上的主色代替设置里选的强调色
     val imageHue = appearanceSkin().accentHue
-    val colors = remember(dark, accent, imageHue) {
+    val dynamic = if (accent == ThemeAccent.Dynamic && imageHue == null) wallpaperScheme(dark) else null
+    val wallpaper = dynamic?.let { it.primary to it.onPrimary }
+    val colors = remember(dark, accent, imageHue, wallpaper) {
         val base = palette(dark, accent)
-        if (imageHue == null) base else SkinAccent.tone(imageHue, dark).let { (color, on) -> base.withAccent(color, on) }
+        when {
+            imageHue != null -> SkinAccent.tone(imageHue, dark).let { (color, on) -> base.withAccent(color, on) }
+            wallpaper != null -> base.withAccent(wallpaper.first, wallpaper.second)
+            else -> base
+        }
     }
     val materialColors = remember(colors) { scheme(colors) }
+    // The user's bubbles: the wallpaper's own primary container when there is one, else a tone of the accent.
+    val userBubble = remember(colors, dynamic) {
+        dynamic?.let { UserBubbleColors(it.primaryContainer, it.onPrimaryContainer) }
+            ?.takeIf { contrast(it.bg, it.fg) >= 4.5 }
+            ?: userBubbleTone(colors.accent, dark)
+    }
     val layoutDirection = if (LocalContext.current.resources.configuration.layoutDirection == View.LAYOUT_DIRECTION_RTL) {
         LayoutDirection.Rtl
     } else {
@@ -120,13 +177,45 @@ fun MikaTheme(
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
         LocalMikaColors provides colors,
+        LocalUserBubble provides userBubble,
         LocalReduceMotion provides reduceMotion,
+        LocalOrbitIdentity provides identity,
+        LocalOrbitPresence provides presence,
     ) {
-        MaterialTheme(colorScheme = materialColors) {
+        MaterialTheme(colorScheme = materialColors, typography = MikaTypography) {
             CompositionLocalProvider(LocalContentColor provides colors.ink, content = content)
         }
     }
 }
+
+/**
+ * Material You accent from the wallpaper: the dynamic scheme's primary and on-primary, Android 12 and newer.
+ * Only the accent is taken, so the AMOLED black page and the glass surfaces stay as they are. Null before
+ * Android 12, where the default palette is used.
+ */
+@Composable
+fun wallpaperAccent(dark: Boolean): Pair<Color, Color>? = wallpaperScheme(dark)?.let { it.primary to it.onPrimary }
+
+/** The wallpaper's Material You scheme, Android 12 and newer; null before. */
+@Composable
+fun wallpaperScheme(dark: Boolean): ColorScheme? {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
+    val context = LocalContext.current
+    // The scheme is read again when the configuration changes, which is how a new wallpaper reaches the app.
+    val config = LocalConfiguration.current
+    return remember(context, dark, config) {
+        if (dark) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    }
+}
+
+private val MikaTypography = Typography(
+    headlineLarge = MikaType.LargeTitle,
+    titleMedium = MikaType.Title,
+    bodyLarge = MikaType.Body,
+    bodyMedium = MikaType.Caption,
+    labelLarge = MikaType.Label,
+    labelSmall = MikaType.Hint,
+)
 
 private fun scheme(c: MikaColors): ColorScheme {
     val base = if (c.isDark) darkColorScheme() else lightColorScheme()
@@ -134,7 +223,7 @@ private fun scheme(c: MikaColors): ColorScheme {
         primary = c.accent, onPrimary = c.onAccent, primaryContainer = c.accentSoft, onPrimaryContainer = c.accent,
         secondary = c.accent, onSecondary = c.onAccent,
         background = c.bg, onBackground = c.ink,
-        surface = c.surface, onSurface = c.ink, surfaceVariant = c.fill, onSurfaceVariant = c.ink2,
+        surface = c.surface, onSurface = c.ink, surfaceVariant = c.answer, onSurfaceVariant = c.ink2,
         surfaceContainerLowest = c.surface, surfaceContainerLow = c.surface, surfaceContainer = c.surface,
         surfaceContainerHigh = c.surface, surfaceContainerHighest = c.surface, surfaceTint = c.surface,
         outline = c.ink3, outlineVariant = c.hair,

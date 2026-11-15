@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">채팅</string>
+    <string name="nav_make">만들기</string>
+    <string name="tasks_title">내 작업.</string>
+    <string name="tasks_subtitle">진행 중인 모든 일을 차분하게 살펴보세요.</string>
+    <string name="tasks_active">진행 중</string>
+    <string name="tasks_up_next">다음 작업</string>
+    <string name="tasks_review">검토 준비 완료</string>
+    <string name="tasks_scheduled">예정됨</string>
+    <string name="tasks_resolved">종료됨</string>
+    <string name="tasks_waiting">대기 중</string>
+    <string name="tasks_empty_up_next">대기 중이거나 예정된 작업이 없습니다.</string>
+</resources>

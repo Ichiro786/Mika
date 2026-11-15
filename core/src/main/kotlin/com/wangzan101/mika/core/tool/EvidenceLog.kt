@@ -56,7 +56,7 @@ internal class EvidenceLog(private val clock: () -> Long = System::currentTimeMi
     fun noteTyped(text: String) = ledger.noteTyped(text)
 
     private fun noteUserFact(text: String) {
-        userFacts.addLast(if (text.length <= USER_FACT_CHARS) text else text.take(USER_FACT_CHARS * 3 / 4) + "\n…(中间省略)…\n" + text.takeLast(USER_FACT_CHARS / 4))
+        userFacts.addLast(if (text.length <= USER_FACT_CHARS) text else text.take(USER_FACT_CHARS * 3 / 4) + "\n… (middle omitted) …\n" + text.takeLast(USER_FACT_CHARS / 4))
         while (userFacts.size > USER_FACTS) userFacts.removeFirst()
     }
 

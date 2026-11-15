@@ -11,11 +11,16 @@ import androidx.compose.ui.platform.testTag
 import com.wangzan101.mika.settings.FeatureFlags
 import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
+import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.settings.OrbitPresenceSize
+import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
+import androidx.compose.ui.Alignment
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import com.wangzan101.mika.ui.theme.accentTone
+import com.wangzan101.mika.ui.theme.wallpaperAccent
 import com.wangzan101.mika.ui.theme.SkinImage
 import com.wangzan101.mika.ui.components.SegmentedControl
 import com.wangzan101.mika.settings.SkinBlur
@@ -29,6 +34,9 @@ import kotlinx.coroutines.launch
 import com.wangzan101.mika.ui.components.MikaSwitch
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import com.wangzan101.mika.ui.components.MikaDialog
@@ -536,12 +544,14 @@ fun CapsuleScreen(
 
 /** 设置 › 语言:跟随系统、简体中文、繁體中文、English;选了马上换,界面跟着重建。 */
 @Composable
-fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onBack: () -> Unit) {
+fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onBack: () -> Unit, languageOnly: Boolean? = null) {
     val context = LocalContext.current
     val flags = remember { FeatureFlags.get(context) }
     // 跟着设置走:任务里改了外观,这页也对得上
     val themeMode by remember(flags) { flags.themeModeChanges() }.collectAsState(flags.themeMode())
     val themeAccent by remember(flags) { flags.themeAccentChanges() }.collectAsState(flags.themeAccent())
+    val identity by remember(flags) { flags.orbitIdentityChanges() }.collectAsState(flags.orbitIdentity())
+    val presence by remember(flags) { flags.orbitPresenceChanges() }.collectAsState(flags.orbitPresence())
     val skin by remember(flags) { flags.skinChanges() }.collectAsState(flags.skin())
     val scope = rememberCoroutineScope()
     val pickSkin = rememberLauncherForActivityResult(ActivityResultContracts.PickVisualMedia()) { uri ->
@@ -549,7 +559,10 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
             if (!SkinImage.import(context, uri)) Toast.makeText(context, R.string.skin_failed, Toast.LENGTH_SHORT).show()
         }
     }
-    PageScaffold(stringResource(R.string.appearance_title), onBack) {
+    // null: the old combined page; true: only the language list; false: only the look.
+    val title = if (languageOnly == true) R.string.language_title else if (languageOnly == false) R.string.appearance_group else R.string.appearance_title
+    PageScaffold(stringResource(title), onBack) {
+      if (languageOnly != true) {
         // 语言和外观放在同一页:都是「界面长什么样」
         GroupLabel(stringResource(R.string.appearance_group))
         GroupCard {
@@ -564,6 +577,53 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                 )
             }
         }
+        GroupLabel(stringResource(R.string.orbit_identity))
+        GroupCard {
+            Box(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp), contentAlignment = Alignment.Center) {
+                MikaPresenceAvatar(Modifier.size(68.dp), reduceMotion = true, framed = true)
+            }
+            RadioRow(stringResource(R.string.orbit_identity_original), identity == OrbitIdentityMode.Original,
+                onClick = { flags.setOrbitIdentity(OrbitIdentityMode.Original) }, first = true)
+            RadioRow(stringResource(R.string.orbit_identity_monochrome), identity == OrbitIdentityMode.Monochrome,
+                onClick = { flags.setOrbitIdentity(OrbitIdentityMode.Monochrome) })
+        }
+        GroupLabel(stringResource(R.string.orbit_presence))
+        GroupCard {
+            val headerLabel = stringResource(R.string.orbit_presence_header)
+            val hubLabel = stringResource(R.string.orbit_presence_hub)
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.height(112.dp), contentAlignment = Alignment.Center) {
+                        MikaPresenceAvatar(Modifier.size(presence.headerDp.dp), reduceMotion = true, framed = true)
+                    }
+                    Text(headerLabel, style = MikaType.Hint, color = MikaTheme.colors.ink2)
+                }
+                Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(Modifier.height(112.dp), contentAlignment = Alignment.Center) {
+                        MikaPresenceAvatar(Modifier.size((presence.hubDp / 2f).dp), reduceMotion = true, framed = true)
+                    }
+                    Text(hubLabel, style = MikaType.Hint, color = MikaTheme.colors.ink2)
+                }
+            }
+            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+                Text("$headerLabel · ${presence.headerDp} dp", style = MikaType.Body, color = MikaTheme.colors.ink)
+                Slider(value = presence.headerDp.toFloat(), onValueChange = { value ->
+                    val next = value.roundToInt()
+                    if (next != presence.headerDp) flags.setOrbitPresence(presence.copy(headerDp = next))
+                }, valueRange = OrbitPresenceSize.MIN_HEADER.toFloat()..OrbitPresenceSize.MAX_HEADER.toFloat(),
+                    modifier = Modifier.semantics { contentDescription = headerLabel }.testTag("orbit-header-size"))
+                Text("$hubLabel · ${presence.hubDp} dp", style = MikaType.Body, color = MikaTheme.colors.ink)
+                Slider(value = presence.hubDp.toFloat(), onValueChange = { value ->
+                    val next = value.roundToInt()
+                    if (next != presence.hubDp) flags.setOrbitPresence(presence.copy(hubDp = next))
+                }, valueRange = OrbitPresenceSize.MIN_HUB.toFloat()..OrbitPresenceSize.MAX_HUB.toFloat(),
+                    modifier = Modifier.semantics { contentDescription = hubLabel }.testTag("orbit-hub-size"))
+                TextButton(onClick = { flags.setOrbitPresence(OrbitPresenceSize()) }, modifier = Modifier.testTag("orbit-size-reset")) {
+                    Text(stringResource(R.string.reset))
+                }
+            }
+        }
         GroupLabel(stringResource(R.string.accent_group))
         GroupCard {
             val dark = MikaTheme.colors.isDark
@@ -572,11 +632,12 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
             ThemeAccent.entries.forEachIndexed { idx, a ->
                 RadioRow(
                     accentLabel(a), selected = a == themeAccent, first = idx == 0, enabled = !followingImage,
-                    subtitle = if (a == ThemeAccent.Blue) stringResource(R.string.accent_default) else null,
+                    subtitle = if (a == ThemeAccent.Dynamic) stringResource(R.string.accent_default) else null,
                     onClick = { if (a != themeAccent) flags.setThemeAccent(a) },
                 ) {
                     // 色块按此刻的深浅色画,和选上以后看到的一样
-                    Box(Modifier.size(18.dp).background(accentTone(a, dark).first, CircleShape))
+                    Box(Modifier.size(18.dp).background(
+                        (if (a == ThemeAccent.Dynamic) wallpaperAccent(dark)?.first else null) ?: accentTone(a, dark).first, CircleShape))
                 }
             }
         }
@@ -588,6 +649,8 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
             )
             if (skin.active) SkinControls(skin, flags::setSkin, onClear = { SkinImage.clear(context) })
         }
+      }
+      if (languageOnly != false) {
         GroupLabel(stringResource(R.string.language_title))
         GroupCard {
             AppLanguage.entries.forEachIndexed { i, l ->
@@ -597,6 +660,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                 )
             }
         }
+      }
     }
 }
 
@@ -605,8 +669,6 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
 fun languageLabel(l: AppLanguage): String = stringResource(
     when (l) {
         AppLanguage.System -> R.string.language_system
-        AppLanguage.SimplifiedChinese -> R.string.language_simplified_chinese
-        AppLanguage.TraditionalChinese -> R.string.language_traditional_chinese
         AppLanguage.Arabic -> R.string.language_arabic
         AppLanguage.Persian -> R.string.language_persian
         AppLanguage.English -> R.string.language_english
@@ -726,6 +788,7 @@ private fun SkinControls(skin: SkinSpec, onChange: (SkinSpec) -> Unit, onClear: 
 
 fun accentLabel(accent: ThemeAccent): String = tr(
     when (accent) {
+        ThemeAccent.Dynamic -> R.string.accent_dynamic
         ThemeAccent.Blue -> R.string.accent_blue
         ThemeAccent.Indigo -> R.string.accent_indigo
         ThemeAccent.Purple -> R.string.accent_purple

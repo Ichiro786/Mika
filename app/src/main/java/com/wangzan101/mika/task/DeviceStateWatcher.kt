@@ -36,7 +36,7 @@ class DeviceStateWatcher(
     private val keyguard = appContext.getSystemService(KeyguardManager::class.java)
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private val lock = LockState({ LockState.Reading(power.isInteractive, keyguard.isKeyguardLocked) }, scope)
+    private val lock = LockState({ LockState.Reading(power.isInteractive, keyguard.isKeyguardLocked, keyguard.isDeviceLocked) }, scope)
     val locked: StateFlow<Boolean> = lock.locked
 
     // 只用广播当作「该重新看一眼」的信号,状态本身每次都从系统读,不靠广播顺序推断
@@ -97,12 +97,21 @@ class DeviceStateWatcher(
 /**
  * 主屏是否不可操作(熄屏或锁屏)。广播来了重读一次;但解锁时系统先发 USER_PRESENT,
  * [android.app.KeyguardManager.isKeyguardLocked] 要等锁屏界面真的退下去才变,这一刻读到的还是「锁着」,
- * 之后不会再有广播。所以读到「亮着但锁着」时,只要有人在看这份状态,就每 [DeviceStateWatcher.POLL_MS] 再读一次,
+ * 之后不会再有广播。所以只要有人在看这份状态,就每 [DeviceStateWatcher.POLL_MS] 重读一次,
  * 直到读到解锁或熄屏;熄屏时不读,等 SCREEN_ON。
+ * 轮询的判据用 [Reading.locked](= 熄屏或 deviceLocked),而不是 keyguardLocked:部分 ROM 上锁屏界面
+ * 先于设备解锁状态退下去(keyguardLocked 已变 false、deviceLocked 仍 true),若只看 keyguardLocked 会提前停轮询,
+ * 任务就卡在「等你解锁手机」(#590 / #627)。
  */
 internal class LockState(private val read: () -> Reading, scope: CoroutineScope) {
-    data class Reading(val interactive: Boolean, val keyguardLocked: Boolean) {
-        val locked get() = !interactive || keyguardLocked
+    data class Reading(val interactive: Boolean, val keyguardLocked: Boolean, val deviceLocked: Boolean) {
+        /**
+         * 锁屏判定用 [android.app.KeyguardManager.isDeviceLocked](设备是否真被 PIN/图案/密码锁着),
+         * 而不是 [android.app.KeyguardManager.isKeyguardLocked]。后者在部分 ROM(如 HyperOS)解锁后仍会报 true,
+         * 导致任务一直停在「等你解锁手机」(#590)。滑动解锁(无凭据)不算「锁着」,任务可以自己滑开。
+         * [keyguardLocked] 仍保留,只用于判断锁屏界面是否还在退下去(要不要继续轮询重读)。
+         */
+        val locked get() = !interactive || deviceLocked
     }
 
     @Volatile private var last = read()
@@ -119,7 +128,7 @@ internal class LockState(private val read: () -> Reading, scope: CoroutineScope)
             _locked.subscriptionCount.map { it > 0 }.distinctUntilChanged().collectLatest { watched ->
                 while (watched) {
                     delay(DeviceStateWatcher.POLL_MS)
-                    if (last.interactive && last.keyguardLocked) refresh()
+                    if (last.interactive && last.locked) refresh()
                 }
             }
         }

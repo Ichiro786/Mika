@@ -32,6 +32,7 @@ enum class Verb {
     RunCommand, RunBundledScript, ReadFile, WriteFile, SearchFiles, ShareFile,
     RootCommand,
     CallState, CallDial, CallAnswer, CallHangup, CallTakeover,
+    WhatsappChats, WhatsappRead, WhatsappSend,
     Wait, AskUser, RequestConfirmation, HandToUser, HandleObstacle, EndNotDone,
     KnowledgeSearch, KnowledgeRead, SkillSearch, SkillRead, SkillSave, MemorySearch, MemorySave, MemoryEdit, ProfileEdit, HistoryRead, WebSearch,
     TaskMemorySearch, TaskMemoryTimeline, TaskMemoryStep,

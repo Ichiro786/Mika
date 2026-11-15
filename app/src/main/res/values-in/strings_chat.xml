@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">Untuk Anda hari ini</string>
+    <string name="home_editorial_subtitle">Selangkah lebih siap menjalani hari, bersama Orbit.</string>
     <string name="chat_greeting_morning">Selamat pagi</string>
     <string name="chat_greeting_noon">Selamat siang</string>
     <string name="chat_greeting_afternoon">Selamat sore</string>
     <string name="chat_greeting_evening">Selamat malam</string>
     <string name="chat_greeting_night">Belum tidur?</string>
-    <string name="chat_empty_prompt">Apa yang harus dikerjakan Mika?</string>
+    <string name="chat_empty_prompt">Apa yang harus dikerjakan Orbit?</string>
     <string name="chat_example_github_star">Buka https://github.com/wangzan101/mika dan beri bintang pada proyek ini.</string>
     <string name="chat_example_follow">Buka X, cari Wang Zan (@wangzan101), lalu ikuti akun tersebut.</string>
     <string name="chat_example_group_summary">Buka WhatsApp dan rangkum pesan yang belum dibaca hari ini, dengan menandai semua yang perlu saya balas.</string>
     <string name="chat_example_alarms">Pasang alarm pukul 9.40, 9.50, dan 10.00 besok pagi.</string>
+    <string name="chat_example_wind_down">Aktifkan Jangan Ganggu sampai jam 7 pagi besok dan pasang alarm jam 7.00.</string>
+    <string name="chat_example_nearby">Cari kedai kopi dengan ulasan bagus di dekatku yang buka sekarang.</string>
     <string name="chat_example_replace_title">Ganti draf saat ini?</string>
     <string name="chat_example_replace_body">Tugas yang direkomendasikan akan mengganti teks yang sudah Anda ketik.</string>
     <string name="chat_example_replace_action">Ganti draf</string>
@@ -49,20 +53,20 @@
     <plurals name="chat_earlier_steps">
         <item quantity="other">%1$d langkah sebelumnya</item>
     </plurals>
-    <string name="chat_background_note">Berjalan di latar belakang — silakan lanjut memakai ponsel. Ketuk tampilan kecil untuk memperbesarnya.</string>
+    <string name="chat_background_note">Berjalan di latar belakang, tetap gunakan ponsel Anda. Ketuk pil di atas bilah pesan untuk melihatnya secara langsung.</string>
     <string name="chat_placeholder_busy">Tambah atau ubah detail…</string>
-    <string name="chat_placeholder_answer">Jawab pertanyaan Mika</string>
+    <string name="chat_placeholder_answer">Jawab pertanyaan Orbit</string>
     <string name="chat_placeholder_more">Tambahkan sesuatu…</string>
     <string name="chat_cannot_start">Belum bisa memulai tugas</string>
     <string name="chat_missing">Kurang: %1$s</string>
     <string name="chat_go_settings">Buka Pengaturan</string>
-    <string name="chat_menu">Menu</string>
+    <string name="chat_menu">Buka sidebar</string>
     <string name="drawer_personal">Asisten pribadi</string>
     <string name="chat_new">Obrolan baru</string>
     <string name="chat_expand_steps">Tampilkan langkah</string>
     <string name="chat_collapse_steps">Sembunyikan langkah</string>
     <string name="chat_view_process">Lihat prosesnya</string>
-    <string name="chat_unlock_body">Ponsel Anda terkunci. Mika akan melanjutkan setelah Anda membukanya.</string>
+    <string name="chat_unlock_body">Ponsel Anda terkunci. Orbit akan melanjutkan setelah Anda membukanya.</string>
     <string name="chat_input_body">%1$s\nKetuk pilihan atau ketik di bawah. %2$s</string>
     <string name="chat_refuse">Tolak</string>
     <string name="chat_allow_once">Izinkan kali ini saja</string>
@@ -162,6 +166,10 @@
     <string name="step_viewed">Melihat %1$s</string>
     <string name="step_viewed_part">Melihat %2$s di %1$s</string>
     <string name="step_failed">Gagal</string>
+    <string name="step_declined_not_said">Tidak ditulis: bukan kata-kata Anda sendiri</string>
+    <string name="step_declined_sensitive">Tidak ditulis: informasi sensitif</string>
+    <string name="step_declined_not_asked">Tidak diubah: Anda tidak memintanya</string>
+    <string name="step_declined_not_requested">Tidak ditulis: pesan ini tidak meminta untuk mengingat</string>
     <string name="step_number">Langkah %1$d</string>
     <string name="source_label">Sumber</string>
     <plurals name="screenshots">
@@ -174,11 +182,11 @@
     <string name="attach_album">Foto</string>
     <string name="attach_files">Berkas</string>
     <string name="attach_recent">Foto terbaru</string>
-    <string name="attach_recent_partial">Foto yang Anda izinkan diakses Mika</string>
+    <string name="attach_recent_partial">Foto yang Anda izinkan diakses Orbit</string>
     <string name="attach_all">Semua foto</string>
     <string name="attach_change">Ubah akses</string>
     <string name="attach_no_photos">Belum ada foto</string>
-    <string name="attach_need_access">Untuk memilih foto di sini, izinkan Mika mengakses foto Anda</string>
+    <string name="attach_need_access">Untuk memilih foto di sini, izinkan Orbit mengakses foto Anda</string>
     <string name="attach_grant">Izinkan akses foto</string>
     <string name="attach_grant_hint">Anda juga bisa mengetuk “Foto” di atas untuk memakai pemilih foto sistem</string>
     <string name="attach_full">Maksimal %1$d lampiran sekaligus</string>
@@ -198,10 +206,10 @@
     <string name="attach_file_and_more">%1$s dan %2$d berkas lainnya</string>
     <string name="screen_tag">Layar Anda saat ini</string>
     <string name="screen_blocked">Gagal menangkap: halaman ini tidak mengizinkan tangkapan layar</string>
-    <string name="screen_camera">Tangkap layar ini untuk Mika</string>
+    <string name="screen_camera">Tangkap layar ini untuk Orbit</string>
     <string name="screen_remove">Hapus tangkapan layar ini</string>
-    <string name="screen_send">Kirim layar Anda saat ini ke Mika</string>
-    <string name="pip_screen">Layar virtual Mika</string>
+    <string name="screen_send">Kirim layar Anda saat ini ke Orbit</string>
+    <string name="pip_screen">Layar virtual Orbit</string>
     <string name="collapse">Ciutkan</string>
     <string name="no_app_for_link">Tidak ada aplikasi yang bisa membuka tautan ini</string>
     <string name="source_none">Tidak ada sumber yang disimpan untuk jawaban ini</string>
@@ -209,7 +217,7 @@
     <string name="zoom_in">Perbesar</string>
     <string name="chat_message_actions">Opsi pesan</string>
     <string name="chat_copy">Salin</string>
-    <string name="chat_quote">Kutip</string>
+    <string name="chat_quote">Balas</string>
     <string name="chat_select_text">Pilih teks</string>
     <string name="chat_copied">Disalin</string>
     <string name="chat_branch">Cabang dari sini</string>
@@ -230,7 +238,7 @@
     <string name="chat_retry_failed">%1$s: tidak dapat disalin</string>
     <string name="chat_select_hint">Tekan lama teks untuk memilihnya</string>
     <string name="chat_quote_remove">Hapus kutipan</string>
-    <string name="chat_quoting_mika">Mengutip Mika: %1$s</string>
+    <string name="chat_quoting_mika">Mengutip Orbit: %1$s</string>
     <string name="chat_quoting_you">Mengutip Anda: %1$s</string>
     <string name="chat_edit_message">Ubah pesan</string>
     <string name="chat_withdraw_message">Tarik pesan</string>
@@ -239,7 +247,7 @@
     <string name="pip_back">Kembali di layar virtual</string>
     <string name="pip_reopen">Tampilkan layar</string>
     <string name="pip_closed_needs_you">Perlu Anda</string>
-    <string name="pip_closed_hint">Ditutup untuk tugas ini. Ketuk “Tampilkan layar” di kanan bawah, atau buka “Layar latar belakang” di menu samping.</string>
+    <string name="pip_closed_hint">Ditutup untuk tugas ini. Ketuk “Tampilkan layar” di atas bilah pesan, atau buka “Layar latar belakang” di menu samping.</string>
     <string name="chat_conversation_tokens">Percakapan ini: %1$s</string>
     <string name="chat_conversation_tokens_partial">Percakapan ini: setidaknya %1$s</string>
     <string name="follow_up_steer">Arahkan</string>
@@ -263,4 +271,12 @@
     <plurals name="drawer_archive_many_skipped">
         <item quantity="other">%1$d tidak diarsipkan</item>
     </plurals>
+    <string name="pip_step">Langkah %1$d</string>
+    <string name="pip_swipe_hide">Geser ke bawah untuk menyembunyikan</string>
+    <string name="chat_share_message">Bagikan</string>
+    <string name="chat_react_with">Beri reaksi %1$s</string>
+    <string name="chat_reaction_yours">Anda memberi reaksi %1$s</string>
+    <string name="chat_reaction_orbit">Orbit memberi reaksi %1$s</string>
+    <string name="chat_replying_to">Membalas pesan Anda: %1$s</string>
+    <string name="chat_swipe_reply">Geser untuk membalas</string>
 </resources>

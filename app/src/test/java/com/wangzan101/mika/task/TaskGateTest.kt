@@ -36,17 +36,17 @@ class TaskGateTest {
 
     @Test
     fun nonInteractiveWaitsForUnlockThenResumesByItself() = runTest {
-        locked.value = LockState.Reading(interactive = false, keyguardLocked = false).locked
+        locked.value = LockState.Reading(interactive = false, keyguardLocked = false, deviceLocked = false).locked
         var passed = false
         launch { gate.pass { reported += it }; passed = true }
         runCurrent()
         assertFalse(passed)
         assertEquals(TaskState.Held(TaskGate.LOCKED), reported.last())
 
-        locked.value = LockState.Reading(interactive = true, keyguardLocked = true).locked // 亮屏但还在锁屏界面
+        locked.value = LockState.Reading(interactive = true, keyguardLocked = true, deviceLocked = true).locked // 亮屏但还在锁屏界面
         runCurrent()
         assertFalse(passed)
-        locked.value = LockState.Reading(interactive = true, keyguardLocked = false).locked
+        locked.value = LockState.Reading(interactive = true, keyguardLocked = false, deviceLocked = false).locked
         runCurrent()
         assertTrue(passed)
         assertEquals(null, reported.last())
@@ -107,13 +107,13 @@ class TaskGateTest {
         var unlocks = 0
         val channel = TaskGate(locked, shellUp,
             unattendedUnlock = { unlocks++; "disabled" },
-            unlockFailureMessage = { tr(R.string.wechat_unlock_failed) }) { true }
+            unlockFailureMessage = { tr(R.string.whatsapp_unlock_failed) }) { true }
 
         val result = withTimeoutOrNull(1_000) { runCatching { channel.pass { reported += it } } }
 
         val error = result?.exceptionOrNull()
         assertTrue(error is UnattendedLockException)
-        assertEquals("${tr(R.string.wechat_unlock_failed)} [disabled]", error?.message)
+        assertEquals("${tr(R.string.whatsapp_unlock_failed)} [disabled]", error?.message)
         assertEquals(1, unlocks)
         assertTrue(locked.value)
         assertEquals(listOf(TaskState.Held(TaskGate.LOCKED)), reported)

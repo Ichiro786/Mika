@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Orbit is English-only; these texts are not translated. -->
+    <string name="gemini_group" translatable="false">Gemini plan</string>
+    <string name="gemini_title" translatable="false">Use your Gemini plan</string>
+    <string name="gemini_lead" translatable="false">Tasks run on your Google Gemini subscription through Google\'s Antigravity server, set up on this phone.</string>
+    <string name="gemini_setup" translatable="false">Set up</string>
+    <string name="gemini_setup_note" translatable="false">Downloads a small Linux, Python and Google\'s server, about 1.2 GB free space needed while it sets up. Use Wi-Fi.</string>
+    <string name="gemini_stage_space" translatable="false">Checking free space</string>
+    <string name="gemini_stage_base" translatable="false">Downloading the small Linux, %1$d%%</string>
+    <string name="gemini_stage_python" translatable="false">Downloading Python, %1$d%%</string>
+    <string name="gemini_stage_server" translatable="false">Downloading Google\'s server, %1$d%%</string>
+    <string name="gemini_stage_prepare" translatable="false">Preparing the server, %1$d%%</string>
+    <string name="gemini_stage_done" translatable="false">Ready</string>
+    <string name="gemini_setup_failed" translatable="false">Setup stopped: %1$s</string>
+    <string name="gemini_sign_in" translatable="false">Sign in with Google</string>
+    <string name="gemini_signing_in" translatable="false">Finish signing in in your browser, then come back.</string>
+    <string name="gemini_open_link" translatable="false">Open the sign-in page again</string>
+    <string name="gemini_sign_in_failed" translatable="false">Sign-in didn\'t finish: %1$s</string>
+    <string name="gemini_use" translatable="false">Use for tasks</string>
+    <string name="gemini_use_line" translatable="false">Gemini runs your tasks instead of the models above</string>
+    <string name="gemini_signed_in" translatable="false">Signed in with Google</string>
+    <string name="gemini_sign_out" translatable="false">Sign out</string>
+    <string name="gemini_space" translatable="false">Space used</string>
+    <string name="gemini_version" translatable="false">Server version %1$s</string>
+    <string name="gemini_remove" translatable="false">Remove Gemini engine</string>
+    <string name="gemini_remove_line" translatable="false">Deletes the Linux, Python, Google\'s server and the sign-in</string>
+    <string name="gemini_unsupported" translatable="false">This phone can\'t run the Gemini engine; it needs a 64-bit ARM phone.</string>
+    <string name="gemini_footer" translatable="false">Gemini models only. Orbit tells Google\'s server it is Orbit, so the Claude and GPT models Antigravity offers some editors aren\'t available. Steps that need your OK, like payments, are refused in Gemini tasks.</string>
+</resources>

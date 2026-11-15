@@ -27,15 +27,15 @@ data class MemoryNote(val kind: NoteKind, val memoryId: String, val undoToken: S
     fun text(item: MemoryItem?): String {
         val content = item?.content ?: DELETED
         return when (kind) {
-            NoteKind.added -> "记住了:$content"
-            NoteKind.updated -> "更新了:$content" + (item?.replaces?.let { "(原来:$it)" } ?: "")
-            NoteKind.forgot -> if (item == null) "忘掉了一条记忆" else "忘掉了:$content"
-            NoteKind.pending -> "要我以后都这样做吗?$content"
+            NoteKind.added -> "Remembered: $content"
+            NoteKind.updated -> "Updated: $content" + (item?.replaces?.let { " (was: $it)" } ?: "")
+            NoteKind.forgot -> if (item == null) "Forgot a memory" else "Forgot: $content"
+            NoteKind.pending -> "Should I always do this? $content"
         }
     }
 
     companion object {
-        const val DELETED = "一条已删除的记忆"
+        const val DELETED = "a deleted memory"
     }
 }
 
@@ -87,12 +87,12 @@ class MemoryExtractor(private val model: ChatModel) {
     }
 
     private fun request(utterances: List<String>, labels: Map<String, MemoryItem>) = buildString {
-        appendLine("用户本次说的话:")
+        appendLine("What the user said this time:")
         utterances.filter { it.isNotBlank() }.forEachIndexed { i, u -> appendLine("${i + 1}. $u") }
         appendLine()
-        if (labels.isEmpty()) append("已有的相关记忆:无")
+        if (labels.isEmpty()) append("Related existing memories: none")
         else {
-            appendLine("已有的相关记忆:")
+            appendLine("Related existing memories:")
             labels.forEach { (label, m) -> appendLine("$label [${m.kind.name}] ${m.content}") }
         }
     }.trimEnd()

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="nav_chat">المحادثة</string>
+    <string name="nav_make">إنشاء</string>
+    <string name="tasks_title">أعمالك.</string>
+    <string name="tasks_subtitle">نظرة أكثر هدوءًا إلى كل ما يجري.</string>
+    <string name="tasks_active">النشطة</string>
+    <string name="tasks_up_next">التالي</string>
+    <string name="tasks_review">جاهز للمراجعة</string>
+    <string name="tasks_scheduled">المجدولة</string>
+    <string name="tasks_resolved">المنتهية</string>
+    <string name="tasks_waiting">بانتظار</string>
+    <string name="tasks_empty_up_next">لا توجد مهام في الانتظار أو مجدولة.</string>
+</resources>

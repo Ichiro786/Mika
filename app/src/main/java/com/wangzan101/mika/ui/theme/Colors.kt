@@ -3,6 +3,7 @@ package com.wangzan101.mika.ui.theme
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.compositeOver
 import com.wangzan101.mika.settings.ThemeAccent
 
 /**
@@ -74,12 +75,12 @@ class MikaColors(
 }
 
 val LightColors = MikaColors(
-    bg = Color(0xFFF7F7F8),
+    bg = Color(0xFFFAF9F7),
     surface = Color(0xFFFFFFFF),
     fill = Color(0x0A000000),
-    ink = Color(0xFF1C1C1E),
-    ink2 = Color(0xFF5F6068),
-    ink3 = Color(0xFF9A9BA3),
+    ink = Color(0xFF222322),
+    ink2 = Color(0xFF625F5B),
+    ink3 = Color(0xFF6A6763),
     hair = Color(0x12000000),
     edge = Color(0x0D000000),
     accent = Color(0xFF0A7CFF),
@@ -93,7 +94,7 @@ val LightColors = MikaColors(
     bad = Color(0xFFE5483D),
     badSoft = Color(0x1AE5483D),
     neutralSoft = Color(0x0B000000),
-    answer = Color(0x09000000),
+    answer = Color(0xFFF0EFEC),
     greySoft = Color(0x1F767680),
     glass = Color(0xB8FFFFFF),
     glassEdge = Color(0x0F000000),
@@ -107,12 +108,12 @@ val LightColors = MikaColors(
 )
 
 val DarkColors = MikaColors(
-    bg = Color(0xFF0E0E10),
-    surface = Color(0xFF1A1A1D),
+    bg = Color(0xFF000000),
+    surface = Color(0xFF18191B),
     fill = Color(0x0FFFFFFF),
-    ink = Color(0xFFF2F2F4),
-    ink2 = Color(0xFFA4A5AD),
-    ink3 = Color(0xFF6C6D75),
+    ink = Color(0xFFF2F0EC),
+    ink2 = Color(0xFFB4B1AD),
+    ink3 = Color(0xFFAAA7A3),
     hair = Color(0x14FFFFFF),
     edge = Color(0x0FFFFFFF),
     accent = Color(0xFF3D97FF),
@@ -126,9 +127,9 @@ val DarkColors = MikaColors(
     bad = Color(0xFFFF6961),
     badSoft = Color(0x24FF6961),
     neutralSoft = Color(0x12FFFFFF),
-    answer = Color(0x0DFFFFFF),
+    answer = Color(0xFF202123),
     greySoft = Color(0x38767680),
-    glass = Color(0xB81A1A1D),
+    glass = Color(0xE618191B),
     glassEdge = Color(0x14FFFFFF),
     cardShadow = Color.Transparent,
     floatShadow = Color(0xFF000000),
@@ -142,7 +143,8 @@ val DarkColors = MikaColors(
 /** 按深浅色和强调色取整套颜色。蓝色就是 [LightColors] / [DarkColors] 本身;别的颜色只换强调色那三项。 */
 fun palette(dark: Boolean, accent: ThemeAccent): MikaColors {
     val base = if (dark) DarkColors else LightColors
-    if (accent == ThemeAccent.Blue) return base
+    // Wallpaper colors are applied in MikaTheme on Android 12+; here they fall back to the default blue.
+    if (accent == ThemeAccent.Blue || accent == ThemeAccent.Dynamic) return base
     val (color, on) = accentTone(accent, dark)
     return base.withAccent(color, on)
 }
@@ -152,7 +154,7 @@ fun palette(dark: Boolean, accent: ThemeAccent): MikaColors {
  * 文字的对比度不低于默认蓝色,和页面背景的对比度不低于 3:1(见 `AccentPaletteTest`)。
  */
 fun accentTone(accent: ThemeAccent, dark: Boolean): Pair<Color, Color> = when (accent) {
-    ThemeAccent.Blue -> (if (dark) DarkColors else LightColors).let { it.accent to it.onAccent }
+    ThemeAccent.Blue, ThemeAccent.Dynamic -> (if (dark) DarkColors else LightColors).let { it.accent to it.onAccent }
     ThemeAccent.Indigo -> Color(if (dark) 0xFF7D7AFF else 0xFF5856D6) to Color.White
     ThemeAccent.Purple -> Color(if (dark) 0xFFBF5AF2 else 0xFF9B3FD9) to Color.White
     ThemeAccent.Pink -> Color(if (dark) 0xFFFF4F80 else 0xFFE0306A) to Color.White
@@ -163,3 +165,26 @@ fun accentTone(accent: ThemeAccent, dark: Boolean): Pair<Color, Color> = when (a
 
 /** 没有包在 [MikaTheme] 里时(比如界面测试)按浅色。 */
 val LocalMikaColors = staticCompositionLocalOf { LightColors }
+
+/** The user's own message bubble: [bg] is a Material You tonal container, [fg] the text on it. */
+@Immutable
+data class UserBubbleColors(val bg: Color, val fg: Color)
+
+val LocalUserBubble = staticCompositionLocalOf { userBubbleTone(LightColors.accent, dark = false) }
+
+/**
+ * A tonal container of [accent] for the user's bubbles when the wallpaper scheme isn't there (before
+ * Android 12, a fixed accent, an image accent): a deep tint on black, a pale tint on white, with text
+ * that reads on it at 4.5:1 or better. The tint is eased off until it does.
+ */
+fun userBubbleTone(accent: Color, dark: Boolean): UserBubbleColors {
+    val base = if (dark) Color(0xFF0E0E10) else Color.White
+    val text = if (dark) Color(0xFFF2F2F7) else Color(0xFF16161A)
+    var alpha = if (dark) 0.42f else 0.20f
+    var bg = accent.copy(alpha = alpha).compositeOver(base)
+    while (contrast(bg, text) < 4.5 && alpha > 0.06f) {
+        alpha -= 0.04f
+        bg = accent.copy(alpha = alpha).compositeOver(base)
+    }
+    return UserBubbleColors(bg, text)
+}

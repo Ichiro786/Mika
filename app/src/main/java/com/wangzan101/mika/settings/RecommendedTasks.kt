@@ -56,6 +56,22 @@ class RecommendedTaskStore(private val file: File, private val ids: () -> String
         }
     }
 
+    /**
+     * Drops built-in suggestions that were retired ([retired] holds their old prompts) and, when any were dropped, adds
+     * the current built-in [seeds] that are not there yet. The user's own suggestions stay where they are.
+     */
+    @Synchronized
+    fun retire(retired: Set<String>, seeds: () -> List<Pair<String, String>>) {
+        if (!loaded || _unreadable.value) return
+        val kept = _tasks.value.filterNot { it.prompt.trim() in retired }
+        if (kept.size == _tasks.value.size) return
+        val have = kept.mapTo(mutableSetOf()) { it.prompt.trim() }
+        val added = seeds().mapNotNull { (title, prompt) ->
+            (normalize(title, prompt) as? Normalized.Ok)?.takeIf { it.prompt !in have }?.let { RecommendedTask(ids(), it.title, it.prompt) }
+        }
+        commit(added + kept)
+    }
+
     @Synchronized
     fun add(title: String, prompt: String): RecommendedTaskError? {
         guard()?.let { return it }

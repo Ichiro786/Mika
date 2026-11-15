@@ -136,64 +136,11 @@ class AboutScreenTest {
         assertEquals(sampleDiagnostics, clip)
     }
 
-    /** 联系作者面板:作者微信码、提示和保存按钮都在,点保存走一次回调。 */
-    @Test
-    fun groupRowOpensGroupSheet() {
-        val calls = about()
-        scrollTo("联系作者")
-        compose.onNodeWithText("联系作者").performClick()
-        compose.awaitOne(AboutCopy.GROUP_SHEET_SUB).assertIsDisplayed()
-        compose.onNodeWithTag("wechat-qr").assertExists()
-        compose.onNodeWithText(AboutCopy.GROUP_HINT).assertExists()
-        compose.onNodeWithText(AboutCopy.SAVE_QR).performClick()
-        compose.waitForIdle()
-        assertEquals(1, calls.saves)
-    }
 
-    @Test
-    fun checkRowStartsCheckWhenNoUpdate() {
-        val calls = about(UpdateState(latest = r020.copy(version = "0.1.0")))
-        compose.onNodeWithText(AboutCopy.UP_TO_DATE).assertIsDisplayed()
-        compose.onNodeWithText("检查更新").performClick()
-        assertEquals(1, calls.checks)
-        compose.onAllNodesWithTag("update-dot", useUnmergedTree = true).assertCountEquals(0)
-    }
 
-    @Test
-    fun checkingShowsSpinner() {
-        about(UpdateState(status = CheckStatus.Checking))
-        compose.onNodeWithTag("update-spinner").assertExists()
-    }
 
-    @Test
-    fun offlineShowsReason() {
-        about(UpdateState(status = CheckStatus.Failed))
-        compose.onNodeWithText(AboutCopy.OFFLINE).assertIsDisplayed()
-    }
 
-    @Test
-    fun updateRowOpensUpdateSheet() {
-        val calls = about(UpdateState(latest = r020, update = r020, status = CheckStatus.Done))
-        compose.onNodeWithText("0.2.0 可更新").assertIsDisplayed()
-        compose.onNodeWithTag("update-dot", useUnmergedTree = true).assertExists()
-        compose.onNodeWithText("检查更新").performClick()
-        compose.awaitOne("发现新版本 0.2.0")
-        compose.onNodeWithText("当前 0.1.0 Beta · 2026-11-05 发布").assertExists()
-        compose.onNodeWithText("以后再说").assertExists()
-        compose.onNodeWithText("下载更新").assertExists()
-        compose.waitForIdle()
-        assertEquals(0, calls.checks)
-        assertTrue(calls.urls.isEmpty())
-    }
 
-    @Test
-    fun updateWithoutApkStillOpensReleasePage() {
-        val r = r020.copy(apkUrl = null)
-        val calls = about(UpdateState(latest = r, update = r))
-        compose.onNodeWithText("检查更新").performClick()
-        compose.awaitOne("从 GitHub 下载").performClick()
-        assertEquals(listOf(r.pageUrl), calls.urls)
-    }
 
     @Test
     fun downloadedUpdateOffersInstallAndDelete() {

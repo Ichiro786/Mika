@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="home_for_you">Сегодня для вас</string>
+    <string name="home_editorial_subtitle">С Orbit на шаг впереди своего дня.</string>
     <string name="chat_greeting_morning">Доброе утро</string>
     <string name="chat_greeting_noon">Добрый день</string>
     <string name="chat_greeting_afternoon">Добрый день</string>
     <string name="chat_greeting_evening">Добрый вечер</string>
     <string name="chat_greeting_night">Не спится?</string>
-    <string name="chat_empty_prompt">Что поручить Mika?</string>
+    <string name="chat_empty_prompt">Что поручить Orbit?</string>
     <string name="chat_example_github_star">Открой https://github.com/wangzan101/mika и поставь звезду этому проекту.</string>
     <string name="chat_example_follow">Открой X, найди Wang Zan (@wangzan101) и подпишись на этот аккаунт.</string>
     <string name="chat_example_group_summary">Открой WhatsApp и кратко перескажи сегодняшние непрочитанные сообщения, отметив те, на которые нужно ответить.</string>
     <string name="chat_example_alarms">Поставь будильники на завтра на 9:40, 9:50 и 10:00 утра.</string>
+    <string name="chat_example_wind_down">Включи режим «Не беспокоить» до 7 утра завтра и поставь будильник на 7:00.</string>
+    <string name="chat_example_nearby">Найди рядом со мной кофейню с хорошими отзывами, которая сейчас открыта.</string>
     <string name="chat_example_replace_title">Заменить текущий черновик?</string>
     <string name="chat_example_replace_body">Рекомендуемая задача заменит уже введённый текст.</string>
     <string name="chat_example_replace_action">Заменить черновик</string>
@@ -52,20 +56,20 @@
         <item quantity="many">%1$d предыдущих шагов</item>
         <item quantity="other">%1$d предыдущего шага</item>
     </plurals>
-    <string name="chat_background_note">Работает в фоне: пользуйтесь телефоном как обычно. Нажмите на маленькое окно, чтобы увеличить его.</string>
+    <string name="chat_background_note">Работает в фоне, продолжайте пользоваться телефоном. Нажмите на плашку над полем сообщения, чтобы смотреть вживую.</string>
     <string name="chat_placeholder_busy">Дополните или измените детали…</string>
-    <string name="chat_placeholder_answer">Ответьте на вопрос Mika</string>
+    <string name="chat_placeholder_answer">Ответьте на вопрос Orbit</string>
     <string name="chat_placeholder_more">Добавьте что-нибудь…</string>
     <string name="chat_cannot_start">Пока нельзя запускать задачи</string>
     <string name="chat_missing">Не хватает: %1$s</string>
     <string name="chat_go_settings">Открыть настройки</string>
-    <string name="chat_menu">Меню</string>
+    <string name="chat_menu">Открыть боковую панель</string>
     <string name="drawer_personal">Личный помощник</string>
     <string name="chat_new">Новый чат</string>
     <string name="chat_expand_steps">Показать шаги</string>
     <string name="chat_collapse_steps">Скрыть шаги</string>
     <string name="chat_view_process">Посмотреть, как всё прошло</string>
-    <string name="chat_unlock_body">Телефон заблокирован. Mika продолжит, как только вы его разблокируете.</string>
+    <string name="chat_unlock_body">Телефон заблокирован. Orbit продолжит, как только вы его разблокируете.</string>
     <string name="chat_input_body">%1$s\nВыберите вариант или введите ответ ниже. %2$s</string>
     <string name="chat_refuse">Отказать</string>
     <string name="chat_allow_once">Разрешить один раз</string>
@@ -192,6 +196,10 @@
     <string name="step_viewed">Просмотрено: %1$s</string>
     <string name="step_viewed_part">Просмотрено: %2$s в «%1$s»</string>
     <string name="step_failed">Не удалось</string>
+    <string name="step_declined_not_said">Не записано: это не ваши слова</string>
+    <string name="step_declined_sensitive">Не записано: конфиденциальные данные</string>
+    <string name="step_declined_not_asked">Без изменений: вы об этом не просили</string>
+    <string name="step_declined_not_requested">Не записано: в этом сообщении не было просьбы запомнить</string>
     <string name="step_number">Шаг %1$d</string>
     <string name="source_label">Источник</string>
     <plurals name="screenshots">
@@ -207,11 +215,11 @@
     <string name="attach_album">Фото</string>
     <string name="attach_files">Файлы</string>
     <string name="attach_recent">Недавние фото</string>
-    <string name="attach_recent_partial">Фото, к которым вы дали доступ Mika</string>
+    <string name="attach_recent_partial">Фото, к которым вы дали доступ Orbit</string>
     <string name="attach_all">Все фото</string>
     <string name="attach_change">Изменить доступ</string>
     <string name="attach_no_photos">Фото пока нет</string>
-    <string name="attach_need_access">Чтобы выбирать фото здесь, разрешите Mika доступ к вашим фото</string>
+    <string name="attach_need_access">Чтобы выбирать фото здесь, разрешите Orbit доступ к вашим фото</string>
     <string name="attach_grant">Разрешить доступ к фото</string>
     <string name="attach_grant_hint">Можно также нажать «Фото» выше и выбрать снимок в системном окне выбора</string>
     <string name="attach_full">Не более %1$d вложений за раз</string>
@@ -234,10 +242,10 @@
     <string name="attach_file_and_more">%1$s и ещё файлов: %2$d</string>
     <string name="screen_tag">Ваш экран сейчас</string>
     <string name="screen_blocked">Не удалось снять экран: эта страница запрещает снимки экрана</string>
-    <string name="screen_camera">Снять этот экран для Mika</string>
+    <string name="screen_camera">Снять этот экран для Orbit</string>
     <string name="screen_remove">Убрать этот снимок экрана</string>
-    <string name="screen_send">Отправить Mika ваш текущий экран</string>
-    <string name="pip_screen">Виртуальный экран Mika</string>
+    <string name="screen_send">Отправить Orbit ваш текущий экран</string>
+    <string name="pip_screen">Виртуальный экран Orbit</string>
     <string name="collapse">Свернуть</string>
     <string name="no_app_for_link">Нет приложения, которое может открыть эту ссылку</string>
     <string name="source_none">Для этого ответа источник не сохранён</string>
@@ -245,7 +253,7 @@
     <string name="zoom_in">Увеличить</string>
     <string name="chat_message_actions">Действия с сообщением</string>
     <string name="chat_copy">Копировать</string>
-    <string name="chat_quote">Цитировать</string>
+    <string name="chat_quote">Ответить</string>
     <string name="chat_select_text">Выделить текст</string>
     <string name="chat_copied">Скопировано</string>
     <string name="chat_branch">Ответвить отсюда</string>
@@ -266,7 +274,7 @@
     <string name="chat_retry_failed">%1$s: не удалось скопировать</string>
     <string name="chat_select_hint">Нажмите на текст и удерживайте, чтобы выделить его</string>
     <string name="chat_quote_remove">Убрать цитату</string>
-    <string name="chat_quoting_mika">Цитата Mika: %1$s</string>
+    <string name="chat_quoting_mika">Цитата Orbit: %1$s</string>
     <string name="chat_quoting_you">Ваша цитата: %1$s</string>
     <string name="chat_edit_message">Изменить сообщение</string>
     <string name="chat_withdraw_message">Отозвать сообщение</string>
@@ -275,7 +283,7 @@
     <string name="pip_back">Назад на виртуальном экране</string>
     <string name="pip_reopen">Показать экран</string>
     <string name="pip_closed_needs_you">Нужны вы</string>
-    <string name="pip_closed_hint">Закрыто для этой задачи. Нажмите «Показать экран» справа внизу или откройте «Фоновые экраны» в боковом меню.</string>
+    <string name="pip_closed_hint">Закрыто для этой задачи. Нажмите «Показать экран» над полем сообщения или откройте «Фоновые экраны» в боковом меню.</string>
     <string name="chat_conversation_tokens">Этот чат: %1$s</string>
     <string name="chat_conversation_tokens_partial">Этот чат: не меньше %1$s</string>
     <string name="follow_up_steer">Направить</string>
@@ -305,4 +313,12 @@
         <item quantity="many">%1$d не архивировано</item>
         <item quantity="other">%1$d не архивированы</item>
     </plurals>
+    <string name="pip_step">Шаг %1$d</string>
+    <string name="pip_swipe_hide">Смахните вниз, чтобы скрыть</string>
+    <string name="chat_share_message">Поделиться</string>
+    <string name="chat_react_with">Реакция %1$s</string>
+    <string name="chat_reaction_yours">Ваша реакция: %1$s</string>
+    <string name="chat_reaction_orbit">Реакция Orbit: %1$s</string>
+    <string name="chat_replying_to">Ответ на ваше сообщение: %1$s</string>
+    <string name="chat_swipe_reply">Смахните, чтобы ответить</string>
 </resources>

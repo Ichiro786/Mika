@@ -116,8 +116,6 @@ object SystemSpeech {
     /** App 语言对应的识别语言(BCP-47);跟随系统时用系统的语言。选的语言和系统语言相同时(中文除外)沿用系统的地区。 */
     fun speechTag(language: AppLanguage, system: Locale = Locale.getDefault()): String = when {
         language == AppLanguage.System -> languageRegion(system)
-        // 中文按选的简繁定地区,不跟系统
-        language.language == "zh" -> language.speechTag!!
         // 系统也是这种语言时用系统的地区(英式英语、墨西哥西班牙语…),否则用这种语言最常见的地区。
         // 在 App 里选了语言后进程的默认语言就是它、不带地区(en):这时没有地区可沿用,只送 en 识别服务不认
         AppLanguage.modernCode(system.language) == language.language && system.country.isNotEmpty() -> languageRegion(system)

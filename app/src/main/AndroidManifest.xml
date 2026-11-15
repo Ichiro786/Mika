@@ -35,13 +35,7 @@
     <!-- 「重启后自动恢复」:开机时重新打开无线调试。这个授权普通安装拿不到,只在用户打开那个开关后
          经已配对的连接授予;不在这里声明的话连授予都做不了 -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- 对话页附件面板里的「最近的照片」:安卓 13 起读照片,14 起可以只给部分照片,12 及以前读外部存储。
-         不给也能用系统照片选择器、文件选择器;拍照走系统相机,不要相机权限 -->
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
-    <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
-    <uses-permission
-        android:name="android.permission.READ_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32" />
+    <!-- Attachments use the system photo and document pickers without broad media access. -->
     <uses-permission
         android:name="android.permission.WRITE_SECURE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
@@ -254,14 +248,14 @@
 
         <receiver android:name=".calls.CallNotificationAction" android:exported="false" />
 
-        <!-- 用户绑定并打开微信渠道后保持长轮询；没有本地服务器，任务仍交给 TaskService。 -->
+        <!-- Keeps the WhatsApp linked-device connection open after the user links and switches it on; tasks still run in TaskService. -->
         <service
-            android:name=".wechat.WechatService"
+            android:name=".whatsapp.WhatsappService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Keeps the user-enabled WeChat bot connection available so private messages can be handed to the app's existing task service" />
+                android:value="Keeps the user-linked WhatsApp device connection open so messages the user sends to their own chat can be handed to the app's existing task service" />
         </service>
 
         <!--

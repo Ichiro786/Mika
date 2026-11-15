@@ -16,12 +16,12 @@ data class CallTaskBrief(
         val normalizedGoal = goal.trim()
         val normalizedContext = context.trim()
         val normalizedConstraints = constraints.trim()
-        require(normalizedGoal.length in 1..MAX_GOAL_CHARS) { "本次目标需为 1–400 字" }
-        require(questions.size <= MAX_QUESTIONS) { "本次最多可添加 8 项必问事项" }
+        require(normalizedGoal.length in 1..MAX_GOAL_CHARS) { "The goal for this call must be 1–400 characters" }
+        require(questions.size <= MAX_QUESTIONS) { "At most 8 must-ask items can be added for this call" }
         val normalizedQuestions = questions.map(String::trim)
-        require(normalizedQuestions.all { it.length in 1..MAX_QUESTION_CHARS }) { "每项必问事项需为 1–200 字" }
-        require(normalizedContext.length <= MAX_CONTEXT_CHARS) { "本次背景最多 1000 字" }
-        require(normalizedConstraints.length <= MAX_CONSTRAINT_CHARS) { "本次边界最多 600 字" }
+        require(normalizedQuestions.all { it.length in 1..MAX_QUESTION_CHARS }) { "Each must-ask item must be 1–200 characters" }
+        require(normalizedContext.length <= MAX_CONTEXT_CHARS) { "Background for this call can be at most 1000 characters" }
+        require(normalizedConstraints.length <= MAX_CONSTRAINT_CHARS) { "Limits for this call can be at most 600 characters" }
         return CallTaskBrief(normalizedGoal, Collections.unmodifiableList(normalizedQuestions),
             normalizedContext, normalizedConstraints)
     }

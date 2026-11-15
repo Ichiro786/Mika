@@ -94,8 +94,8 @@ object Scoring {
         if (reason.startsWith(VERIFICATION_PREFIX)) return FailureClass.verifier_reject
         infraClass(o)?.let { return it }
         return when {
-            "已安全停止" in reason -> FailureClass.guard_stop
-            "步上限" in reason -> FailureClass.step_limit
+            "已安全停止" in reason || "Stopped safely" in reason -> FailureClass.guard_stop
+            "步上限" in reason || "-step limit" in reason -> FailureClass.step_limit
             "核查未通过" in reason -> FailureClass.verifier_reject
             o.outcome == "takeover" && t.category != EvalCategory.Barrier -> FailureClass.barrier
             else -> FailureClass.unknown

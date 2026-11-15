@@ -158,7 +158,7 @@ fun StateCard(
 
 // ---------- 悬浮玻璃 ----------
 
-/** 能做背景模糊(安卓 12 起有 RenderEffect);不能时玻璃退回不透明的卡片底。 */
+/** Android 12 and later support in-app RenderEffect blur. */
 val GlassBlurSupported: Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 /** 玻璃后面那层内容的画面:内容用 [glassSource] 画进来,[GlassBar] 取它模糊后垫在自己底下。 */
@@ -167,7 +167,7 @@ class GlassBackdrop internal constructor(internal val layer: GraphicsLayer) {
     internal var origin by mutableStateOf(Offset.Zero)
 }
 
-/** 不支持模糊时为 null,[GlassBar] 就用不透明底。 */
+/** Unsupported devices return null and use a translucent surface. */
 @Composable
 fun rememberGlassBackdrop(): GlassBackdrop? {
     if (!GlassBlurSupported) return null
@@ -185,17 +185,95 @@ fun Modifier.glassSource(backdrop: GlassBackdrop?): Modifier =
         }
 
 private val GlassBlur = BlurEffect(30f, 30f, TileMode.Clamp)
+/** Heavier frost for small floating menus: more blur so text behind never reads through. */
+private val SmokeBlur = BlurEffect(44f, 44f, TileMode.Clamp)
+/** Frosted bars (nav and composer): heavy enough that what scrolls behind turns to soft colour. */
+private val FrostBlur = BlurEffect(48f, 48f, TileMode.Clamp)
 
 /**
  * 玻璃输入栏的外壳:半透明底 + 背景模糊 + 悬浮阴影,高至少 52。
- * [backdrop] 为 null(不支持模糊、或后面没有内容)时用不透明底。
+ * [backdrop] is null when blur is unavailable; a translucent surface remains.
+ * [tint] overrides the glass fill opacity (lower shows more of the live blur).
  */
 @Composable
 fun GlassBar(
     modifier: Modifier = Modifier,
     backdrop: GlassBackdrop? = null,
     shape: Shape = MikaShapes.Pill,
+    tint: Float? = null,
+    frosted: Boolean = false,
     content: @Composable RowScope.() -> Unit,
+) {
+    val c = MikaTheme.colors
+    val surface = if (frosted) frostSurface(c, backdrop, shape) else
+        Modifier.background(glassFill(c, backdrop, tint)).border(0.5.dp, c.glassEdge, shape)
+    GlassShell(modifier, backdrop, shape, if (frosted && backdrop != null) FrostBlur else GlassBlur) {
+        Row(
+            Modifier.fillMaxWidth().then(surface)
+                .heightIn(min = MikaSize.Composer).padding(6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            content = content,
+        )
+    }
+}
+
+/**
+ * Smoked glass panel for floating menus (the composer's attach menu): darker tint,
+ * stronger live blur and a top-lit hairline. Falls back to a near-opaque surface
+ * when [backdrop] is null.
+ */
+@Composable
+fun SmokedGlassPanel(
+    modifier: Modifier = Modifier,
+    backdrop: GlassBackdrop? = null,
+    shape: Shape = MikaShapes.Card,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val c = MikaTheme.colors
+    val smoke = if (c.isDark) Color(0xFF151618) else Color(0xFFF4F3F1)
+    val fill = if (backdrop != null) smoke.copy(alpha = if (c.isDark) 0.62f else 0.66f) else smoke.copy(alpha = 0.97f)
+    val rim = Brush.verticalGradient(
+        listOf(Color.White.copy(alpha = if (c.isDark) 0.16f else 0.7f), Color.White.copy(alpha = if (c.isDark) 0.04f else 0.25f)),
+    )
+    GlassShell(modifier, backdrop, shape, SmokeBlur) {
+        Column(
+            Modifier.background(fill).border(0.75.dp, rim, shape).padding(vertical = 8.dp),
+            content = content,
+        )
+    }
+}
+
+/**
+ * Frosted glass (Material 3 Expressive): a light, milky veil over a heavy live blur with a top-lit rim,
+ * not the dark smoke of menus. Over the AMOLED black page the veil lifts the bar into a soft grey so it
+ * reads as glass; over content it lets colour glow through. Without blur it falls back to a solid surface.
+ */
+private fun frostSurface(c: MikaColors, backdrop: GlassBackdrop?, shape: Shape): Modifier {
+    val rim = Brush.verticalGradient(
+        if (c.isDark) listOf(Color.White.copy(alpha = 0.22f), Color.White.copy(alpha = 0.06f))
+        else listOf(Color.White.copy(alpha = 0.95f), Color.Black.copy(alpha = 0.06f)),
+    )
+    val fill = if (backdrop == null) Modifier.background(c.surface.copy(alpha = 0.96f))
+    else if (c.isDark) Modifier.background(c.glass.copy(alpha = 0.42f)).background(
+        Brush.verticalGradient(listOf(Color.White.copy(alpha = 0.12f), Color.White.copy(alpha = 0.07f))),
+    )
+    else Modifier.background(Color.White.copy(alpha = 0.58f))
+    return fill.border(0.75.dp, rim, shape)
+}
+
+private fun glassFill(c: MikaColors, backdrop: GlassBackdrop?, tint: Float?): Color =
+    if (backdrop != null) c.glass.copy(alpha = tint ?: if (c.isDark) 0.78f else 0.72f)
+    else c.surface.copy(alpha = 0.94f)
+
+/** Shared glass plumbing: float shadow, clip, and the blurred copy of [backdrop] behind the content. */
+@Composable
+private fun GlassShell(
+    modifier: Modifier,
+    backdrop: GlassBackdrop?,
+    shape: Shape,
+    blur: BlurEffect,
+    content: @Composable BoxScope.() -> Unit,
 ) {
     val c = MikaTheme.colors
     var origin by remember { mutableStateOf(Offset.Zero) }
@@ -206,20 +284,46 @@ fun GlassBar(
         if (backdrop != null) {
             Box(
                 Modifier.matchParentSize()
-                    .graphicsLayer { renderEffect = GlassBlur; clip = true }
+                    .graphicsLayer { renderEffect = blur; clip = true }
                     .drawBehind {
                         val d = backdrop.origin - origin
                         translate(d.x, d.y) { drawLayer(backdrop.layer) }
                     },
             )
         }
-        Row(
-            Modifier.fillMaxWidth().background(if (backdrop != null) c.glass else c.surface)
-                .border(0.5.dp, c.glassEdge, shape)
-                .heightIn(min = MikaSize.Composer).padding(6.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
-            content = content,
-        )
+        content()
+    }
+}
+
+/**
+ * Soft glass behind a floating header: the content scrolling underneath is blurred and dimmed, strongest at the
+ * top (status bar) and fading out at the bottom edge, so there is no solid band and no hard line.
+ * Without blur support it is a plain dim gradient.
+ */
+@Composable
+fun FadingGlassScrim(modifier: Modifier, backdrop: GlassBackdrop?) {
+    val c = MikaTheme.colors
+    var origin by remember { mutableStateOf(Offset.Zero) }
+    val mask = remember { Brush.verticalGradient(0f to Color.Black, 0.55f to Color.Black.copy(alpha = 0.9f), 1f to Color.Transparent) }
+    Box(
+        modifier
+            .then(if (backdrop != null) Modifier.onGloballyPositioned { origin = it.positionInRoot() } else Modifier)
+            .graphicsLayer { compositingStrategy = CompositingStrategy.Offscreen }
+            .drawWithContent {
+                drawContent()
+                drawRect(mask, blendMode = BlendMode.DstIn)
+            },
+    ) {
+        if (backdrop != null) {
+            Box(
+                Modifier.matchParentSize()
+                    .graphicsLayer { renderEffect = FrostBlur; clip = true }
+                    .drawBehind {
+                        val d = backdrop.origin - origin
+                        translate(d.x, d.y) { drawLayer(backdrop.layer) }
+                    },
+            )
+        }
+        Box(Modifier.matchParentSize().background(c.bg.copy(alpha = if (backdrop != null) 0.55f else 0.9f)))
     }
 }

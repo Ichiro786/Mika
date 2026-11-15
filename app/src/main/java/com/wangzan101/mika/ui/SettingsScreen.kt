@@ -1,5 +1,28 @@
 package com.wangzan101.mika.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Icon
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.wangzan101.mika.ui.components.FooterNote
+import com.wangzan101.mika.ui.theme.MikaType
+import androidx.compose.foundation.ScrollState
 import com.wangzan101.mika.R
 import com.wangzan101.mika.i18n.tr
 import androidx.compose.ui.res.pluralStringResource
@@ -45,6 +68,8 @@ import com.wangzan101.mika.settings.ProviderStore
 import com.wangzan101.mika.settings.NetProxyStore
 import com.wangzan101.mika.settings.WebSearchConfig
 import com.wangzan101.mika.settings.WebSearchSettings
+import com.wangzan101.mika.settings.VoiceEngineSettings
+import com.wangzan101.mika.settings.PromptFile
 import com.wangzan101.mika.cap.web.WebProxy
 import com.wangzan101.mika.settings.SystemStatus
 import com.wangzan101.mika.settings.notificationOverview
@@ -66,13 +91,13 @@ import com.wangzan101.mika.ui.components.TileTone
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.i18n.AppLanguage
-import com.wangzan101.mika.wechat.WechatConnectionState
+import com.wangzan101.mika.whatsapp.WhatsappStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /** 设置里能进入的子页面;[Home] 是设置首页,[Advanced] 集中放置连接、维护和工程能力。 */
-private enum class SettingsPage { Home, Advanced, AppAccess, PhoneOps, Calls, Wechat, DuringWork, Capsule, Language, Notifications, Recommendations, Sandbox, Recovery, SelfCheck, ComputerAccess, McpServers, Root, Developer, RunStats }
+private enum class SettingsPage { Home, Advanced, AppAccess, PhoneOps, Calls, Whatsapp, DuringWork, Capsule, Language, Appearance, Voice, Prompts, PromptInstructions, PromptSystem, Notifications, Recommendations, Sandbox, Recovery, SelfCheck, ComputerAccess, McpServers, Root, Developer, RunStats }
 
 /**
  * 设置页:总状态卡 + 常用 / 我的数据 / 其他。高级与其他只增加一层,各子页返回来时的页面。
@@ -96,6 +121,7 @@ fun SettingsScreen(
     onOpenAbout: () -> Unit = {},
     /** 外部 MCP server 设置(outbound);为空时不显示入口。 */
     mcpServers: com.wangzan101.mika.settings.McpServerStore? = null,
+    onOpenSpeech: () -> Unit = {},
 ) {
     val configs by store.configs.collectAsState()
     val roles by store.roles.collectAsState()
@@ -115,8 +141,8 @@ fun SettingsScreen(
     val root = remember { com.wangzan101.mika.cap.phone.PhoneServices.of(context).shellManager.root }
     val rootState by root.state.collectAsState()
     LaunchedEffect(Unit) { root.refresh() }
-    val wechat = remember { (context.applicationContext as com.wangzan101.mika.MikaApp).wechat }
-    val wechatState by wechat.state.collectAsState()
+    val whatsapp = remember { (context.applicationContext as com.wangzan101.mika.MikaApp).whatsapp }
+    val whatsappStatus by whatsapp.status.collectAsState()
     val flags = remember { FeatureFlags.get(context) }
     var personalStart by remember { mutableStateOf(flags.personalStart()) }
     var parallelMax by remember { mutableIntStateOf(flags.parallelMax()) }
@@ -132,6 +158,8 @@ fun SettingsScreen(
     var autoArchiveDays by remember { mutableStateOf(flags.autoArchiveDays()) }
     var editingAutoArchive by remember { mutableStateOf(false) }
     val capsuleMode by remember(flags) { flags.capsuleModeChanges() }.collectAsState(flags.capsuleMode())
+    val themeMode by remember(flags) { flags.themeModeChanges() }.collectAsState(flags.themeMode())
+    val voiceEngine by remember { VoiceEngineSettings.get(context) }.engine.collectAsState()
     var capsuleIdleOpacity by remember { mutableStateOf(flags.capsuleIdleOpacity()) }
     var capsuleCardScale by remember { mutableStateOf(flags.capsuleCardScale()) }
     // 换语言时界面会重建,这里每次进来读一次即可
@@ -172,7 +200,8 @@ fun SettingsScreen(
         page = when (page) {
             SettingsPage.RunStats -> SettingsPage.Developer
             SettingsPage.SelfCheck -> SettingsPage.Recovery
-            SettingsPage.Sandbox, SettingsPage.Recovery, SettingsPage.ComputerAccess,
+            SettingsPage.PromptInstructions, SettingsPage.PromptSystem -> SettingsPage.Prompts
+            SettingsPage.Sandbox, SettingsPage.ComputerAccess,
             SettingsPage.McpServers, SettingsPage.Root, SettingsPage.Developer -> SettingsPage.Advanced
             else -> SettingsPage.Home
         }
@@ -192,8 +221,8 @@ fun SettingsScreen(
             onBack = onBack, onProblem = onProblem, onOpenModels = onOpenModels,
             onOpenPhoneOps = { page = SettingsPage.PhoneOps },
             onOpenCalls = { page = SettingsPage.Calls },
-            wechatState = wechatState, wechatBound = wechat.store.account() != null,
-            onOpenWechat = { page = SettingsPage.Wechat },
+            whatsappStatus = whatsappStatus,
+            onOpenWhatsapp = { page = SettingsPage.Whatsapp },
             onOpenAppAccess = { page = SettingsPage.AppAccess },
             onOpenDuringWork = { page = SettingsPage.DuringWork },
             capsuleMode = capsuleMode, onOpenCapsule = { page = SettingsPage.Capsule },
@@ -206,6 +235,11 @@ fun SettingsScreen(
             onOpenMemory = onOpenMemory,
             onOpenRecommendations = { page = SettingsPage.Recommendations },
             onOpenAdvanced = { page = SettingsPage.Advanced },
+            appearance = appearanceLabel(themeMode), onOpenAppearance = { page = SettingsPage.Appearance },
+            voiceEngine = voiceEngineLabel(voiceEngine), onOpenVoice = { page = SettingsPage.Voice },
+            onOpenPrompts = { page = SettingsPage.Prompts },
+            onOpenFix = if (status.sdkInt >= Prerequisites.MIN_SDK) ({ page = SettingsPage.Recovery }) else null,
+            onQuit = { confirmingQuit = true },
             versionName = BuildConfig.VERSION_NAME, updateVersion = updateVersion, onOpenAbout = onOpenAbout,
         )
         SettingsPage.Advanced -> AdvancedSettingsContent(
@@ -221,7 +255,7 @@ fun SettingsScreen(
             onQuit = { confirmingQuit = true },
         )
         SettingsPage.AppAccess -> AppAccessScreen(onBack = toHome)
-        SettingsPage.Wechat -> WechatSettingsScreen(wechat, onBack = toHome)
+        SettingsPage.Whatsapp -> WhatsappSettingsScreen(whatsapp, onBack = toHome)
         SettingsPage.PhoneOps -> PhoneOpsScreen(
             status, androidRelease, onProblem,
             onRepair = { onFix(Fix.RepairPhoneHelper) }, onUnpair = { onFix(Fix.UnpairPhoneHelper) }, onBack = toHome,
@@ -241,7 +275,12 @@ fun SettingsScreen(
             pipOperate = pipOperate, onPipOperate = { flags.setPipOperate(it); pipOperate = it },
             externalSchedule = externalSchedule, onExternalSchedule = { flags.setExternalSchedule(it); externalSchedule = it },
         )
-        SettingsPage.Language -> LanguageScreen(language, onLanguage = { AppLanguage.set(context, it) }, onBack = toHome)
+        SettingsPage.Language -> LanguageScreen(language, onLanguage = { AppLanguage.set(context, it) }, onBack = toHome, languageOnly = true)
+        SettingsPage.Appearance -> LanguageScreen(language, onLanguage = { AppLanguage.set(context, it) }, onBack = toHome, languageOnly = false)
+        SettingsPage.Voice -> VoiceSettingsScreen(onOpenSpeech = onOpenSpeech, onBack = toHome)
+        SettingsPage.Prompts -> PromptFilesScreen(onOpen = { page = if (it == PromptFile.Instructions) SettingsPage.PromptInstructions else SettingsPage.PromptSystem }, onBack = toHome)
+        SettingsPage.PromptInstructions -> PromptEditorScreen(PromptFile.Instructions, onBack = back)
+        SettingsPage.PromptSystem -> PromptEditorScreen(PromptFile.SystemPrompt, onBack = back)
         SettingsPage.Recommendations -> RecommendedTasksScreen(recommendedTasks, onBack = toHome)
         SettingsPage.Capsule -> CapsuleScreen(
             capsuleMode, onMode = {
@@ -254,7 +293,7 @@ fun SettingsScreen(
             onCardScale = { flags.setCapsuleCardScale(it); capsuleCardScale = it },
         )
         SettingsPage.Sandbox -> SandboxScreen(onBack = toAdvanced)
-        SettingsPage.Recovery -> RecoveryScreen(onBack = toAdvanced, onOpenSelfCheck = { page = SettingsPage.SelfCheck })
+        SettingsPage.Recovery -> RecoveryScreen(onBack = toHome, onOpenSelfCheck = { page = SettingsPage.SelfCheck })
         SettingsPage.SelfCheck -> SelfCheckScreen(status, onBack = back)
         SettingsPage.ComputerAccess -> McpScreen(mcp, onBack = toAdvanced)
         SettingsPage.McpServers -> mcpServers?.let { McpServersScreen(it, onBack = toAdvanced) }
@@ -348,7 +387,35 @@ fun SettingsScreen(
     }
 }
 
-/** 不带状态的设置首页,便于测试。首页只列常用入口,高级能力统一从 [onOpenAdvanced] 进入。 */
+/** Solid icon-tile colours on the Settings home, so a row can be found by eye. */
+internal object SettingsTint {
+    val Blue = Color(0xFF0A7CFF)
+    val Purple = Color(0xFF9B5CF5)
+    val Green = Color(0xFF25B35F)
+    val Orange = Color(0xFFF08A1C)
+    val Red = Color(0xFFE5483D)
+    val Teal = Color(0xFF1AA5A5)
+    val WhatsApp = Color(0xFF1FA855)
+    val Pink = Color(0xFFE0306A)
+    val Indigo = Color(0xFF5856D6)
+    val Gray = Color(0xFF636366)
+    val Yellow = Color(0xFFC99700)
+}
+
+/** One row on the Settings home; [keywords] are extra words the search box matches. */
+private class SettingsEntry(
+    val icon: ImageVector,
+    val tint: Color,
+    val title: String,
+    val subtitle: String?,
+    val keywords: String = "",
+    val onClick: (() -> Unit)?,
+    val trailing: @Composable RowScope.() -> Unit = { RowChevron() },
+) {
+    fun matches(q: String): Boolean = listOf(title, subtitle.orEmpty(), keywords).any { it.contains(q, ignoreCase = true) }
+}
+
+/** 不带状态的设置首页,便于测试。六组:大脑与声音、能做什么、联系 Orbit、外观、你的数据、更多;顶上能搜。 */
 @Composable
 fun SettingsContent(
     status: SystemStatus,
@@ -360,16 +427,15 @@ fun SettingsContent(
     onOpenModels: () -> Unit,
     onOpenPhoneOps: () -> Unit = {},
     onOpenCalls: () -> Unit = {},
-    wechatState: WechatConnectionState = WechatConnectionState.NeedsBinding,
-    wechatBound: Boolean = false,
-    onOpenWechat: () -> Unit = {},
+    whatsappStatus: WhatsappStatus = WhatsappStatus.NotLinked,
+    onOpenWhatsapp: () -> Unit = {},
     onOpenAppAccess: () -> Unit = {},
     onOpenDuringWork: () -> Unit = {},
     /** 悬浮胶囊此刻的选择,写在「悬浮胶囊」一行的右边。 */
     capsuleMode: CapsuleMode = CapsuleMode.DEFAULT,
     onOpenCapsule: () -> Unit = {},
     onOpenNotifications: () -> Unit = {},
-    /** 此刻选的界面语言,写在「语言与外观」一行的右边。 */
+    /** 此刻选的界面语言,写在「语言」一行的右边。 */
     language: AppLanguage = AppLanguage.System,
     onOpenLanguage: () -> Unit = {},
     onOpenMemory: (() -> Unit)? = null,
@@ -383,84 +449,145 @@ fun SettingsContent(
     /** 自动归档:多久没有新消息的对话自动归档;0 表示关闭。 */
     autoArchiveDays: Int = 0,
     onOpenAutoArchive: () -> Unit = {},
+    /** The light/dark choice, shown on the Appearance row. */
+    appearance: String? = null,
+    onOpenAppearance: () -> Unit = onOpenLanguage,
+    /** The live call engine's name, shown on the Voice row. */
+    voiceEngine: String? = null,
+    onOpenVoice: () -> Unit = {},
+    onOpenPrompts: () -> Unit = {},
+    /** Null hides "Fix a problem" (phones too old for the repair tools). */
+    onOpenFix: (() -> Unit)? = null,
+    onQuit: (() -> Unit)? = null,
 ) {
     val check = Prerequisites.check(status, hasMainModel = mainModel != null)
-    PageScaffold(stringResource(R.string.settings_title), onBack) {
-        StatusSummary(check, onProblem)
-
-        GroupLabel(stringResource(R.string.settings_basic))
-        GroupCard {
-            ListRow(MikaIcons.Spark, stringResource(R.string.settings_model), stringResource(R.string.settings_model_sub), first = true, onClick = onOpenModels) {
-                RowValue(mainModel ?: stringResource(R.string.settings_not_set))
-                RowChevron()
-            }
-            ListRow(MikaIcons.Phone, stringResource(R.string.settings_phone_ops), onClick = onOpenPhoneOps) {
-                PhoneOpsPill(status)
-                RowChevron()
-            }
-            ListRow(MikaIcons.Phone, stringResource(R.string.calls_title), stringResource(R.string.calls_entry_sub), onClick = onOpenCalls) { RowChevron() }
-            ListRow(MikaIcons.Chats, stringResource(R.string.wechat_title), stringResource(R.string.wechat_settings_sub), onClick = onOpenWechat) {
-                WechatEntryStatus(wechatState, wechatBound)
-                RowChevron()
-            }
-            ListRow(MikaIcons.Moon, stringResource(R.string.settings_during_work), stringResource(R.string.settings_during_work_sub), onClick = onOpenDuringWork) { RowChevron() }
-            ListRow(MikaIcons.Message, CapsuleSettingsCopy.TITLE, CapsuleSettingsCopy.SUBTITLE, onClick = onOpenCapsule) {
-                RowValue(CapsuleSettingsCopy.label(capsuleMode))
-                RowChevron()
-            }
-            ListRow(MikaIcons.Globe, stringResource(R.string.settings_language_appearance), onClick = onOpenLanguage) {
-                RowValue(languageLabel(language))
-                RowChevron()
-            }
+    var query by rememberSaveable { mutableStateOf("") }
+    val notSet = stringResource(R.string.settings_not_set)
+    val (notifText, notifTone) = StatusCopy.notificationSummary(status.notificationOverview().summary)
+    val groups: List<Pair<String, List<SettingsEntry>>> = listOf(
+        stringResource(R.string.settings_group_brain) to listOf(
+            SettingsEntry(MikaIcons.Spark, SettingsTint.Blue, stringResource(R.string.settings_model), stringResource(R.string.settings_model_sub),
+                "provider api key token usage gpt gemini claude", onOpenModels) { RowValue(mainModel ?: notSet); RowChevron() },
+            SettingsEntry(MikaIcons.Mic, SettingsTint.Purple, stringResource(R.string.settings_voice), stringResource(R.string.settings_voice_sub),
+                "speech call live gemini openai realtime tts microphone", onOpenVoice) { voiceEngine?.let { RowValue(it) }; RowChevron() },
+            SettingsEntry(MikaIcons.Doc, SettingsTint.Orange, stringResource(R.string.settings_prompts), stringResource(R.string.settings_prompts_sub),
+                "system prompt instructions personality rules", onOpenPrompts),
+        ),
+        stringResource(R.string.settings_group_abilities) to listOf(
+            SettingsEntry(MikaIcons.Phone, SettingsTint.Green, stringResource(R.string.settings_phone_ops), stringResource(R.string.settings_phone_ops_sub),
+                "accessibility shizuku adb root control screen", onOpenPhoneOps) { PhoneOpsPill(status); RowChevron() },
+            SettingsEntry(MikaIcons.Clock, SettingsTint.Orange, stringResource(R.string.settings_during_work), stringResource(R.string.settings_during_work_sub),
+                "autonomous pace step limit keep screen on mute speed", onOpenDuringWork),
+            SettingsEntry(MikaIcons.Shield, SettingsTint.Red, stringResource(R.string.appaccess_title), stringResource(R.string.appaccess_row_sub),
+                "app access block privacy screen sharing", onOpenAppAccess),
+        ),
+        stringResource(R.string.orbit_settings_reach) to listOf(
+            SettingsEntry(MikaIcons.Call, SettingsTint.Teal, stringResource(R.string.calls_title), stringResource(R.string.calls_entry_sub),
+                "phone calls answer cellular sim volcengine", onOpenCalls),
+            SettingsEntry(MikaIcons.Chats, SettingsTint.WhatsApp, stringResource(R.string.whatsapp_title), stringResource(R.string.whatsapp_settings_sub),
+                "whatsapp link message chat", onOpenWhatsapp) { WhatsappEntryStatus(whatsappStatus); RowChevron() },
+            SettingsEntry(MikaIcons.Bell, SettingsTint.Red, StatusCopy.NOTIFICATIONS, stringResource(R.string.settings_notif_sub),
+                "notifications alerts heads-up", onOpenNotifications) { RowValue(notifText, notifTone); RowChevron() },
+        ),
+        stringResource(R.string.orbit_settings_look) to listOfNotNull(
+            SettingsEntry(MikaIcons.Moon, SettingsTint.Indigo, stringResource(R.string.appearance_group), stringResource(R.string.settings_appearance_sub),
+                "theme dark light amoled accent colour color background wallpaper identity orb", onOpenAppearance) { appearance?.let { RowValue(it) }; RowChevron() },
+            SettingsEntry(MikaIcons.Globe, SettingsTint.Blue, stringResource(R.string.language_title), stringResource(R.string.settings_language_sub),
+                "language", onOpenLanguage) { RowValue(languageLabel(language)); RowChevron() },
+            SettingsEntry(MikaIcons.Message, SettingsTint.Gray, CapsuleSettingsCopy.TITLE, CapsuleSettingsCopy.SUBTITLE,
+                "capsule bubble floating overlay", onOpenCapsule) { RowValue(CapsuleSettingsCopy.label(capsuleMode)); RowChevron() },
+            SettingsEntry(MikaIcons.Star, SettingsTint.Yellow, stringResource(R.string.recommendations_title), stringResource(R.string.recommendations_sub),
+                "recommended tasks prompts home", onOpenRecommendations),
             onPersonalStart?.let { change ->
                 val label = stringResource(R.string.settings_personal_start)
-                ListRow(MikaIcons.Spark, label, stringResource(R.string.settings_personal_start_sub)) {
+                SettingsEntry(MikaIcons.Home, SettingsTint.Gray, label, stringResource(R.string.settings_personal_start_sub),
+                    "personal assistant start launch", null) {
                     MikaSwitch(personalStart, change, Modifier.semantics { contentDescription = label })
                 }
-            }
-            val (notifText, notifTone) = StatusCopy.notificationSummary(status.notificationOverview().summary)
-            ListRow(MikaIcons.Bell, StatusCopy.NOTIFICATIONS, stringResource(R.string.settings_notif_sub), onClick = onOpenNotifications) {
-                RowValue(notifText, notifTone)
-                RowChevron()
-            }
-        }
-
-        GroupLabel(stringResource(R.string.settings_privacy))
-        GroupCard {
+            },
+        ),
+        stringResource(R.string.settings_privacy) to listOfNotNull(
             onOpenMemory?.let {
-                ListRow(MikaIcons.Heart, stringResource(R.string.settings_memory_data), stringResource(R.string.settings_memory_sub), first = true, onClick = it) { RowChevron() }
-            }
-            ListRow(
-                MikaIcons.Archive,
-                stringResource(R.string.settings_auto_archive),
-                stringResource(R.string.settings_auto_archive_sub),
-                first = onOpenMemory == null,
-                onClick = onOpenAutoArchive,
-            ) {
+                SettingsEntry(MikaIcons.Heart, SettingsTint.Pink, stringResource(R.string.settings_memory_data), stringResource(R.string.settings_memory_sub),
+                    "memory skills routes sign-ins websites data", it)
+            },
+            SettingsEntry(MikaIcons.Archive, SettingsTint.Gray, stringResource(R.string.settings_auto_archive), stringResource(R.string.settings_auto_archive_sub),
+                "archive auto-archive chats", onOpenAutoArchive) {
                 RowValue(
                     if (autoArchiveDays <= 0) stringResource(R.string.state_off)
                     else pluralStringResource(R.plurals.settings_auto_archive_days, autoArchiveDays, autoArchiveDays),
                 )
                 RowChevron()
+            },
+        ),
+        stringResource(R.string.settings_other) to listOfNotNull(
+            SettingsEntry(MikaIcons.Link, SettingsTint.Gray, stringResource(R.string.settings_advanced), stringResource(R.string.settings_advanced_sub),
+                "advanced web search proxy network sandbox files computing mcp computer root developer", onOpenAdvanced),
+            onOpenFix?.let {
+                SettingsEntry(MikaIcons.Wrench, SettingsTint.Gray, stringResource(R.string.settings_recovery), stringResource(R.string.settings_recovery_sub),
+                    "repair recovery self-check reset problem", it)
+            },
+            SettingsEntry(MikaIcons.Info, SettingsTint.Gray, stringResource(R.string.settings_about), stringResource(R.string.settings_about_sub),
+                "about version update licence license", onOpenAbout) { TrailingValue(AboutCopy.settingsValue(updateVersion, versionName)); RowChevron() },
+        ),
+    )
+    // A fresh scroll position each time Settings opens, so the status card at the top is never half under the bar.
+    PageScaffold(stringResource(R.string.settings_title), onBack, scrollState = remember { ScrollState(0) }) {
+        SettingsSearchField(query) { query = it }
+        val q = query.trim()
+        if (q.isNotEmpty()) {
+            val found = groups.flatMap { it.second }.filter { it.matches(q) }
+            if (found.isEmpty()) {
+                FooterNote(stringResource(R.string.settings_search_none, q))
+            } else GroupCard {
+                found.forEachIndexed { i, e -> SettingsEntryRow(e, first = i == 0) }
             }
-            ListRow(
-                MikaIcons.Message,
-                stringResource(R.string.recommendations_title),
-                stringResource(R.string.recommendations_sub),
-                onClick = onOpenRecommendations,
-            ) { RowChevron() }
-            ListRow(MikaIcons.Shield, stringResource(R.string.appaccess_title), stringResource(R.string.appaccess_row_sub), onClick = onOpenAppAccess) { RowChevron() }
+            return@PageScaffold
         }
+        StatusSummary(check, onProblem)
+        groups.forEach { (label, entries) ->
+            if (entries.isEmpty()) return@forEach
+            GroupLabel(label)
+            GroupCard { entries.forEachIndexed { i, e -> SettingsEntryRow(e, first = i == 0) } }
+        }
+        onQuit?.let { quit ->
+            GroupCard {
+                ListRow(
+                    MikaIcons.Power, stringResource(R.string.quit_title), stringResource(R.string.quit_row_sub),
+                    first = true, titleColor = MikaTheme.colors.bad, tint = SettingsTint.Red, onClick = quit,
+                )
+            }
+        }
+    }
+}
 
-        GroupLabel(stringResource(R.string.settings_other))
-        GroupCard {
-            ListRow(MikaIcons.Wrench, stringResource(R.string.settings_advanced), stringResource(R.string.settings_advanced_sub), first = true, onClick = onOpenAdvanced) { RowChevron() }
+@Composable
+private fun SettingsEntryRow(e: SettingsEntry, first: Boolean) {
+    ListRow(e.icon, e.title, e.subtitle, first = first, tint = e.tint, onClick = e.onClick, trailing = e.trailing)
+}
+
+/** The search box at the top of Settings: matches row titles, their explanations and a few extra words. */
+@Composable
+private fun SettingsSearchField(value: String, onChange: (String) -> Unit) {
+    val c = MikaTheme.colors
+    val label = stringResource(R.string.settings_search)
+    Row(
+        Modifier.fillMaxWidth().padding(bottom = 12.dp).heightIn(min = 46.dp)
+            .background(c.surface, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(MikaIcons.Search, null, Modifier.size(18.dp), tint = c.ink3)
+        Box(Modifier.weight(1f)) {
+            if (value.isEmpty()) Text(label, style = MikaType.Body, color = c.ink3, maxLines = 1)
+            BasicTextField(
+                value, onChange, Modifier.fillMaxWidth().semantics { contentDescription = label }.testTag("settings-search"),
+                singleLine = true, textStyle = MikaType.Body.copy(color = c.ink), cursorBrush = SolidColor(c.accent),
+            )
         }
-        GroupCard {
-            ListRow(MikaIcons.Info, stringResource(R.string.settings_about), first = true, onClick = onOpenAbout) {
-                TrailingValue(AboutCopy.settingsValue(updateVersion, versionName))
-                RowChevron()
-            }
+        if (value.isNotEmpty()) {
+            Icon(MikaIcons.Close, stringResource(R.string.settings_search_clear),
+                Modifier.size(32.dp).clip(CircleShape).clickable { onChange("") }.padding(7.dp), tint = c.ink3)
         }
     }
 }
@@ -508,17 +635,17 @@ fun AdvancedSettingsContent(
                     }
                 }
                 if (sandboxRow != null) {
-                    ListRow(MikaIcons.Terminal, stringResource(R.string.settings_sandbox), first = take(), onClick = onOpenSandbox) {
+                    ListRow(MikaIcons.Terminal, stringResource(R.string.settings_sandbox), stringResource(R.string.settings_sandbox_sub), first = take(), onClick = onOpenSandbox) {
                         RowValue(sandboxValue(sandboxRow)); RowChevron()
                     }
                 }
                 computerAccess?.let { on ->
-                    ListRow(MikaIcons.Desktop, stringResource(R.string.mcp_title), first = take(), onClick = onOpenComputerAccess) {
+                    ListRow(MikaIcons.Desktop, stringResource(R.string.mcp_title), stringResource(R.string.settings_mcp_sub), first = take(), onClick = onOpenComputerAccess) {
                         RowValue(stringResource(if (on) R.string.state_on else R.string.state_off)); RowChevron()
                     }
                 }
                 mcpServersCount?.let { count ->
-                    ListRow(MikaIcons.Link, stringResource(R.string.mcp_servers_title), first = take(), onClick = onOpenMcpServers) {
+                    ListRow(MikaIcons.Link, stringResource(R.string.mcp_servers_title), stringResource(R.string.settings_mcp_servers_sub), first = take(), onClick = onOpenMcpServers) {
                         RowValue(stringResource(R.string.mcp_servers_count, count)); RowChevron()
                     }
                 }
@@ -529,26 +656,14 @@ fun AdvancedSettingsContent(
                 }
             }
         }
-        if (showRecovery) {
-            GroupLabel(stringResource(R.string.settings_maintenance))
-            GroupCard {
-                ListRow(MikaIcons.Wrench, stringResource(R.string.settings_recovery), first = true, onClick = onOpenRecovery) { RowChevron() }
-            }
-        }
+        // Repair and Quit now sit on the Settings home ("Fix a problem", "Quit Orbit").
         if (showDeveloper) {
             GroupLabel(stringResource(R.string.settings_developer_group))
             GroupCard {
-                ListRow(MikaIcons.Code, stringResource(R.string.settings_developer), first = true, onClick = onOpenDeveloper) { RowChevron() }
+                ListRow(MikaIcons.Code, stringResource(R.string.settings_developer), stringResource(R.string.settings_developer_sub), first = true, onClick = onOpenDeveloper) { RowChevron() }
             }
         }
 
-        // 完全退出:和无障碍服务不同,它只是让 Mika 安静下来;下次打开 App 就回来
-        GroupCard {
-            ListRow(
-                MikaIcons.Power, stringResource(R.string.quit_title), stringResource(R.string.quit_row_sub),
-                first = true, titleColor = MikaTheme.colors.bad, onClick = onQuit,
-            ) { RowChevron() }
-        }
     }
 }
 

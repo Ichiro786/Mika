@@ -157,7 +157,7 @@ class ModelSetupViewModelTest {
         assertEquals(ListState.Idle, s.form.test)
         assertEquals(listOf("deepseek-chat", "deepseek-reasoner"), built.map { it.first })
         assertEquals(
-            "服务商已连上，但「deepseek-chat」没测试通过：它不会调用工具，Mika 干活需要会调用工具的模型。从列表里选一个你开通了的模型。\n" +
+            "服务商已连上，但「deepseek-chat」没测试通过：它不会调用工具，Orbit 干活需要会调用工具的模型。从列表里选一个你开通了的模型。\n" +
                 "试了 deepseek-chat、deepseek-reasoner，都没测试通过。",
             s.probeNote,
         )
@@ -376,7 +376,7 @@ class ModelSetupViewModelTest {
             vm.selectPreset(ProviderPresets.custom.label); vm.setBaseUrl(url); vm.setApiKey("sk"); vm.testAndSave(); runCurrent()
             assertEquals("HTTP $status:只试第一个", listOf("vendor/a"), built.map { it.first })
             val failed = vm.state.value.form.test as ListState.Failed
-            assertTrue(failed.message, failed.message.contains("API Key 无效"))
+            assertTrue(failed.message, failed.message.contains("API key is invalid"))
             assertTrue(store.providers.value.isEmpty())
             assertNull(vm.state.value.pickToProbe)
         }
@@ -411,7 +411,7 @@ class ModelSetupViewModelTest {
         vm.selectPreset(ProviderPresets.custom.label); vm.setBaseUrl(url); vm.setApiKey("sk"); vm.testAndSave(); runCurrent()
         assertEquals(listOf("a-model", "b-model"), built.map { it.first })
         val failed = vm.state.value.form.test as ListState.Failed
-        assertTrue(failed.message, failed.message.contains("API Key 无效"))
+        assertTrue(failed.message, failed.message.contains("API key is invalid"))
         assertTrue(store.providers.value.isEmpty())
         assertTrue(store.list().isEmpty())
     }
@@ -619,7 +619,7 @@ class ModelSetupViewModelTest {
         // 只回话不调用工具的,当不了主模型
         reply = { ModelReply(listOf(Part.Text("noon")), StopReason.EndTurn, null) }
         vm.pickManual(ModelRole.Main, p.id, "chatty") { picked++ }; runCurrent()
-        assertEquals(ListState.Failed("chatty 没有调用工具，Mika 干活需要会调用工具的模型，换一个当主模型。"), vm.state.value.manualPick[p.id])
+        assertEquals(ListState.Failed("chatty 没有调用工具，Orbit 干活需要会调用工具的模型，换一个当主模型。"), vm.state.value.manualPick[p.id])
         assertNull(store.roles.value.main)
         reply = { ModelReply(listOf(Part.ToolCall("c1", "get_time", "{}")), StopReason.ToolUse, null) }
         vm.pickManual(ModelRole.Main, p.id, " qwen3 ") { picked++ }; runCurrent()

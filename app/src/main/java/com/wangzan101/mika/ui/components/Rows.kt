@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -36,6 +38,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaColors
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -72,12 +77,31 @@ enum class TileTone {
     }
 }
 
-/** 行左边的图标块:30dp、圆角 9,里面图形 18dp。 */
+/**
+ * The icon block at the start of a row: a small glass tile. A row's colour ([tint]) no longer fills the tile solid
+ * (the old phone-settings look); it shows as a soft wash from the top with a hairline edge, and the glyph takes a
+ * lighter shade of it. Without a tint the tile is neutral glass and the glyph is ink.
+ */
 @Composable
-fun IconTile(icon: ImageVector, tone: TileTone = TileTone.Neutral) {
-    val (bg, fg) = tone.colors(MikaTheme.colors)
-    Box(Modifier.size(MikaSize.Tile).background(bg, MikaShapes.Tile), contentAlignment = Alignment.Center) {
-        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = fg)
+fun IconTile(icon: ImageVector, tone: TileTone = TileTone.Neutral, tint: Color? = null) {
+    val c = MikaTheme.colors
+    val hue = tint ?: tone.colors(c).second.takeIf { tone != TileTone.Neutral }
+    val glyph = when {
+        hue == null -> c.ink
+        c.isDark -> lerp(hue, Color.White, 0.38f)
+        else -> lerp(hue, Color.Black, 0.12f)
+    }
+    val wash = if (hue == null) {
+        Brush.verticalGradient(listOf(c.ink.copy(alpha = if (c.isDark) 0.13f else 0.08f), c.ink.copy(alpha = if (c.isDark) 0.05f else 0.03f)))
+    } else {
+        Brush.verticalGradient(listOf(hue.copy(alpha = if (c.isDark) 0.34f else 0.22f), hue.copy(alpha = if (c.isDark) 0.12f else 0.08f)))
+    }
+    val edge = Brush.verticalGradient(listOf((hue ?: c.ink).copy(alpha = if (c.isDark) 0.38f else 0.22f), Color.Transparent))
+    Box(
+        Modifier.size(MikaSize.Tile).background(wash, MikaShapes.Tile).border(0.75.dp, edge, MikaShapes.Tile),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = glyph)
     }
 }
 
@@ -109,6 +133,8 @@ fun ListRow(
     detail: String? = null,
     detailColor: Color = Color.Unspecified,
     onClick: (() -> Unit)? = null,
+    /** A solid colour for the icon tile with a white glyph, as on the Settings home; null keeps [tone]. */
+    tint: Color? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val c = MikaTheme.colors
@@ -121,15 +147,55 @@ fun ListRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (icon != null) IconTile(icon, tone)
-        Column(Modifier.weight(1f).padding(vertical = 11.dp)) {
-            Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink })
-            if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
-            if (!detail.isNullOrEmpty()) Text(detail, Modifier.padding(top = 2.dp), style = MikaType.Hint, color = detailColor.takeOrElse { c.ink3 })
-        }
-        trailing()
+        if (icon != null) IconTile(icon, tone, tint)
+        TextAndTrailing(
+            text = {
+                Column(Modifier.padding(vertical = 11.dp)) {
+                    Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink }, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
+                    if (!detail.isNullOrEmpty()) Text(detail, Modifier.padding(top = 2.dp), style = MikaType.Hint, color = detailColor.takeOrElse { c.ink3 })
+                }
+            },
+            trailing = trailing,
+        )
     }
 }
+
+/**
+ * The text column and the row's trailing items (value, pill, switch, chevron). The trailing part is measured
+ * first but never gets more than [TrailingShare] of the room, so a long value ellipsizes instead of squeezing
+ * the title and subtitle into one word per line; the text takes everything else.
+ */
+@Composable
+private fun RowScope.TextAndTrailing(text: @Composable () -> Unit, trailing: @Composable RowScope.() -> Unit) {
+    Layout(
+        content = {
+            Box { text() }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { trailing() }
+        },
+        modifier = Modifier.weight(1f),
+    ) { measurables, constraints ->
+        val gap = 12.dp.roundToPx()
+        if (!constraints.hasBoundedWidth) {
+            val t = measurables[1].measure(Constraints(maxHeight = constraints.maxHeight))
+            val b = measurables[0].measure(Constraints(maxHeight = constraints.maxHeight))
+            val h = maxOf(b.height, t.height, constraints.minHeight)
+            val w = b.width + (if (t.width > 0) gap else 0) + t.width
+            return@Layout layout(w, h) { b.place(0, (h - b.height) / 2); t.place(w - t.width, (h - t.height) / 2) }
+        }
+        val width = constraints.maxWidth
+        val tail = measurables[1].measure(Constraints(maxWidth = (width * TrailingShare).toInt(), maxHeight = constraints.maxHeight))
+        val textWidth = (width - tail.width - if (tail.width > 0) gap else 0).coerceAtLeast(0)
+        val body = measurables[0].measure(Constraints(minWidth = textWidth, maxWidth = textWidth, maxHeight = constraints.maxHeight))
+        val height = maxOf(body.height, tail.height, constraints.minHeight)
+        layout(width, height) {
+            body.place(0, (height - body.height) / 2)
+            tail.place(width - tail.width, (height - tail.height) / 2)
+        }
+    }
+}
+
+private const val TrailingShare = 0.4f
 
 enum class ValueTone { Plain, Ok, Warn, Bad, Link }
 
@@ -148,6 +214,7 @@ fun RowValue(text: String, tone: ValueTone = ValueTone.Plain) {
             ValueTone.Link -> c.accent
         },
         maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
     )
 }
 
@@ -182,12 +249,16 @@ fun RadioRow(
         horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         RadioMark(selected, enabled)
-        Column(Modifier.weight(1f).padding(vertical = 9.dp)) {
-            Text(title, style = titleStyle, color = if (enabled) c.ink else c.ink3)
-            if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
-            if (below != null) Box(Modifier.padding(top = 4.dp)) { below() }
-        }
-        trailing()
+        TextAndTrailing(
+            text = {
+                Column(Modifier.padding(vertical = 9.dp)) {
+                    Text(title, style = titleStyle, color = if (enabled) c.ink else c.ink3)
+                    if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
+                    if (below != null) Box(Modifier.padding(top = 4.dp)) { below() }
+                }
+            },
+            trailing = trailing,
+        )
     }
 }
 

@@ -99,25 +99,30 @@ class CallPolicyTest {
     }
 
     @Test fun ownerRulesArePassedAsAnExplicitSectionOfTheBoundedCallPrompt() {
-        val ownerRules = "仅在来电者说包裹到了时，请对方留下取件地点。"
-        val prompt = CallPolicy.prompt("确认对方称呼。", CallDirection.INCOMING, ownerRules)
-        assertTrue(prompt.indexOf("不得索取或透露密码") in 0 until prompt.indexOf(ownerRules))
-        assertTrue(prompt.contains("机主明确保存的通话规则"))
-        assertTrue(prompt.contains("确认对方称呼。"))
-        assertFalse(CallPolicy.prompt("", CallDirection.INCOMING).contains("机主明确保存的通话规则"))
+        val ownerRules = "Only when the caller says a package has arrived, ask them to leave the pickup location."
+        val prompt = CallPolicy.prompt("Confirm how to address the caller.", CallDirection.INCOMING, ownerRules)
+        assertTrue(prompt.indexOf("Never ask for or reveal passwords") in 0 until prompt.indexOf(ownerRules))
+        assertTrue(prompt.contains("Call rules explicitly saved by the owner"))
+        assertTrue(prompt.contains("Confirm how to address the caller."))
+        assertFalse(CallPolicy.prompt("", CallDirection.INCOMING).contains("Call rules explicitly saved by the owner"))
     }
 
     @Test fun legacyGreetingMigratesOnlyTheExactOldDefault() {
         val legacyDefault = "您好，我是 Mika 的 AI 电话助手。请问有什么需要我转告？"
+        val previousDefault = "您好，我是 Mika AI 电话助手。请问有什么需要我转告？"
         val customWithOldName = "您好，我是 Mika 的 AI 电话助手。请留下可回拨的时间。"
-        val currentDefault = "您好，我是 Mika AI 电话助手。请问有什么需要我转告？"
+        val oldOrbitDefault = "您好，我是 Orbit AI 电话助手。请问有什么需要我转告？"
+        val currentDefault = "Hello, this is Orbit's AI phone assistant. Is there a message I can pass on?"
+        val taskGreeting = "Hello, this is Orbit's AI phone assistant. Is now a good time to talk?"
         assertEquals(currentDefault, CallConfig().greeting)
         assertEquals(currentDefault, CallPolicy.migrateDefaultGreeting(legacyDefault))
+        assertEquals(currentDefault, CallPolicy.migrateDefaultGreeting(previousDefault))
+        assertEquals(currentDefault, CallPolicy.migrateDefaultGreeting(oldOrbitDefault))
         assertEquals(currentDefault, CallPolicy.spokenGreeting(legacyDefault, hasTask = false))
+        assertEquals(taskGreeting, CallPolicy.spokenGreeting(previousDefault, hasTask = true))
         assertEquals(customWithOldName, CallPolicy.migrateDefaultGreeting(customWithOldName))
         assertEquals(customWithOldName, CallPolicy.spokenGreeting(customWithOldName, hasTask = false))
-        assertEquals("您好，我是 Mika AI 电话助手。请问现在方便通话吗？",
-            CallPolicy.spokenGreeting(currentDefault, hasTask = true))
+        assertEquals(taskGreeting, CallPolicy.spokenGreeting(currentDefault, hasTask = true))
     }
 
     @Test fun explicitGreetingIsUsedExactlyAndBlankMeansSilence() {
@@ -134,8 +139,8 @@ class CallPolicyTest {
             assertTrue(prompt.contains("你好"))
             assertFalse(prompt.contains("通话开始时明确说明自己是 AI"))
             assertFalse(prompt.contains("Flash phone"))
-            assertTrue(prompt.contains("只有对方直接问接话者的身份"))
-            assertTrue(prompt.contains("‘喂，能听到吗’，只答‘能听到，您说’"))
+            assertTrue(prompt.contains("only when the other party directly asks who is answering"))
+            assertTrue(prompt.contains("answer only 'Yes, I can hear you, go ahead'"))
             assertFalse(prompt.contains("你是 AI 电话助手"))
         }
     }

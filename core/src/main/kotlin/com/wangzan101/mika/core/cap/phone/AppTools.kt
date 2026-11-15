@@ -124,8 +124,8 @@ internal object LaunchApp : PhoneTool {
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (r.content["ok"] != JsonPrimitive(true)) return emptyList()
         return listOfNotNull(o.argStr("package")?.let { p ->
-            val copy = (o["user"] as? JsonPrimitive)?.contentOrNull?.let { "(另一份,用户 $it)" }.orEmpty()
-            Observation(ObsKind.Fact, "$name 打开了 $p$copy" + (log.appLabels[p]?.let { "(App 名字「$it」)" } ?: ""), source = PHONE)
+            val copy = (o["user"] as? JsonPrimitive)?.contentOrNull?.let { " (second copy, user $it)" }.orEmpty()
+            Observation(ObsKind.Fact, "$name opened $p$copy" + (log.appLabels[p]?.let { " (app name \"$it\")" } ?: ""), source = PHONE)
         })
     }
 
@@ -223,7 +223,7 @@ internal object ShareText : PhoneTool {
     override fun observations(o: JsonObject, r: ToolExecution, log: EvidenceLog): List<Observation> {
         if (r.content["ok"] != JsonPrimitive(true)) return emptyList()
         return listOfNotNull(o.argStr("package")?.let { p ->
-            Observation(ObsKind.Fact, "$name 打开了 $p 的分享页(还没发出)" + (log.appLabels[p]?.let { "(App 名字「$it」)" } ?: ""), source = PHONE)
+            Observation(ObsKind.Fact, "$name opened the share page of $p (nothing sent yet)" + (log.appLabels[p]?.let { " (app name \"$it\")" } ?: ""), source = PHONE)
         })
     }
 }

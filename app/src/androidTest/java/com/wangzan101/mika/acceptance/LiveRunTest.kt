@@ -342,8 +342,8 @@ class LiveRunTest {
         testTasks.modelFactory = { ctx, s -> TaskEnvironment.defaultModelFactory(ctx, s)?.let { recorder.wrap(it) } }
         note("model=${cfg.model} url=$url goal=$goal")
 
-        // 侧栏进浏览器,打开网址,等页面加载完
-        compose.onNodeWithContentDescription(appString(R.string.chat_menu)).performClick()
+        // Open the existing browser from Make, then wait for the requested page.
+        compose.onNodeWithTag("primary-nav-Make").performClick()
         compose.awaitOne(appString(R.string.drawer_browser)).performClick()
         compose.waitForIdle()
         val browser = UserBrowser.of(context)

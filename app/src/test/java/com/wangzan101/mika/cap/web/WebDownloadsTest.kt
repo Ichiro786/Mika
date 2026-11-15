@@ -1,10 +1,13 @@
 package com.wangzan101.mika.cap.web
 
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import com.wangzan101.mika.core.cap.web.DownloadAddressPolicy
 import com.wangzan101.mika.cap.sandbox.JVM_GATE
 import okhttp3.Dns
@@ -24,13 +27,16 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.File
 import java.nio.file.Files
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.TimeUnit
 import com.wangzan101.mika.core.workspace.SandboxTree
 
 class WebDownloadsTest {
     @get:Rule val tmp = TemporaryFolder()
     private val server = MockWebServer()
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val job = SupervisorJob()
+    private val backgroundErrors = ConcurrentLinkedQueue<Throwable>()
+    private val scope = CoroutineScope(job + Dispatchers.IO + CoroutineExceptionHandler { _, error -> backgroundErrors.add(error) })
     private lateinit var ws: File
     private val cookieCalls = mutableListOf<String>()
 
@@ -50,8 +56,16 @@ class WebDownloadsTest {
 
     @After
     fun tearDown() {
-        scope.cancel()
-        server.shutdown()
+        try {
+            // Let requests finish before closing the server and deleting the workspace. Otherwise
+            // a late coroutine exception can be reported against an unrelated subsequent test.
+            runBlocking { withTimeout(15_000) { job.children.toList().joinAll() } }
+            assertTrue("Background download failures: $backgroundErrors", backgroundErrors.isEmpty())
+        } finally {
+            scope.cancel()
+            server.shutdown()
+            runBlocking { job.join() }
+        }
     }
 
     private fun WebDownloads.awaitDone(path: String, ms: Long = 5_000) = runBlocking {
@@ -111,6 +125,7 @@ class WebDownloadsTest {
         val d = downloads()
         val paths = (1..3).map { d.start(server.url("/a.txt").toString(), "UA", null, null, null) }
         assertEquals(listOf("/workspace/downloads/a.txt", "/workspace/downloads/a (2).txt", "/workspace/downloads/a (3).txt"), paths)
+        paths.forEach { assertEquals("done", d.awaitDone(it).status) }
     }
 
     @Test
@@ -247,9 +262,12 @@ class WebDownloadsTest {
         // http:页面给的名字排在网址之前、响应头之后
         server.enqueue(MockResponse().setBody("1"))
         server.enqueue(MockResponse().setBody("2"))
-        assertEquals("/workspace/downloads/月报.pdf", d.start(server.url("/dl?id=1").toString(), "UA", null, "application/pdf", null, suggested = "月报.pdf"))
-        assertEquals("/workspace/downloads/from-header.pdf",
-            d.start(server.url("/dl?id=2").toString(), "UA", "attachment; filename=\"from-header.pdf\"", null, null, suggested = "page.pdf"))
+        val suggested = d.start(server.url("/dl?id=1").toString(), "UA", null, "application/pdf", null, suggested = "月报.pdf")
+        val header = d.start(server.url("/dl?id=2").toString(), "UA", "attachment; filename=\"from-header.pdf\"", null, null, suggested = "page.pdf")
+        assertEquals("/workspace/downloads/月报.pdf", suggested)
+        assertEquals("/workspace/downloads/from-header.pdf", header)
+        assertEquals("done", d.awaitDone(suggested).status)
+        assertEquals("done", d.awaitDone(header).status)
         // 先问页面要名字再登记:问的这一会儿 awaitNamed 等着,问完就数得到
         val before = d.count()
         d.withPageName({ kotlinx.coroutines.delay(100); "later.bin" }) { name -> d.save("blob:https://a.example.com/3", null, null, "b".toByteArray(), name) }

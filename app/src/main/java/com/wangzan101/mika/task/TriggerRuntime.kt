@@ -29,6 +29,7 @@ import com.wangzan101.mika.core.trigger.afterCheck
 import com.wangzan101.mika.core.trigger.conditionCheckGoal
 import com.wangzan101.mika.core.trigger.revertFire
 import com.wangzan101.mika.settings.FeatureFlags
+import com.wangzan101.mika.spaces.SpaceSchedule
 import java.io.File
 import java.time.ZoneId
 import kotlinx.coroutines.CoroutineScope
@@ -221,6 +222,9 @@ object TriggerRuntime {
     private fun engine(context: Context, store: FileTriggerStore) = TriggerEngine(store,
         { at -> arm(context, at) }, isIdle = { !((context.applicationContext as MikaApp).taskState.busy.value) }) { trigger, window ->
             if (trigger.reminderText != null) deliverReminder(context, store, trigger, window.key)
+            // A space's scheduled refresh waits for the next slot on low battery, saver mode or no network
+            else if (SpaceSchedule.isSpacePlan(trigger) && !SpaceSchedule.deviceReady(context))
+                store.mark(window.key, TriggerWindowState.Skipped, SpaceSchedule.SKIP_REASON)
             else try { TaskService.startTrigger(context, trigger.goal, trigger.threadId, window.key,
                     trigger.conditionCheckGoal(ZoneId.systemDefault()), trigger.conditionGoal) }
                 catch (e: Exception) { reportStartFailure(context, store, trigger, window.key, e); throw e }

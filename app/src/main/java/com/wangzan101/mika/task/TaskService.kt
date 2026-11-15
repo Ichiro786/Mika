@@ -172,7 +172,7 @@ class TaskService : Service() {
 
     private fun channelFor(peer: ChannelPeer): Channel = when (peer.channelId) {
         LocalChannel.ID -> localChannel
-        else -> checkNotNull((application as com.wangzan101.mika.MikaApp).wechat.channelFor(peer.channelId)) {
+        else -> checkNotNull((application as com.wangzan101.mika.MikaApp).whatsapp.channelFor(peer.channelId)) {
             "unknown channel ${peer.channelId}"
         }
     }
@@ -686,8 +686,9 @@ class TaskService : Service() {
         val goal = run.triggerCondition ?: run.goal
         val turn = when (end) {
             // 没核对过的(聊天、回答里没有可核对的值)和核实过的一样记成 succeeded;核对过却没能核实的才记 unverified
-            is TaskState.Succeeded -> if (end.doubtful) Turn(goal, end.answer, "unverified", end.note, unconfirmed = end.unconfirmed, verified = false)
-                else Turn(goal, end.answer, "succeeded", verified = end.verified.takeIf { end.reviewed })
+            is TaskState.Succeeded -> (if (end.doubtful) Turn(goal, end.answer, "unverified", end.note, unconfirmed = end.unconfirmed, verified = false)
+                else Turn(goal, end.answer, "succeeded", verified = end.verified.takeIf { end.reviewed }))
+                .copy(orbitReaction = end.react, replyTo = end.replyTo)
             is TaskState.Failed -> Turn(goal, end.reason, "failed")
             TaskState.Cancelled -> Turn(goal, Conversation.CANCELLED_OUTCOME, "cancelled", outcomeSystemType = "task_cancelled")
             else -> return
@@ -762,7 +763,7 @@ class TaskService : Service() {
     /** 忙着却还没有任务对象时(收尾被打断等)也得马上进前台。 */
     private fun preparingNotification(): Notification = Notification.Builder(this, CHANNEL_PROGRESS)
         .setSmallIcon(R.drawable.ic_notification)
-        .setContentTitle("Mika")
+        .setContentTitle(getString(R.string.app_name))
         .setContentText(PREPARING)
         .setOngoing(true)
         .setOnlyAlertOnce(true)
@@ -969,7 +970,7 @@ class TaskService : Service() {
                     .setAutoCancel(true)
                     .build())
                 is Delivery.Notice -> nm.notify(nextResultId(), Notification.Builder(context, CHANNEL_RESULT)
-                    .setSmallIcon(R.drawable.ic_notification).setContentTitle("Mika")
+                    .setSmallIcon(R.drawable.ic_notification).setContentTitle(context.getString(R.string.app_name))
                     .setContentText(delivery.text).setContentIntent(openApp(context, delivery.threadId)).setAutoCancel(true).build())
                 is Delivery.Ask, is Delivery.Progress, is Delivery.Image -> {}
             }
@@ -1199,7 +1200,7 @@ class TaskService : Service() {
 
         /** 通知的标题和正文;[appLabel] 把包名换成 App 名。 */
         internal fun describe(state: TaskState, appLabel: (String) -> String = { it }): Pair<String, String> = when (state) {
-            TaskState.Idle -> "Mika" to ""
+            TaskState.Idle -> tr(R.string.app_name) to ""
             is TaskState.Running -> tr(R.string.task_running) to (state.progress?.let(StatusCopy::progress) ?: when {
                 state.step == 0 -> state.note
                 else -> tr(R.string.task_step_note, state.step, state.note).trimEnd(':', ' ')

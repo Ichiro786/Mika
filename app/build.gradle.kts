@@ -10,9 +10,27 @@ val gitHash: String = runCatching {
     providers.exec { commandLine("git", "rev-parse", "--short=7", "HEAD") }.standardOutput.asText.get().trim()
 }.getOrNull()?.takeIf { it.isNotEmpty() } ?: "dev"
 
+// Test builds count up with each commit (minutes since 2026-01-01 by commit time), so every new APK
+// installs over the last one. Release keeps the version in defaultConfig.
+val debugVersionCode: Int = runCatching {
+    val at = providers.exec { commandLine("git", "log", "-1", "--format=%ct") }.standardOutput.asText.get().trim().toLong()
+    ((at - 1_767_225_600L) / 60L).toInt().coerceAtLeast(1_000)
+}.getOrNull() ?: 1_000
+
 android {
     namespace = "com.wangzan101.mika"
     compileSdk = 36
+
+    // One fixed debug key for every machine and CI run, so test APKs update in place and keep their data.
+    // Debug only: it is public on purpose and never signs a release.
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("app/signing/orbit-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
+    }
 
     defaultConfig {
         applicationId = "com.wangzan101.mika"
@@ -92,8 +110,18 @@ kotlin {
     jvmToolchain(17)
 }
 
+// WhatsApp linked device: whatsmeow (Go) built into an .aar with gomobile. Needs Go and an Android NDK.
+val whatsappBridgeAar = layout.buildDirectory.file("wabridge/wabridge.aar")
+val buildWhatsappBridge by tasks.registering(Exec::class) {
+    val dir = rootProject.file("whatsapp-bridge")
+    inputs.files(fileTree(dir) { include("*.go", "go.mod", "go.sum", "build-aar.sh") }).withPropertyName("bridgeSources")
+    outputs.file(whatsappBridgeAar)
+    commandLine("bash", File(dir, "build-aar.sh").path, whatsappBridgeAar.get().asFile.path)
+}
+
 dependencies {
     implementation(project(":core"))
+    implementation(files(whatsappBridgeAar) { builtBy(buildWhatsappBridge) })
     implementation(libs.protobuf.lite)
     implementation(platform(libs.compose.bom))
     implementation(libs.compose.ui)
@@ -132,4 +160,14 @@ dependencies {
 // LicensesTest 读仓库的 licenses/THIRD_PARTY_NOTICES.md:让它参与测试的增量判断
 tasks.withType<Test>().configureEach {
     inputs.file(rootProject.file("licenses/THIRD_PARTY_NOTICES.md")).withPropertyName("thirdPartyNotices")
+}
+
+// Test builds (debug, and the non-debuggable perf build CI hands out) share one signing key and count
+// versionCode up from the commit time, so each new APK installs over the last one and keeps its data.
+androidComponents {
+    onVariants { variant ->
+        if (variant.buildType == "debug" || variant.buildType == "perf") {
+            variant.outputs.forEach { it.versionCode.set(debugVersionCode) }
+        }
+    }
 }

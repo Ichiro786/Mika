@@ -62,6 +62,7 @@ import com.wangzan101.mika.ui.components.GroupCard
 import com.wangzan101.mika.ui.components.ListRow
 import com.wangzan101.mika.ui.components.MikaSwitch
 import com.wangzan101.mika.ui.components.MikaButton
+import com.wangzan101.mika.ui.components.MikaLogo
 import com.wangzan101.mika.ui.components.PageScaffold
 import com.wangzan101.mika.ui.components.RowChevron
 import com.wangzan101.mika.ui.components.RowValue
@@ -117,33 +118,13 @@ fun AboutScreen(
     PageScaffold(AboutCopy.TITLE, onBack) {
         Hero(versionName, build, beta)
 
+        // Orbit: no update check or auto-update here; they pointed at upstream Mika releases.
         GroupCard {
-            val v = AboutCopy.checkValue(update)
-            ListRow(
-                MikaIcons.Refresh, AboutCopy.CHECK, if (update.hasUpdate) AboutCopy.CHECK_SUB_NEW else AboutCopy.CHECK_SUB, first = true,
-                onClick = {
-                    if (update.hasUpdate) sheet = AboutSheet.Update
-                    else if (update.status != CheckStatus.Checking) {
-                        waitingRound = update.manualRounds
-                        onCheck()
-                    }
-                },
-            ) {
-                TrailingValue(v)
-                RowChevron()
-            }
-            ListRow(
-                MikaIcons.Refresh,
-                stringResource(R.string.about_auto_update),
-                stringResource(R.string.about_auto_update_detail),
-            ) {
-                MikaSwitch(autoUpdate, onAutoUpdate, Modifier.testTag("auto-update-switch"))
-            }
-            ListRow(MikaIcons.Lines, AboutCopy.CHANGELOG, AboutCopy.CHANGELOG_SUB, onClick = { sheet = AboutSheet.Changelog }) { RowChevron() }
+            ListRow(MikaIcons.Lines, AboutCopy.CHANGELOG, AboutCopy.CHANGELOG_SUB, first = true, onClick = { sheet = AboutSheet.Changelog }) { RowChevron() }
         }
         GroupCard {
-            ListRow(MikaIcons.Chats, AboutCopy.GROUP, AboutCopy.GROUP_SUB, first = true, onClick = { sheet = AboutSheet.Group }) { RowChevron() }
-            ListRow(MikaIcons.XMark, AboutCopy.FOLLOW, AboutCopy.FOLLOW_SUB, onClick = { onOpenUrl(MikaLinks.X) }) { ExternalMark() }
+            // Orbit: the upstream author's WeChat contact row is gone.
+            ListRow(MikaIcons.XMark, AboutCopy.FOLLOW, AboutCopy.FOLLOW_SUB, first = true, onClick = { onOpenUrl(MikaLinks.X) }) { ExternalMark() }
             ListRow(MikaIcons.Bug, AboutCopy.FEEDBACK, AboutCopy.FEEDBACK_SUB, onClick = { sheet = AboutSheet.Feedback }) { RowChevron() }
         }
         GroupCard {
@@ -199,11 +180,8 @@ private fun Hero(versionName: String, build: String, beta: Boolean) {
         Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 18.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Image(
-            painterResource(R.drawable.mika_launcher_art), contentDescription = null,
-            Modifier.size(72.dp).clip(RoundedCornerShape(20.dp)),
-        )
-        Text("Mika", Modifier.padding(top = 12.dp), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
+        MikaLogo(72.dp, corner = 20.dp)
+        Text(stringResource(R.string.app_name), Modifier.padding(top = 12.dp), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
         Text(AboutCopy.TAGLINE, Modifier.padding(top = 4.dp), style = MikaType.Caption, color = c.ink2, textAlign = TextAlign.Center)
         Row(Modifier.padding(top = 10.dp).testTag("about-version"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(AboutCopy.version(versionName), style = MikaType.Hint, color = c.ink3)

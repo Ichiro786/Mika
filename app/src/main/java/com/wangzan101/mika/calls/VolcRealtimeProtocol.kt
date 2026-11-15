@@ -20,7 +20,7 @@ data class VolcRealtimeConfig(
     companion object {
         const val MODEL = "1.2.6.1"
         const val DEFAULT_SPEAKER = "zh_female_vv_jupiter_bigtts"
-        private const val MAX_PROMPT_CHARS = 16_384
+        private const val MAX_PROMPT_CHARS = 24_576
     }
 }
 

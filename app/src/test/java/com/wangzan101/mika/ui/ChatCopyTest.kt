@@ -15,17 +15,26 @@ import java.time.ZoneId
 class ChatCopyTest {
     @get:Rule val texts = ChineseTexts()
 
-    @Test fun fourDistinctNonBlankExamplesStartWithGithubStar() {
+    @Test fun threeDistinctExamplesKeepWhatsappAndDropTheOldMikaOnes() {
         val examples = ChatCopy.examples
-        assertEquals(4, examples.size)
-        assertEquals(4, examples.map { it.text }.filter { it.isNotBlank() }.toSet().size)
-        assertEquals(ChatCopy.ExampleKind.Web, examples.first().kind)
-        assertTrue(examples.first().text.contains("https://github.com/wangzan101/mika"))
+        assertEquals(3, examples.size)
+        assertEquals(3, examples.map { it.text }.filter { it.isNotBlank() }.toSet().size)
+        assertEquals(ChatCopy.ExampleKind.App, examples.first().kind)
+        assertTrue(examples.none { it.text.contains("wangzan101") })
+        assertTrue(examples.none { it.text.trim() in ChatCopy.retiredSeeds })
         assertEquals(ChatCopy.examples.map { it.text }, ChatCopy.recommendationSeeds().map { it.first })
         assertEquals(ChatCopy.examples.map { it.text }, ChatCopy.recommendationSeeds().map { it.second })
     }
 
     /** 分支标题:源标题后面加后缀,总长不超过 24 字;截的是源标题,后缀留着,emoji 不截半个。 */
+    @Test fun suggestionTitlesShortenLinksAndKeepTheRest() {
+        assertEquals("Open github.com/wangzan101/mika and star the project.",
+            ChatCopy.tidySuggestion("Open https://github.com/wangzan101/mika and star the project."))
+        assertEquals("See example.com/a/…", ChatCopy.tidySuggestion("See https://www.example.com/a/very/long/path/that/goes/on?x=1"))
+        assertEquals("Go to news.ycombinator.com", ChatCopy.tidySuggestion("Go to  https://news.ycombinator.com/"))
+        assertEquals("Set alarms for 9:40 and 9:50.", ChatCopy.tidySuggestion("Set alarms for 9:40\nand 9:50."))
+    }
+
     @Test fun branchTitleKeepsTheSuffixWhenTruncating() {
         val suffix = " · 分支"
         val long = "一二三四五六七八九十一二三四五六七八九十一二三四五"
@@ -264,7 +273,7 @@ class ChatCopyTest {
     @Test fun placeholderFollowsTheComposer() {
         assertEquals(ChatCopy.EMPTY_PROMPT, ChatCopy.placeholder(ComposerMode.Idle, hasHistory = false))
         assertEquals("继续说点什么…", ChatCopy.placeholder(ComposerMode.Idle, hasHistory = true))
-        assertEquals("回答 Mika 的问题", ChatCopy.placeholder(ComposerMode.Answer, hasHistory = true))
+        assertEquals("回答 Orbit 的问题", ChatCopy.placeholder(ComposerMode.Answer, hasHistory = true))
         assertEquals("补充或改要求…", ChatCopy.placeholder(ComposerMode.Busy, hasHistory = true))
         assertEquals("写下下一件事…", ChatCopy.placeholder(ComposerMode.Busy, hasHistory = true, followUp = FollowUpMode.Queue))
     }
