@@ -257,11 +257,7 @@ class MainActivity : ComponentActivity() {
         monitor.start()
         // 每次打开都悄悄查一次新版本(两分钟内连着打开的只查一次),失败不吭声
         val app = application as MikaApp
-        val check = app.updates.autoCheckInBackground()
-        updateWatch = lifecycleScope.launch {
-            check.join()
-            app.automaticUpdates.watch(app.updates.state)
-        }
+        // Orbit: no background check for upstream Mika releases, so no update prompt either.
         // 电脑连接开着、服务却不在(被系统停过、从后台没能起来):界面在前台时补起来
         (application as MikaApp).mcp.ensureRunning()
     }
@@ -628,7 +624,7 @@ private fun MikaRoot(
                 onFiles = { filesFromDrawer = true; filesConversation = app.chat.ui.value.conversationId; nav.pushFromDrawer(Route.Files) },
                 onScreens = { nav.pushFromDrawer(Route.Screens) },
                 onAbout = { nav.pushFromDrawer(Route.About) },
-                updateAvailable = AboutCopy.drawerDot(updateState),
+                updateAvailable = false,
                 reopen = nav.reopenDrawer,
                 onReopened = nav::drawerReopened,
                 onPersonal = { nav.show(Route.Personal) },
@@ -642,7 +638,7 @@ private fun MikaRoot(
                 val hubShowing = hubState.currentState || hubState.targetState
                 androidx.compose.runtime.CompositionLocalProvider(LocalOrbitHubShowing provides hubShowing) {
                 Box(Modifier.fillMaxSize()) {
-                    val readyRelease = readyUpdate?.takeIf { autoUpdate && it.apkUrl == updateState.update?.apkUrl }
+                    val readyRelease: ReleaseInfo? = null
                     val updateBackdrop = if (readyRelease != null) rememberGlassBackdrop() else null
                     val primarySemantics = if (orbitHubOpen) Modifier.clearAndSetSemantics { } else Modifier
                     val navDensity = LocalDensity.current
@@ -798,7 +794,7 @@ private fun MikaRoot(
             SettingsScreen(store, status, release, onFix, onBack = back, onOpenMemory = { nav.push(Route.Memory) },
                 onOpenModels = { nav.push(Route.Models) },
                 autonomous = autonomous, onAutonomous = app.approvalControl::setAutonomous,
-                updateVersion = updateState.update?.version, onOpenAbout = { nav.push(Route.About) },
+                updateVersion = null, onOpenAbout = { nav.push(Route.About) },
                 mcpServers = app.mcpServers, onOpenSpeech = { nav.push(Route.SpeechModel) })
         }
         Route.Models -> ModelsScreen(store, onBack = back, onOpenSpeech = { nav.push(Route.SpeechModel) }, onOpenUsage = { nav.push(Route.Usage) })

@@ -118,33 +118,13 @@ fun AboutScreen(
     PageScaffold(AboutCopy.TITLE, onBack) {
         Hero(versionName, build, beta)
 
+        // Orbit: no update check or auto-update here; they pointed at upstream Mika releases.
         GroupCard {
-            val v = AboutCopy.checkValue(update)
-            ListRow(
-                MikaIcons.Refresh, AboutCopy.CHECK, if (update.hasUpdate) AboutCopy.CHECK_SUB_NEW else AboutCopy.CHECK_SUB, first = true,
-                onClick = {
-                    if (update.hasUpdate) sheet = AboutSheet.Update
-                    else if (update.status != CheckStatus.Checking) {
-                        waitingRound = update.manualRounds
-                        onCheck()
-                    }
-                },
-            ) {
-                TrailingValue(v)
-                RowChevron()
-            }
-            ListRow(
-                MikaIcons.Refresh,
-                stringResource(R.string.about_auto_update),
-                stringResource(R.string.about_auto_update_detail),
-            ) {
-                MikaSwitch(autoUpdate, onAutoUpdate, Modifier.testTag("auto-update-switch"))
-            }
-            ListRow(MikaIcons.Lines, AboutCopy.CHANGELOG, AboutCopy.CHANGELOG_SUB, onClick = { sheet = AboutSheet.Changelog }) { RowChevron() }
+            ListRow(MikaIcons.Lines, AboutCopy.CHANGELOG, AboutCopy.CHANGELOG_SUB, first = true, onClick = { sheet = AboutSheet.Changelog }) { RowChevron() }
         }
         GroupCard {
-            ListRow(MikaIcons.Chats, AboutCopy.GROUP, AboutCopy.GROUP_SUB, first = true, onClick = { sheet = AboutSheet.Group }) { RowChevron() }
-            ListRow(MikaIcons.XMark, AboutCopy.FOLLOW, AboutCopy.FOLLOW_SUB, onClick = { onOpenUrl(MikaLinks.X) }) { ExternalMark() }
+            // Orbit: the upstream author's WeChat contact row is gone.
+            ListRow(MikaIcons.XMark, AboutCopy.FOLLOW, AboutCopy.FOLLOW_SUB, first = true, onClick = { onOpenUrl(MikaLinks.X) }) { ExternalMark() }
             ListRow(MikaIcons.Bug, AboutCopy.FEEDBACK, AboutCopy.FEEDBACK_SUB, onClick = { sheet = AboutSheet.Feedback }) { RowChevron() }
         }
         GroupCard {
