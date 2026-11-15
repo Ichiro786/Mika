@@ -16,27 +16,27 @@
     <string name="language_persian" translatable="false">فارسی</string>
     <string name="settings_basic">Common</string>
     <string name="settings_language_appearance">Language &amp; appearance</string>
-    <string name="settings_personal_start">Open Personal Assistant on launch</string>
-    <string name="settings_personal_start_sub">Use Personal Assistant as your first screen</string>
-    <string name="settings_model">Model</string>
-    <string name="settings_model_sub">Models, providers &amp; Token usage</string>
+    <string name="settings_personal_start">Start in Personal Assistant</string>
+    <string name="settings_personal_start_sub">Open there instead of a new chat</string>
+    <string name="settings_model">AI model</string>
+    <string name="settings_model_sub">Which AI Orbit thinks with, and your usage</string>
     <string name="settings_not_set">Not set</string>
     <string name="settings_phone_ops">Phone control</string>
-    <string name="settings_during_work">Task running</string>
-    <string name="settings_during_work_sub">Autonomous mode, pace, step limit &amp; sound</string>
-    <string name="settings_notif_sub">When they pop up, change in system settings</string>
-    <string name="settings_privacy">My data</string>
-    <string name="settings_memory_data">Memory &amp; data</string>
-    <string name="settings_memory_sub">Memories, skills, saved routes &amp; website sign-ins</string>
+    <string name="settings_during_work">While a task runs</string>
+    <string name="settings_during_work_sub">How far Orbit goes alone, speed, screen and sound</string>
+    <string name="settings_notif_sub">How Orbit lets you know things</string>
+    <string name="settings_privacy">Your data</string>
+    <string name="settings_memory_data">Memory &amp; saved info</string>
+    <string name="settings_memory_sub">What Orbit remembers, skills, routes and site sign-ins</string>
     <string name="settings_saved_data">Saved data</string>
     <string name="settings_web_logins">Website sign-ins</string>
     <plurals name="settings_count_sites">
         <item quantity="one">%1$d site</item>
         <item quantity="other">%1$d sites</item>
     </plurals>
-    <string name="settings_other">Other</string>
-    <string name="settings_advanced">Advanced &amp; other</string>
-    <string name="settings_advanced_sub">Proxy, computing, connections &amp; repair</string>
+    <string name="settings_other">More</string>
+    <string name="settings_advanced">Connections &amp; tools</string>
+    <string name="settings_advanced_sub">Web search, proxy, files, computers and MCP</string>
     <string name="settings_connections">Network &amp; connections</string>
     <string name="settings_maintenance">Maintenance</string>
     <string name="settings_sandbox">Files &amp; computing environment</string>
@@ -45,7 +45,7 @@
         <item quantity="one">%1$d route</item>
         <item quantity="other">%1$d routes</item>
     </plurals>
-    <string name="settings_recovery">Recovery &amp; repair</string>
+    <string name="settings_recovery">Fix a problem</string>
     <string name="settings_developer_group">Developer</string>
     <string name="settings_developer">Developer options</string>
     <string name="settings_about">About Orbit</string>
@@ -85,8 +85,8 @@
         <item quantity="one">%1$d</item>
         <item quantity="other">%1$d</item>
     </plurals>
-    <string name="capsule_settings_title">Floating capsule</string>
-    <string name="capsule_settings_sub">See task progress on screen while using other apps</string>
+    <string name="capsule_settings_title">Floating bubble</string>
+    <string name="capsule_settings_sub">The little Orbit pill that shows task progress over other apps</string>
     <string name="capsule_settings_foot">The capsule is drawn using Orbit’s accessibility service that’s already on, so no extra permission is needed. If that service is off or can’t draw, you’ll still get notifications.</string>
     <string name="capsule_settings_background">Some phones close apps in the background. If the capsule disappears, allow Orbit to run in the background and to start automatically in your phone’s system settings.</string>
     <string name="capsule_mode_off">Off</string>
@@ -208,8 +208,8 @@
     <string name="mcp_servers_status_fail">Connection failed: %1$s</string>
     <string name="mcp_servers_refresh_all">Test all</string>
     <string name="mcp_servers_allowlist">Allowed tools (comma separated, empty = all)</string>
-    <string name="quit_title">Quit Orbit completely</string>
-    <string name="quit_row_sub">Stops background tasks and hides the floating capsule</string>
+    <string name="quit_title">Quit Orbit</string>
+    <string name="quit_row_sub">Stop background work and hide the bubble</string>
     <string name="quit_confirm_body">Tasks that are running will stop, and the floating capsule and notifications will go away. Open Orbit again and everything comes back.</string>
     <string name="quit_confirm_action">Quit</string>
     <string name="settings_task_token_budget">Token budget per task</string>
@@ -218,8 +218,8 @@
     <string name="settings_token_budget_custom">Custom token budget</string>
     <string name="settings_token_budget_apply">Use</string>
     <string name="settings_token_budget_invalid">Enter a whole number from %1$s to %2$s.</string>
-    <string name="settings_auto_archive">Auto-archive chats</string>
-    <string name="settings_auto_archive_sub">Chats without new messages for a while move to the archive</string>
+    <string name="settings_auto_archive">Tidy old chats</string>
+    <string name="settings_auto_archive_sub">Move chats with no new messages to the archive</string>
     <string name="settings_auto_archive_hint">Chats without new messages for the chosen time are moved to the archive. Pinned chats and chats with a task running stay put. You can restore them from the archive in the chat list at any time.</string>
     <plurals name="settings_auto_archive_days">
         <item quantity="one">%1$d day</item>

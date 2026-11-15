@@ -87,6 +87,11 @@ import com.wangzan101.mika.core.trigger.TriggerSnapshot
 import com.wangzan101.mika.ui.components.MikaCard
 import com.wangzan101.mika.ui.identity.MikaPresenceAvatar
 import com.wangzan101.mika.ui.identity.PresenceState
+import com.wangzan101.mika.ui.components.GroupCard
+import com.wangzan101.mika.ui.components.GroupLabel
+import com.wangzan101.mika.ui.components.ListRow
+import com.wangzan101.mika.ui.components.RowChevron
+import com.wangzan101.mika.ui.components.RowValue
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
@@ -518,20 +523,54 @@ private fun HubFiles(cache: HubSectionCache, onOpen: () -> Unit) {
     }
 }
 
+private enum class HubSheet { Appearance, Instructions, SystemPrompt }
+
+/** The hub's gear tab: look rows with their values, the two prompt files, and a way into all of Settings. */
 @Composable
 private fun HubPersonalization(onOpen: () -> Unit) {
-    val c = MikaTheme.colors
     val context = LocalContext.current
     val flags = remember(context) { FeatureFlags.get(context) }
     val mode by remember(flags) { flags.themeModeChanges() }.collectAsState(flags.themeMode())
     val identity = MikaTheme.identity
-    MikaCard {
-        Column(Modifier.fillMaxWidth().padding(18.dp)) {
-            Text(stringResource(R.string.appearance_group), style = MikaType.BodyStrong, color = c.ink)
-            HubEntry(appearanceLabel(mode), onOpen)
-            val identityLabel = stringResource(if (identity == OrbitIdentityMode.Original) R.string.orbit_identity_original else R.string.orbit_identity_monochrome)
-            HubEntry("${stringResource(R.string.orbit_identity)} · $identityLabel", onOpen)
-            TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+    val files = remember(context) { com.wangzan101.mika.settings.PromptFiles.get(context) }
+    var sheet by remember { mutableStateOf<HubSheet?>(null) }
+    GroupCard {
+        ListRow(MikaIcons.Moon, stringResource(R.string.appearance_group), stringResource(R.string.orbit_hub_appearance_sub),
+            first = true, tint = SettingsTint.Indigo, onClick = { sheet = HubSheet.Appearance }) {
+            RowValue(appearanceLabel(mode)); RowChevron()
+        }
+        ListRow(MikaIcons.Spark, stringResource(R.string.orbit_hub_look), stringResource(R.string.orbit_hub_look_sub),
+            tint = SettingsTint.Gray, onClick = { sheet = HubSheet.Appearance }) {
+            RowValue(stringResource(if (identity == OrbitIdentityMode.Original) R.string.orbit_identity_original else R.string.orbit_identity_monochrome))
+            RowChevron()
+        }
+    }
+    GroupLabel(stringResource(R.string.prompts_group))
+    GroupCard {
+        ListRow(MikaIcons.Doc, com.wangzan101.mika.settings.PromptFile.Instructions.fileName, stringResource(R.string.prompts_instructions_sub),
+            first = true, tint = SettingsTint.Orange, onClick = { sheet = HubSheet.Instructions }) {
+            RowValue(promptFileState(files, com.wangzan101.mika.settings.PromptFile.Instructions)); RowChevron()
+        }
+        ListRow(MikaIcons.Doc, com.wangzan101.mika.settings.PromptFile.SystemPrompt.fileName, stringResource(R.string.prompts_system_sub),
+            tint = SettingsTint.Gray, onClick = { sheet = HubSheet.SystemPrompt }) {
+            RowValue(promptFileState(files, com.wangzan101.mika.settings.PromptFile.SystemPrompt)); RowChevron()
+        }
+    }
+    GroupCard {
+        ListRow(MikaIcons.Gear, stringResource(R.string.orbit_hub_all_settings), first = true, tint = SettingsTint.Gray,
+            onClick = onOpen) { RowChevron() }
+    }
+    sheet?.let { s ->
+        val close = { sheet = null }
+        androidx.compose.ui.window.Dialog(close, androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
+            when (s) {
+                HubSheet.Appearance -> {
+                    val language = remember { com.wangzan101.mika.i18n.AppLanguage.current(context) }
+                    LanguageScreen(language, onLanguage = { com.wangzan101.mika.i18n.AppLanguage.set(context, it) }, onBack = close, languageOnly = false)
+                }
+                HubSheet.Instructions -> PromptEditorScreen(com.wangzan101.mika.settings.PromptFile.Instructions, onBack = close)
+                HubSheet.SystemPrompt -> PromptEditorScreen(com.wangzan101.mika.settings.PromptFile.SystemPrompt, onBack = close)
+            }
         }
     }
 }

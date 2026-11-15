@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="calls_title">AI phone calls</string>
-    <string name="calls_entry_sub">Cellular calls with Volcengine realtime voice</string>
+    <string name="calls_title">Answer my phone calls</string>
+    <string name="calls_entry_sub">Orbit picks up your cellular calls for you</string>
     <string name="calls_action_failed">The call action failed. Check readiness and retry.</string>
     <string name="calls_permissions_required">Phone and notification permissions are needed.</string>
     <string name="calls_ai_active">AI is handling the call</string>

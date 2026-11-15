@@ -544,7 +544,7 @@ fun CapsuleScreen(
 
 /** 设置 › 语言:跟随系统、简体中文、繁體中文、English;选了马上换,界面跟着重建。 */
 @Composable
-fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onBack: () -> Unit) {
+fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onBack: () -> Unit, languageOnly: Boolean? = null) {
     val context = LocalContext.current
     val flags = remember { FeatureFlags.get(context) }
     // 跟着设置走:任务里改了外观,这页也对得上
@@ -559,7 +559,10 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
             if (!SkinImage.import(context, uri)) Toast.makeText(context, R.string.skin_failed, Toast.LENGTH_SHORT).show()
         }
     }
-    PageScaffold(stringResource(R.string.appearance_title), onBack) {
+    // null: the old combined page; true: only the language list; false: only the look.
+    val title = if (languageOnly == true) R.string.language_title else if (languageOnly == false) R.string.appearance_group else R.string.appearance_title
+    PageScaffold(stringResource(title), onBack) {
+      if (languageOnly != true) {
         // 语言和外观放在同一页:都是「界面长什么样」
         GroupLabel(stringResource(R.string.appearance_group))
         GroupCard {
@@ -646,6 +649,8 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
             )
             if (skin.active) SkinControls(skin, flags::setSkin, onClear = { SkinImage.clear(context) })
         }
+      }
+      if (languageOnly != false) {
         GroupLabel(stringResource(R.string.language_title))
         GroupCard {
             AppLanguage.entries.forEachIndexed { i, l ->
@@ -655,6 +660,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                 )
             }
         }
+      }
     }
 }
 
