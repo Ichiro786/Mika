@@ -231,7 +231,7 @@ class GeminiRuntime(private val context: Context) {
     private fun text(url: String): String {
         val req = Request.Builder().url(url).header("User-Agent", "Orbit").build()
         http.newCall(req).execute().use { r ->
-            if (!r.isSuccessful) throw SetupError("Download failed (${r.code}) from ${host(url)}.")
+            if (!r.isSuccessful) throw SetupError("Download failed (${r.code}) from ${siteOf(url)}.")
             return r.body?.string() ?: ""
         }
     }
@@ -241,8 +241,8 @@ class GeminiRuntime(private val context: Context) {
         val digest = MessageDigest.getInstance("SHA-256")
         dest.parentFile?.mkdirs()
         http.newCall(req).execute().use { r ->
-            if (!r.isSuccessful) throw SetupError("Download failed (${r.code}) from ${host(url)}.")
-            val body = r.body ?: throw SetupError("Empty download from ${host(url)}.")
+            if (!r.isSuccessful) throw SetupError("Download failed (${r.code}) from ${siteOf(url)}.")
+            val body = r.body ?: throw SetupError("Empty download from ${siteOf(url)}.")
             val total = body.contentLength()
             var done = 0L
             var last = -1
@@ -262,11 +262,11 @@ class GeminiRuntime(private val context: Context) {
         val got = digest.digest().joinToString("") { "%02x".format(it) }
         if (!got.equals(sha256, ignoreCase = true)) {
             dest.delete()
-            throw SetupError("The download from ${host(url)} didn't match its checksum.")
+            throw SetupError("The download from ${siteOf(url)} didn't match its checksum.")
         }
     }
 
-    private fun host(url: String) = runCatching { java.net.URI(url).host }.getOrNull() ?: url
+    private fun siteOf(url: String): String = runCatching { java.net.URI(url).host }.getOrNull() ?: url
 
     companion object {
         const val REGISTRY = "https://raw.githubusercontent.com/agentclientprotocol/registry/main/antigravity-acp/agent.json"
