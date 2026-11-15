@@ -171,7 +171,7 @@ internal fun CallHistorySection(
                             change(if (next) handled else unhandled) { onMark(record.id, next) }
                         },
                         onDelete = { pendingDelete = record.id },
-                        onRetrySummary = { change("摘要已更新", summaryFailure) { onRetrySummary(record.id) } },
+                        onRetrySummary = { change("Summary updated", summaryFailure) { onRetrySummary(record.id) } },
                         onReuse = if (record.number != null && record.task != null && onReuseTask != null) {
                             { onReuseTask(record.number, record.task) }
                         } else null,

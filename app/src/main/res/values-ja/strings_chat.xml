@@ -51,7 +51,7 @@
     <plurals name="chat_earlier_steps">
         <item quantity="other">これまでの %1$d ステップ</item>
     </plurals>
-    <string name="chat_background_note">バックグラウンドで実行中です。そのままスマホを使えます。小さな表示をタップすると拡大します。</string>
+    <string name="chat_background_note">バックグラウンドで実行中です。スマホはそのまま使えます。メッセージ欄の上のピルをタップするとライブで見られます。</string>
     <string name="chat_placeholder_busy">補足や変更を入力…</string>
     <string name="chat_placeholder_answer">Orbit の質問に答える</string>
     <string name="chat_placeholder_more">さらにひとこと…</string>
@@ -245,7 +245,7 @@
     <string name="pip_back">仮想画面で戻る</string>
     <string name="pip_reopen">画面を表示</string>
     <string name="pip_closed_needs_you">あなたの対応が必要</string>
-    <string name="pip_closed_hint">このタスクでは閉じました。右下の「画面を表示」をタップするか、サイドメニューの「バックグラウンドの画面」を開いてください。</string>
+    <string name="pip_closed_hint">このタスクでは閉じました。メッセージ欄の上の「画面を表示」をタップするか、サイドメニューの「バックグラウンド画面」を開いてください。</string>
     <string name="chat_conversation_tokens">この会話: %1$s</string>
     <string name="chat_conversation_tokens_partial">この会話: %1$s 以上</string>
     <string name="follow_up_steer">ガイド</string>
@@ -269,4 +269,6 @@
     <plurals name="drawer_archive_many_skipped">
         <item quantity="other">%1$d 件は未アーカイブ</item>
     </plurals>
+    <string name="pip_step">ステップ %1$d</string>
+    <string name="pip_swipe_hide">下にスワイプして隠す</string>
 </resources>

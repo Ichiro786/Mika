@@ -26,7 +26,7 @@
         <item quantity="one">%1$d مرحلهٔ قبلی</item>
         <item quantity="other">%1$d مرحلهٔ قبلی</item>
     </plurals>
-    <string name="chat_background_note">در پس‌زمینه اجرا می‌شود؛ می‌توانید به استفاده از گوشی ادامه دهید. برای بزرگ کردن نمای کوچک روی آن بزنید.</string>
+    <string name="chat_background_note">در پس‌زمینه اجرا می‌شود، به کار با گوشی ادامه دهید. برای تماشای زنده روی نوار بالای کادر پیام بزنید.</string>
     <string name="chat_placeholder_busy">جزئیات را اضافه یا تغییر دهید…</string>
     <string name="chat_placeholder_answer">به پرسش Orbit پاسخ دهید</string>
     <string name="chat_placeholder_more">چیز دیگری بنویسید…</string>
@@ -216,7 +216,7 @@
     <string name="pip_back">بازگشت در صفحهٔ مجازی</string>
     <string name="pip_reopen">نمایش صفحه</string>
     <string name="pip_closed_needs_you">به توجه شما نیاز دارد</string>
-    <string name="pip_closed_hint">نمای این کار بسته شد. روی «نمایش صفحه» در پایین سمت راست بزنید، یا «صفحه‌های پس‌زمینه» را در منوی کناری باز کنید.</string>
+    <string name="pip_closed_hint">برای این کار بسته شد. روی «نمایش صفحه» بالای کادر پیام بزنید یا «صفحه‌های پس‌زمینه» را از منوی کناری باز کنید.</string>
     <string name="chat_conversation_tokens">این گفتگو: %1$s</string>
     <string name="chat_conversation_tokens_partial">این گفتگو: حداقل %1$s</string>
     <string name="follow_up_steer">هدایت کار</string>
@@ -283,4 +283,6 @@
         <item quantity="one">%1$d بایگانی نشد</item>
         <item quantity="other">%1$d بایگانی نشد</item>
     </plurals>
+    <string name="pip_step">مرحله %1$d</string>
+    <string name="pip_swipe_hide">برای پنهان کردن به پایین بکشید</string>
 </resources>

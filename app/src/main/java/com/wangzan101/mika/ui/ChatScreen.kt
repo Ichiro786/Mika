@@ -669,13 +669,18 @@ fun ChatScreen(
             bottomInset = composerHeight.toFloat(),
             onExpand = vm::expandPip,
             onCollapse = vm::collapsePip,
-            // 关掉小画面:这个任务结束前只剩右下角的小按钮;提示一句还能去哪看
+            // Closing the preview leaves a small chip above the message bar until the task ends; say where else to find it
             onClose = {
                 vm.closePip()
                 Toast.makeText(context, context.getString(R.string.pip_closed_hint), Toast.LENGTH_SHORT).show()
             },
             onReopen = vm::reopenPip,
             onUnmute = vm::unmutePip,
+            label = last?.let { ChatCopy.progressLine(it) }.orEmpty(),
+            steps = last?.steps?.size ?: 0,
+            startedAt = last?.startedAt ?: 0L,
+            onStop = vm::cancel,
+            onTakeControl = vm::takeOver,
             // 要你处理时点小窗:收起,滚到要你处理的那张卡片(在最后一问一答里,它后面只可能还有文件卡片和去设置那一行)
             onAttention = {
                 vm.attendPip()
@@ -905,9 +910,13 @@ private fun LazyListScope.exchange(
     val (joined, waiting) = steersAroundDraft(ex.steers)
     joined.forEach(::steer)
     val draftText = ex.draft?.takeIf(String::isNotBlank)
-    if (draftText != null) item("d$index") { DraftText(draftText, ex.waitingForModel) }
-    // While the model is on its reply and nothing has streamed yet, a typing bubble holds the answer's place.
-    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
+    if (draftText != null) {
+        item("d$index") { DraftText(draftText, ex.waitingForModel) }
+        // While the answer is still streaming in, three dots under it say more is coming.
+        if (active && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
+    }
+    // While the model is thinking and nothing has streamed yet, a shimmering "Thinking" line holds the answer's place.
+    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) item("k$index") { ThinkingLine(reduceMotion) }
     waiting.forEach(::steer)
     item("r$index") {
         JumpHighlight(highlightKey == "r$index", reduceMotion) {
@@ -1034,6 +1043,47 @@ internal fun TypingBubble(reduceMotion: Boolean) {
     }
 }
 
+/**
+ * The default "thinking" state: a small orbit mark (a faint ring with a dot circling it) and the word
+ * "Thinking" with a light sweeping across it. With reduced motion both hold still.
+ */
+@Composable
+internal fun ThinkingLine(reduceMotion: Boolean) {
+    val c = MikaTheme.colors
+    val label = stringResource(R.string.orbit_call_thinking)
+    val t = if (reduceMotion) null else rememberInfiniteTransition(label = "thinking").animateFloat(
+        0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Restart), label = "thinking-phase",
+    )
+    val base = if (c.isDark) Color(0xFF8E9197) else c.ink3
+    val shine = if (c.isDark) Color(0xFFF2F3F5) else c.ink
+    Row(
+        Modifier.padding(start = 4.dp, top = 4.dp, bottom = 14.dp)
+            .semantics { contentDescription = label }
+            .testTag("thinking-indicator"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        androidx.compose.foundation.Canvas(Modifier.size(18.dp)) {
+            val r = size.minDimension / 2f - 2.dp.toPx()
+            drawCircle(base.copy(alpha = 0.45f), r, style = androidx.compose.ui.graphics.drawscope.Stroke(1.5.dp.toPx()))
+            val a = 2f * PI.toFloat() * (t?.value ?: 0.125f)
+            drawCircle(shine, 2.6.dp.toPx(), Offset(center.x + r * kotlin.math.cos(a), center.y + r * sin(a)))
+        }
+        val p = t?.value ?: 0.5f
+        val sweep = 240f
+        val x = -sweep + p * (sweep * 3f)
+        Text(
+            label,
+            style = MikaType.Body.copy(
+                brush = if (t == null) androidx.compose.ui.graphics.SolidColor(base) else Brush.linearGradient(
+                    0f to base, 0.5f to shine, 1f to base,
+                    start = Offset(x, 0f), end = Offset(x + sweep, 0f),
+                ),
+            ),
+        )
+    }
+}
+
 /** Each dot rises and falls in turn, then all rest briefly before the wave repeats. */
 internal fun typingLift(phase: Float, dot: Int): Float {
     val t = ((phase - dot * 0.15f) % 1f + 1f) % 1f
@@ -1149,7 +1199,7 @@ private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boole
 
 /** 从 [startedAt] 起的用时,每秒更新;不知道开始时刻(为 0)时为 null。 */
 @Composable
-private fun rememberElapsed(startedAt: Long): Long? {
+internal fun rememberElapsed(startedAt: Long): Long? {
     if (startedAt <= 0L) return null
     val now by produceState(System.currentTimeMillis(), startedAt) {
         while (true) {

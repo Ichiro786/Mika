@@ -548,7 +548,7 @@ class MemoryToolsTest {
         val said = obs.single { it.kind == com.wangzan101.mika.core.observation.ObsKind.UserSaid }
         val own = obs.single { it.kind == com.wangzan101.mika.core.observation.ObsKind.Fact }
         assertTrue("香菜" in said.text); assertFalse("张江路" in said.text)
-        assertTrue("张江路" in own.text); assertTrue("不是用户说的" in own.text); assertFalse("香菜" in own.text)
+        assertTrue("张江路" in own.text); assertTrue("not said by the user" in own.text); assertFalse("香菜" in own.text)
     }
 
     @Test fun previousConfirmationDoesNotWeakenCurrentQuoteChecks() {

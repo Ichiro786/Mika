@@ -141,7 +141,7 @@ class VerifierTest {
         val m = FakeModel(text(PASS))
         Verifier(m, null).verify("查电量", Criteria(listOf("查电量"), "read", fallback = true), "电量 86%\n依据: 「86%」", evidence())
         val body = (m.requests.single().single().parts.single() as Part.Text).text
-        assertTrue(body, "用户原话本身" in body)
+        assertTrue(body, "the user's own wording" in body)
     }
 
     private fun body(m: FakeModel) = (m.requests.single().single().parts.first() as Part.Text).text

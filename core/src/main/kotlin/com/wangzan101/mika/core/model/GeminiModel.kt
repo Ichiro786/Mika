@@ -117,7 +117,7 @@ class GeminiModel(
         put("name", t.name)
         put("description", t.description)
         val schema = try { json.parseToJsonElement(t.parametersJsonSchema) } catch (e: Exception) {
-            throw IllegalArgumentException("工具 ${t.name} 的参数 schema 不是合法 JSON", e)
+            throw IllegalArgumentException("Parameter schema of tool ${t.name} is not valid JSON", e)
         }
         // 无参数工具:Gemini 拒绝没有 properties 的 object schema,省略 parameters
         val clean = sanitize(schema)
@@ -195,7 +195,7 @@ class GeminiModel(
             val blockReason = ((root["promptFeedback"] as? JsonObject)?.get("blockReason") as? JsonPrimitive)?.contentOrNull
             if (blockReason != null) throw ModelError.ContentRefused()
             val cand = root["candidates"]?.jsonArray?.firstOrNull()?.jsonObject
-                ?: throw ModelError.BadResponse("缺少 candidates")
+                ?: throw ModelError.BadResponse("Missing candidates")
             val parts = mutableListOf<Part>()
             var calls = 0
             (cand["content"] as? JsonObject)?.get("parts")?.jsonArray?.forEach { el ->
@@ -205,7 +205,7 @@ class GeminiModel(
                 when {
                     fc != null -> {
                         val name = (fc["name"] as? JsonPrimitive)?.contentOrNull
-                            ?: throw ModelError.BadResponse("functionCall 缺少 name")
+                            ?: throw ModelError.BadResponse("functionCall is missing name")
                         val id = (fc["id"] as? JsonPrimitive)?.contentOrNull ?: "gemini-$calls-$name"
                         val sig = (p["thoughtSignature"] as? JsonPrimitive)?.contentOrNull
                         parts += Part.ToolCall(id, name, (fc["args"] ?: JsonObject(emptyMap())).toString(), sig)
@@ -256,7 +256,7 @@ private class GeminiStream(
 
     fun accept(data: String): Boolean {
         val root = try { json.parseToJsonElement(data).jsonObject }
-        catch (e: Exception) { throw ModelError.BadResponse("流式响应不是合法 JSON", e) }
+        catch (e: Exception) { throw ModelError.BadResponse("The streamed response is not valid JSON", e) }
         var usageInEvent = false
         usageOf(root["usageMetadata"])?.let { usage = it; usageInEvent = true }
         val candidate = (root["candidates"] as? JsonArray)?.firstOrNull() as? JsonObject

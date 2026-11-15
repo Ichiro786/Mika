@@ -20,11 +20,11 @@ class ChineseUi : TestRule {
         override fun evaluate() {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return base.evaluate()
             val context = InstrumentationRegistry.getInstrumentation().targetContext
-            val simplified = { context.resources.getString(R.string.ui_locale) == AppLanguage.SimplifiedChinese.tag }
+            val simplified = { context.resources.getString(R.string.ui_locale) == "zh-Hans" }
             if (simplified()) return base.evaluate()
             val lm = context.getSystemService(LocaleManager::class.java)
             val before = lm.applicationLocales
-            lm.applicationLocales = LocaleList.forLanguageTags(AppLanguage.SimplifiedChinese.tag)
+            lm.applicationLocales = LocaleList.forLanguageTags("zh-Hans")
             waitFor(simplified)
             try {
                 base.evaluate()

@@ -107,7 +107,7 @@ class SystemPromptTest {
     @Test fun definitiveNoneIsAnAnswerNotAFailure() {
         val p = flat()
         // 问「有没有」时搜索明确返回「没有」是答案,引用读到的原文
-        assertTrue("未搜索到相关用户" in p && "is answered: say yes or no and quote what you read" in p)
+        assertTrue("No related users found" in p && "is answered: say yes or no and quote what you read" in p)
         // 要的结果缺了要用的东西(功能、菜单、条目、值)仍是做不成,哪怕搜索它也没结果;只拿到一部分是只办了一部分
         assertTrue("feature, menu, setting, page or value" in p && "even if searching for it showed no results" in p)
         assertTrue("it is only partly done" in p && "or only part of it, call end_not_done with the confirmed part" in p)

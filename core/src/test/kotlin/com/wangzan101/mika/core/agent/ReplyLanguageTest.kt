@@ -63,13 +63,18 @@ class ReplyLanguageTest {
     }
 
     @Test fun shortAnswersNeverMismatch() {
-        assertNull(ReplyLanguage.mismatch(english, "蓝牙已开启。"))
+        // Orbit is English-first: even a short Chinese answer to an English message is sent back
+        assertEquals(Mismatch(CHINESE, latin), ReplyLanguage.mismatch(english, "蓝牙已开启。"))
+        assertNull(ReplyLanguage.mismatch(english, "好的。"))
         assertNull(ReplyLanguage.mismatch("看看蓝牙开没开", "Bluetooth is on."))
     }
 
     @Test fun emptyOrTinyUserMessageNeverMismatches() {
-        assertNull(ReplyLanguage.mismatch("", drifted))
-        assertNull(ReplyLanguage.mismatch("  14  ", drifted))
+        // Too little to tell the user's language: Orbit defaults to English
+        assertEquals(Mismatch(CHINESE, ReplyLanguage.ENGLISH), ReplyLanguage.mismatch("", drifted))
+        assertEquals(Mismatch(CHINESE, ReplyLanguage.ENGLISH), ReplyLanguage.mismatch("  14  ", drifted))
+        assertEquals(Mismatch(CHINESE, ReplyLanguage.ENGLISH), ReplyLanguage.mismatch("Airtel", "你想了解或处理 Airtel 的什么事?"))
+        assertNull(ReplyLanguage.mismatch("看看", drifted))
     }
 
     @Test fun sameFamilyNeverMismatches() {

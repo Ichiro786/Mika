@@ -265,7 +265,7 @@ class PersonalAgentTest {
 
     @Test fun legacyRecordsAndOrdinaryMessagesAreNotInferredFromText() {
         val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
-        val legacy = """{"messages":[{"id":"old","role":"assistant","text":"这次回复超时了。已有任务不会因此重做，你可以继续发消息。","at":1,"error":true}]}"""
+        val legacy = """{"messages":[{"id":"old","role":"assistant","text":"This reply timed out. Existing tasks will not be redone because of it; you can keep sending messages.","at":1,"error":true}]}"""
         val state = json.decodeFromString<PersonalState>(legacy)
         assertFalse(state.messages.single().systemType != null)
         val ordinary = state.messages.single().copy(id = "normal", error = false)

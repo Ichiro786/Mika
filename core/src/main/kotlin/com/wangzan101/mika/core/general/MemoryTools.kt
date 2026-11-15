@@ -85,10 +85,10 @@ internal object MemorySearch : AgentTool {
         fun lines(list: List<JsonElement>, head: String) =
             list.joinToString("\n", head) { m -> ((m as? JsonObject)?.get("content") as? JsonPrimitive)?.contentOrNull.orEmpty() }
         return listOfNotNull(
-            said.takeIf { it.isNotEmpty() }?.let { Observation(ObsKind.UserSaid, lines(it, "记忆检索「${o.argStr("query")}」:\n"), source = "memory") },
+            said.takeIf { it.isNotEmpty() }?.let { Observation(ObsKind.UserSaid, lines(it, "Memory search \"${o.argStr("query")}\":\n"), source = "memory") },
             // 归纳的那几条是工具查到的东西,不是用户给的事实:进账本,写明出处
             own.takeIf { it.isNotEmpty() }?.let {
-                Observation(ObsKind.Fact, lines(it, "记忆检索「${o.argStr("query")}」查到的、Mika 以前自己归纳的(不是用户说的):\n"), source = "memory")
+                Observation(ObsKind.Fact, lines(it, "Memory search \"${o.argStr("query")}\" found these, which Orbit summarised earlier itself (not said by the user):\n"), source = "memory")
             },
         )
     }
@@ -103,7 +103,7 @@ internal object MemorySave : AgentTool {
         Prompts.tool("memory_save"),
         mapOf(
             "kind" to str("fact = about the user, preference = what the user likes, procedure = how the user wants a kind of task done.", listOf("fact", "preference", "procedure")),
-            "content" to str("One sentence in the third person, at most 200 characters, e.g. 用户点外卖不要香菜."),
+            "content" to str("One sentence in the third person, at most 200 characters, e.g. The user does not want cilantro when ordering food."),
             "quote" to str("The user's exact words this is based on."),
             "keywords" to buildJsonObject {
                 put("type", "array"); put("description", "Optional, up to 8 search words incl. synonyms.")

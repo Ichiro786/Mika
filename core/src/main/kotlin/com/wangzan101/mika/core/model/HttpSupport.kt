@@ -117,7 +117,7 @@ internal object HttpSupport {
                                 if (cont.isActive) cont.resume(RawResponse(it.code, it.header("retry-after"), it.body?.string().orEmpty()))
                                 return
                             }
-                            val source = it.body?.source() ?: throw ModelError.BadResponse("流式响应没有内容")
+                            val source = it.body?.source() ?: throw ModelError.BadResponse("The streamed response is empty")
                             val data = mutableListOf<String>()
                             var events = 0
                             /** 派发一个事件;返回 true 表示协议层已到终态(如 [DONE]),读循环就此收尾,不再等连接关闭。 */
@@ -140,7 +140,7 @@ internal object HttpSupport {
                             if (cont.isActive) {
                                 dispatch()
                                 val eventStream = it.header("Content-Type")?.contains("event-stream", ignoreCase = true) == true
-                                if (events == 0 && !eventStream) throw ModelError.BadResponse("返回的不是流式内容(Content-Type: ${it.header("Content-Type").orEmpty()})")
+                                if (events == 0 && !eventStream) throw ModelError.BadResponse("The response is not streamed content (Content-Type: ${it.header("Content-Type").orEmpty()})")
                                 cont.resume(RawResponse(it.code, it.header("retry-after"), ""))
                             }
                         } catch (e: Exception) {

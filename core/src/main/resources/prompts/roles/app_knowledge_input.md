@@ -1,13 +1,13 @@
 App:{{app}}
-结局:{{outcome}}
-目标:{{goal}}
-回答或没办成的原因:{{said}}
+Outcome:{{outcome}}
+Goal:{{goal}}
+Reply or reason it was not done:{{said}}
 
-这个 App 现有的说明(空着就是没有):
+This app's existing notes (empty means none):
 {{built_in}}
 
-已有的补充(空着就是没有):
+Existing additions (empty means none):
 {{current}}
 
-这次在这个 App 里的动作:
+Actions taken in this app this time:
 {{actions}}

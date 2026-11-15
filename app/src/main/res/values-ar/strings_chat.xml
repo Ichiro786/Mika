@@ -56,7 +56,7 @@
         <item quantity="many">%1$d خطوة سابقة</item>
         <item quantity="other">%1$d خطوة سابقة</item>
     </plurals>
-    <string name="chat_background_note">يعمل في الخلفية — واصل استخدام هاتفك. انقر على العرض المصغّر لتكبيره.</string>
+    <string name="chat_background_note">يعمل في الخلفية، تابع استخدام هاتفك. اضغط على الشريط فوق شريط الرسائل لمشاهدته مباشرة.</string>
     <string name="chat_placeholder_busy">أضف تفاصيل أو عدّلها…</string>
     <string name="chat_placeholder_answer">أجب عن سؤال Orbit</string>
     <string name="chat_placeholder_more">أضف مزيدًا من التفاصيل…</string>
@@ -307,7 +307,7 @@
     <string name="pip_back">الرجوع على الشاشة الافتراضية</string>
     <string name="pip_reopen">عرض الشاشة</string>
     <string name="pip_closed_needs_you">تتطلب تدخّلك</string>
-    <string name="pip_closed_hint">أُغلقت لهذه المهمة. انقر على «عرض الشاشة» أسفل اليمين، أو افتح «الشاشات في الخلفية» من القائمة الجانبية.</string>
+    <string name="pip_closed_hint">أُغلق لهذه المهمة. اضغط «عرض الشاشة» فوق شريط الرسائل، أو افتح «الشاشات في الخلفية» من القائمة الجانبية.</string>
     <string name="follow_up_steer">توجيه</string>
     <string name="follow_up_queue">انتظار</string>
     <string name="follow_up_steer_hint">ستعدّل الخطوة التالية المهمة الحالية</string>
@@ -339,4 +339,6 @@
         <item quantity="many">%1$d غير مؤرشفة</item>
         <item quantity="other">%1$d غير مؤرشفة</item>
     </plurals>
+    <string name="pip_step">الخطوة %1$d</string>
+    <string name="pip_swipe_hide">اسحب للأسفل للإخفاء</string>
 </resources>

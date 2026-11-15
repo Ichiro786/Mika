@@ -3,8 +3,6 @@
     <string name="language_title">Language</string>
     <string name="language_system">Follow system</string>
     <string name="language_system_detail">Uses your system language when Orbit has it, English otherwise</string>
-    <string name="language_simplified_chinese" translatable="false">简体中文</string>
-    <string name="language_traditional_chinese" translatable="false">繁體中文</string>
     <string name="language_english" translatable="false">English</string>
     <string name="language_japanese" translatable="false">日本語</string>
     <string name="language_korean" translatable="false">한국어</string>

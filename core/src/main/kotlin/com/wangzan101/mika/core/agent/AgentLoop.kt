@@ -974,7 +974,7 @@ class AgentLoop(
      */
     private fun owedFollowUp(answered: String?): String? {
         confirmations?.granted?.let { r ->
-            val what = listOfNotNull(r.action.name, r.target.takeIf(String::isNotBlank), r.content.takeIf(String::isNotBlank)?.let { "「$it」" }).joinToString(" ")
+            val what = listOfNotNull(r.action.name, r.target.takeIf(String::isNotBlank), r.content.takeIf(String::isNotBlank)?.let { "\"$it\"" }).joinToString(" ")
             return Feedback.format("followup_approved", "action" to what)
         }
         return answered?.let { Feedback.format("followup_answered", "prompt" to it.take(200)) }
@@ -1004,7 +1004,7 @@ class AgentLoop(
         if (missing.isNotEmpty()) emit(RunEvent.Unconfirmed(now(), step, missing.map(::detail)))
         if (r.sources.isNotEmpty()) emit(RunEvent.Sources(now(), r.sources))
         return if (missing.isEmpty()) TaskState.Succeeded(answer, r.verified, r.note, r.sources, reviewed = r.reviewed)
-        else TaskState.Succeeded(answer, verified = false, note = UNCONFIRMED_NOTE + missing.joinToString("、"), sources = r.sources, unconfirmed = missing)
+        else TaskState.Succeeded(answer, verified = false, note = UNCONFIRMED_NOTE + missing.joinToString(", "), sources = r.sources, unconfirmed = missing)
     }
 
     /**

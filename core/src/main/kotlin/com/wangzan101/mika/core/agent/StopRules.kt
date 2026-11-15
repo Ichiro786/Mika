@@ -23,20 +23,20 @@ internal object StopRules {
         else -> stepLimit(maxSteps)
     }
 
-    fun stepLimit(maxSteps: Int) = TaskState.Failed("已达到 $maxSteps 步上限,任务没有完成。", FailKind.StepLimit)
+    fun stepLimit(maxSteps: Int) = TaskState.Failed("Reached the $maxSteps-step limit; the task is not finished.", FailKind.StepLimit)
 
     /** 收尾请求本身失败或仍没交出结果时，按触发收尾的原因落结局，不谎报步数用完。 */
     fun closeoutFailed(reason: Closeout, maxSteps: Int): TaskState.Failed = when (reason) {
         Closeout.StepLimit -> stepLimit(maxSteps)
-        Closeout.Completed -> TaskState.Failed("任务进度已经完成,但模型没有给出结果。", FailKind.Model)
-        Closeout.NoNewData -> TaskState.Failed("连续 ${NewDataTracker.LIMIT} 次没有读到新数据,任务已停止。", FailKind.Guard)
+        Closeout.Completed -> TaskState.Failed("The task progress is complete, but the model gave no result.", FailKind.Model)
+        Closeout.NoNewData -> TaskState.Failed("Stopped after ${NewDataTracker.LIMIT} reads in a row with no new data.", FailKind.Guard)
     }
 
     /** 提醒过一次,模型仍然回了空话(或又被输出上限截断)。 */
-    fun noAnswer() = TaskState.Failed("模型停止了操作,没有给出回答。", FailKind.Model)
+    fun noAnswer() = TaskState.Failed("The model stopped acting and gave no answer.", FailKind.Model)
 
     /** 退回过一次,模型的工具调用又以文字形式回来了(见 [LeakedToolCall]):不把原样的标记当回答交出。 */
-    fun toolCallAsText() = TaskState.Failed("模型的工具调用没有被服务端识别,原样作为文字返回了,没能执行。", FailKind.Model)
+    fun toolCallAsText() = TaskState.Failed("The model's tool call was not recognised by the server and came back as plain text, so it could not run.", FailKind.Model)
 
     /** 模型调用失败(重试过仍不行,或重试也没用)。 */
     fun modelFailed(e: Throwable): TaskState.Failed = when (e) {
@@ -44,68 +44,68 @@ internal object StopRules {
         is ModelError.DailyBudgetExceeded -> TaskState.Failed(userReason(e), FailKind.TokenLimit)
         is ModelError.RateLimited -> TaskState.Failed(userReason(e), FailKind.Model, FailureCode.ModelRateLimited)
         is ModelError -> TaskState.Failed(userReason(e), FailKind.Model)
-        else -> TaskState.Failed("模型调用异常:${e.message ?: e::class.simpleName}", FailKind.Model)
+        else -> TaskState.Failed("Model call failed: ${e.message ?: e::class.simpleName}", FailKind.Model)
     }
 
     fun guard(v: GuardVerdict): TaskState.Failed {
         val treeBlind = v.evidence["treeBlind"] == JsonPrimitive(true)
         val why = when (v.code) {
-            "repeating_action" -> "同一个操作反复执行仍没有效果"
-            "no_progress" -> if (treeBlind) "控件树读不到操作位置,连续操作后画面仍无可见变化,无法确认操作是否生效,已停止重试"
-                else "操作多次后画面一直没有变化"
-            "read_loop" -> "页面没有变化,反复读也读不出要找的内容"
-            "too_many_failures" -> "操作连续失败"
-            "sandbox_loop" -> "同一条命令原样重复仍然失败"
-            else -> "触发了操作保护"
+            "repeating_action" -> "the same action was repeated with no effect"
+            "no_progress" -> if (treeBlind) "the control tree could not locate the target and the screen showed no visible change after repeated actions, so I could not confirm the action worked and stopped retrying"
+                else "the screen did not change after several actions"
+            "read_loop" -> "the page did not change and repeated reads found nothing new"
+            "too_many_failures" -> "actions kept failing"
+            "sandbox_loop" -> "the same command kept failing when repeated unchanged"
+            else -> "an action safeguard was triggered"
         }
-        return TaskState.Failed("已安全停止(${v.code}):$why。", FailKind.Guard)
+        return TaskState.Failed("Stopped safely (${v.code}): $why.", FailKind.Guard)
     }
 }
 
 internal fun userReason(e: ModelError): String = when (e) {
-    is ModelError.Auth -> "模型服务拒绝了请求:API Key 无效或没有权限。请在设置里检查 API Key 是否填写正确、是否有权使用该模型。"
-    is ModelError.QuotaExceeded -> "模型账户额度已用完,请检查服务商账户的余额或套餐。"
-    is ModelError.TaskBudgetExceeded -> "已达到本任务 ${e.limit} Token 的预算上限,任务没有完成。"
+    is ModelError.Auth -> "The model service rejected the request: the API key is invalid or lacks permission. Check the API key in Settings and that it can use this model."
+    is ModelError.QuotaExceeded -> "The model account's quota is used up. Check the provider account's balance or plan."
+    is ModelError.TaskBudgetExceeded -> "Reached this task's budget of ${e.limit} tokens; the task is not finished."
     is ModelError.DailyBudgetExceeded ->
-        "服务商「${e.providerName}」已达到今天 ${e.limit} Token 的预算上限,任务没有完成。本地日期变更后会自动恢复。"
+        "Provider \"${e.providerName}\" reached today's budget of ${e.limit} tokens; the task is not finished. It resets when the local date changes."
     is ModelError.ModelNotFound -> {
         // 404 不一定是模型名不对(地址不对,或网关、中转服务说的别的情况):有原话时照原话说,不断定模型不存在
-        val check = if (e.model.isEmpty()) "请到设置 › 模型检查模型名和 Base URL 是否正确。"
-            else "去设置 › 模型,检查模型名(要填完整的模型 ID,比如 Gemini 的模型名类似 gemini-flash-latest)或改用对应的预设。"
+        val check = if (e.model.isEmpty()) "Check the model name and Base URL in Settings › Model."
+            else "Check the model name in Settings › Model (use the full model ID, e.g. gemini-flash-latest for Gemini) or switch to the matching preset."
         when {
             e.detail.isNotEmpty() ->
-                (if (e.model.isEmpty()) "" else "调用模型「${e.model}」时") +
-                    "服务端回复：${quoted(e.detail)}。可能是模型名不对，或者服务那边暂时不可用。$check"
-            e.model.isEmpty() -> "找不到该模型,$check"
-            else -> "模型「${e.model}」在这个服务商那里不存在。$check"
+                (if (e.model.isEmpty()) "" else "Calling model \"${e.model}\": ") +
+                    "Server replied: ${quoted(e.detail)}. The model name may be wrong, or the service is temporarily unavailable. $check"
+            e.model.isEmpty() -> "Model not found. $check"
+            else -> "Model \"${e.model}\" does not exist at this provider. $check"
         }
     }
     is ModelError.ModelNotAvailable ->
-        "模型「${e.model.ifEmpty { "当前模型" }}」这个账号没开通或没权限用。去设置 › 模型换一个模型，或到服务商后台开通。"
+        "Model \"${e.model.ifEmpty { "the current model" }}\" is not enabled for this account or you lack permission. Pick another model in Settings › Model, or enable it in the provider console."
     is ModelError.ToolsUnsupported ->
-        "模型「${e.model.ifEmpty { "当前模型" }}」不支持调用工具,Mika 干活要靠工具。去设置 › 模型换一个会调用工具的模型。"
-    is ModelError.ContextTooLong -> "对话内容超出了模型的上下文长度,请换用上下文更长的模型,或把任务拆小一些。"
-    is ModelError.ContentRefused -> "模型拒绝处理该内容,请调整任务描述或换一个模型。"
+        "Model \"${e.model.ifEmpty { "the current model" }}\" does not support tool calls, which Orbit needs to work. Pick a tool-capable model in Settings › Model."
+    is ModelError.ContextTooLong -> "The conversation exceeds the model's context length. Use a model with a longer context, or split the task into smaller ones."
+    is ModelError.ContentRefused -> "The model refused to process this content. Rephrase the task or pick another model."
     is ModelError.ReasoningEffortRejected ->
-        "模型不接受所选的思考强度。服务端回复：${quoted(e.detail)}。请到设置 › 模型,把思考强度改为默认或服务端支持的档位。"
-    is ModelError.RateLimited -> "模型服务限流,重试后仍然请求太频繁。请稍后再试,或检查账户的调用频率限制。"
-    is ModelError.Network -> "连接模型服务失败,重试后仍然不通。请检查网络和 Base URL。"
+        "The model does not accept the selected reasoning effort. Server replied: ${quoted(e.detail)}. Set reasoning effort to default or a level the server supports in Settings › Model."
+    is ModelError.RateLimited -> "The model service is rate limiting; requests are still too frequent after retrying. Try again later or check the account's rate limits."
+    is ModelError.Network -> "Could not reach the model service after retrying. Check the network and Base URL."
     is ModelError.Proxy -> when (e.failure) {
         ProxyFailure.Unreachable ->
-            "连不上网络代理,或代理没有转发这个请求,重试后仍然不通。请检查代理是否开着、设置 › 网络代理 里的地址和端口是否正确;不需要代理时把它清空。"
-        ProxyFailure.AuthFailed -> "网络代理拒绝了账号或密码(HTTP 407)。请在设置 › 网络代理 里检查代理地址中的用户名和密码。"
+            "Could not reach the network proxy, or it did not forward the request, after retrying. Check that the proxy is running and that the address and port in Settings › Network proxy are correct; clear it if you do not need a proxy."
+        ProxyFailure.AuthFailed -> "The network proxy rejected the username or password (HTTP 407). Check the credentials in the proxy address in Settings › Network proxy."
     }
-    is ModelError.Server -> "模型服务出错(HTTP ${e.status}),请稍后再试。"
+    is ModelError.Server -> "The model service returned an error (HTTP ${e.status}). Try again later."
     is ModelError.StreamCut ->
-        "模型的回复还没传完,连接就在上游被断开了,重试后仍然如此。常见原因是网络不稳,或中转服务、网关的空闲超时太短(模型长时间思考时容易碰上)。请稍后再试。"
-    is ModelError.BadResponse -> "${e.message}。请检查 Base URL 和接口类型是否匹配。"
+        "The model's reply was cut off when the upstream connection dropped, even after retrying. Common causes are an unstable network or a relay/gateway with too short an idle timeout (easy to hit when the model thinks for a long time). Try again later."
+    is ModelError.BadResponse -> "${e.message}. Check that the Base URL and API type match."
     is ModelError.ChatGptLimitReached ->
-        "ChatGPT 额度用完了,稍后再试。用量可以在 ChatGPT 设置 › 用量(chatgpt.com/settings/usage)查看;Plus 每 5 小时的额度和其他用 ChatGPT 登录的 App 共用。也可以先换一个模型。"
+        "Your ChatGPT quota is used up; try again later. Usage is shown in ChatGPT settings › Usage (chatgpt.com/settings/usage); the Plus 5-hour allowance is shared with other apps signed in with ChatGPT. You can also switch to another model for now."
     is ModelError.ChatGptNotEligible ->
-        "这个账号不能在其他 App 里用 ChatGPT 额度(需要 Plus 或 Pro,并且所在地区和账号设置允许)。${if (e.detail.isEmpty()) "" else "服务端说明:${quoted(e.detail)}。"}可以换一个模型。"
-    is ModelError.SignInExpired -> "${e.account} 登录已失效,请在设置 › 模型里重新用 ${e.account} 登录。"
+        "This account cannot use its ChatGPT quota in other apps (needs Plus or Pro, and your region and account settings must allow it). ${if (e.detail.isEmpty()) "" else "Server note: ${quoted(e.detail)}. "}You can switch to another model."
+    is ModelError.SignInExpired -> "Your ${e.account} sign-in has expired. Sign in with ${e.account} again in Settings › Model."
     is ModelError.AccountPlanNotAllowed ->
-        "你的 ${e.account} 订阅档位不能用这个接口(HTTP 403)。${if (e.detail.isEmpty()) "" else "服务端说明:${quoted(e.detail)}。"}可以改用 ${e.account} 的 API Key,或在设置 › 模型里换一个模型。"
+        "Your ${e.account} subscription tier cannot use this endpoint (HTTP 403). ${if (e.detail.isEmpty()) "" else "Server note: ${quoted(e.detail)}. "}Use a ${e.account} API key instead, or pick another model in Settings › Model."
 }
 
 /** 引在句中的服务端原话:去掉末尾一个句号(原话自带的),由引它的句子补上自己的「。」;省略号(截短的「…」、「...」)不动。 */

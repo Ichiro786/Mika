@@ -37,14 +37,14 @@ internal class CallTelecomAccess(private val context: Context) {
         runCatching { telecom?.hasManageOngoingCallsPermission() == true }.getOrDefault(false)
 
     fun prepare(shell: IMikaShell): String? {
-        if (!supported) return "电话伴侣模式需要 Android 12 及以上、主用户及运营商通话功能"
+        if (!supported) return "Phone companion mode requires Android 12 or later, the primary user and cellular calling"
         if (!hasPhonePermissions()) return AppLanguage.resources(context).getString(R.string.orbit_call_system_permission)
-        val original = readOp(shell) ?: return "无法读回电话权限状态"
+        val original = readOp(shell) ?: return "Could not read back the phone permission state"
         val systemDialer = runCatching { telecom?.defaultDialerPackage }.getOrNull()
-            ?: return "无法读回系统默认拨号器"
+            ?: return "Could not read back the default dialer"
         val restoreOp = journal.getString(PREVIOUS_OP, null)
         if (original != "allow") {
-            if (!journal.edit().putString(PREVIOUS_OP, original).commit()) return "无法保存电话权限还原信息"
+            if (!journal.edit().putString(PREVIOUS_OP, original).commit()) return "Could not save phone permission restore info"
             val change = command(shell, "cmd appops set --user $user $pkg MANAGE_ONGOING_CALLS allow")
             if (change != CallTelecomCommandOutcome.OK || readOp(shell) != "allow" || !managePermission()) {
                 rollback(shell)
@@ -58,20 +58,20 @@ internal class CallTelecomAccess(private val context: Context) {
         if (original != "allow" || restoreOp != null || journal.getBoolean(COMPANION, false)) {
             if (!journal.edit().putBoolean(COMPANION, true).commit()) {
                 rollback(shell)
-                return "无法保存电话伴侣还原信息"
+                return "Could not save phone companion restore info"
             }
             if (command(shell, "cmd telecom add-or-remove-call-companion-app $pkg 1") != CallTelecomCommandOutcome.OK) {
                 rollback(shell)
-                return "此系统未接受电话伴侣注册"
+                return "This system did not accept the phone companion registration"
             }
         }
         if (runCatching { telecom?.defaultDialerPackage }.getOrNull() != systemDialer) {
             rollback(shell)
-            return "系统默认拨号器发生变化，已停止配置"
+            return "The default dialer changed; setup stopped"
         }
         if (!journal.edit().putString(PREPARED, boot).commit()) {
             rollback(shell)
-            return "无法保存电话伴侣配置"
+            return "Could not save phone companion settings"
         }
         currentBootPrepared = true
         return null
@@ -128,8 +128,8 @@ internal enum class CallTelecomCommandOutcome {
 
     val appOpsFailureMessage: String
         get() = when (this) {
-            SHELL_APP_OPS_DENIED -> "系统限制 ADB 修改通话管理权限（缺少 MANAGE_APP_OPS_MODES），无法启用电话伴侣"
-            else -> "系统未授予管理通话权限"
+            SHELL_APP_OPS_DENIED -> "The system blocks ADB from changing call management permission (MANAGE_APP_OPS_MODES missing), so phone companion cannot be enabled"
+            else -> "The system did not grant call management permission"
         }
 
     companion object {

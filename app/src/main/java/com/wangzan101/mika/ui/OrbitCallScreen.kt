@@ -9,7 +9,14 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -41,6 +48,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -124,7 +133,8 @@ internal fun OrbitCallScreen(
                 }
                 micOk -> LiveCall(vm, check, voice, note)
             }
-            HangUp(Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp), onEnd)
+            // Sits well above the gesture bar: insets can read as zero inside the full-screen dialog, so keep a generous floor.
+            HangUp(Modifier.align(Alignment.BottomCenter).padding(bottom = 92.dp), onEnd)
         }
     }
 }
@@ -188,7 +198,7 @@ private fun CallBody(phase: CallPhase, note: String?) {
         else -> PresenceState.Idle
     }
     Column(
-        Modifier.fillMaxSize().padding(horizontal = 28.dp).padding(top = 72.dp, bottom = 160.dp),
+        Modifier.fillMaxSize().padding(horizontal = 28.dp).padding(top = 72.dp, bottom = 196.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(stringResource(R.string.orbit_call_orbit_title), style = MikaType.Title, color = Color.White)
@@ -202,7 +212,10 @@ private fun CallBody(phase: CallPhase, note: String?) {
             Text(note, style = MikaType.Caption, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
         }
         Spacer(Modifier.weight(1f))
-        MikaPresenceAvatar(Modifier.size(196.dp).graphicsLayer { scaleX = pulse; scaleY = pulse }, state = presence, dark = true)
+        Box(contentAlignment = Alignment.Center) {
+            CallGlow(presence, level)
+            MikaPresenceAvatar(Modifier.size(196.dp).graphicsLayer { scaleX = pulse; scaleY = pulse }, state = presence, dark = true)
+        }
         Spacer(Modifier.weight(1f))
         val words = when (val p = phase) {
             is CallPhase.Listening -> p.heard
@@ -218,6 +231,41 @@ private fun CallBody(phase: CallPhase, note: String?) {
             )
         }
     }
+}
+
+/**
+ * A soft light behind the logo: a radial gradient that fades into the black, breathing slowly and
+ * brightening with the voice. Its colour follows what Orbit is doing. Still when reduced motion is on.
+ */
+@Composable
+private fun CallGlow(presence: PresenceState, level: Float) {
+    val tint = when (presence) {
+        PresenceState.Listening -> Color(0xFF8FB4FF)
+        PresenceState.Working -> Color(0xFFE8E4FF)
+        PresenceState.Thinking -> Color(0xFFB9A8FF)
+        PresenceState.NeedsUser -> Color(0xFFFFB35C)
+        PresenceState.Error -> Color(0xFFFF6B5E)
+        else -> Color(0xFFCFD6E6)
+    }
+    val color by animateColorAsState(tint, tween(600), label = "glowTint")
+    val still = MikaTheme.reduceMotion
+    val breath = if (still) 0.5f else rememberInfiniteTransition(label = "glow").animateFloat(
+        0f, 1f, infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "glowBreath",
+    ).value
+    val strength = 0.26f + 0.10f * breath + 0.22f * level.coerceIn(0f, 1f)
+    Box(
+        Modifier.size(380.dp).drawBehind {
+            drawCircle(
+                Brush.radialGradient(
+                    0f to color.copy(alpha = strength),
+                    0.45f to color.copy(alpha = strength * 0.35f),
+                    1f to Color.Transparent,
+                    center = center,
+                    radius = size.minDimension / 2f,
+                ),
+            )
+        },
+    )
 }
 
 private fun phaseLabel(phase: CallPhase): Int = when (phase) {

@@ -63,7 +63,7 @@ class ResFileTexts(folder: String, private val locale: Locale) : UiTexts {
         val english: ResFileTexts by lazy { ResFileTexts("values", Locale.ENGLISH) }
 
         fun resFiles(folder: String): List<File> =
-            (File("src/main/res/$folder").listFiles { f -> f.name.startsWith("strings") && f.name.endsWith(".xml") } ?: emptyArray())
+            (File(if (folder.startsWith("values-zh") || folder.startsWith("values-b+zh")) "src/test/zh-res/$folder" else "src/main/res/$folder").listFiles { f -> f.name.startsWith("strings") && f.name.endsWith(".xml") } ?: emptyArray())
                 .sortedBy { it.name }
 
         private fun names(cls: Class<*>): Map<Int, String> = cls.fields.associate { it.getInt(null) to it.name }

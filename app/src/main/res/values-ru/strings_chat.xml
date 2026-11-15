@@ -54,7 +54,7 @@
         <item quantity="many">%1$d предыдущих шагов</item>
         <item quantity="other">%1$d предыдущего шага</item>
     </plurals>
-    <string name="chat_background_note">Работает в фоне: пользуйтесь телефоном как обычно. Нажмите на маленькое окно, чтобы увеличить его.</string>
+    <string name="chat_background_note">Работает в фоне, продолжайте пользоваться телефоном. Нажмите на плашку над полем сообщения, чтобы смотреть вживую.</string>
     <string name="chat_placeholder_busy">Дополните или измените детали…</string>
     <string name="chat_placeholder_answer">Ответьте на вопрос Orbit</string>
     <string name="chat_placeholder_more">Добавьте что-нибудь…</string>
@@ -281,7 +281,7 @@
     <string name="pip_back">Назад на виртуальном экране</string>
     <string name="pip_reopen">Показать экран</string>
     <string name="pip_closed_needs_you">Нужны вы</string>
-    <string name="pip_closed_hint">Закрыто для этой задачи. Нажмите «Показать экран» справа внизу или откройте «Фоновые экраны» в боковом меню.</string>
+    <string name="pip_closed_hint">Закрыто для этой задачи. Нажмите «Показать экран» над полем сообщения или откройте «Фоновые экраны» в боковом меню.</string>
     <string name="chat_conversation_tokens">Этот чат: %1$s</string>
     <string name="chat_conversation_tokens_partial">Этот чат: не меньше %1$s</string>
     <string name="follow_up_steer">Направить</string>
@@ -311,4 +311,6 @@
         <item quantity="many">%1$d не архивировано</item>
         <item quantity="other">%1$d не архивированы</item>
     </plurals>
+    <string name="pip_step">Шаг %1$d</string>
+    <string name="pip_swipe_hide">Смахните вниз, чтобы скрыть</string>
 </resources>

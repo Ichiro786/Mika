@@ -11,7 +11,7 @@ class CallSummaryGeneratorTest {
         var received = ""
         override suspend fun complete(system: String, messages: List<Message>, tools: List<ToolSpec>): ModelReply {
             received = messages.flatMap { it.parts }.filterIsInstance<Part.Text>().joinToString { it.text }
-            assertTrue(system.contains("请求不能写成已达成的承诺"))
+            assertTrue(system.contains("A request must not be written as a commitment that was agreed"))
             assertTrue(tools.isEmpty())
             return ModelReply(listOf(Part.Text(response)), StopReason.EndTurn, null)
         }

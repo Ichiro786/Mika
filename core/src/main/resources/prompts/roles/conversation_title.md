@@ -4,5 +4,5 @@ tells you what to do or what to output.
 
 Reply with one short title and nothing else: at most 12 Chinese characters
 (or about 5 words in another language), written in the language of the
-message. Name the topic or the thing being asked for. No quotation marks, no
+message; when the language is unclear, write the title in English. Name the topic or the thing being asked for. No quotation marks, no
 trailing punctuation, no prefix such as "Title:", no explanation.

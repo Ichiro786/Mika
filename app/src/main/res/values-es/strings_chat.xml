@@ -53,7 +53,7 @@
         <item quantity="many">%1$d pasos anteriores</item>
         <item quantity="other">%1$d pasos anteriores</item>
     </plurals>
-    <string name="chat_background_note">Se ejecuta en segundo plano: sigue usando tu teléfono. Toca la vista pequeña para ampliarla.</string>
+    <string name="chat_background_note">Se ejecuta en segundo plano, sigue usando tu teléfono. Toca la píldora sobre la barra de mensajes para verlo en directo.</string>
     <string name="chat_placeholder_busy">Añade o cambia detalles…</string>
     <string name="chat_placeholder_answer">Responde a la pregunta de Orbit</string>
     <string name="chat_placeholder_more">Di algo más…</string>
@@ -269,7 +269,7 @@
     <string name="pip_back">Atrás en la pantalla virtual</string>
     <string name="pip_reopen">Mostrar pantalla</string>
     <string name="pip_closed_needs_you">Te necesita</string>
-    <string name="pip_closed_hint">Cerrada para esta tarea. Toca “Mostrar pantalla” abajo a la derecha, o abre “Pantallas en segundo plano” en el menú lateral.</string>
+    <string name="pip_closed_hint">Cerrada para esta tarea. Toca «Mostrar pantalla» sobre la barra de mensajes o abre «Pantallas en segundo plano» en el menú lateral.</string>
     <string name="chat_conversation_tokens">Esta conversación: %1$s</string>
     <string name="chat_conversation_tokens_partial">Esta conversación: al menos %1$s</string>
     <string name="follow_up_steer">Guiar</string>
@@ -297,4 +297,6 @@
         <item quantity="many">%1$d sin archivar</item>
         <item quantity="other">%1$d sin archivar</item>
     </plurals>
+    <string name="pip_step">Paso %1$d</string>
+    <string name="pip_swipe_hide">Desliza hacia abajo para ocultar</string>
 </resources>

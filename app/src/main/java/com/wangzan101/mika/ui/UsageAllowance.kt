@@ -82,10 +82,10 @@ private fun AllowanceRow(
                     store.allowanceKey(provider, revision)?.takeIf { it.isNotBlank() }?.let { allowanceClient.query(source, it) }
                 }
             } catch (error: ModelError) {
-                Log.w("MikaAllowance", "查询服务商额度失败（${source.name}，${error.javaClass.simpleName}）")
+                Log.w("MikaAllowance", "Provider allowance lookup failed (${source.name}, ${error.javaClass.simpleName})")
                 null
             } catch (_: IllegalArgumentException) {
-                Log.w("MikaAllowance", "服务商额度请求无效（${source.name}）")
+                Log.w("MikaAllowance", "Provider allowance request invalid (${source.name})")
                 null
             }
             // 列表和密钥版本可能已更新，但界面还没来得及重组。

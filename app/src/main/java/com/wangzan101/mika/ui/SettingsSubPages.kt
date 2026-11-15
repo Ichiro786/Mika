@@ -669,8 +669,6 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
 fun languageLabel(l: AppLanguage): String = stringResource(
     when (l) {
         AppLanguage.System -> R.string.language_system
-        AppLanguage.SimplifiedChinese -> R.string.language_simplified_chinese
-        AppLanguage.TraditionalChinese -> R.string.language_traditional_chinese
         AppLanguage.Arabic -> R.string.language_arabic
         AppLanguage.Persian -> R.string.language_persian
         AppLanguage.English -> R.string.language_english

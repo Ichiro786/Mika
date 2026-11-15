@@ -52,7 +52,7 @@
         <item quantity="one">%1$d earlier step</item>
         <item quantity="other">%1$d earlier steps</item>
     </plurals>
-    <string name="chat_background_note">Running in the background — keep using your phone. Tap the small view to enlarge it.</string>
+    <string name="chat_background_note">Running in the background, keep using your phone. Tap the pill above the message bar to watch it live.</string>
     <string name="chat_placeholder_busy">Add or change details…</string>
     <string name="chat_placeholder_answer">Answer Orbit’s question</string>
     <string name="chat_placeholder_more">Say something more…</string>
@@ -257,7 +257,7 @@
     <string name="pip_back">Back on the virtual screen</string>
     <string name="pip_reopen">Show screen</string>
     <string name="pip_closed_needs_you">Needs you</string>
-    <string name="pip_closed_hint">Closed for this task. Tap “Show screen” at the bottom right, or open “Background screens” in the side menu.</string>
+    <string name="pip_closed_hint">Closed for this task. Tap “Show screen” above the message bar, or open “Background screens” in the side menu.</string>
     <string name="chat_conversation_tokens">This chat: %1$s</string>
     <string name="chat_conversation_tokens_partial">This chat: at least %1$s</string>
     <string name="follow_up_steer">Steer</string>
@@ -283,4 +283,6 @@
         <item quantity="one">%1$d not archived</item>
         <item quantity="other">%1$d not archived</item>
     </plurals>
+    <string name="pip_step">Step %1$d</string>
+    <string name="pip_swipe_hide">Swipe down to hide</string>
 </resources>

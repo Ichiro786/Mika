@@ -149,13 +149,6 @@ object UsageCopy {
     fun tokens(n: Long): String {
         if (n < 10_000) return n.toString()
         val wan = round3(BigDecimal(n).divide(BigDecimal(10_000)))
-        val locale = uiLocale()
-        if (locale.language == "zh") {
-            val hant = locale.script == "Hant"
-            if (wan < BigDecimal(10_000)) return "${wan.stripTrailingZeros().toPlainString()} ${if (hant) "萬" else "万"}"
-            val yi = round3(BigDecimal(n).divide(BigDecimal(100_000_000)))
-            return "${yi.stripTrailingZeros().toPlainString()} ${if (hant) "億" else "亿"}"
-        }
         // 英文按千、百万、十亿写:12.3K、1.5M
         for ((unit, size) in listOf("K" to 1_000L, "M" to 1_000_000L, "B" to 1_000_000_000L)) {
             val v = round3(BigDecimal(n).divide(BigDecimal(size)))

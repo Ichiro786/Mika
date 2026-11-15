@@ -54,6 +54,6 @@ class ModelJsonTest {
         // 两次都读不出:没能核实,原因照实说
         val bad = Verifier(FakeModel(reply("通过"), reply("还是通过")), null).verify("看电量", criteria, "电量 86%\n依据: 「电量 86%」", ev)
         assertEquals(Verdict.CannotVerify, bad.verdict)
-        assertEquals("核查器的回复无法解析", bad.reason)
+        assertEquals("The verifier's reply could not be parsed", bad.reason)
     }
 }

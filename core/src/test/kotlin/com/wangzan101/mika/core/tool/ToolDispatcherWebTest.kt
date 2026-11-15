@@ -497,8 +497,8 @@ class ToolDispatcherWebTest {
         val label = apps.first().jsonObject.s("label")
         t.execute(call("phone_launch_app", """{"package":"$pkg"}"""))
         val ev = t.evidence()
-        assertTrue(ev.read(ObsKind.Fact).toString(), ev.read(ObsKind.Fact).any { "网页标题「Example Domain」" in it && "https://example.com/" in it })
-        assertTrue(ev.read(ObsKind.Fact).toString(), ev.read(ObsKind.Fact).any { "phone_launch_app 打开了 $pkg" in it && label in it })
+        assertTrue(ev.read(ObsKind.Fact).toString(), ev.read(ObsKind.Fact).any { "page title \"Example Domain\"" in it && "https://example.com/" in it })
+        assertTrue(ev.read(ObsKind.Fact).toString(), ev.read(ObsKind.Fact).any { "phone_launch_app opened $pkg" in it && label in it })
         assertTrue(ev.sources(ev.ledger.all).any { "Example Domain" in it })
     }
 

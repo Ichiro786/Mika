@@ -403,9 +403,9 @@ class McpServerStore(
         McpHealth(false, e.message ?: e.javaClass.simpleName, emptyList(), System.currentTimeMillis())
 
     private fun oauthPage(ok: Boolean): String = if (ok) {
-        "<html><body><h3>Mika: 登录成功</h3><p>Sign-in complete. You can return to Mika.</p></body></html>"
+        "<html><body><h3>Orbit: Signed in</h3><p>Sign-in complete. You can return to Orbit.</p></body></html>"
     } else {
-        "<html><body><h3>Mika: 登录失败</h3><p>Sign-in failed. Return to Mika and try again.</p></body></html>"
+        "<html><body><h3>Orbit: Sign-in failed</h3><p>Sign-in failed. Return to Orbit and try again.</p></body></html>"
     }
 
     private fun loadServers(): List<McpServerConfig> = runCatching {

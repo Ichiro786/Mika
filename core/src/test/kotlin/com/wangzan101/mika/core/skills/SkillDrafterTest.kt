@@ -111,7 +111,7 @@ class SkillDrafterTest {
         assertTrue(lines.all { it.where == "com.tencent.mm" })
         assertEquals(false, lines.last().changed)
         val text = ActionDigest.render(lines)
-        assertTrue(text.contains("<输入内容>"))
+        assertTrue(text.contains("<typed text>"))
         assertFalse(text.contains("明天回家吃饭"))
         assertFalse(text.contains("张三"))
         assertEquals(2, ActionDigest.of(runEvents(), TOOLS, maxLines = 2).size)
@@ -141,7 +141,7 @@ class SkillDrafterTest {
         assertFalse(request.contains("老妈"))
         assertFalse(request.contains("明天回家吃饭"))
         assertTrue(request.contains("目标:给『<参数>』发『<参数>』"))
-        assertTrue(request.contains("<输入内容>"))
+        assertTrue(request.contains("<typed text>"))
         assertTrue(request.contains("tap 「搜索」"))
         assertTrue(model.offeredTools.single().isEmpty())
     }

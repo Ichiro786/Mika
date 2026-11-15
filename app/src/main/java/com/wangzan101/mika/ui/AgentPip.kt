@@ -1,119 +1,106 @@
 package com.wangzan101.mika.ui
 
-import com.wangzan101.mika.R
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.platform.LocalContext
-import android.view.Display
-import android.util.DisplayMetrics
-import android.hardware.display.DisplayManager
-import android.content.Context
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateColorAsState
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
-import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.semantics.Role
-import com.wangzan101.mika.ui.theme.MikaType
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.wangzan101.mika.ui.PipPhysics.Corner
+import com.wangzan101.mika.R
 import com.wangzan101.mika.cap.phone.display.PipInput
+import com.wangzan101.mika.ui.components.floatShadow
+import com.wangzan101.mika.ui.theme.MikaIcons
+import com.wangzan101.mika.ui.theme.MikaTheme
+import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
-import com.wangzan101.mika.ui.theme.MikaTheme
-import com.wangzan101.mika.ui.theme.MikaIcons
-import com.wangzan101.mika.ui.components.floatShadow
-import androidx.compose.ui.unit.Dp
-
-/** 小窗宽度:收起 / 展开。高度按画面(没有画面时按主屏)的长宽比算,整屏完整显示、不裁底部。 */
-private val CollapsedWidth = 96.dp
-private val ExpandedWidth = 220.dp
-
-/** 主屏的高宽比(按真实像素,含系统栏):虚拟屏按主屏尺寸建,还没有画面时小窗先按它定大小。 */
-private fun mainScreenAspect(context: Context): Float {
-    val m = DisplayMetrics()
-    context.getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY)?.getRealMetrics(m)
-    return if (m.widthPixels > 0 && m.heightPixels > 0) m.heightPixels.toFloat() / m.widthPixels else DEFAULT_ASPECT
-}
-
-private const val DEFAULT_ASPECT = 2.2f
-private val Ease = CubicBezierEasing(0.2f, 0.8f, 0.2f, 1f)
 
 /**
- * 悬浮画中画:盖在对话上,只显示 Agent 虚拟屏的实时画面,只看不点;上面不放文字和按钮,要你做的事都在对话卡片里。
- * 状态只靠边框光:干活中细绿边,需要你时橙色呼吸光晕(接管开始时由 [ChatViewModel] 自动展开)。
- * 平时停在右下角、输入栏上方,不挡顶栏和最新的消息。
- * 拖动 1:1 跟手;松手按速度投射落点吸到最近的角(临界阻尼弹簧,见 [PipPhysics]);
- * 点一下展开,点 × 或外面收起;需要你时点一下交给 [onAttention](收起并滚到那张卡片)。
- * 展开时左上角「关掉小画面」([onClose]):这个任务结束前只剩右下角一个小按钮([PipUi.closed]),
- * 点它再打开([onReopen]);要你处理时小按钮变橙色、呼吸,点它同样交给 [onAttention]。
- * [reduceMotion] 时(系统关了动画)不做弹簧、缩放和呼吸,直接到位。
- * [topInset]/[bottomInset] 是顶栏和输入框占的像素高度,小窗不会停在它们下面。
+ * How a running task shows while Orbit works in the background. Nothing floats over the chat any more:
+ * - a small frosted pill docks centred above the message bar, with a tiny live thumbnail, a live dot,
+ *   what Orbit is doing ([label]) and the step count and time;
+ * - tapping it ([onExpand]) springs open a frosted live-view sheet with the whole virtual screen and
+ *   Hide / Stop (plus "I'll handle it" when Orbit needs you); swipe the sheet down or tap outside to hide it;
+ * - when Orbit needs you the pill turns amber and breathes, and tapping it goes to the question ([onAttention]);
+ * - after [onClose] only a small "Show screen" chip stays in the same place until the task ends.
+ * [reduceMotion] turns off the springs, slides and breathing.
+ * [bottomInset] is the height of the message bar in pixels; the pill sits just above it.
+ * [topInset] is kept for callers and no longer used for placement.
  */
 @Composable
 fun AgentPip(
     pip: PipUi,
     frame: Bitmap?,
     webContent: Boolean,
-    /** 小窗直接操作的口子(点/滑/返回注入到虚拟屏);屏没建好或任务结束时为 null。 */
+    /** Lets the user tap and swipe on the virtual screen inside the live view; null while there is none. */
     pipInput: PipInput? = null,
-    /** 用户在设置里开了「允许我在小窗里直接操作」。 */
+    /** The user turned on "let me operate the small view directly" in Settings. */
     operateEnabled: Boolean = false,
     reduceMotion: Boolean,
     topInset: Float,
@@ -124,49 +111,298 @@ fun AgentPip(
     onClose: () -> Unit = {},
     onReopen: () -> Unit = {},
     onUnmute: () -> Unit = {},
+    /** What Orbit is doing right now, in the user's words ("Reading BBVM 12th PCM"). */
+    label: String = "",
+    /** Steps taken so far; 0 hides the count. */
+    steps: Int = 0,
+    /** When the task started (epoch ms); 0 hides the clock. */
+    startedAt: Long = 0L,
+    /** Stop the task; null hides the button. */
+    onStop: (() -> Unit)? = null,
+    /** Take over the step Orbit is waiting on; shown only while it needs you. */
+    onTakeControl: (() -> Unit)? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val fade = if (reduceMotion) tween<Float>(150) else tween(300)
-        // 关掉了:只留右下角的小按钮(任务做完那几秒不留)
+        val density = LocalDensity.current
+        val bottom = with(density) { bottomInset.toDp() }
+        val fade = tween<Float>(if (reduceMotion) 150 else 260)
+        val needsYou = pip.mode == PipMode.NeedsYou
+        val elapsed = rememberElapsed(startedAt)
+        val meta = listOfNotNull(
+            steps.takeIf { it > 0 }?.let { stringResource(R.string.pip_step, it) },
+            elapsed?.let { ChatCopy.clock(it) },
+        ).joinToString(" · ")
+
+        // Closed for this task: only a small chip stays where the pill was (not during the last seconds of a finished task)
         AnimatedVisibility(
-            pip.visible && pip.closed && pip.mode != PipMode.Done, Modifier.align(Alignment.BottomEnd),
+            pip.visible && pip.closed && pip.mode != PipMode.Done, Modifier.align(Alignment.BottomCenter),
             enter = fadeIn(fade), exit = fadeOut(fade),
         ) {
-            val bottom = with(LocalDensity.current) { bottomInset.toDp() }
-            ClosedPip(pip.mode == PipMode.NeedsYou, reduceMotion, Modifier.padding(end = 12.dp, bottom = bottom + 12.dp), onReopen, onAttention)
+            ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + 10.dp), onReopen, onAttention)
         }
+
+        val springIn = if (reduceMotion) fadeIn(fade) else
+            fadeIn(fade) + scaleIn(spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow), initialScale = 0.7f) +
+                slideInVertically(spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) { it }
+        val springOut = if (reduceMotion) fadeOut(fade) else fadeOut(fade) + scaleOut(tween(200), targetScale = 0.85f)
+        AnimatedVisibility(
+            pip.visible && !pip.closed && !pip.expanded, Modifier.align(Alignment.BottomCenter),
+            enter = springIn, exit = springOut,
+        ) {
+            AgentPill(
+                mode = pip.mode,
+                frame = frame,
+                title = if (needsYou) stringResource(R.string.pip_closed_needs_you) else label,
+                meta = if (needsYou) label else meta,
+                reduceMotion = reduceMotion,
+                modifier = Modifier.padding(bottom = bottom + 10.dp, start = 16.dp, end = 16.dp),
+                onClick = { if (needsYou) onAttention() else onExpand() },
+            )
+        }
+
+        // Live view: dimmed scrim (tap to hide) and a frosted sheet from the bottom
         AnimatedVisibility(pip.visible && !pip.closed && pip.expanded, enter = fadeIn(fade), exit = fadeOut(fade)) {
-            Box(Modifier.fillMaxSize().background(MikaTheme.colors.floatShadow.copy(alpha = 0.12f)).pointerInput(Unit) { detectTapGestures { onCollapse() } })
+            Box(
+                Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f))
+                    .pointerInput(Unit) { detectTapGestures { onCollapse() } },
+            )
         }
-        AnimatedVisibility(pip.visible && !pip.closed, enter = fadeIn(fade), exit = fadeOut(if (reduceMotion) tween(150) else tween(500))) {
-            PipWindow(
-                pip, frame, webContent, pipInput, operateEnabled, reduceMotion,
-                areaWidth = constraints.maxWidth.toFloat(), areaHeight = constraints.maxHeight.toFloat(),
-                topInset = topInset, bottomInset = bottomInset, onExpand = onExpand, onCollapse = onCollapse, onAttention = onAttention,
+        val sheetHeight = with(density) { (constraints.maxHeight * 0.78f).toDp() }
+        AnimatedVisibility(
+            pip.visible && !pip.closed && pip.expanded, Modifier.align(Alignment.BottomCenter),
+            enter = if (reduceMotion) fadeIn(fade) else
+                slideInVertically(spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { it } + fadeIn(fade),
+            exit = if (reduceMotion) fadeOut(fade) else slideOutVertically(tween(260)) { it } + fadeOut(fade),
+        ) {
+            LiveSheet(
+                pip = pip,
+                frame = frame,
+                pipInput = pipInput,
+                operateEnabled = operateEnabled,
+                reduceMotion = reduceMotion,
+                height = sheetHeight,
+                title = if (needsYou) stringResource(R.string.pip_closed_needs_you) else label,
+                meta = meta,
+                onCollapse = onCollapse,
                 onClose = onClose,
                 onUnmute = onUnmute,
+                onStop = onStop,
+                onTakeControl = if (needsYou) onTakeControl else null,
             )
         }
     }
 }
 
+/** Gentle breathing (1 → [low] → 1) for the needs-you glow; constant 1 with reduced motion or when [on] is false. */
+@Composable
+private fun breath(on: Boolean, reduceMotion: Boolean, low: Float, label: String): Float =
+    if (on && !reduceMotion) {
+        rememberInfiniteTransition(label = label).animateFloat(
+            1f, low, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = label,
+        ).value
+    } else 1f
+
+@Composable
+private fun AgentPill(
+    mode: PipMode,
+    frame: Bitmap?,
+    title: String,
+    meta: String,
+    reduceMotion: Boolean,
+    modifier: Modifier,
+    onClick: () -> Unit,
+) {
+    val c = MikaTheme.colors
+    val shape = RoundedCornerShape(50)
+    val needsYou = mode == PipMode.NeedsYou
+    val tone by animateColorAsState(
+        when (mode) {
+            PipMode.Running -> c.ok
+            PipMode.NeedsYou -> c.warnSolid
+            PipMode.Done -> c.ink3
+        },
+        tween(if (reduceMotion) 0 else 400), label = "pillTone",
+    )
+    val glow = breath(needsYou, reduceMotion, 0.35f, "pillBreath")
+    val live = breath(mode == PipMode.Running, reduceMotion, 0.45f, "pillLive")
+    Box(modifier) {
+        if (needsYou) {
+            // Soft amber halo behind the pill (no blur below Android 12, just a faint ring)
+            Box(
+                Modifier.matchParentSize().alpha(glow * 0.6f).blur(14.dp).background(c.warnSolid.copy(alpha = 0.45f), shape),
+            )
+        }
+        Row(
+            Modifier.widthIn(max = 320.dp)
+                .floatShadow(c, shape)
+                .background(c.glass, shape)
+                .border(if (needsYou) 1.dp else 0.5.dp, if (needsYou) c.warnSolid.copy(alpha = 0.4f + 0.4f * glow) else c.glassEdge, shape)
+                .clip(shape)
+                .clickable(role = Role.Button, onClick = onClick)
+                .alpha(if (mode == PipMode.Done) 0.85f else 1f)
+                .padding(start = 5.dp, end = 14.dp, top = 5.dp, bottom = 5.dp)
+                .testTag("pip-pill"),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            val thumb = RoundedCornerShape(9.dp)
+            Box(
+                Modifier.size(28.dp).clip(thumb).background(c.surface).border(1.5.dp, tone.copy(alpha = 0.55f), thumb),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (frame != null) {
+                    val image = remember(frame) { frame.asImageBitmap() }
+                    Image(image, null, Modifier.fillMaxSize(), contentScale = ContentScale.Crop, alignment = Alignment.TopCenter)
+                } else {
+                    Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)
+                }
+            }
+            Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
+            if (title.isNotBlank()) {
+                Text(
+                    title, style = MikaType.Label, color = if (needsYou) c.warn else c.ink, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f, fill = false),
+                )
+            }
+            if (meta.isNotBlank()) {
+                Text(meta, style = MikaType.Hint, color = c.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LiveSheet(
+    pip: PipUi,
+    frame: Bitmap?,
+    pipInput: PipInput?,
+    operateEnabled: Boolean,
+    reduceMotion: Boolean,
+    height: Dp,
+    title: String,
+    meta: String,
+    onCollapse: () -> Unit,
+    onClose: () -> Unit,
+    onUnmute: () -> Unit,
+    onStop: (() -> Unit)?,
+    onTakeControl: (() -> Unit)?,
+) {
+    val c = MikaTheme.colors
+    val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+    val drag = remember { Animatable(0f) }
+    val hideAt = with(density) { 120.dp.toPx() }
+    val dragState = rememberDraggableState { delta -> scope.launch { drag.snapTo((drag.value + delta).coerceAtLeast(0f)) } }
+    val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val needsYou = pip.mode == PipMode.NeedsYou
+    val tone = if (needsYou) c.warnSolid else c.ok
+    val glow = breath(needsYou, reduceMotion, 0.5f, "sheetBreath")
+    val swipeHint = stringResource(R.string.pip_swipe_hide)
+    // Taps and swipes go to the virtual screen only when the user allowed it and the screen is live
+    val operateInput = pipInput.takeIf { operateEnabled && frame != null }
+
+    Column(
+        Modifier.fillMaxWidth().height(height)
+            .offset { IntOffset(0, drag.value.roundToInt()) }
+            .floatShadow(c, shape)
+            .background(c.glass, shape)
+            .border(0.5.dp, c.glassEdge, shape)
+            .clip(shape)
+            // Swallow taps so they don't reach the scrim behind
+            .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
+            .padding(start = 14.dp, end = 14.dp, top = 10.dp)
+            .padding(bottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() } + 12.dp)
+            .testTag("pip-sheet"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        // Grab handle and header: drag down to hide
+        Column(
+            Modifier.fillMaxWidth()
+                .draggable(
+                    dragState, Orientation.Vertical,
+                    onDragStopped = { v ->
+                        if (drag.value > hideAt || v > 1800f) onCollapse()
+                        scope.launch { if (reduceMotion) drag.snapTo(0f) else drag.animateTo(0f, spring(dampingRatio = 0.7f)) }
+                    },
+                )
+                .semantics { contentDescription = swipeHint },
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Box(Modifier.align(Alignment.CenterHorizontally).size(width = 36.dp, height = 4.dp).background(c.ink3.copy(alpha = 0.6f), CircleShape))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(7.dp).alpha(glow).background(tone, CircleShape))
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    title, style = MikaType.BodyStrong, color = if (needsYou) c.warn else c.ink, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+                )
+                if (meta.isNotBlank()) Text(meta, style = MikaType.Caption, color = c.ink2, maxLines = 1)
+            }
+        }
+
+        // The live screen with a soft glow instead of a hard border
+        val liveShape = RoundedCornerShape(20.dp)
+        Box(Modifier.fillMaxWidth().weight(1f)) {
+            Box(Modifier.matchParentSize().padding(6.dp).alpha(0.5f * glow).blur(18.dp).background(tone.copy(alpha = 0.35f), liveShape))
+            BoxWithConstraints(
+                Modifier.matchParentSize().clip(liveShape).background(c.surface)
+                    .border(1.dp, tone.copy(alpha = 0.3f + 0.2f * glow), liveShape)
+                    .testTag("pip-window"),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (frame != null) {
+                    val image = remember(frame) { frame.asImageBitmap() }
+                    val fit = fittedSize(frame.width, frame.height, maxWidth, maxHeight)
+                    Box(
+                        Modifier.size(fit.first, fit.second).testTag("pip-frame")
+                            .then(if (operateInput != null) operateInputModifier(operateInput, scope) else Modifier),
+                    ) {
+                        Image(image, stringResource(R.string.pip_screen), Modifier.fillMaxSize(), contentScale = ContentScale.Fit)
+                    }
+                } else {
+                    Icon(MikaIcons.Screens, stringResource(R.string.pip_screen), Modifier.size(28.dp), tint = c.ink3)
+                }
+                Row(Modifier.align(Alignment.TopStart).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    if (operateInput != null) {
+                        PipButton(MikaIcons.Back, stringResource(R.string.pip_back), { scope.launch { operateInput.back() } }, "pip-back")
+                    }
+                    PipButton(MikaIcons.Sound, stringResource(R.string.pip_unmute), onUnmute, "pip-unmute")
+                    PipButton(MikaIcons.EyeOff, stringResource(R.string.pip_close), onClose, "pip-close")
+                }
+            }
+        }
+
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            if (onTakeControl != null) SheetAction(stringResource(R.string.action_take_over), c.warnSoft, c.warn, "pip-take-control", onTakeControl)
+            SheetAction(stringResource(R.string.hide), c.fill, c.ink, "pip-hide", onCollapse)
+            if (onStop != null) SheetAction(stringResource(R.string.chat_stop), c.badSoft, c.bad, "pip-stop", onStop)
+        }
+    }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.SheetAction(text: String, bg: Color, fg: Color, tag: String, onClick: () -> Unit) {
+    val shape = RoundedCornerShape(50)
+    Box(
+        Modifier.weight(1f).height(44.dp).clip(shape).background(bg, shape)
+            .clickable(role = Role.Button, onClick = onClick).testTag(tag),
+        contentAlignment = Alignment.Center,
+    ) { Text(text, style = MikaType.Label, color = fg, maxLines = 1, overflow = TextOverflow.Ellipsis) }
+}
+
 /**
- * 小画面关掉后剩下的小按钮:平时写「显示画面」,点了再打开;要你处理时橙色呼吸、写「等你处理」,
- * 点了滚到要你处理的那张卡片(小画面关着也不漏掉要你做的事)。
+ * After the preview is closed: a small chip in the pill's place. Normally "Show screen" (reopens);
+ * when Orbit needs you it turns amber, breathes and says "Needs you", and goes to the question.
  */
 @Composable
 private fun ClosedPip(needsYou: Boolean, reduceMotion: Boolean, modifier: Modifier, onReopen: () -> Unit, onAttention: () -> Unit) {
     val c = MikaTheme.colors
     val shape = RoundedCornerShape(50)
-    val breath = if (needsYou && !reduceMotion) {
-        rememberInfiniteTransition(label = "closedBreathe").animateFloat(
-            1f, 0.45f, infiniteRepeatable(tween(1000), RepeatMode.Reverse), label = "closedBreathe",
-        ).value
-    } else 1f
+    val glow = breath(needsYou, reduceMotion, 0.45f, "closedBreathe")
     val label = stringResource(if (needsYou) R.string.pip_closed_needs_you else R.string.pip_reopen)
     Row(
         modifier.floatShadow(c, shape).background(c.glass, shape)
-            .border(if (needsYou) 2.dp else 0.5.dp, if (needsYou) c.warnSolid.copy(alpha = breath) else c.glassEdge, shape)
+            .border(if (needsYou) 1.5.dp else 0.5.dp, if (needsYou) c.warnSolid.copy(alpha = glow) else c.glassEdge, shape)
             .clip(shape)
             .clickable(onClickLabel = label, role = Role.Button) { if (needsYou) onAttention() else onReopen() }
             .padding(horizontal = 12.dp, vertical = 8.dp)
@@ -174,287 +410,24 @@ private fun ClosedPip(needsYou: Boolean, reduceMotion: Boolean, modifier: Modifi
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (needsYou) Box(Modifier.size(7.dp).alpha(breath).background(c.warnSolid, CircleShape))
+        if (needsYou) Box(Modifier.size(7.dp).alpha(glow).background(c.warnSolid, CircleShape))
         else Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)
         Text(label, style = MikaType.Hint, color = if (needsYou) c.warn else c.ink2)
     }
 }
 
 @Composable
-private fun PipWindow(
-    pip: PipUi,
-    frame: Bitmap?,
-    webContent: Boolean,
-    pipInput: PipInput?,
-    operateEnabled: Boolean,
-    reduceMotion: Boolean,
-    areaWidth: Float,
-    areaHeight: Float,
-    topInset: Float,
-    bottomInset: Float,
-    onExpand: () -> Unit,
-    onCollapse: () -> Unit,
-    onAttention: () -> Unit,
-    onClose: () -> Unit,
-    onUnmute: () -> Unit,
-) {
-    val density = LocalDensity.current
-    var expandedScale by rememberSaveable { mutableStateOf(1f) }
-    var pinching by remember { mutableStateOf(false) }
-    val sizeSpec = if (reduceMotion || pinching) snap() else tween<androidx.compose.ui.unit.Dp>(350, easing = Ease)
-    // 大小跟着画面的长宽比走:手机游戏和桌面网页都可能横向,按固定的宽度定高度,
-    // 画面整张放得下;放不下时按比例整体缩小
-    val context = LocalContext.current
-    val screenAspect = remember { mainScreenAspect(context) }
-    val landscapeFrame = frame != null && frame.width > frame.height
-    val aspect = frame?.let { it.height.toFloat() / it.width } ?: screenAspect
-    val target = run {
-        val margin = with(density) { 24.dp.toPx() }
-        val availableWidth = with(density) { (areaWidth - margin).coerceAtLeast(1f).toDp() }
-        val availableHeight = with(density) { (areaHeight - topInset - bottomInset - margin).coerceAtLeast(1f).toDp() }
-        val base = when {
-            landscapeFrame -> if (pip.expanded) 320.dp else 220.dp
-            else -> if (pip.expanded) ExpandedWidth else CollapsedWidth
-        }
-        val inset = if (pip.expanded) 8.dp else 6.dp
-        val requested = base * if (pip.expanded) PipSizing.scale(expandedScale) else 1f
-        val fitted = with(density) { PipSizing.fit(requested.toPx(), aspect, availableWidth.toPx(), availableHeight.toPx(), inset.toPx()) }
-        with(density) { fitted.width.toDp() to fitted.height.toDp() }
-    }
-    val w by animateDpAsState(target.first, sizeSpec, label = "pipW")
-    val h by animateDpAsState(target.second, sizeSpec, label = "pipH")
-    val wPx = with(density) { w.toPx() }
-    val hPx = with(density) { h.toPx() }
-    // 收起的小窗让开顶栏和输入栏(别挡住打字和顶栏的按钮);展开时整块背景已经压暗、它们本来也点不到,
-    // 小窗改放到整屏、只让开系统栏,不再挤在中间一小块里挪。展开收起途中按同一个时长插值,跟着大小一起挪,不跳。
-    val collapsedShare by animateFloatAsState(
-        if (pip.expanded) 0f else 1f,
-        if (reduceMotion) snap() else tween<Float>(350, easing = Ease),
-        label = "pipInset",
-    )
-    val (restTop, restBottom) = PipPhysics.restingInsets(
-        collapsedTop = topInset,
-        collapsedBottom = bottomInset,
-        safeTop = WindowInsets.statusBars.getTop(density).toFloat(),
-        safeBottom = WindowInsets.navigationBars.getBottom(density).toFloat(),
-        collapsedShare = collapsedShare,
-    )
-    val bounds = PipPhysics.Bounds(areaWidth, areaHeight, wPx, hPx, with(density) { 12.dp.toPx() }, restTop, restBottom)
-    val currentBounds by rememberUpdatedState(bounds)
-    val motionOff by rememberUpdatedState(reduceMotion)
-    val expanded by rememberUpdatedState(pip.expanded)
-    val expand by rememberUpdatedState(onExpand)
-    val needsYou by rememberUpdatedState(pip.mode == PipMode.NeedsYou)
-    val attend by rememberUpdatedState(onAttention)
-
-    var corner by rememberSaveable { mutableStateOf(Corner.BottomEnd) }
-    // 拖动或弹簧途中的位置;为空表示贴在 corner 上(展开收起时跟着大小一起贴角)
-    var free by remember { mutableStateOf<Offset?>(null) }
-    val scope = rememberCoroutineScope()
-    var settle by remember { mutableStateOf<Job?>(null) }
-
-    /** 从 [start] 以速度 (vx, vy) 弹到角 [c];关了动画时直接到位。 */
-    fun springTo(c: Corner, start: Offset, vx: Float, vy: Float) {
-        settle?.cancel()
-        corner = c
-        if (motionOff) {
-            free = null
-            return
-        }
-        settle = scope.launch {
-            val spring = PipPhysics.Spring()
-            var mx = PipPhysics.Motion(start.x, vx)
-            var my = PipPhysics.Motion(start.y, vy)
-            var last = withFrameNanos { it }
-            while (true) {
-                val now = withFrameNanos { it }
-                val dt = (now - last) / 1e9f
-                last = now
-                val (tx, ty) = currentBounds.position(c)
-                mx = spring.step(mx, tx, dt)
-                my = spring.step(my, ty, dt)
-                free = Offset(mx.position, my.position)
-                if (spring.settled(mx, tx) && spring.settled(my, ty)) break
-            }
-            free = null
-        }
-    }
-
-    fun release(vx: Float, vy: Float) {
-        val start = free ?: return
-        springTo(PipPhysics.snapCorner(start.x, start.y, vx, vy, currentBounds), start, vx, vy)
-    }
-
-    // 完成时如果停在下方两个角,先挪到同侧上方,免得盖住刚出来的结果卡片
-    LaunchedEffect(pip.mode) {
-        if (pip.mode != PipMode.Done) return@LaunchedEffect
-        val up = when (corner) {
-            Corner.BottomStart -> Corner.TopStart
-            Corner.BottomEnd -> Corner.TopEnd
-            else -> return@LaunchedEffect
-        }
-        springTo(up, free ?: currentBounds.position(corner).let { (x, y) -> Offset(x, y) }, 0f, 0f)
-    }
-
-    val pos = free ?: bounds.position(corner).let { (x, y) -> Offset(x, y) }
-    val outer = RoundedCornerShape(if (pip.expanded) 26.dp else 16.dp)
-    val inner = RoundedCornerShape(if (pip.expanded) 22.dp else 13.dp)
-    val insetDp = if (pip.expanded) 4.dp else 3.dp
-    // 直接操作:开了开关、小窗展开、有画面、口子还活着时才把点/滑注入到虚拟屏
-    val operate = operateEnabled && pip.expanded && frame != null && pipInput != null
-    val operateInput = pipInput.takeIf { operate }
-    val breath = if (pip.mode == PipMode.NeedsYou && !reduceMotion) {
-        rememberInfiniteTransition(label = "breathe").animateFloat(
-            1f, 0.55f, infiniteRepeatable(tween(1000), RepeatMode.Reverse), label = "breathe",
-        ).value
-    } else 1f
-
-    Box(Modifier.offset { IntOffset(pos.x.roundToInt(), pos.y.roundToInt()) }) {
-        if (pip.mode == PipMode.NeedsYou) {
-            // 橙色光晕:比窗口大一圈,模糊后透出边缘(安卓 12 以下不模糊,只是一圈淡橙色)
-            Box(
-                Modifier.offset((-5).dp, (-5).dp).size(w + 10.dp, h + 10.dp).alpha(breath)
-                    .blur(10.dp).background(MikaTheme.colors.warnSolid.copy(alpha = 0.55f), outer),
-            )
-        }
-        Box(
-            Modifier.testTag("pip-window").size(w, h)
-                .alpha(if (pip.mode == PipMode.Done) 0.85f else 1f)
-                .floatShadow(MikaTheme.colors, outer)
-                .background(MikaTheme.colors.glass, outer)
-                .border(0.5.dp, MikaTheme.colors.glassEdge, outer)
-                .then(if (operate) Modifier else Modifier.pointerInput(Unit) {
-                    val tracker = VelocityTracker()
-                    // 自己数位移而不用 detectDragGestures:越过触摸阈值时把阈值内的那段也补上,
-                    // 窗口始终保持按下时的抓取位置,真正 1:1 跟手
-                    awaitEachGesture {
-                        val down = awaitFirstDown(requireUnconsumed = false)
-                        val origin = free ?: currentBounds.position(corner).let { (x, y) -> Offset(x, y) }
-                        var total = Offset.Zero
-                        var dragging = false
-                        var resized = false
-                        tracker.resetTracking()
-                        tracker.addPosition(down.uptimeMillis, origin + down.position)
-                        try {
-                            while (true) {
-                                val event = awaitPointerEvent()
-                                if (expanded && event.changes.count { it.pressed } >= 2) {
-                                    resized = true
-                                    pinching = true
-                                    settle?.cancel()
-                                    free = null
-                                    expandedScale = PipSizing.scale(expandedScale * event.calculateZoom())
-                                    event.changes.forEach { it.consume() }
-                                    continue
-                                }
-                                // Once a pinch starts, no remaining finger can become a drag or tap.
-                                if (resized) {
-                                    event.changes.forEach { it.consume() }
-                                    if (event.changes.none { it.pressed }) break
-                                    continue
-                                }
-                                val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                                if (!change.pressed) break
-                                total += change.positionChange()
-                                if (!dragging && total.getDistance() > viewConfiguration.touchSlop) {
-                                    dragging = true
-                                    settle?.cancel()
-                                }
-                                if (dragging) {
-                                    change.consume()
-                                    free = origin + total
-                                    tracker.addPosition(change.uptimeMillis, origin + down.position + total)
-                                }
-                            }
-                        } finally {
-                            pinching = false
-                        }
-                        if (dragging && !resized) tracker.calculateVelocity().let { v -> release(v.x, v.y) }
-                    }
-                })
-                .then(if (operate) Modifier else Modifier.pointerInput(Unit) { detectTapGestures { if (needsYou) attend() else if (!expanded) expand() } })
-                .padding(insetDp),
-        ) {
-            // 画面按长宽比塞满整个内框;直接操作时把点/滑按内框归一化坐标换算成虚拟屏坐标注入
-            Box(
-                Modifier.fillMaxSize().clip(inner).background(MikaTheme.colors.surface),
-                contentAlignment = Alignment.Center,
-            ) {
-                if (frame != null) {
-                    val image = remember(frame) { frame.asImageBitmap() }
-                    val fit = fittedSize(frame.width, frame.height, w - insetDp * 2, h - insetDp * 2)
-                    Box(
-                        Modifier.size(fit.first, fit.second).testTag("pip-frame")
-                            .then(if (operateInput != null) operateInputModifier(operateInput, scope) else Modifier),
-                    ) {
-                        Image(image, stringResource(R.string.pip_screen), Modifier.fillMaxSize(), alignment = Alignment.Center,
-                            contentScale = ContentScale.Fit)
-                    }
-                }
-            }
-            if (pip.expanded) {
-                Row(Modifier.align(Alignment.BottomEnd).padding(6.dp), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    PipSizeButton("−", stringResource(R.string.pip_size_smaller), "pip-size-smaller") {
-                        expandedScale = PipSizing.scale(expandedScale / 1.2f)
-                    }
-                    PipSizeButton("+", stringResource(R.string.pip_size_larger), "pip-size-larger") {
-                        expandedScale = PipSizing.scale(expandedScale * 1.2f)
-                    }
-                    PipSizeButton("↺", stringResource(R.string.pip_size_reset), "pip-size-reset") { expandedScale = 1f }
-                }
-                // 左上角:返回(直接操作时)、一次性恢复声音、关掉小画面;不伪造与真实音频无关的开关状态
-                Row(Modifier.align(Alignment.TopStart).padding(6.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    if (operateInput != null) {
-                        PipButton(
-                            icon = MikaIcons.Back,
-                            label = stringResource(R.string.pip_back),
-                            onClick = { scope.launch { operateInput.back() } },
-                            tag = "pip-back",
-                        )
-                    }
-                    PipButton(
-                        icon = MikaIcons.Sound,
-                        label = stringResource(R.string.pip_unmute),
-                        onClick = onUnmute,
-                        tag = "pip-unmute",
-                    )
-                    PipButton(
-                        icon = MikaIcons.EyeOff,
-                        label = stringResource(R.string.pip_close),
-                        onClick = onClose,
-                        tag = "pip-close",
-                    )
-                }
-                Box(
-                    Modifier.align(Alignment.TopEnd).padding(6.dp).size(26.dp)
-                        .floatShadow(MikaTheme.colors, CircleShape).background(MikaTheme.colors.glass, CircleShape).clip(CircleShape)
-                        .clickable(onClickLabel = stringResource(R.string.collapse), onClick = onCollapse),
-                    contentAlignment = Alignment.Center,
-                ) { Icon(MikaIcons.Close, stringResource(R.string.collapse), Modifier.size(12.dp), tint = MikaTheme.colors.ink) }
-            }
-        }
-        // 边框光画在玻璃框外沿
-        val glow = when (pip.mode) {
-            PipMode.Running -> MikaTheme.colors.ok to 2.dp
-            PipMode.NeedsYou -> MikaTheme.colors.warnSolid.copy(alpha = breath) to 2.dp
-            PipMode.Done -> null
-        }
-        if (glow != null) Box(Modifier.size(w, h).border(glow.second, glow.first, outer))
-    }
-}
-
-@Composable
 private fun PipButton(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, onClick: () -> Unit, tag: String) {
     Box(
-        Modifier.size(26.dp)
+        Modifier.size(32.dp)
             .floatShadow(MikaTheme.colors, CircleShape).background(MikaTheme.colors.glass, CircleShape).clip(CircleShape)
             .clickable(onClickLabel = label, onClick = onClick)
             .testTag(tag),
         contentAlignment = Alignment.Center,
-    ) { Icon(icon, label, Modifier.size(13.dp), tint = MikaTheme.colors.ink) }
+    ) { Icon(icon, label, Modifier.size(15.dp), tint = MikaTheme.colors.ink) }
 }
 
-/** 画面按长宽比塞进 innerW×innerH 后的尺寸(不裁、不拉伸),没画面或尺寸异常时退回整框。 */
+/** The frame fitted into innerW×innerH by aspect ratio (no crop, no stretch); the whole box when sizes are unknown. */
 private fun fittedSize(frameW: Int, frameH: Int, innerW: Dp, innerH: Dp): Pair<Dp, Dp> {
     if (frameW <= 0 || frameH <= 0) return innerW to innerH
     val a = frameW.toFloat() / frameH
@@ -462,7 +435,7 @@ private fun fittedSize(frameW: Int, frameH: Int, innerW: Dp, innerH: Dp): Pair<D
     return w to w / a
 }
 
-/** 直接操作时小窗画面的触摸:按下没动就点一下,动了就按走过的点滑一笔;坐标按这个框归一化到 0..1。 */
+/** Direct operation in the live view: a press without movement taps, a movement swipes along its points (0..1 in this box). */
 private fun operateInputModifier(input: PipInput, scope: CoroutineScope): Modifier = Modifier.pointerInput(input) {
     awaitEachGesture {
         val down = awaitFirstDown(requireUnconsumed = false)
@@ -488,16 +461,5 @@ private fun operateInputModifier(input: PipInput, scope: CoroutineScope): Modifi
             val duration = (lastUptime - down.uptimeMillis).coerceIn(80L, 600L)
             scope.launch { input.swipe(pts, duration) }
         }
-    }
-}
-
-/** Discrete controls also let a screen-reader user resize without a two-finger gesture. */
-@Composable
-private fun PipSizeButton(mark: String, label: String, tag: String, onClick: () -> Unit) {
-    Box(Modifier.size(26.dp).floatShadow(MikaTheme.colors, CircleShape)
-        .background(MikaTheme.colors.glass, CircleShape).clip(CircleShape)
-        .clickable(role = Role.Button, onClickLabel = label, onClick = onClick).testTag(tag),
-        contentAlignment = Alignment.Center) {
-        Text(mark, style = MikaType.Hint, color = MikaTheme.colors.ink)
     }
 }

@@ -1,16 +1,16 @@
-你替一个手机助手整理「以后还用得上的、关于用户本人的事」。你只看到用户在这次任务里亲口说的话(逐条编号)和与之相关的已有记忆(带编号),看不到手机屏幕。
+You collect "things worth remembering for later, about the user personally" for a phone assistant. You only see what the user said in their own words during this task (numbered, one per line) and the related existing memories (numbered). You cannot see the phone screen.
 
-只输出一个 JSON 对象,不要输出其他文字:
+Output a single JSON object and no other text:
 
 {"ops":[{"op":"add","kind":"preference","content":"…","keywords":["…"],"quote":"…"}]}
 
-- op:add(新记一条)、update(改一条已有记忆,target 填它的编号,如 "#2")、forget(删一条已有记忆,target 填编号)。最多 5 条;没有值得记的就给 {"ops":[]}。
-- kind:fact(关于用户的事实:家人怎么称呼、常用地址、手机号)、preference(用户的喜好与习惯)、procedure(用户要求以后都按某种方式做的事)。
-- content:一句话,第三人称,不超过 200 字,例如「用户点外卖不要香菜」。只写用户说过的内容,不要补充、推测。
-- keywords:最多 8 个检索词,包括同义说法(「外卖」「订餐」)。
-- quote:用户原话里支持这一条的那一段,一字不改地抄。
-- 只记以后的任务还用得上的、关于用户本人的稳定信息和习惯。这一次任务的参数不记(「这次买两份」「今天先寄到公司」)。
-- 用户新说的和已有记忆冲突时,用 update 改那一条,不要另记一条;这次临时的说法(「这次多放香菜」)不算冲突,不要 update。
-- 只有用户明确说「忘掉」「别记」「删掉」时才用 forget。
-- 不记密码、验证码、卡号、证件号这类信息。
-- content 和 keywords 用用户说话所用的语言写(用户说西班牙语就写西班牙语,说英语就写英语),不要因为这份说明是中文就写中文。
+- op: add (record a new one), update (change an existing memory; put its number in target, e.g. "#2"), forget (delete an existing memory; put its number in target). At most 5 ops; if nothing is worth remembering, give {"ops":[]}.
+- kind: fact (a fact about the user: how family members are addressed, a usual address, a phone number), preference (the user's likes and habits), procedure (something the user wants done a certain way from now on).
+- content: one sentence, third person, at most 200 characters, e.g. "The user does not want cilantro when ordering food". Write only what the user said; do not add or infer anything.
+- keywords: at most 8 search terms, including synonyms ("takeout", "food delivery").
+- quote: the part of the user's own words that supports this entry, copied verbatim.
+- Record only stable information and habits about the user that later tasks can still use. Do not record parameters of this one task ("two portions this time", "ship to the office today").
+- When what the user just said conflicts with an existing memory, use update on that one instead of adding another; a one-off statement ("extra cilantro this time") is not a conflict, so do not update.
+- Use forget only when the user explicitly says "forget it", "don't remember", or "delete it".
+- Never record passwords, verification codes, card numbers, ID numbers and the like.
+- Write content and keywords in the language of the user's words (Spanish if they spoke Spanish, English if English); when that is unclear, write in English.
