@@ -1,0 +1,9 @@
+#!/bin/sh
+# BROWSER stand-in: records Google's sign-in link for Orbit, which opens it in the phone's browser.
+# Never writes to stdout: the server's stdout is the ACP channel.
+exec </dev/null >/dev/null 2>&1
+case "${1:-}" in https://*) ;; *) exit 0 ;; esac
+umask 077
+mkdir -p /run/orbit
+printf '%s %s\n' "$(date +%s)" "$1" >/run/orbit/signin-url.tmp && mv -f /run/orbit/signin-url.tmp /run/orbit/signin-url
+exit 0

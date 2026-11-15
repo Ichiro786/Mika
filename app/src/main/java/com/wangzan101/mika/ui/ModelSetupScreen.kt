@@ -294,6 +294,7 @@ fun ModelSetupContent(ui: ModelSetupUi, onboarding: Boolean, actions: ModelSetup
                 } else {
                     RolesSection(ui, onPick, actions.setReasoningEffort, actions.openSpeech, actions.setModelContext)
                     ProvidersSection(ui, actions)
+                    GeminiPlanSection()
                     actions.openUsage?.let { openUsage ->
                         GroupCard {
                             ListRow(MikaIcons.Chart, UsageCopy.TITLE, first = true, onClick = openUsage) { RowChevron() }

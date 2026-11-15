@@ -616,7 +616,10 @@ class TaskRun(
             // 前一个任务替这个拿着的那份,自己的拿上了就放开
             wakeHandoff?.release()
             wakeHandoff = null
-            val model = env.modelFactory(service, session) ?: return TaskState.Failed(tr(R.string.fail_no_main_model), FailKind.Environment)
+            // Gemini plan: the user's Google plan runs this task through Antigravity (see GeminiEngine); Orbit's loop is not used.
+            val gemini = com.wangzan101.mika.gemini.GeminiEngine.get(service).takeIf { it.active && !conditionCheck }
+            val model = env.modelFactory(service, session) ?: gemini?.let { com.wangzan101.mika.gemini.GeminiPlanModel }
+                ?: return TaskState.Failed(tr(R.string.fail_no_main_model), FailKind.Environment)
             // 用户在浏览器页上对着一页问的:那一页借给这个任务当当前网页标签(见 PageLoans);开跑时页面还开着才借得到
             val pageLoan = if (provenance.origin == RunOrigin.Ui) withContext(Dispatchers.Main) { UserBrowser.existing()?.claim(conversationId, key) } else null
             val light = env.lightModelFactory(service, session)
@@ -1020,7 +1023,7 @@ class TaskRun(
             loop = agent
             liveFeed = agent.events.subscribe(liveEvents)
             mcpExternalId?.let { mcpEvents = (service.application as MikaApp).remoteTasks.attach(it, agent.events) }
-            kit = LearnKit(switches, memory, utterances, tools, agent, catalog, knowledge, model, light, runStore, agent.flags.replay, priorTurns)
+            kit = if (gemini != null) null else LearnKit(switches, memory, utterances, tools, agent, catalog, knowledge, model, light, runStore, agent.flags.replay, priorTurns)
             suspend fun <T> io(fallback: T, call: () -> T): T =
                 withContext(Dispatchers.IO) { runCatching(call).getOrDefault(fallback) }
             // 接管期间才订阅主屏的无障碍事件:平时没人订阅,服务不复制事件
@@ -1118,7 +1121,32 @@ class TaskRun(
                     service.refreshNotifications(this@TaskRun)
                 }
             }
-            val end = withContext(tally) { agent.run(runSpec, inbox) }
+            val end = if (gemini != null) {
+                val geminiState = kotlinx.coroutines.flow.MutableStateFlow<TaskState>(TaskState.Idle)
+                val geminiEvents = com.wangzan101.mika.core.run.RunEventBus()
+                val feeds = listOf(geminiEvents.subscribe(liveEvents), geminiEvents.subscribe(sink))
+                var turn: com.wangzan101.mika.core.acp.AcpTurn? = null
+                val phoneTools = com.wangzan101.mika.core.acp.AcpPhoneTools.create(
+                    tools, runApproval, provenance, runApproval.startedAutonomous, service.packageName, geminiEvents,
+                    onCall = { _, name -> turn?.phoneStep(name) },
+                )
+                val acpTurn = com.wangzan101.mika.core.acp.AcpTurn(gemini, phoneTools, geminiEvents, geminiState)
+                turn = acpTurn
+                val publisher = side.launch {
+                    geminiState.collect {
+                        if (it == TaskState.Idle || it is TaskState.Terminal) return@collect
+                        handover.onState(it)
+                        publish(it)
+                    }
+                }
+                val background = profileSnapshot.joinToString("\n") { "- " + it.text }.takeIf { it.isNotBlank() }
+                try {
+                    withContext(tally) { acpTurn.run(conversationId, goal, priorTurns, background, inbox) }
+                } finally {
+                    publisher.cancel()
+                    feeds.forEach { it.close() }
+                }
+            } else withContext(tally) { agent.run(runSpec, inbox) }
             resultReadyAtMs = SystemClock.elapsedRealtime()
             return end.also { usedGroups = agent.usedGroups.toList() }.let(::localizeTaskFailure).let(::withRetestHint)
         } finally {

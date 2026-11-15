@@ -1,0 +1,12 @@
+#!/bin/sh
+# Orbit launcher for the Antigravity ACP server. stdout is the ACP JSON-RPC channel: print nothing here.
+D=$(cd "$(dirname "$0")" && pwd); R=$(dirname "$D")
+export ORBIT_AGY_SRC="$R/src"
+export ANTIGRAVITY_HARNESS_PATH="$D/localharness_external"
+export PYTHONUNBUFFERED=1 AGY_ACP_FORCE_FILE_STORAGE=1
+# Bytecode is written lazily for the modules actually used (smaller than compiling everything up front).
+export PYTHONPYCACHEPREFIX="$R/pycache"
+CERTS=$("$R/venv/bin/python" -c 'import certifi; print(certifi.where())' 2>/dev/null)
+[ -n "$CERTS" ] && export SSL_CERT_FILE="$CERTS" GRPC_DEFAULT_SSL_ROOTS_FILE_PATH="$CERTS" REQUESTS_CA_BUNDLE="$CERTS"
+export BROWSER=/opt/orbit/open-url
+exec "$R/venv/bin/python" "$D/orbit_agy.py" "$@"
