@@ -5,6 +5,7 @@ import com.wangzan101.mika.i18n.tr
 import com.wangzan101.mika.ui.components.DirectionalIcon
 import com.wangzan101.mika.spaces.Space
 import com.wangzan101.mika.spaces.SpacePanel
+import com.wangzan101.mika.spaces.SpaceSchedule
 import com.wangzan101.mika.spaces.SpaceStore
 import androidx.compose.ui.res.stringResource
 import androidx.activity.compose.BackHandler
@@ -1678,13 +1679,17 @@ fun ChatWithDrawer(
     renamingSpace?.let { space ->
         RenameSpaceDialog(space, onSave = { name ->
             renamingSpace = null
-            if (spaceStore.rename(space.id, name)) vm.renameConversation(space.conversationId, name.trim())
+            if (spaceStore.rename(space.id, name)) {
+                vm.renameConversation(space.conversationId, name.trim())
+                spaceStore.get(space.id)?.let { SpaceSchedule.renamed(context, spaceStore, it) }
+            }
         }, onDismiss = { renamingSpace = null })
     }
     deletingSpace?.let { space ->
         DeleteSpaceDialog(space, onConfirm = {
             deletingSpace = null
             if (openSpaceId == space.id) openSpaceId = null
+            runCatching { SpaceSchedule.removeFor(context, space) }
             spaceStore.delete(space.id)
             vm.deleteConversation(space.conversationId)
         }, onDismiss = { deletingSpace = null })
@@ -1696,11 +1701,13 @@ fun ChatWithDrawer(
             return@let
         }
         val working = space.conversationId in others || (space.conversationId == ui.conversationId && vm.busy())
+        var autoRefreshMs by remember(sid) { mutableStateOf(runCatching { SpaceSchedule.interval(context, space) }.getOrNull()) }
         SpaceScreen(
             space, working,
             onRefresh = {
                 if (ui.conversationId != space.conversationId) vm.openConversation(space.conversationId)
-                if (vm.ui.value.conversationId == space.conversationId && vm.send(SpacePanel.refreshPrompt(space), check)) Unit
+                if (vm.ui.value.conversationId == space.conversationId && vm.send(SpacePanel.refreshPrompt(space), check))
+                    SpaceSchedule.postpone(context, space)
                 else android.widget.Toast.makeText(context, context.getString(R.string.drawer_busy), android.widget.Toast.LENGTH_SHORT).show()
             },
             onChange = {
@@ -1712,6 +1719,12 @@ fun ChatWithDrawer(
             },
             onClose = { openSpaceId = null },
             onPageChanged = { spaceStore.touch(space.id) },
+            autoRefreshMs = autoRefreshMs,
+            onAutoRefresh = { ms ->
+                runCatching { SpaceSchedule.set(context, spaceStore, space, ms) }
+                    .onSuccess { autoRefreshMs = ms }
+                    .onFailure { android.widget.Toast.makeText(context, context.getString(R.string.drawer_busy), android.widget.Toast.LENGTH_SHORT).show() }
+            },
         )
     }
     if (creatingChannel) {

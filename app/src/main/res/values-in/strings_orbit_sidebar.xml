@@ -39,4 +39,8 @@
     <string name="space_empty">Belum ada halaman. Ketuk Ubah untuk meminta Orbit membuatnya.</string>
     <string name="space_refresh">Muat ulang</string>
     <string name="space_change">Ubah</string>
+    <string name="space_auto_refresh">Muat ulang otomatis</string>
+    <string name="space_auto_refresh_off">Mati, muat ulang manual</string>
+    <string name="space_auto_refresh_every">Setiap %1$d jam</string>
+    <string name="space_auto_refresh_note">Hanya berjalan saat Orbit tidak sibuk, dan menunggu saat baterai lemah, mode hemat aktif, atau offline. Setiap muat ulang memakai model Anda.</string>
 </resources>

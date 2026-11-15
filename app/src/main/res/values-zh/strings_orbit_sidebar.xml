@@ -39,4 +39,8 @@
     <string name="space_empty">还没有页面。点“修改”请 Orbit 创建。</string>
     <string name="space_refresh">刷新</string>
     <string name="space_change">修改</string>
+    <string name="space_auto_refresh">自动刷新</string>
+    <string name="space_auto_refresh_off">关闭，手动刷新</string>
+    <string name="space_auto_refresh_every">每 %1$d 小时</string>
+    <string name="space_auto_refresh_note">只在 Orbit 空闲时运行；电量低、省电模式或离线时等到下一次。每次刷新都会用到你的模型。</string>
 </resources>

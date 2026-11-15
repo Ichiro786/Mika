@@ -39,4 +39,8 @@
     <string name="space_empty">Страницы пока нет. Нажмите «Изменить», чтобы попросить Orbit.</string>
     <string name="space_refresh">Обновить</string>
     <string name="space_change">Изменить</string>
+    <string name="space_auto_refresh">Обновлять автоматически</string>
+    <string name="space_auto_refresh_off">Выкл., обновлять вручную</string>
+    <string name="space_auto_refresh_every">Каждые %1$d ч</string>
+    <string name="space_auto_refresh_note">Запускается, только когда Orbit свободен, и ждёт, если заряд низкий, включено энергосбережение или нет сети. Каждое обновление использует вашу модель.</string>
 </resources>

@@ -39,4 +39,8 @@
     <string name="space_empty">아직 페이지가 없어요. 바꾸기를 눌러 Orbit에게 요청하세요.</string>
     <string name="space_refresh">새로고침</string>
     <string name="space_change">바꾸기</string>
+    <string name="space_auto_refresh">자동 새로고침</string>
+    <string name="space_auto_refresh_off">끄기, 직접 새로고침</string>
+    <string name="space_auto_refresh_every">%1$d시간마다</string>
+    <string name="space_auto_refresh_note">Orbit이 한가할 때만 실행하고, 배터리가 부족하거나 절전 모드이거나 오프라인이면 다음 차례까지 기다립니다. 새로고침할 때마다 모델을 사용합니다.</string>
 </resources>

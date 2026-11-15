@@ -39,4 +39,8 @@
     <string name="space_empty">還沒有頁面。點「修改」請 Orbit 建立。</string>
     <string name="space_refresh">重新整理</string>
     <string name="space_change">修改</string>
+    <string name="space_auto_refresh">自動重新整理</string>
+    <string name="space_auto_refresh_off">關閉，手動重新整理</string>
+    <string name="space_auto_refresh_every">每 %1$d 小時</string>
+    <string name="space_auto_refresh_note">只在 Orbit 空閒時執行；電量低、省電模式或離線時等到下一次。每次重新整理都會用到你的模型。</string>
 </resources>

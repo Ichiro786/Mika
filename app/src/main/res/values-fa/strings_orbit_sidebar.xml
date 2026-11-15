@@ -39,4 +39,8 @@
     <string name="space_empty">هنوز صفحه‌ای نیست. برای درخواست از Orbit روی تغییر بزنید.</string>
     <string name="space_refresh">تازه‌سازی</string>
     <string name="space_change">تغییر</string>
+    <string name="space_auto_refresh">تازه‌سازی خودکار</string>
+    <string name="space_auto_refresh_off">خاموش، تازه‌سازی دستی</string>
+    <string name="space_auto_refresh_every">هر %1$d ساعت</string>
+    <string name="space_auto_refresh_note">فقط وقتی Orbit آزاد است اجرا می‌شود و وقتی باتری کم است، حالت صرفه‌جویی روشن است یا آفلاین هستید منتظر می‌ماند. هر تازه‌سازی از مدل شما استفاده می‌کند.</string>
 </resources>

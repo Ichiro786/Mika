@@ -74,12 +74,14 @@ import com.wangzan101.mika.R
 import com.wangzan101.mika.cap.sandbox.SandboxDirs
 import com.wangzan101.mika.spaces.Space
 import com.wangzan101.mika.spaces.SpacePanel
+import com.wangzan101.mika.spaces.SpaceSchedule
 import com.wangzan101.mika.ui.components.BarIconButton
 import com.wangzan101.mika.ui.components.DirectionalIcon
 import com.wangzan101.mika.ui.components.HeaderPill
 import com.wangzan101.mika.ui.components.KeyboardDismissArea
 import com.wangzan101.mika.ui.components.keepsKeyboard
 import com.wangzan101.mika.ui.components.MikaDialog
+import com.wangzan101.mika.ui.components.RadioRow
 import com.wangzan101.mika.ui.components.cardSurface
 import com.wangzan101.mika.ui.components.floatShadow
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -436,6 +438,9 @@ internal fun SpaceScreen(
     onClose: () -> Unit,
     /** The page changed on disk while open: the sidebar's "Updated" line moves on. */
     onPageChanged: () -> Unit = {},
+    /** The background refresh interval, null when it refreshes only by hand. */
+    autoRefreshMs: Long? = null,
+    onAutoRefresh: (Long?) -> Unit = {},
 ) {
     Dialog(onClose, DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         val c = MikaTheme.colors
@@ -458,6 +463,8 @@ internal fun SpaceScreen(
             }
         }
         BackHandler(onBack = onClose)
+        var choosingAuto by remember(space.id) { mutableStateOf(false) }
+        if (choosingAuto) AutoRefreshDialog(autoRefreshMs, onPick = { choosingAuto = false; onAutoRefresh(it) }, onDismiss = { choosingAuto = false })
         Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()) {
             Row(
                 Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
@@ -473,6 +480,8 @@ internal fun SpaceScreen(
                         style = MikaType.Hint, color = c.ink3, maxLines = 1,
                     )
                 }
+                BarIconButton(MikaIcons.Clock, stringResource(R.string.space_auto_refresh), { choosingAuto = true },
+                    badge = autoRefreshMs != null, pill = true)
                 BarIconButton(MikaIcons.Refresh, stringResource(R.string.space_refresh), onRefresh, enabled = !working, pill = true)
             }
             Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp).clip(RoundedCornerShape(22.dp)).background(Color.Black)) {
@@ -507,6 +516,25 @@ internal fun SpaceScreen(
             }
         }
     }
+}
+
+/** Off, or one of [SpaceSchedule.INTERVALS]; a pick applies at once. */
+@Composable
+private fun AutoRefreshDialog(current: Long?, onPick: (Long?) -> Unit, onDismiss: () -> Unit) {
+    MikaDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.space_auto_refresh)) },
+        text = {
+            Column {
+                RadioRow(stringResource(R.string.space_auto_refresh_off), current == null, { onPick(null) }, first = true)
+                SpaceSchedule.INTERVALS.forEach { ms ->
+                    RadioRow(stringResource(R.string.space_auto_refresh_every, (ms / DateUtils.HOUR_IN_MILLIS).toInt()), current == ms, { onPick(ms) })
+                }
+                Text(stringResource(R.string.space_auto_refresh_note), Modifier.padding(top = 12.dp), style = MikaType.Caption, color = MikaTheme.colors.ink3)
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }
 
 /** The page in a WebView with scripts on and everything else off: no network, no files, no content access. */

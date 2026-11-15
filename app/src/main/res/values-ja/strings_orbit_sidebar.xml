@@ -39,4 +39,8 @@
     <string name="space_empty">まだページがありません。「変更する」でOrbitに頼めます。</string>
     <string name="space_refresh">更新</string>
     <string name="space_change">変更する</string>
+    <string name="space_auto_refresh">自動更新</string>
+    <string name="space_auto_refresh_off">オフ（手動で更新）</string>
+    <string name="space_auto_refresh_every">%1$d 時間ごと</string>
+    <string name="space_auto_refresh_note">Orbit が空いているときだけ実行し、電池残量が少ないとき、省電力モードやオフラインのときは次回まで待ちます。更新のたびにモデルを使います。</string>
 </resources>

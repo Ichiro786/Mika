@@ -39,4 +39,8 @@
     <string name="space_empty">Ainda não há página. Toque em Mudar para pedir uma ao Orbit.</string>
     <string name="space_refresh">Atualizar</string>
     <string name="space_change">Mudar</string>
+    <string name="space_auto_refresh">Atualizar automaticamente</string>
+    <string name="space_auto_refresh_off">Desligado, atualizar manualmente</string>
+    <string name="space_auto_refresh_every">A cada %1$d horas</string>
+    <string name="space_auto_refresh_note">Só roda quando o Orbit está livre e espera se a bateria estiver fraca, a economia estiver ligada ou você estiver offline. Cada atualização usa o seu modelo.</string>
 </resources>

@@ -39,4 +39,8 @@
     <string name="space_empty">لا توجد صفحة بعد. انقر على تغييرها لتطلب واحدة من Orbit.</string>
     <string name="space_refresh">تحديث</string>
     <string name="space_change">تغييرها</string>
+    <string name="space_auto_refresh">تحديث تلقائي</string>
+    <string name="space_auto_refresh_off">إيقاف، التحديث يدويًا</string>
+    <string name="space_auto_refresh_every">كل %1$d ساعات</string>
+    <string name="space_auto_refresh_note">يعمل فقط عندما يكون Orbit متفرغًا، وينتظر عند انخفاض البطارية أو تشغيل وضع التوفير أو انقطاع الاتصال. كل تحديث يستخدم نموذجك.</string>
 </resources>

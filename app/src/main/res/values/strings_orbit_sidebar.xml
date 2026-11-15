@@ -39,4 +39,8 @@
     <string name="space_empty">No page yet. Tap Change it to ask Orbit for one.</string>
     <string name="space_refresh">Refresh</string>
     <string name="space_change">Change it</string>
+    <string name="space_auto_refresh">Refresh automatically</string>
+    <string name="space_auto_refresh_off">Off, refresh by hand</string>
+    <string name="space_auto_refresh_every">Every %1$d hours</string>
+    <string name="space_auto_refresh_note">Runs only when Orbit is free, waits when the battery is low, saver is on or you are offline. Each refresh uses your model.</string>
 </resources>
