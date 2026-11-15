@@ -611,7 +611,8 @@ class AgentLoop(
                     continue
                 }
                 // 回答的正文不是用户最近那句的语言:退回一次整段改写;改写后还不对照样交出
-                if (!languageNudged) {
+                // Nothing typed (only a screen was sent): no language to follow, so no check
+                if (!languageNudged && latestWords.isNotBlank()) {
                     val mismatch = ReplyLanguage.mismatch(latestWords, text)
                     if (mismatch != null) {
                         languageNudged = true

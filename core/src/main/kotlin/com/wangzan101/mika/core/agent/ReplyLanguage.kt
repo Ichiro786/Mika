@@ -49,8 +49,11 @@ internal object ReplyLanguage {
         // English-first: the user wrote no Chinese, Japanese or Korean (or too little to tell, like a single name),
         // yet the answer is mostly in one of them. Ask for a rewrite even when the answer is short.
         if (u.keys.none { it in CJK }) {
-            val top = a.maxByOrNull { it.value }
-            if (top != null && top.key in CJK && top.value >= MIN_DEFAULT_UNITS && top.value >= aTotal * MISMATCH_SHARE) {
+            // A short all-CJK answer ("蓝牙已开启。") is one cell and would be skipped as a name; count it when the
+            // answer has no Latin letters at all, so a list of foreign app names inside English still passes.
+            val full = if (aTotal < MIN_DEFAULT_UNITS && answer.none { it in 'a'..'z' || it in 'A'..'Z' }) units(stripQuoted(answer), skipNames = false) else a
+            val top = full.maxByOrNull { it.value }
+            if (top != null && top.key in CJK && top.value >= MIN_DEFAULT_UNITS && top.value >= full.values.sum() * MISMATCH_SHARE) {
                 return Mismatch(top.key, if (uTotal < MIN_USER_UNITS) ENGLISH else u.maxBy { it.value }.key)
             }
         }

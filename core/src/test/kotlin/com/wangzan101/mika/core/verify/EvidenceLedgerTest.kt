@@ -147,7 +147,7 @@ class EvidenceLedgerTest {
         assertEquals("小米手环 9", a["title"]); assertEquals("2", a["step"]); assertTrue(a["text"]!!, "小米手环 9\n售价 ¥299" in a["text"]!!)
         // 后来读的那一页(回答说的那个东西)也在
         assertTrue(shown.toString(), shown.any { it["title"] == "华为手环 9" && "¥399" in it["text"]!! })
-        assertTrue(Verifier.PROMPT, "值要属于回答说的那个东西" in Verifier.PROMPT && "where、title" in Verifier.PROMPT && "同一页上另一行" in Verifier.PROMPT)
+        assertTrue(Verifier.PROMPT, "A value must belong to the thing the answer says it belongs to" in Verifier.PROMPT && "where and title say which app" in Verifier.PROMPT && "a different row on the same page" in Verifier.PROMPT)
         // 对的回答:代码和模型都放过
         val right = "华为手环 9 售价 ¥399。\n依据:「¥399」"
         val ok = Verifier(FakeModel(reply(shopPass.replace("299", "399"))), null).verify(shopGoal, shopCriteria, right,

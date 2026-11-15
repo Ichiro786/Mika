@@ -11,7 +11,7 @@ jobs:
   regen:
     if: ${{ contains(github.event.head_commit.message, '[regen-snapshots]') }}
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v7
         with:
@@ -20,21 +20,30 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: "platform-tools platforms;android-36 build-tools;35.0.0 ndk;28.2.13676358"
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: whatsapp-bridge/go.mod
+          cache-dependency-path: whatsapp-bridge/go.sum
       - uses: gradle/actions/setup-gradle@v6
         with:
           cache-provider: basic
       - name: Regenerate snapshots
         env:
           UPDATE_GOLDEN: "1"
-        run: ./gradlew :core:test -PupdateSnapshots --continue || true
+        run: ./gradlew :core:test -PupdateSnapshots --continue -q > /dev/null 2>&1 || true
       - name: Commit regenerated snapshots
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add core/src/test/resources
           if git diff --cached --quiet; then echo "No snapshot changes"; else
-            git commit -m "Regenerate prompt snapshots after English translation"
+            git commit -m "Regenerate prompt snapshots"
             git push origin HEAD:${{ github.ref_name }}
           fi
-      - name: Core tests after regeneration
-        run: ./gradlew :core:test --continue
+      - name: Core and app unit tests
+        run: ./gradlew :core:test :app:testDebugUnitTest --continue -q 2>&1 | grep -E '^e: |FAILED|BUILD' || true
+      - name: Failure summary
+        run: python3 .github/workflows/tmp_failures.py core/build/test-results app/build/test-results

@@ -402,7 +402,7 @@ class AgentLoopTest {
 
     @Test fun authErrorStopsWithReason() = runTest {
         val r = loop(FakeModel(ModelError.Auth())).run("t")
-        assertTrue(r is TaskState.Failed && "API Key" in r.reason && r.kind == FailKind.Model)
+        assertTrue(r is TaskState.Failed && "API key" in r.reason && r.kind == FailKind.Model)
     }
 
     @Test fun otherFatalModelErrorsFailWithoutRetry() = runTest {

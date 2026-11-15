@@ -140,9 +140,9 @@ class SkillDrafterTest {
         assertFalse(request.contains("晚上一起吃饭"))
         assertFalse(request.contains("老妈"))
         assertFalse(request.contains("明天回家吃饭"))
-        assertTrue(request.contains("目标:给『<参数>』发『<参数>』"))
+        assertTrue(request.contains("Goal: 给『<参数>』发『<参数>』"))
         assertTrue(request.contains("<typed text>"))
-        assertTrue(request.contains("tap 「搜索」"))
+        assertTrue(request.contains("tap \"搜索\""))
         assertTrue(model.offeredTools.single().isEmpty())
     }
 

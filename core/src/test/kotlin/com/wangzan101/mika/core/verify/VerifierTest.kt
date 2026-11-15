@@ -100,7 +100,7 @@ class VerifierTest {
         val m = FakeModel()
         val v = Verifier(m, null).verify("查余额", CRITERIA, "余额 10 元\n依据: 「10 元」", evidence(fresh = "", protected = true))
         assertEquals(Verdict.CannotVerify, v.verdict)
-        assertTrue(v.reason, "防截屏" in v.reason)
+        assertTrue(v.reason, "protected against screenshots" in v.reason)
         assertTrue(m.requests.isEmpty()) // 没有可看的东西,不调模型
         // 前几屏有文字时照常核查
         val m2 = FakeModel(text(PASS))
@@ -115,7 +115,7 @@ class VerifierTest {
         assertEquals(Verdict.CannotVerify, badVerdict.verdict)
         val error = Verifier(FakeModel(ModelError.Server(500)), null).verify("查电量", CRITERIA, "电量 86%\n依据: 「86%」", evidence())
         assertEquals(Verdict.CannotVerify, error.verdict)
-        assertTrue(error.reason, "核查" in error.reason)
+        assertTrue(error.reason, "Verifier error" in error.reason)
     }
 
     @Test fun usesVisionModelWhenScreenshot() = runTest {
@@ -269,7 +269,7 @@ class VerifierTest {
         }
         val v = Verifier(slow, null).verify("查电量", CRITERIA, "电量 86%\n依据: 「86%」", evidence())
         assertEquals(Verdict.CannotVerify, v.verdict)
-        assertTrue(v.reason, "超时" in v.reason)
+        assertTrue(v.reason, "timed out" in v.reason)
     }
 
     @Test fun definitiveNoneOnScreenPassesGrounding() = runTest {
@@ -312,7 +312,7 @@ class VerifierTest {
         Verifier(m, null).verify("付款", CRITERIA, "付好了\n依据: 屏", e)
         val body = (m.requests.single().single().parts.single() as Part.Text).text
         assertTrue(body, "hand_to_user(payment) 接管被跳过" in body)
-        assertTrue(Verifier.PROMPT, "takeovers" in Verifier.PROMPT && "没有处理" in Verifier.PROMPT)
+        assertTrue(Verifier.PROMPT, "takeovers" in Verifier.PROMPT && "did not handle that step" in Verifier.PROMPT)
     }
 
     @Test fun screenshotSentWithModelImageEncoding() = runTest {
