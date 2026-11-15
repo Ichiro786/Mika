@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="whatsapp_title">WhatsApp</string>
-    <string name="whatsapp_settings_sub">Give Orbit tasks from your own WhatsApp chat</string>
+    <string name="whatsapp_settings_sub">Send Orbit tasks from your own chat</string>
     <string name="whatsapp_notif_title">WhatsApp linked</string>
     <string name="whatsapp_notif_body">Message yourself on WhatsApp to give Orbit a task</string>
     <string name="whatsapp_turn_off">Turn off</string>

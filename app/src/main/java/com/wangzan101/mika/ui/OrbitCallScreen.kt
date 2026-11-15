@@ -67,6 +67,11 @@ import com.wangzan101.mika.voice.OrbitCall
 import com.wangzan101.mika.voice.SpeechFailure
 import com.wangzan101.mika.voice.SystemCallSpeaker
 import com.wangzan101.mika.voice.VoiceSource
+import com.wangzan101.mika.voice.RealtimeCall
+import com.wangzan101.mika.settings.PromptFile
+import com.wangzan101.mika.settings.PromptFiles
+import com.wangzan101.mika.settings.VoiceEngine
+import com.wangzan101.mika.settings.VoiceEngineSettings
 import kotlinx.coroutines.flow.map
 
 /**
@@ -93,8 +98,21 @@ internal fun OrbitCallScreen(
         }
         LaunchedEffect(Unit) { if (!micOk) launcher.launch(Manifest.permission.RECORD_AUDIO) }
         BackHandler(onBack = onEnd)
+        val engines = remember { VoiceEngineSettings.get(context) }
+        val engine = remember { engines.engine.value }
+        val key = remember(engine) { if (engine == VoiceEngine.Builtin) null else engines.key(engine) }
+        // A live engine chosen without a key falls back to built-in voice and says why.
+        val note = if (engine != VoiceEngine.Builtin && key == null) stringResource(R.string.orbit_call_needs_key, voiceEngineLabel(engine)) else null
         Box(Modifier.fillMaxSize().background(Color.Black).statusBarsPadding().navigationBarsPadding()) {
             when {
+                key != null && micOk -> RealtimeLiveCall(vm, check, engine, key.key, engines)
+                key != null && micAsked -> CallNotice(stringResource(R.string.orbit_call_needs_mic), stringResource(R.string.orbit_call_open_settings)) {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", context.packageName, null))
+                            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    )
+                }
+                key != null -> Unit
                 voice == null -> CallNotice(stringResource(R.string.orbit_call_no_voice), stringResource(R.string.orbit_call_choose_voice)) {
                     onEnd(); openSpeechModel()
                 }
@@ -104,7 +122,7 @@ internal fun OrbitCallScreen(
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
                     )
                 }
-                micOk -> LiveCall(vm, check, voice)
+                micOk -> LiveCall(vm, check, voice, note)
             }
             HangUp(Modifier.align(Alignment.BottomCenter).padding(bottom = 40.dp), onEnd)
         }
@@ -112,7 +130,7 @@ internal fun OrbitCallScreen(
 }
 
 @Composable
-private fun LiveCall(vm: ChatViewModel, check: Prerequisites.Check, voice: VoiceSource) {
+private fun LiveCall(vm: ChatViewModel, check: Prerequisites.Check, voice: VoiceSource, note: String?) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val screenLine = stringResource(R.string.orbit_call_screen_line)
@@ -129,6 +147,36 @@ private fun LiveCall(vm: ChatViewModel, check: Prerequisites.Check, voice: Voice
         onDispose { call.hangUp() }
     }
     val phase by call.phase.collectAsState()
+    CallBody(phase, note)
+}
+
+@Composable
+private fun RealtimeLiveCall(vm: ChatViewModel, check: Prerequisites.Check, engine: VoiceEngine, key: String, engines: VoiceEngineSettings) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val cantStart = stringResource(R.string.orbit_call_screen_line)
+    val call = remember(vm, engine, key) {
+        RealtimeCall(
+            scope, engine, key,
+            model = engines.model(engine),
+            voiceName = engines.voice(engine),
+            instructions = RealtimeCall.instructions(PromptFiles.get(context).read(PromptFile.Instructions)),
+            exchanges = vm.ui.map { it.exchanges },
+            send = { vm.send(it, check) },
+            cantStartLine = cantStart,
+        )
+    }
+    DisposableEffect(call) {
+        call.start()
+        onDispose { call.hangUp() }
+    }
+    val phase by call.phase.collectAsState()
+    val error by call.error.collectAsState()
+    CallBody(phase, error?.let { stringResource(R.string.orbit_call_realtime_failed, it) })
+}
+
+@Composable
+private fun CallBody(phase: CallPhase, note: String?) {
     val level = (phase as? CallPhase.Listening)?.level ?: 0f
     val pulse by animateFloatAsState(if (MikaTheme.reduceMotion) 1f else 1f + level.coerceIn(0f, 1f) * 0.18f, label = "voice")
     val presence = when (phase) {
@@ -149,6 +197,10 @@ private fun LiveCall(vm: ChatViewModel, check: Prerequisites.Check, voice: Voice
             stringResource(phaseLabel(phase)), style = MikaType.Caption, color = Color.White.copy(alpha = 0.62f),
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
+        if (note != null) {
+            Spacer(Modifier.height(10.dp))
+            Text(note, style = MikaType.Caption, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
+        }
         Spacer(Modifier.weight(1f))
         MikaPresenceAvatar(Modifier.size(196.dp).graphicsLayer { scaleX = pulse; scaleY = pulse }, state = presence, dark = true)
         Spacer(Modifier.weight(1f))

@@ -74,8 +74,8 @@ enum class TileTone {
 
 /** 行左边的图标块:30dp、圆角 9,里面图形 18dp。 */
 @Composable
-fun IconTile(icon: ImageVector, tone: TileTone = TileTone.Neutral) {
-    val (bg, fg) = tone.colors(MikaTheme.colors)
+fun IconTile(icon: ImageVector, tone: TileTone = TileTone.Neutral, tint: Color? = null) {
+    val (bg, fg) = if (tint != null) tint to Color.White else tone.colors(MikaTheme.colors)
     Box(Modifier.size(MikaSize.Tile).background(bg, MikaShapes.Tile), contentAlignment = Alignment.Center) {
         Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = fg)
     }
@@ -109,6 +109,8 @@ fun ListRow(
     detail: String? = null,
     detailColor: Color = Color.Unspecified,
     onClick: (() -> Unit)? = null,
+    /** A solid colour for the icon tile with a white glyph, as on the Settings home; null keeps [tone]. */
+    tint: Color? = null,
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val c = MikaTheme.colors
@@ -121,7 +123,7 @@ fun ListRow(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        if (icon != null) IconTile(icon, tone)
+        if (icon != null) IconTile(icon, tone, tint)
         Column(Modifier.weight(1f).padding(vertical = 11.dp)) {
             Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink })
             if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)

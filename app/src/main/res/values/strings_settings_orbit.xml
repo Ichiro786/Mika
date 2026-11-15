@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Settings home groups and rows added in the Orbit redesign -->
+    <string name="settings_group_brain">Brain &amp; voice</string>
+    <string name="settings_group_abilities">What Orbit can do</string>
+    <string name="settings_voice">Voice &amp; live call</string>
+    <string name="settings_voice_sub">How Orbit hears you and talks back</string>
+    <string name="settings_prompts">Instructions &amp; system prompt</string>
+    <string name="settings_prompts_sub">Tell Orbit how to behave, in your own words</string>
+    <string name="settings_phone_ops_sub">Let Orbit tap, type and read the screen</string>
+    <string name="settings_appearance_sub">Theme, colour, background and Orbit\'s look</string>
+    <string name="settings_language_sub">The language Orbit\'s screens use</string>
+    <string name="settings_recovery_sub">Self-check, repair and reset</string>
+    <string name="settings_about_sub">Version, updates and licences</string>
+    <string name="settings_sandbox_sub">Where Orbit keeps files and runs code</string>
+    <string name="settings_mcp_sub">Let a computer give Orbit tasks</string>
+    <string name="settings_mcp_servers_sub">Extra tools Orbit can call</string>
+    <string name="settings_developer_sub">Testing switches and run stats</string>
+    <string name="settings_search">Search settings</string>
+    <string name="settings_search_clear">Clear search</string>
+    <string name="settings_search_none">Nothing matches \"%1$s\"</string>
+
+    <!-- Voice & live call -->
+    <string name="voice_title">Voice</string>
+    <string name="voice_engine_group">Live call engine</string>
+    <string name="voice_engine_builtin">Built-in</string>
+    <string name="voice_engine_builtin_sub">Your phone listens and reads replies aloud. Free, and works with any model, your ChatGPT plan included.</string>
+    <string name="voice_engine_gemini">Gemini Live</string>
+    <string name="voice_engine_gemini_sub">Natural back-and-forth voice from Google. Needs a Gemini API key.</string>
+    <string name="voice_engine_openai">OpenAI Realtime</string>
+    <string name="voice_engine_openai_sub">Natural back-and-forth voice from OpenAI. Needs an OpenAI API key.</string>
+    <string name="voice_engine_foot">With Gemini Live or OpenAI Realtime, the voice model talks with you and hands real jobs to Orbit, so phone control and every other tool still work in a call. Calls are billed to your own API key.</string>
+    <string name="voice_api_key">API key</string>
+    <string name="voice_key_saved">Saved</string>
+    <string name="voice_key_from_model">Using the key from your %1$s model</string>
+    <string name="voice_key_add">Add</string>
+    <string name="voice_key_hint_gemini">Paste a key from Google AI Studio</string>
+    <string name="voice_key_hint_openai">Paste a key from platform.openai.com</string>
+    <string name="voice_key_remove">Remove key</string>
+    <string name="voice_model">Model</string>
+    <string name="voice_voice">Voice</string>
+    <string name="voice_default">Default</string>
+    <string name="voice_gemini_foot">Google has no official way for other apps to use a Google AI Pro or Ultra plan, so this needs an API key from Google AI Studio.</string>
+    <string name="voice_openai_foot">Sign in with ChatGPT lets Orbit use your Plus or Pro plan for chats, but OpenAI only offers that for text, not live voice. To use your plan in a call, pick Built-in: it talks through whichever model you chat with.</string>
+    <string name="voice_typing_group">Typing by voice</string>
+    <string name="voice_speech_to_text">Speech-to-text</string>
+    <string name="voice_speech_to_text_sub">Turns your voice into text in the message bar</string>
+    <string name="voice_save">Save</string>
+    <string name="orbit_call_needs_key">%1$s needs an API key in Settings › Voice, so this call uses built-in voice.</string>
+    <string name="orbit_call_working">Working on it</string>
+    <string name="orbit_call_realtime_failed">The live voice service didn\'t connect: %1$s</string>
+
+    <!-- Prompt files -->
+    <string name="prompts_group">How Orbit thinks</string>
+    <string name="prompts_instructions_sub">Your own rules, added to every task</string>
+    <string name="prompts_system_sub">Who Orbit is and how it works. Edit with care</string>
+    <string name="prompts_empty">Empty</string>
+    <string name="prompts_default">Default</string>
+    <string name="prompts_edited">Edited</string>
+    <string name="prompts_reset">Reset</string>
+    <string name="prompts_editor_foot">Saved as you type. Reset puts back the original text. If an edited system prompt ever breaks something, Reset fixes it.</string>
+    <string name="prompts_instructions_placeholder"># How I like things\n- Reply in short sentences.\n- Ask before buying anything.</string>
+    <string name="orbit_hub_look">Orbit\'s look</string>
+    <string name="orbit_hub_look_sub">The orb in colour or black and white</string>
+    <string name="orbit_hub_appearance_sub">Light, dark or follow the phone</string>
+    <string name="orbit_hub_all_settings">All settings</string>
+</resources>
