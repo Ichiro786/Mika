@@ -11,4 +11,5 @@
     <string name="tasks_resolved">終了</string>
     <string name="tasks_waiting">待機中</string>
     <string name="tasks_empty_up_next">待機中または予定されたタスクはありません。</string>
+    <string name="tasks_empty_hint">チャットで Orbit に頼むか、自動で実行されるタスクを予約しましょう。</string>
 </resources>

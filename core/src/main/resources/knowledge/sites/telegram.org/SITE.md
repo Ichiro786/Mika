@@ -1,23 +1,23 @@
 ---
 name: telegram.org
 display: Telegram
-description: 读取会话和历史消息,发送消息
+description: Read conversations and history, send messages
 domains: ["telegram.org", "web.telegram.org"]
 aliases: ["Telegram", "电报", "TG"]
 apps: ["telegram"]
 open: telegram.org
 mode: desktop
 ---
-## 是什么
-即时通讯服务,有私聊、群组和频道。网页版在 `web.telegram.org`,对应的 App 知识是 `telegram`。使用需要登录。
+## What it is
+An instant-messaging service with private chats, groups and channels. The web version is at `web.telegram.org`; the matching app guide is `telegram`. Sign-in is required.
 
-## 页面与网址
-网页版 `https://web.telegram.org/k/`:左侧是搜索和会话列表,右侧是聊天。登录方式是扫码,或手机号加验证码;开了两步验证时还要密码。
+## Pages and URLs
+Web version `https://web.telegram.org/k/`: search and the conversation list on the left, the chat on the right. Sign in by QR code, or phone number plus verification code; with two-step verification on, a password is also needed.
 
-## 功能
-- **阅读**:会话列表显示最后一条消息和时间;进入会话后可向上翻更早的消息,看到发送人、群成员和日期。列表里的摘要不是全文。
-- **发送**:现有会话里直接输入;新会话从搜索、联系人或新消息里找到对象。
+## Features
+- **Reading**: the conversation list shows the last message and time; after opening a conversation you can scroll up to earlier messages and see senders, group members and dates. The summary in the list is not the full text.
+- **Sending**: type directly in an existing conversation; for a new conversation, find the target via search, contacts or new message.
 
-## 已知现象
-- 群、频道和联系人可能同名。
-- 打开会话可能改变未读状态。
+## Known behavior
+- Groups, channels and contacts may share the same name.
+- Opening a conversation may change its unread state.

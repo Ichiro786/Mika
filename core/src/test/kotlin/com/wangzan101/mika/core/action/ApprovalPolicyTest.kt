@@ -24,4 +24,12 @@ class ApprovalPolicyTest {
             assertEquals("$origin $attendance $level payment", expected, ApprovalPolicy.decide(Risk(level, payment = true), run))
         }
     }
+
+    @Test fun sendsDeletesAndPermissionsAskOnlyWhenSomeoneCanAnswer() {
+        for (origin in RunOrigin.entries) for (attendance in Attendance.entries) {
+            val run = RunProvenance(origin, attendance)
+            val expected = if (origin == RunOrigin.Ui && attendance != Attendance.Unattended) Approval.Ask else Approval.Allow
+            assertEquals("$origin $attendance", expected, ApprovalPolicy.decide(Risk(ActionRisk.External, confirm = true), run))
+        }
+    }
 }

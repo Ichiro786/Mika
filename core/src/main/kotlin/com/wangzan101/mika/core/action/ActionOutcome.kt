@@ -71,8 +71,9 @@ internal object Refusals {
             val message = when (code) {
                 "guard_stopped" -> "Mika's operation guard stopped the task."
                 "guard_warning" -> "Mika's operation guard flagged this action; it was not run."
-                "confirmation_required" -> "this step spends money (${hit?.matched})"
-                "confirmation_mismatch" -> "this payment step (${hit?.matched}) does not match what the user approved ($reason)"
+                "confirmation_required" -> if (hit?.action == IrrevAction.send || hit?.action == IrrevAction.delete || hit?.action == IrrevAction.other)
+                    "this step needs the user's OK first (${hit.matched})" else "this step spends money (${hit?.matched})"
+                "confirmation_mismatch" -> "this step (${hit?.matched}) does not match what the user approved ($reason)"
                 "approval_unavailable" -> "this step spends money and this run cannot get the user's approval; the action was not run"
                 "target_unresolved" -> "that ref is not on the latest snapshot; call mika.snapshot() again"
                 OWN_APP -> Feedback["own_app"]
@@ -92,8 +93,19 @@ internal object Refusals {
     private fun required(hit: Irreversible) = buildJsonObject {
         put("ok", false); put("error", "confirmation_required")
         put("action", hit.action.name); put("matched", hit.matched)
-        put("message", if (hit.action == IrrevAction.pay) "This step is a payment, so it was not run. $PAYMENT_TAKEOVER"
-            else "This step spends money (${hit.action.name}), so it was not run. First call request_confirmation saying where, what is bought and how much it costs, and do it after the user approves. $SINGLE_USE")
+        put("message", when (hit.action) {
+            IrrevAction.pay -> "This step is a payment, so it was not run. $PAYMENT_TAKEOVER"
+            IrrevAction.send -> "This step sends a message to someone (${hit.matched}), so it was not run yet: the user approves each message first. " +
+                "Call request_confirmation with action=send, target = the recipient exactly as shown in the chat title, content = the exact text being sent, " +
+                "and do the send right after the user approves. $SINGLE_USE"
+            IrrevAction.delete -> "This step deletes something (${hit.matched}), so it was not run yet: the user approves deletions first. " +
+                "Call request_confirmation with action=delete, target = what is deleted as shown on screen, content = a short description, " +
+                "and do it right after the user approves. $SINGLE_USE"
+            IrrevAction.other -> "This step needs the user's OK first (${hit.matched}), for example granting an app a permission, so it was not run yet. " +
+                "Call request_confirmation with action=other, target = the app or permission named on screen, content = what this step allows, " +
+                "and do it right after the user approves. $SINGLE_USE"
+            else -> "This step spends money (${hit.action.name}), so it was not run. First call request_confirmation saying where, what is bought and how much it costs, and do it after the user approves. $SINGLE_USE"
+        })
         put("recoverable", true); put("counts_as_failure", false)
     }
 

@@ -47,7 +47,7 @@ class ConfirmDecision(
     private val risks: RiskJudge = ClassifiedRisk,
     private val recorder: ActionRecorder? = null,
     private val provenance: RunProvenance = RunProvenance(),
-    /** 开工就是自主执行(没有确认关卡):付款也不问,界面目标猜测也不阻断动作;中途换成自主看 [ApprovalSettings.autonomous]。 */
+    /** 开工就是自主执行:只有付款要问,界面目标猜测也不阻断动作;中途换成自主看 [ApprovalSettings.autonomous]。 */
     private val autonomous: Boolean = false,
     /** Mika 自己的包名:作用在它上面的写操作一律不做(不自己给自己点同意、改设置)。 */
     private val selfPackage: String? = null,
@@ -62,36 +62,38 @@ class ConfirmDecision(
     /** 判定放在锁屏等待之后:按此刻重新读的一屏判。 */
     suspend fun judge(tool: String, args: JsonObject, origin: Origin): Decision {
         outwardSite = null
-        if (autonomous || approvals.autonomous()) {
-            val target = tools.gateTarget(tool)
-            if (IrreversibleDetector.needsCheck(target, args)) {
-                val aim = tools.interfaces.actionTarget(tools.declared(tool), args)
-                outwardSite = outward(IrreversibleDetector.classify(target, aim.args, aim.aimed), aim.aimed)
-            }
-            return Decision.Clear
-        }
+        // Autonomous mode skips every ask except payments, which always wait for the user's OK.
+        val auto = autonomous || approvals.autonomous()
         val policy = origin.policy
         val target = tools.gateTarget(tool)
         // 这一步落在哪里由界面一侧给出;点看图找到的 @vN 时参数已换成它登记的坐标和找的文字
         val aim = tools.interfaces.actionTarget(tools.declared(tool), args)
         val checked = aim.args
+        // Orbit never acts on itself, in Ask and Autonomous mode alike
         if (ownApp(tool, args, aim.aimed)) return Decision.OwnApp
-        tools.approvalRisk(tool, checked)?.let { declared ->
+        if (!auto) tools.approvalRisk(tool, checked)?.let { declared ->
             return approve(tool, checked, origin, null, declared, null, null, null) ?: Decision.Clear
         }
-        if (confirmations == null && !policy.judgeWithoutGate) return Decision.Clear
+        if (confirmations == null && !policy.judgeWithoutGate && !auto) return Decision.Clear
         val verb = tools.verb(tool)
         val typing = if (verb == Verb.TypeText) (args["text"] as? JsonPrimitive)?.contentOrNull else null
         // 没有可判的不可逆字样的动作(一般改动、界面间移动)不花钱,不用问
         if (!IrreversibleDetector.needsCheck(target, args)) return Decision.Clear
         val snap = aim.aimed
-        val fresh = aim.now()
+        // 自主执行时按模型手里那一屏判,不另读屏
+        val fresh = if (auto) null else aim.now()
         if (ownApp(tool, args, fresh)) return Decision.OwnApp
         // 复看确认过的所见文字(@vN 才有):读屏里没有文字时(自绘界面)付款的同意按它核对象
         val seen = aim.seen
-        val hit = IrreversibleDetector.classify(target, checked, snap, fresh)
-        val risk = risks.assess(verb, hit) { fresh ?: snap }
+        val classified = IrreversibleDetector.classify(target, checked, snap, fresh)
+        val hit = classified ?: if (auto) null else PermissionPrompt.grant(verb, checked, fresh ?: snap)
+        val risk = if (classified == null && hit != null) Risk(ActionRisk.Unknown, confirm = true)
+            else risks.assess(verb, hit) { fresh ?: snap }
         outwardSite = outward(hit, fresh ?: snap)
+        if (auto) {
+            if (!risk.payment) return Decision.Clear
+            return approve(tool, checked, origin, hit, risk, fresh ?: snap, typing, seen) ?: Decision.Clear
+        }
         approve(tool, checked, origin, hit, risk, fresh ?: snap, typing, seen)?.let { return it }
         if (hit != null || !IrreversibleDetector.unresolved(target, checked, snap, fresh)) return Decision.Clear
         return if (policy.refuseUnresolved) Decision.Unresolved else Decision.Traced(unresolvedDetail(args, aim.readAgeMs, fresh != null))

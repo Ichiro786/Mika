@@ -40,4 +40,20 @@ class RunUsageTallyTest {
         tally.add(Usage(Int.MAX_VALUE, Int.MAX_VALUE), httpAttempts = 1)
         tally.checkBudget()
     }
+
+    @Test fun estimatesForUnreportedCallsStillTripTheBudget() {
+        val tally = RunUsageTally(tokenBudget = 100)
+        tally.add(null, httpAttempts = 1)
+        tally.addEstimate(60)
+        tally.checkBudget()
+        tally.add(null, httpAttempts = 1)
+        tally.addEstimate(50)
+        assertEquals("estimates are not reported usage", 0L, tally.totalTokens())
+        try {
+            tally.checkBudget()
+            fail("an estimate over the budget stops the next request")
+        } catch (e: ModelError.TaskBudgetExceeded) {
+            assertEquals(110L, e.used)
+        }
+    }
 }

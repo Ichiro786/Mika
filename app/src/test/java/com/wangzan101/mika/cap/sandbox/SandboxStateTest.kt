@@ -20,10 +20,12 @@ class SandboxStateTest {
     private fun state(abis: List<String> = listOf("arm64-v8a")) = SandboxState(dirs, File(tmp, "files/sandbox-settings.json")) { abis }
 
     @Test
-    fun networkDefaultsOn() {
+    fun networkDefaultsOff() {
         val s = state()
-        assertTrue(s.networkAllowed)
+        assertFalse(s.networkAllowed)
         assertEquals(SandboxStatus.NotInstalled, s.status.value)
+        s.networkAllowed = true
+        assertTrue("persisted", state().networkAllowed)
         s.networkAllowed = false
         assertFalse("persisted", state().networkAllowed)
     }

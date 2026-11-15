@@ -376,7 +376,8 @@ class ModelSetupViewModelTest {
             vm.selectPreset(ProviderPresets.custom.label); vm.setBaseUrl(url); vm.setApiKey("sk"); vm.testAndSave(); runCurrent()
             assertEquals("HTTP $status:只试第一个", listOf("vendor/a"), built.map { it.first })
             val failed = vm.state.value.form.test as ListState.Failed
-            assertTrue(failed.message, failed.message.contains("API key is invalid"))
+            assertTrue(failed.message, failed.message.contains("API Key"))
+            assertTrue(failed.details, failed.details.orEmpty().contains("API key is invalid"))
             assertTrue(store.providers.value.isEmpty())
             assertNull(vm.state.value.pickToProbe)
         }
@@ -411,7 +412,8 @@ class ModelSetupViewModelTest {
         vm.selectPreset(ProviderPresets.custom.label); vm.setBaseUrl(url); vm.setApiKey("sk"); vm.testAndSave(); runCurrent()
         assertEquals(listOf("a-model", "b-model"), built.map { it.first })
         val failed = vm.state.value.form.test as ListState.Failed
-        assertTrue(failed.message, failed.message.contains("API key is invalid"))
+        assertTrue(failed.message, failed.message.contains("API Key"))
+        assertTrue(failed.details, failed.details.orEmpty().contains("API key is invalid"))
         assertTrue(store.providers.value.isEmpty())
         assertTrue(store.list().isEmpty())
     }
@@ -477,7 +479,7 @@ class ModelSetupViewModelTest {
         val vm = vm(store)
         vm.setApiKey("sk-1"); vm.testAndSave(); runCurrent()
         val failed = vm.state.value.form.test as ListState.Failed
-        assertTrue(failed.message, failed.message.contains("MissingSessionID"))
+        assertTrue(failed.details, failed.details.orEmpty().contains("MissingSessionID"))
         assertTrue(failed.message.contains("deepseek-chat"))
         assertTrue(store.providers.value.isEmpty())
         assertTrue(store.list().isEmpty())

@@ -86,7 +86,7 @@ class McpServerStore(
     private val dir: File,
     private val cipher: KeyCipher,
     private val http: OkHttpClient = NetProxy.shared.client(
-        OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(70, TimeUnit.SECONDS),
+        UserCaTrust.install(OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS).readTimeout(70, TimeUnit.SECONDS)),
     ),
     /** stdio server 只能由沙箱启动;为 null 时 stdio 配置会报不可用。 */
     private val stdio: McpStdioLauncher? = null,

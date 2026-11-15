@@ -68,6 +68,14 @@ private const val HINT_TRUNCATED = "The output was clipped to its head and tail.
 private const val HINT_DROPPED = "Only the first 1 MB of output was kept. Write large output to a file instead of printing it."
 private const val HINT_TIMED_OUT = "The command hit its time limit and was stopped. Use a larger timeoutSec (up to 600) or do less per command."
 private const val HINT_KILLED = "Killed by the system (out of memory): the system killed the command, most likely for lack of memory. Use a lighter approach (smaller inputs, process in parts)."
+internal const val HINT_NETWORK_OFF = "Internet is off for the Linux sandbox, so this command cannot reach the network. Do not retry it or try other package mirrors; tell the user they can turn on \"Allow scripts to go online\" in Settings > Connections & tools > Files & computing environment."
+private val NETWORK_COMMAND = Regex("""(?:^|[\s;&|(`])(?:pip3?|pipx|uv|npm|npx|yarn|pnpm|apk\s+(?:add|update|upgrade|fetch)|apt(?:-get)?|curl|wget|git\s+(?:clone|fetch|pull)|go\s+(?:get|install)|cargo\s+(?:install|add))(?=$|[\s;&|)`])""")
+private val NETWORK_ERROR = Regex("""name resolution|could not resolve host|name or service not known|network is unreachable|nodename nor servname|getaddrinfo|ENOTFOUND|failed to establish a new connection|unable to connect|temporary failure""", RegexOption.IGNORE_CASE)
+
+/** 联网关着、命令失败了,而且命令本身看着要联网(pip/npm/apk add/curl/wget/git clone 等)或输出是网络错误时,给模型的一句说明。 */
+internal fun networkOffHint(network: Boolean, exitCode: Int, command: String, output: String): String? =
+    if (!network && exitCode != 0 && (NETWORK_COMMAND.containsMatchIn(command) || NETWORK_ERROR.containsMatchIn(output.takeLast(4000)))) HINT_NETWORK_OFF else null
+
 private const val HINT_WORKSPACE_BIG = "The workspace uses more than 2 GB; delete files you no longer need (over 4 GB, writing is refused)."
 
 /** 六个沙箱工具的执行;文件类工具由 Kotlin 直接读写宿主目录,不起沙箱进程。 */
@@ -150,7 +158,7 @@ internal class SandboxTools(
         storageLow()?.let { return it }
         onCommand(command)
         return commandResult(sandbox.runWithPhone(ws, listOf("/bin/sh", "-lc", command), cwd, timeout * 1000L, onProgress,
-            phoneHandler(callId, sub, tools)), ws)
+            phoneHandler(callId, sub, tools)), ws, command)
     }
 
     internal suspend fun runScript(a: Args, ws: String, network: Boolean, callId: String = "script", sub: SubActions? = null, tools: ToolIndex? = null): ToolExecution {
@@ -214,7 +222,7 @@ internal class SandboxTools(
         if (sandbox.freeBytes() < MIN_FREE) fail("storage_low", "The phone has less than 500 MB free, so sandbox commands are refused. Tell the user to free up space.", recoverable = false)
         else null
 
-    private suspend fun commandResult(r: CommandResult, ws: String): ToolExecution {
+    private suspend fun commandResult(r: CommandResult, ws: String, command: String = ""): ToolExecution {
         val (shown, clipped) = OutputClip.clip(r.output)
         val truncated = clipped || r.droppedBytes > 0
         // 存不下完整输出也照样交出结果
@@ -224,6 +232,7 @@ internal class SandboxTools(
             HINT_KILLED.takeIf { r.killedBySystem },
             HINT_TRUNCATED.takeIf { full != null },
             HINT_DROPPED.takeIf { r.droppedBytes > 0 },
+            networkOffHint(r.network, r.exitCode, command, r.output),
             workspaceHint(ws),
         )
         return ToolExecution(buildJsonObject {

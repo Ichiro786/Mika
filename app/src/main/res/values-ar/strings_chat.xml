@@ -171,6 +171,8 @@
     <string name="drawer_archived">مؤرشفة</string>
     <string name="drawer_archived_count">%1$d مؤرشفة</string>
     <string name="drawer_archive_empty">لا توجد محادثات مؤرشفة</string>
+    <string name="drawer_archive_empty_hint">المحادثات التي تؤرشفها تُحفظ هنا بعيدًا عن طريقك.</string>
+    <string name="drawer_archive_back">العودة إلى المحادثات</string>
     <string name="drawer_archive_done">تمت أرشفة «%1$s»</string>
     <string name="drawer_archive_this_week">هذا الأسبوع</string>
     <string name="drawer_archive_this_month">هذا الشهر</string>

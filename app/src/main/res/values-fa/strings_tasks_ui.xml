@@ -11,4 +11,5 @@
     <string name="tasks_resolved">پایان‌یافته</string>
     <string name="tasks_waiting">در انتظار</string>
     <string name="tasks_empty_up_next">کاری در صف یا زمان‌بندی‌شده نیست.</string>
+    <string name="tasks_empty_hint">در گفتگو از Orbit کاری بخواهید، یا کاری را زمان‌بندی کنید تا خودش اجرا شود.</string>
 </resources>

@@ -20,7 +20,13 @@ enum class ActionRisk { Read, Change, External, Irreversible, Unknown;
  * [ask] 不为空时是不在屏上、改了收不回的一步(工具按这次的参数声明,如会改动东西的 root 命令),询问时也先问用户,
  * 给用户看的就是它;同意只放行一字不差的这一步。
  */
-data class Risk(val level: ActionRisk, val payment: Boolean = false, val ask: ConfirmationRequest? = null)
+data class Risk(val level: ActionRisk, val payment: Boolean = false, val ask: ConfirmationRequest? = null,
+    /**
+     * Sending a message to someone, deleting something, or granting an Android permission: in Ask mode, a run the user
+     * started on the phone and is there for asks first; runs nobody can answer (scheduled, channels, unattended) go ahead
+     * as before, and Autonomous mode does not ask.
+     */
+    val confirm: Boolean = false)
 
 /** 用户在确认卡片上的选择:同意这一次,或不同意。 */
 enum class ConfirmChoice { Once, Deny;
@@ -54,7 +60,8 @@ sealed interface Approval {
  */
 object ApprovalPolicy {
     fun decide(risk: Risk, run: RunProvenance = RunProvenance()): Approval = when {
-        !risk.payment && risk.ask == null -> Approval.Allow
+        !risk.payment && risk.ask == null ->
+            if (risk.confirm && run.origin == RunOrigin.Ui && run.attendance != Attendance.Unattended) Approval.Ask else Approval.Allow
         run.attendance == Attendance.Unattended || run.origin != RunOrigin.Ui -> Approval.Deny
         else -> Approval.Ask
     }

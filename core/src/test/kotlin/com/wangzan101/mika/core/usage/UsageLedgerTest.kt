@@ -83,6 +83,18 @@ class UsageLedgerTest {
         assertEquals(10L, l.providerTokensToday("p1"))
     }
 
+    @Test fun estimatesCountTowardTodaysProviderBudgetOnly() {
+        val utc = ZoneId.of("UTC")
+        clock = Instant.parse("2026-11-09T12:00:00Z").toEpochMilli()
+        val l = UsageLedger(file, now = { clock }, zone = { utc })
+        l.record(main, null, httpAttempts = 1)
+        l.estimate(main, 40)
+        assertEquals(40L, l.providerTokensToday("p1"))
+        assertEquals(0L, l.providerTokensToday("p2"))
+        clock = Instant.parse("2026-11-10T00:00:00Z").toEpochMilli()
+        assertEquals(0L, l.providerTokensToday("p1"))
+    }
+
     @Test fun versionMovesOnEveryRecord() {
         val l = ledger()
         val v = l.version.value

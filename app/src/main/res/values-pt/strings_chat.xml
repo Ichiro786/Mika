@@ -147,6 +147,8 @@
     <string name="drawer_archived">Arquivada</string>
     <string name="drawer_archived_count">%1$d arquivadas</string>
     <string name="drawer_archive_empty">Nenhuma conversa arquivada</string>
+    <string name="drawer_archive_empty_hint">As conversas que você arquivar ficam guardadas aqui, fora do caminho.</string>
+    <string name="drawer_archive_back">Voltar às conversas</string>
     <string name="drawer_archive_done">“%1$s” foi arquivada</string>
     <string name="drawer_archive_this_week">Esta semana</string>
     <string name="drawer_archive_this_month">Este mês</string>

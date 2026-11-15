@@ -3,6 +3,7 @@ package com.wangzan101.mika.ui
 import com.wangzan101.mika.R
 import com.wangzan101.mika.i18n.tr
 import com.wangzan101.mika.ui.components.DirectionalIcon
+import com.wangzan101.mika.ui.components.EmptyStateCard
 import com.wangzan101.mika.spaces.Space
 import com.wangzan101.mika.spaces.SpacePanel
 import com.wangzan101.mika.spaces.SpaceSchedule
@@ -546,7 +547,7 @@ fun ChatDrawer(
                     ConversationEntry(it, onOpen, onActions, terms, showArchivedMark = searchFilter != SearchArchiveFilter.Archived)
                 }
                 if (search != null && !search.searching && search.hits.isEmpty()) {
-                    item("search-empty") { SearchEmpty(query) }
+                    item("search-empty") { SearchEmpty(query) { onQueryChange("") } }
                 }
                 if (search?.truncated == true) {
                     item("search-more") { SearchHint(stringResource(R.string.drawer_search_truncated, ConversationSearch.MAX_HITS)) }
@@ -580,7 +581,7 @@ fun ChatDrawer(
                 }
             } else if (archivedView) {
                 item("h-archive") { ArchiveHeader(archived.size, onExitArchive) }
-                if (archived.isEmpty()) item("archive-empty") { ArchiveEmpty() }
+                if (archived.isEmpty()) item("archive-empty") { ArchiveEmpty(onExitArchive) }
                 archiveGrouping.forEach { group ->
                     item("h-archive-${group.period.name}") { SectionLabel(archivePeriodLabel(group.period)) }
                     items(group.rows, key = { "a-${it.id}" }) {
@@ -743,11 +744,14 @@ private fun ArchiveHeader(count: Int, onBack: () -> Unit) {
 
 /** 归档视图里一条都没有。 */
 @Composable
-private fun ArchiveEmpty() {
-    Text(
+private fun ArchiveEmpty(onBack: () -> Unit) {
+    EmptyStateCard(
         stringResource(R.string.drawer_archive_empty),
-        Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 16.dp),
-        style = MikaType.Body, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
+        Modifier.testTag("drawer-archive-empty"),
+        hint = stringResource(R.string.drawer_archive_empty_hint),
+        icon = MikaIcons.Archive,
+        actionLabel = stringResource(R.string.drawer_archive_back),
+        onAction = onBack,
     )
 }
 

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">花钱的操作每次都要你同意。</string>
+    <string name="confirm_note">付款每次都要你同意;询问模式下,发消息、删除和授予权限也要。</string>
     <string name="confirm_pay">付款</string>
     <string name="confirm_delete">删除</string>
     <string name="confirm_order">下单</string>

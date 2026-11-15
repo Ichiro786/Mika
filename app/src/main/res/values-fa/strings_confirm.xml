@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">هر اقدامی که هزینه‌ای داشته باشد، هر بار به تأیید شما نیاز دارد.</string>
+    <string name="confirm_note">پرداخت‌ها همیشه به تأیید شما نیاز دارند. در حالت پرسیدن، پیام‌ها، حذف‌ها و دادن مجوزها هم همین‌طور.</string>
     <string name="confirm_pay">پرداخت</string>
     <string name="confirm_delete">حذف</string>
     <string name="confirm_order">ثبت سفارش</string>

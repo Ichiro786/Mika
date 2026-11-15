@@ -44,6 +44,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -355,7 +356,7 @@ private fun InputRow(field: CardInput, ui: CardInputUi, actions: CardActions, st
 private fun CameraKey(onClick: () -> Unit) {
     val c = MikaTheme.colors
     Box(
-        Modifier.testTag("capsule-camera").size(38.dp).clip(MikaShapes.Pill).background(c.ink.copy(alpha = 0.05f))
+        Modifier.testTag("capsule-camera").minimumInteractiveComponentSize().size(38.dp).clip(MikaShapes.Pill).background(c.ink.copy(alpha = 0.05f))
             .clickable(role = Role.Button, onClickLabel = ScreenCopy.CAMERA, onClick = onClick)
             .semantics { contentDescription = ScreenCopy.CAMERA },
         contentAlignment = Alignment.Center,
@@ -581,7 +582,7 @@ private fun IdleHeader(card: CardView.Chat, actions: CardActions, handle: Modifi
 @Composable
 private fun IconButton(icon: ImageVector, label: String, onClick: () -> Unit) {
     Box(
-        Modifier.size(32.dp).clip(MikaShapes.Pill).clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
+        Modifier.minimumInteractiveComponentSize().size(32.dp).clip(MikaShapes.Pill).clickable(role = Role.Button, onClickLabel = label, onClick = onClick)
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
@@ -796,7 +797,7 @@ private fun TeachShelf(onTeach: () -> Unit) {
     Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
         if (open) TextLink(name, onClick = onTeach)
         Box(
-            Modifier.testTag("capsule-teach-shelf").widthIn(min = 48.dp).height(28.dp).clip(MikaShapes.Pill)
+            Modifier.testTag("capsule-teach-shelf").minimumInteractiveComponentSize().widthIn(min = 48.dp).height(28.dp).clip(MikaShapes.Pill)
                 .clickable(role = Role.Button, onClickLabel = action) { open = !open }
                 .semantics {
                     contentDescription = name

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">Backup</string>
+    <string name="backup_export">Exportar backup</string>
+    <string name="backup_export_sub">Salve suas conversas e habilidades pessoais em um único arquivo protegido por senha.</string>
+    <string name="backup_import">Importar backup</string>
+    <string name="backup_import_sub">Adicione conversas de um arquivo de backup. As conversas que já estão neste telefone nunca são substituídas nem apagadas.</string>
+    <string name="backup_note">As chaves de API dos modelos, a memória e os arquivos salvos em Downloads não estão incluídos.</string>
+    <string name="backup_working">Processando…</string>
+    <string name="backup_export_dialog_title">Proteja seu backup</string>
+    <string name="backup_password_hint">Escolha uma senha com pelo menos 8 caracteres. Você vai precisar dela para restaurar este backup e ela não pode ser recuperada.</string>
+    <string name="backup_password">Senha</string>
+    <string name="backup_password_repeat">Repita a senha</string>
+    <string name="backup_password_mismatch">As senhas não coincidem</string>
+    <string name="backup_continue">Continuar</string>
+    <string name="backup_import_dialog_title">Importar backup</string>
+    <string name="backup_import_dialog_body">Digite a senha que você escolheu ao exportar este backup.</string>
+    <string name="backup_export_done">Backup salvo. Arquivos incluídos: %1$d.</string>
+    <string name="backup_export_failed">Não foi possível salvar o backup.</string>
+    <string name="backup_import_done">Importação concluída. Novos arquivos adicionados: %1$d. Arquivos existentes mantidos: %2$d. A lista de conversas foi atualizada.</string>
+    <string name="backup_import_failed">Não foi possível concluir a importação do backup.</string>
+    <string name="backup_err_password">Senha incorreta ou arquivo danificado.</string>
+    <string name="backup_err_format">Este não é um arquivo de backup do Orbit.</string>
+    <string name="backup_err_version">Este backup foi feito por uma versão mais recente do Orbit.</string>
+    <string name="backup_err_unsafe">O backup contém caminhos de arquivo inseguros e foi rejeitado.</string>
+    <string name="backup_err_too_large">O backup é grande demais para importar.</string>
+    <string name="backup_err_corrupt">O arquivo de backup está danificado ou incompleto.</string>
+</resources>

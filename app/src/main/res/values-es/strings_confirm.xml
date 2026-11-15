@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">Todo lo que implique gastar dinero necesita tu visto bueno cada vez.</string>
+    <string name="confirm_note">Los pagos siempre necesitan tu visto bueno. En el modo Preguntar, también los mensajes, los borrados y los permisos.</string>
     <string name="confirm_pay">Pagar</string>
     <string name="confirm_delete">Eliminar</string>
     <string name="confirm_order">Hacer el pedido</string>

@@ -11,4 +11,5 @@
     <string name="tasks_resolved">Finalizadas</string>
     <string name="tasks_waiting">En espera</string>
     <string name="tasks_empty_up_next">No hay tareas en cola ni programadas.</string>
+    <string name="tasks_empty_hint">Pídele algo a Orbit en un chat, o programa una tarea para que se ejecute sola.</string>
 </resources>

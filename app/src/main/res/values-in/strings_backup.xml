@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">Cadangan</string>
+    <string name="backup_export">Ekspor cadangan</string>
+    <string name="backup_export_sub">Simpan obrolan dan keahlian pribadi Anda ke satu file yang dilindungi kata sandi.</string>
+    <string name="backup_import">Impor cadangan</string>
+    <string name="backup_import_sub">Tambahkan obrolan dari file cadangan. Obrolan yang sudah ada di ponsel ini tidak akan pernah diganti atau dihapus.</string>
+    <string name="backup_note">Kunci API model, memori, dan file yang disimpan di Download tidak disertakan.</string>
+    <string name="backup_working">Memproses…</string>
+    <string name="backup_export_dialog_title">Lindungi cadangan Anda</string>
+    <string name="backup_password_hint">Pilih kata sandi minimal 8 karakter. Anda memerlukannya untuk memulihkan cadangan ini dan kata sandi tidak dapat dipulihkan.</string>
+    <string name="backup_password">Kata sandi</string>
+    <string name="backup_password_repeat">Ulangi kata sandi</string>
+    <string name="backup_password_mismatch">Kata sandi tidak cocok</string>
+    <string name="backup_continue">Lanjutkan</string>
+    <string name="backup_import_dialog_title">Impor cadangan</string>
+    <string name="backup_import_dialog_body">Masukkan kata sandi yang Anda pilih saat mengekspor cadangan ini.</string>
+    <string name="backup_export_done">Cadangan disimpan. File yang disertakan: %1$d.</string>
+    <string name="backup_export_failed">Tidak dapat menyimpan cadangan.</string>
+    <string name="backup_import_done">Impor selesai. File baru ditambahkan: %1$d. File yang sudah ada dipertahankan: %2$d. Daftar obrolan telah diperbarui.</string>
+    <string name="backup_import_failed">Tidak dapat menyelesaikan impor cadangan.</string>
+    <string name="backup_err_password">Kata sandi salah, atau file rusak.</string>
+    <string name="backup_err_format">Ini bukan file cadangan Orbit.</string>
+    <string name="backup_err_version">Cadangan ini dibuat oleh versi Orbit yang lebih baru.</string>
+    <string name="backup_err_unsafe">Cadangan berisi jalur file yang tidak aman dan ditolak.</string>
+    <string name="backup_err_too_large">Cadangan terlalu besar untuk diimpor.</string>
+    <string name="backup_err_corrupt">File cadangan rusak atau tidak lengkap.</string>
+</resources>

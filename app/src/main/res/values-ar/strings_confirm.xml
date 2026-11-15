@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">كل إجراء ينفق المال يتطلب موافقتك في كل مرة.</string>
+    <string name="confirm_note">المدفوعات تحتاج دائمًا إلى موافقتك. وكذلك الرسائل والحذف ومنح الأذونات في وضع السؤال.</string>
     <string name="confirm_pay">الدفع</string>
     <string name="confirm_delete">حذف</string>
     <string name="confirm_order">إتمام الطلب</string>

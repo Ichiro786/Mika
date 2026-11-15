@@ -617,7 +617,7 @@ private fun UseAsSheet(ui: ModelSetupUi, p: Provider, model: String, onUse: (Mod
             }
             ui.options(p).firstOrNull { it.id == model }?.let { o ->
                 val usedForVision = ModelRole.Vision in ui.rolesOf(p.id, model)
-                val sees = ModelOptions.seesImages(o.capabilities.vision, o.visionByUser, usedForVision)
+                val sees = ModelOptions.seesImages(o.capabilities.vision, o.visionByUser, usedForVision, modelId = o.id, listed = o.visionKnown)
                 ListRow(null, ModelsCopy.SEES_IMAGES, ModelsCopy.seesNote(o, usedForVision)) {
                     MikaSwitch(sees, onVision, Modifier.testTag("model-sees-images"))
                 }

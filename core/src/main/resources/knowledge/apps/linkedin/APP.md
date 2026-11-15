@@ -1,15 +1,15 @@
 ---
 name: linkedin
-display: 领英
+display: LinkedIn
 packages: ["com.linkedin.android"]
 aliases: ["领英", "LinkedIn", "linkedin", "Linkedin"]
 sites: []
 open: LinkedIn
-description: 职业社交与求职 App
+description: Professional networking and job search app
 ---
-## 是什么
-领英(LinkedIn)是职业社交 App,包名 `com.linkedin.android`。
+## What it is
+LinkedIn is a professional-networking app, package `com.linkedin.android`.
 
-## 已知现象
-- 没登录时打开是欢迎页:轮播的介绍卡片,「使用邮箱登录」,「没有领英帐号?立即加入」。
-- 欢迎页上可能先弹出谷歌的「登录LinkedIn」底部面板(「继续以…的身份登录」),这个面板属于谷歌服务,读不到元素,右上角「×」关掉。
+## Known behavior
+- When not signed in, the app opens on a welcome page: a carousel of intro cards, "Sign in with email", and "New to LinkedIn? Join now".
+- The welcome page may first show Google's "Sign in to LinkedIn" bottom sheet ("Continue as ..."). That sheet belongs to Google services and its elements cannot be read; close it with the "×" at the top right.

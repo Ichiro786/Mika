@@ -40,6 +40,13 @@
     <string name="model_url_unencrypted">이 주소는 암호화되지 않아요. 같은 네트워크의 다른 사람이 API 키와 채팅을 볼 수 있어요.</string>
     <string name="model_probe_failed">%1$s에 테스트 도구 호출을 요청했지만 실패했어요: %2$s</string>
     <string name="model_probe_timeout">%1$s이(가) %2$d초 안에 테스트 도구 호출에 응답하지 않았어요</string>
+    <string name="model_err_key_rejected">제공업체가 API 키를 거부했어요</string>
+    <string name="model_err_rate_limited">요청이 제한되었거나 계정 할당량을 모두 썼어요</string>
+    <string name="model_err_server">제공업체에 문제가 있어요(%1$s)</string>
+    <string name="model_err_network">서버에 연결할 수 없어요</string>
+    <string name="model_err_generic">예상하지 못한 문제예요. 원문은 자세히 보기에 있어요</string>
+    <string name="model_details_show">자세히 보기</string>
+    <string name="model_details_hide">자세히 숨기기</string>
     <string name="model_probe_no_tools">%1$s이(가) 도구를 호출하지 않았어요. Mika가 일을 처리하려면 도구를 호출할 수 있는 모델이 필요해요. 제공업체는 저장했지만 이 모델은 메인 모델로 설정하지 않았어요.</string>
     <string name="model_self_hosted_note">127.0.0.1은 이 휴대전화예요. 서버가 컴퓨터에서 실행 중이면 컴퓨터의 로컬 네트워크 주소로 바꾸고, 서버가 자기 자신만이 아니라 네트워크의 연결도 받도록 설정하세요.</string>
     <string name="preset_custom">직접 설정</string>

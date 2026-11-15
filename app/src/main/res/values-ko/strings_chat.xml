@@ -131,6 +131,8 @@
     <string name="drawer_archived">보관됨</string>
     <string name="drawer_archived_count">%1$d개 보관됨</string>
     <string name="drawer_archive_empty">보관된 대화가 없습니다</string>
+    <string name="drawer_archive_empty_hint">보관한 채팅은 여기에 조용히 모아 둬요.</string>
+    <string name="drawer_archive_back">채팅으로 돌아가기</string>
     <string name="drawer_archive_done">“%1$s”을(를) 보관했어요</string>
     <string name="drawer_archive_this_week">이번 주</string>
     <string name="drawer_archive_this_month">이번 달</string>

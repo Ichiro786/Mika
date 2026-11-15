@@ -66,6 +66,7 @@ import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.wangzan101.mika.task.ExactAlarmGuide
 import com.wangzan101.mika.ui.components.ButtonKind
 import com.wangzan101.mika.ui.components.ButtonSize
+import com.wangzan101.mika.ui.components.EmptyStateCard
 import com.wangzan101.mika.ui.components.MikaButton
 import com.wangzan101.mika.ui.components.StateCard
 import com.wangzan101.mika.ui.components.TileTone
@@ -149,6 +150,10 @@ internal fun TasksScreen(
     var replay by rememberSaveable { mutableStateOf<String?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
     var creatingPlan by rememberSaveable { mutableStateOf<String?>(null) }
+    // Create right here, over Tasks: no detour through the schedules page, and Cancel stays on Tasks.
+    val startPlan: () -> Unit = {
+        creatingPlan = runCatching { ConversationStore.shared(context).newConversation() }.getOrNull()
+    }
     // Exact alarms can be switched off in system settings; reread on return so the notice goes away.
     var exact by remember { mutableStateOf(TriggerRuntime.canScheduleExactly(context)) }
     LifecycleResumeEffect(Unit) {
@@ -297,18 +302,21 @@ internal fun TasksScreen(
                 }
                 if (visibleTasks.isEmpty() && plans.isEmpty() && (tab == 0 || stoppedPlans.isEmpty()) && schedules?.isSuccess == true && history?.isSuccess == true && historyError == null) {
                     item("empty") {
-                        Text(stringResource(if (tab == 0) R.string.personal_no_tasks else R.string.tasks_empty_up_next),
-                            Modifier.padding(top = 30.dp), style = MikaType.Body, color = c.ink2)
+                        EmptyStateCard(
+                            stringResource(if (tab == 0) R.string.personal_no_tasks else R.string.tasks_empty_up_next),
+                            Modifier.padding(top = 30.dp).testTag("tasks-empty"),
+                            hint = stringResource(R.string.tasks_empty_hint),
+                            icon = MikaIcons.Clock,
+                            actionLabel = stringResource(R.string.plans_add),
+                            onAction = startPlan,
+                        )
                     }
                 }
             }
             Box(
                 Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomInset + 20.dp).size(56.dp)
                     .clip(RoundedCornerShape(20.dp)).background(c.accent)
-                    .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button) {
-                        // Create right here, over Tasks: no detour through the schedules page, and Cancel stays on Tasks.
-                        creatingPlan = runCatching { ConversationStore.shared(context).newConversation() }.getOrNull()
-                    },
+                    .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button, onClick = startPlan),
                 contentAlignment = Alignment.Center,
             ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = c.onAccent) }
         }

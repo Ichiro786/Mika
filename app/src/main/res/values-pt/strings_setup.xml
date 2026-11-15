@@ -40,6 +40,13 @@
     <string name="model_url_unencrypted">Este endereço não é criptografado; a sua chave de API e as suas conversas podem ser vistas por outras pessoas na rede.</string>
     <string name="model_probe_failed">Pedir a %1$s que chamasse uma ferramenta de teste falhou: %2$s</string>
     <string name="model_probe_timeout">%1$s não respondeu a uma chamada de ferramenta de teste em %2$d segundos</string>
+    <string name="model_err_key_rejected">o provedor rejeitou a chave de API</string>
+    <string name="model_err_rate_limited">suas solicitações estão limitadas ou a cota da conta acabou</string>
+    <string name="model_err_server">o provedor está com problemas (%1$s)</string>
+    <string name="model_err_network">não foi possível alcançar o servidor</string>
+    <string name="model_err_generic">um problema inesperado; a mensagem original está em Detalhes</string>
+    <string name="model_details_show">Detalhes</string>
+    <string name="model_details_hide">Ocultar detalhes</string>
     <string name="model_probe_no_tools">%1$s não chamou a ferramenta. O Orbit precisa de um modelo que chame ferramentas para resolver as coisas. O provedor foi salvo, mas este modelo não foi definido como modelo principal.</string>
     <string name="model_self_hosted_note">127.0.0.1 é este celular. Se o servidor roda no seu computador, troque pelo endereço do computador na rede local e faça o servidor aceitar conexões da rede, não só de si mesmo.</string>
     <string name="preset_custom">Personalizado</string>

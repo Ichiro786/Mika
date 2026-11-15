@@ -100,7 +100,28 @@ object ModelOptions {
      * 一个模型办事时算不算能看图:用户在这个模型上说过的([userSaid])为准;没说过的,看图也用它([usedForVision]:
      * 选它当看图模型,或看图「用主模型」)就是用户说了它能看;都没有才按 [stored](列表写明的,没写的是预设初值)。
      */
-    fun seesImages(stored: Boolean, userSaid: Boolean?, usedForVision: Boolean): Boolean = userSaid ?: (usedForVision || stored)
+    fun seesImages(stored: Boolean, userSaid: Boolean?, usedForVision: Boolean, modelId: String? = null, listed: Boolean = false): Boolean =
+        userSaid ?: (usedForVision || stored || (!listed && modelId != null && looksVisionCapable(modelId)))
+
+    private val VISION_MODEL_IDS = listOf(
+        Regex("""^gemini-(1\.5|2|3)"""),
+        Regex("""^gpt-(4o|4\.1|5)"""),
+        Regex("""^o3(?!-mini)(-.*)?$"""),
+        Regex("""^o4-mini"""),
+        Regex("""^claude-(3[.-][57]|(sonnet|opus|haiku)-4|4)"""),
+        Regex("""^qwen.*-vl(?![a-z])"""),
+        Regex("""^glm-4(\.\d+)?v(?![a-z])"""),
+        Regex("""^(pixtral|llava)"""),
+    )
+
+    /**
+     * 模型名一看就是能看图的系列(保守的名单,没列进去的不猜):只在列表没写、预设初值也没有、用户也没说过时才用来当初值,
+     * 见 [seesImages];用户自己的选择总是优先。服务商前缀(`google/`、`anthropic/`)和大小写不影响。
+     */
+    fun looksVisionCapable(modelId: String): Boolean {
+        val id = modelId.trim().lowercase().substringAfterLast('/')
+        return VISION_MODEL_IDS.any { it.containsMatchIn(id) }
+    }
 
     /** 服务商的能力初值:地址对得上预设的用预设的,否则用「自定义」的。 */
     fun baseOf(p: Provider): Capabilities = (ProviderPresets.forBaseUrl(p.baseUrl) ?: ProviderPresets.custom).capabilities

@@ -131,6 +131,8 @@
     <string name="drawer_archived">アーカイブ済み</string>
     <string name="drawer_archived_count">%1$d 件をアーカイブ済み</string>
     <string name="drawer_archive_empty">アーカイブしたチャットはありません</string>
+    <string name="drawer_archive_empty_hint">アーカイブしたチャットはここにしまわれます。</string>
+    <string name="drawer_archive_back">チャットに戻る</string>
     <string name="drawer_archive_done">「%1$s」をアーカイブしました</string>
     <string name="drawer_archive_this_week">今週</string>
     <string name="drawer_archive_this_month">今月</string>

@@ -358,6 +358,7 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
     val f = ui.form
     var showKey by remember { mutableStateOf(false) }
     var confirmUntested by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         GroupLabel(ModelsCopy.ADD_PROVIDER, Modifier.weight(1f))
         if (ui.providers.isNotEmpty()) {
@@ -443,6 +444,17 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
             ModelSetupCopy.failed(failed.message), Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp).testTag("setup-test-failed"),
             fontSize = 13.sp, lineHeight = 18.sp, color = c.bad,
         )
+        // 服务端/网络层的原话默认折叠:先给人话,排查的人点开看
+        failed.details?.let { raw ->
+            TextButton(
+                { showDetails = !showDetails },
+                Modifier.padding(start = 8.dp).testTag("setup-test-details-toggle"),
+            ) { Text(if (showDetails) stringResource(R.string.model_details_hide) else stringResource(R.string.model_details_show)) }
+            if (showDetails) Text(
+                raw, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp).testTag("setup-test-details"),
+                fontSize = 12.sp, lineHeight = 16.sp, fontFamily = FontFamily.Monospace, color = c.ink3,
+            )
+        }
     }
     // 试不成又想先存下的:做成按钮,不要藏成一行小字——它是个真实的动作,不是说明
     MikaButton(

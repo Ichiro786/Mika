@@ -5,18 +5,18 @@ packages: ["com.whatsapp"]
 aliases: ["WhatsApp", "Whats App", "whatsapp", "WA"]
 sites: ["whatsapp.com"]
 open: WhatsApp
-description: 聊天与群
+description: Chats and groups
 ---
-## 是什么
-WhatsApp 是即时通讯 App,包名 `com.whatsapp`。网站知识见 `whatsapp.com`。
+## What it is
+WhatsApp is an instant-messaging app, package `com.whatsapp`. For the website see the `whatsapp.com` guide.
 
-## 界面
-有 Chats、Contacts、搜索和新聊天入口。搜索结果分 Chats、Contacts、Messages;联系人资料可按分类进入,也可从 New Chat 的联系人列表里找。
+## Screens
+Has Chats, Contacts, search and a new-chat entry. Search results are grouped into Chats, Contacts and Messages; a contact's profile can be reached by category, or found in the contact list under New Chat.
 
-## 功能
-- **读消息**:进入会话读取内容和时间;群里不确定的成员就是不知道。
-- **发消息**:选好联系人后输入正文,发出后看会话里的发送状态。
+## Features
+- **Read messages**: open a conversation to read content and times. In a group, a member you cannot identify is simply unknown.
+- **Send messages**: pick the contact, type the text, and after sending check the delivery status in the conversation.
 
-## 已知现象
-- 手机号验证和浏览器扫码关联是两件事。
-- 界面语言随系统,不一定是英文。
+## Known behavior
+- Phone-number verification and linking a browser by QR code are two different things.
+- The UI language follows the system and is not necessarily English.

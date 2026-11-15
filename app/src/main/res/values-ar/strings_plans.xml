@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">من دون هذا الإذن، قد تتأخر المهام المجدولة أو لا تعمل إطلاقًا. لا يلزم تفعيله إلا مرة واحدة.</string>
     <string name="plans_running_n">نشطة %1$d</string>
     <string name="plans_stopped_n">متوقفة %1$d</string>
-    <string name="plans_empty">لا توجد مهام مجدولة بعد\nانقر + لإنشاء مهمة، أو أخبر Orbit في محادثة بموعد تذكيرك أو بعمل شيء من أجلك.</string>
+    <string name="plans_empty_title">لا توجد مهام مجدولة بعد</string>
+    <string name="plans_empty_hint">أنشئ مهمة من هنا، أو أخبر Orbit في محادثة بموعد تذكيرك أو القيام بشيء نيابةً عنك.</string>
     <string name="plans_none_running">لا توجد مهام مجدولة نشطة</string>
     <string name="plans_none_stopped">لا توجد مهام مجدولة متوقفة</string>
     <string name="plans_footer">استخدم + لإنشاء مهمة، أو قل «كل يوم عند الثامنة…» أو «أخبرني عندما ينخفض السعر» في محادثة؛ وستعود النتائج إلى تلك المحادثة. قد تتأثر المهام المحددة بوقت بتوفير البطارية؛ ولا يؤثر إيقاف المهمة أو حذفها إلا في عمليات التشغيل المستقبلية.</string>

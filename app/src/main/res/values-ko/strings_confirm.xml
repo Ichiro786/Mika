@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">돈이 나가는 일은 매번 확인을 받아요.</string>
+    <string name="confirm_note">결제는 항상 확인을 받아요. 묻기 모드에서는 메시지 전송, 삭제, 권한 허용도 확인을 받아요.</string>
     <string name="confirm_pay">결제</string>
     <string name="confirm_delete">삭제</string>
     <string name="confirm_order">주문하기</string>

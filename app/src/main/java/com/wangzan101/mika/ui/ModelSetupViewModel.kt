@@ -60,7 +60,18 @@ import kotlinx.coroutines.withTimeout
 sealed interface ListState {
     data object Idle : ListState
     data object Running : ListState
-    data class Failed(val message: String) : ListState
+    /** [message] 是给人看的一句;[details] 是服务端/网络层的原话(已截短),界面上折叠着给要排查的人看,可为空。 */
+    data class Failed(val message: String, val details: String? = null) : ListState
+}
+
+/** 原话最多留这么长,再长的(整页 HTML、长 JSON)只留开头。 */
+private const val DETAILS_MAX = 300
+
+/** 把服务端/网络层的原话收成能放进折叠区的一段:去首尾空白,过长截断,空的为 null。 */
+private fun rawDetails(vararg parts: String?): String? {
+    val text = parts.filterNotNull().map { it.trim() }.filter { it.isNotEmpty() }.distinct().joinToString("\n")
+    if (text.isEmpty()) return null
+    return if (text.length > DETAILS_MAX) text.take(DETAILS_MAX) + "…" else text
 }
 
 /** 用 ChatGPT 登录的账号:[email] 来自核对过的 ID 令牌(可能为空);退出登录后 [signedIn] 为假。 */
@@ -467,7 +478,7 @@ class ModelSetupViewModel(
                 is ModelListResult.Ok -> r.models
                 is ModelListResult.Failed -> {
                     if (r.reason != ListFailure.NotSupported && typed.isEmpty()) {
-                        _state.update { it.copy(form = it.form.copy(test = ListState.Failed(r.message), manual = true)) }
+                        _state.update { it.copy(form = it.form.copy(test = ListState.Failed(r.reason.text, rawDetails(r.detail)), manual = true)) }
                         return@launch
                     }
                     emptyList()
@@ -487,7 +498,7 @@ class ModelSetupViewModel(
                     listMissing = models.isEmpty() && f.isCustom,
                 )
                 if (outcome is ProbeOutcome.Failed) {
-                    _state.update { it.copy(form = it.form.copy(test = ListState.Failed(outcome.message))) }
+                    _state.update { it.copy(form = it.form.copy(test = ListState.Failed(outcome.message, outcome.details))) }
                     return@launch
                 }
                 val noTools = outcome is ProbeOutcome.NoToolCall
@@ -504,7 +515,7 @@ class ModelSetupViewModel(
             }
             val probed = when (val r = probe(f, baseUrl, key.ifEmpty { null }, models)) {
                 is ListProbe.Blocked -> {
-                    _state.update { it.copy(form = it.form.copy(test = ListState.Failed(r.message))) }
+                    _state.update { it.copy(form = it.form.copy(test = ListState.Failed(r.message, r.details))) }
                     return@launch
                 }
                 is ListProbe.Done -> r
@@ -575,6 +586,7 @@ class ModelSetupViewModel(
         data class Failed(
             val message: String, val modelReason: String? = null,
             val notAvailable: Boolean = false, val serverSide: Boolean = false,
+            val details: String? = null,
         ) : ProbeOutcome
     }
 
@@ -589,7 +601,7 @@ class ModelSetupViewModel(
 
     /** 有列表时试调用的结果:[Blocked] 是第一个就因为模型以外的原因失败,不存;[Done] 见 [probe]。 */
     private sealed interface ListProbe {
-        data class Blocked(val message: String) : ListProbe
+        data class Blocked(val message: String, val details: String? = null) : ListProbe
         /** [main] 是通过了的模型;[rejected] 是在它之前试过、没通过的。都为空是没有可试的模型。 */
         data class Done(val main: String?, val rejected: List<Rejected>) : ListProbe
     }
@@ -628,6 +640,7 @@ class ModelSetupViewModel(
         val order = usable.ifEmpty { listOfNotNull(options.firstOrNull()?.id) }
         val rejected = mutableListOf<Rejected>()
         var firstServerError: String? = null
+        var firstServerDetails: String? = null
         for ((i, model) in order.take(PROBE_CANDIDATES).withIndex()) {
             val caps = options.first { it.id == model }.capabilities
             val endpoint = models.firstOrNull { it.id == model }?.endpoint
@@ -637,10 +650,10 @@ class ModelSetupViewModel(
                 is ProbeOutcome.Failed -> when {
                     o.modelReason != null -> {
                         rejected += Rejected(model, o.modelReason, o.notAvailable, o.serverSide)
-                        if (o.serverSide && firstServerError == null) firstServerError = o.message
+                        if (o.serverSide && firstServerError == null) { firstServerError = o.message; firstServerDetails = o.details }
                     }
                     // 前面只有 5xx 时 Key 还没证明是对的:再碰到 Key、网络、地址、超时这类,照旧不存
-                    firstServerError != null || i == 0 -> return ListProbe.Blocked(o.message)
+                    firstServerError != null || i == 0 -> return ListProbe.Blocked(o.message, o.details)
                     else -> {
                         rejected += Rejected(model, o.message, notAvailable = false)
                         break
@@ -650,7 +663,7 @@ class ModelSetupViewModel(
         }
         // 试的全都是服务端出错:多半整家不可用,不存
         if (rejected.isNotEmpty() && rejected.all { it.serverSide }) {
-            return ListProbe.Blocked(firstServerError ?: rejected.first().reason)
+            return ListProbe.Blocked(firstServerError ?: rejected.first().reason, firstServerDetails)
         }
         return ListProbe.Done(null, rejected)
     }
@@ -713,15 +726,29 @@ class ModelSetupViewModel(
                 )
                 // 5xx:可能只是这一个模型的上游挂了,先按它没通过算,由 [probe] 决定还试不试下一个
                 is ModelError.Server -> ProbeOutcome.Failed(
-                    tr(R.string.model_probe_failed, model, e.message.orEmpty()),
+                    tr(R.string.model_probe_failed, model, tr(R.string.model_err_server, "HTTP ${e.status}")),
                     tr(R.string.model_reason_server, "HTTP ${e.status}"), serverSide = true,
+                    details = rawDetails(e.message),
                 )
                 // 代理那一段的问题:说是代理,不说成模型或服务商不行
                 is ModelError.Proxy -> ProbeOutcome.Failed(tr(R.string.model_probe_failed, model, proxyReason(e)))
-                else -> ProbeOutcome.Failed(tr(R.string.model_probe_failed, model, e.message.orEmpty()))
+                // 其余的:先说一句人话(Key 被拒、限流、连不上),原话放进 details 折叠起来
+                else -> ProbeOutcome.Failed(
+                    tr(R.string.model_probe_failed, model, probeReason(e)),
+                    details = rawDetails(e.message, e.cause?.message),
+                )
             }
         }
     }
+
+    private fun probeReason(e: ModelError): String = tr(
+        when (e) {
+            is ModelError.Auth -> R.string.model_err_key_rejected
+            is ModelError.QuotaExceeded, is ModelError.RateLimited -> R.string.model_err_rate_limited
+            is ModelError.Network -> R.string.model_err_network
+            else -> R.string.model_err_generic
+        },
+    )
 
     /** 已连上的服务商里试调用 [model]:用存着的 Key、请求头,能力按已有的配置或预设。 */
     private suspend fun probeSaved(p: Provider, model: String): ProbeOutcome {
@@ -818,7 +845,7 @@ class ModelSetupViewModel(
                 }
                 browser.returnToApp()
                 _state.update {
-                    it.copy(listing = if (failed != null) it.listing + (p.id to ListState.Failed(failed.message)) else it.listing - p.id)
+                    it.copy(listing = if (failed != null) it.listing + (p.id to ListState.Failed(failed.reason.text, rawDetails(failed.detail))) else it.listing - p.id)
                 }
                 signIns.finishAccount(AccountOutcome(provider.target, providerId = p.id))
             } catch (e: CancellationException) {
@@ -1078,7 +1105,7 @@ class ModelSetupViewModel(
                 is ModelListResult.Failed -> if (r.reason == ListFailure.NotSupported) emptyList() else null
             }
             if (models != null) withContext(io) { store.rememberModels(p.id, models) }
-            val after = if (r is ModelListResult.Failed && models == null) ListState.Failed(r.message) else ListState.Idle
+            val after = if (r is ModelListResult.Failed && models == null) ListState.Failed(r.reason.text, rawDetails(r.detail)) else ListState.Idle
             _state.update { snapshot(it.copy(listing = it.listing + (providerId to after))) }
         }
     }

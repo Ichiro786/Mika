@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">Tanpa izin ini, tugas terjadwal bisa terlambat atau tidak berjalan sama sekali. Anda hanya perlu mengaktifkannya sekali.</string>
     <string name="plans_running_n">Aktif %1$d</string>
     <string name="plans_stopped_n">Nonaktif %1$d</string>
-    <string name="plans_empty">Belum ada tugas terjadwal\nKetuk + untuk membuatnya, atau bilang ke Orbit di obrolan kapan harus mengingatkan Anda atau mengerjakan sesuatu untuk Anda.</string>
+    <string name="plans_empty_title">Belum ada tugas terjadwal</string>
+    <string name="plans_empty_hint">Buat satu di sini, atau bilang ke Orbit di obrolan kapan harus mengingatkan Anda atau mengerjakan sesuatu untuk Anda.</string>
     <string name="plans_none_running">Tidak ada tugas terjadwal yang aktif</string>
     <string name="plans_none_stopped">Tidak ada tugas terjadwal yang dinonaktifkan</string>
     <string name="plans_footer">Gunakan + untuk membuat tugas, atau katakan “setiap hari pukul 8…” atau “kabari saya kalau harganya turun” di obrolan; hasilnya kembali ke obrolan itu. Eksekusi terjadwal bisa terpengaruh penghemat baterai; menonaktifkan atau menghapus hanya memengaruhi eksekusi berikutnya.</string>

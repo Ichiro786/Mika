@@ -29,9 +29,9 @@ class ClassifiedRiskTest {
         assertEquals(Risk(ActionRisk.Read), assess("phone_back"))
         assertEquals(Risk(ActionRisk.Read), assess("phone_scroll"))
         assertEquals(Risk(ActionRisk.Change), assess("phone_tap"))
-        assertEquals(Risk(ActionRisk.External), assess("phone_tap", Irreversible(IrrevAction.send, "发送")))
+        assertEquals(Risk(ActionRisk.External, confirm = true), assess("phone_tap", Irreversible(IrrevAction.send, "发送")))
         assertEquals(Risk(ActionRisk.External), assess("phone_tap", Irreversible(IrrevAction.submit, "提交")))
-        assertEquals(Risk(ActionRisk.Irreversible), assess("phone_tap", Irreversible(IrrevAction.delete, "删除")))
+        assertEquals(Risk(ActionRisk.Irreversible, confirm = true), assess("phone_tap", Irreversible(IrrevAction.delete, "删除")))
         assertEquals(Risk(ActionRisk.Unknown), assess("phone_tap", Irreversible(IrrevAction.other, "其他")))
     }
 

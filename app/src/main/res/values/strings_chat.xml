@@ -139,6 +139,8 @@
     <string name="drawer_archived">Archived</string>
     <string name="drawer_archived_count">%1$d archived</string>
     <string name="drawer_archive_empty">No archived chats</string>
+    <string name="drawer_archive_empty_hint">Chats you archive are kept here, out of your way.</string>
+    <string name="drawer_archive_back">Back to chats</string>
     <string name="drawer_archive_done">Archived “%1$s”</string>
     <string name="drawer_archive_this_week">This week</string>
     <string name="drawer_archive_this_month">This month</string>

@@ -35,6 +35,7 @@ import com.wangzan101.mika.ui.components.BarIconButton
 import com.wangzan101.mika.ui.components.ButtonKind
 import com.wangzan101.mika.ui.components.ButtonSize
 import com.wangzan101.mika.ui.components.EmptyNote
+import com.wangzan101.mika.ui.components.EmptyStateCard
 import com.wangzan101.mika.ui.components.FooterNote
 import com.wangzan101.mika.ui.components.GroupCard
 import com.wangzan101.mika.ui.components.GroupLabel
@@ -46,6 +47,7 @@ import com.wangzan101.mika.ui.components.SheetAction
 import com.wangzan101.mika.ui.components.StateCard
 import com.wangzan101.mika.ui.components.SubPage
 import com.wangzan101.mika.ui.components.TileTone
+import androidx.compose.ui.platform.testTag
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
@@ -110,10 +112,16 @@ fun PlansScreen(
         error?.let { Text(it, Modifier.padding(top = 8.dp), style = MikaType.Caption, color = MikaTheme.colors.bad) }
         if (shown.isEmpty()) {
             GroupLabel("")
-            EmptyNote(
-                if (snapshot.triggers.isEmpty()) tr(R.string.plans_empty)
-                else if (segment == 0) tr(R.string.plans_none_running) else tr(R.string.plans_none_stopped),
-            )
+            if (snapshot.triggers.isEmpty()) {
+                EmptyStateCard(
+                    tr(R.string.plans_empty_title), Modifier.testTag("plans-empty"),
+                    hint = tr(R.string.plans_empty_hint), icon = MikaIcons.Clock,
+                    actionLabel = tr(R.string.plans_add),
+                    onAction = { creating = ConversationStore.shared(context).newConversation() },
+                )
+            } else {
+                EmptyNote(if (segment == 0) tr(R.string.plans_none_running) else tr(R.string.plans_none_stopped))
+            }
         } else {
             GroupLabel(trPlural(R.plurals.settings_count_tasks, shown.size))
             GroupCard {

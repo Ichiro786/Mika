@@ -4,6 +4,8 @@ import com.wangzan101.mika.core.model.ChatModel
 import com.wangzan101.mika.core.model.Message
 import com.wangzan101.mika.core.model.ModelReply
 import com.wangzan101.mika.core.model.ModelRole
+import com.wangzan101.mika.core.model.Part
+import com.wangzan101.mika.core.agent.TokenEstimate
 import com.wangzan101.mika.core.model.StreamingChatModel
 import com.wangzan101.mika.core.model.ToolSpec
 import com.wangzan101.mika.core.model.Usage
@@ -29,13 +31,16 @@ enum class UsagePurpose(val key: String) {
 data class UsageSource(val providerId: String, val providerName: String, val model: String, val purpose: UsagePurpose)
 
 /**
- * 一次逻辑调用的结果:[usage] 为 null 表示服务商没报用量(或调用失败),不估 token。
+ * 一次逻辑调用的结果:[usage] 为 null 表示服务商没报用量(或调用失败);成功却没报的另给一个估计([estimate]),只用来卡预算。
  * [httpAttempts] 是这次调用实际发出的推理请求数;两参数形式保留给不关心请求数的观察者。
  */
 fun interface UsageSink {
     fun record(source: UsageSource, usage: Usage?)
 
     fun record(source: UsageSource, usage: Usage?, httpAttempts: Int) = record(source, usage)
+
+    /** A successful call whose provider reported no usage: a rough token estimate, so token budgets still trip. Not stored as usage. */
+    fun estimate(source: UsageSource, tokens: Long) {}
 }
 
 /**
@@ -57,9 +62,9 @@ private open class MeteredModel(
     override val name: String get() = inner.name
 
     override suspend fun complete(system: String, messages: List<Message>, tools: List<ToolSpec>): ModelReply =
-        counted { inner.complete(system, messages, tools) }
+        counted(system, messages) { inner.complete(system, messages, tools) }
 
-    protected suspend fun counted(call: suspend () -> ModelReply): ModelReply {
+    protected suspend fun counted(system: String, messages: List<Message>, call: suspend () -> ModelReply): ModelReply {
         // 在一次运行里调用的,也记到这次运行名下(见 RunUsageTally)
         val tally = currentCoroutineContext()[RunUsageTally]
         // 拒绝时不建请求计数、不调用适配器，也不记一笔不存在的逻辑调用。
@@ -73,7 +78,25 @@ private open class MeteredModel(
             throw e
         }
         note(reply.usage, tally, attempts.started)
+        // Only for a call that really went to the provider; a local reply has nothing to estimate
+        if (reply.usage == null && attempts.started > 0) runCatching {
+            val tokens = estimate(system, messages, reply)
+            sink.estimate(source, tokens)
+            tally?.addEstimate(tokens)
+        }
         return reply
+    }
+
+    private fun estimate(system: String, messages: List<Message>, reply: ModelReply): Long {
+        val out = reply.parts.sumOf { p ->
+            when (p) {
+                is Part.Text -> TokenEstimate.of(p.text)
+                is Part.Thinking -> TokenEstimate.of(p.text)
+                is Part.ToolCall -> TokenEstimate.of(p.name + p.argsJson)
+                else -> 0
+            }
+        }
+        return TokenEstimate.of(system).toLong() + TokenEstimate.of(messages) + out
     }
 
     private fun note(usage: Usage?, tally: RunUsageTally?, httpAttempts: Int) {
@@ -90,5 +113,5 @@ private class MeteredStreamingModel(
 ) : MeteredModel(inner, source, sink, beforeCall), StreamingChatModel {
     override suspend fun completeStreaming(
         system: String, messages: List<Message>, tools: List<ToolSpec>, onText: (String) -> Unit,
-    ): ModelReply = counted { inner.completeStreaming(system, messages, tools, onText) }
+    ): ModelReply = counted(system, messages) { inner.completeStreaming(system, messages, tools, onText) }
 }

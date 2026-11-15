@@ -584,7 +584,8 @@ class ProviderStore(
         val choices = _roles.value
         val cfg = choices.resolve(role)?.let { id -> _configs.value.firstOrNull { it.id == id } } ?: return null
         val sees = role == ModelRole.Vision || ModelOptions.seesImages(cfg.capabilities.vision,
-            provider(cfg.providerId)?.visionOverrides?.get(cfg.model), usedForVision = choices.resolve(ModelRole.Vision) == cfg.id)
+            provider(cfg.providerId)?.visionOverrides?.get(cfg.model), usedForVision = choices.resolve(ModelRole.Vision) == cfg.id,
+            modelId = cfg.model, listed = provider(cfg.providerId)?.models?.firstOrNull { it.id == cfg.model }?.vision != null)
         return if (sees == cfg.capabilities.vision) cfg else cfg.copy(capabilities = cfg.capabilities.copy(vision = sees))
     }
 
@@ -1189,13 +1190,14 @@ class ProviderStore(
         private const val USE_NONE = "none"
 
         // 连服务商的客户端都经 NetProxy 建:走设置 › 网络代理,本机、局域网地址(本地模型)直连
-        private val http by lazy { NetProxy.shared.client(OkHttpClient.Builder().readTimeout(120, TimeUnit.SECONDS)) }
+        // 官方服务商只信系统 CA,自建、自定义的地址另信用户装的 CA(见 [UserCaTrust])
+        private val http by lazy { NetProxy.shared.client(UserCaTrust.install(OkHttpClient.Builder().readTimeout(120, TimeUnit.SECONDS))) }
 
         /** 和对话模型共用的连接池;同一服务商的其他请求(如语音转写)也用它。 */
         val modelHttp: OkHttpClient get() = http
 
         /** 列模型、账号登录换令牌用的:读超时短一些,同样走网络代理。 */
-        private val shortHttp by lazy { NetProxy.shared.client(OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS)) }
+        private val shortHttp by lazy { NetProxy.shared.client(UserCaTrust.install(OkHttpClient.Builder().readTimeout(30, TimeUnit.SECONDS))) }
 
         private val catalog by lazy { ModelCatalog(shortHttp) }
 

@@ -6,8 +6,8 @@ aliases: ["Google Calendar", "谷歌日历"]
 apps: []
 open: calendar.google.com
 mode: desktop
-description: Google 的在线日历,读取和维护日历事件。
+description: Google's online calendar: read and maintain events.
 ---
-## 是什么
+## What it is
 
-Google 的在线日历,可读取和维护日历事件。
+Google's online calendar; can read and maintain calendar events.
