@@ -59,7 +59,7 @@ class ClassifiedRiskTest {
         // 金额只是页面内容,不是这一步要付的钱;区间也不能把提交、联系或删除升级成付款
         assertEquals(Risk(ActionRisk.External), assess("phone_tap", Irreversible(IrrevAction.submit, "提交"), on = salary))
         assertEquals(Risk(ActionRisk.External), assess("phone_tap", Irreversible(IrrevAction.submit, "立即沟通"), on = salary))
-        assertEquals(Risk(ActionRisk.Irreversible), assess("phone_tap", Irreversible(IrrevAction.delete, "删除"), on = salary))
+        assertEquals(Risk(ActionRisk.Irreversible, confirm = true), assess("phone_tap", Irreversible(IrrevAction.delete, "删除"), on = salary))
         // 合计、付款面板才是应付上下文;明确下单、付款不依赖页面金额
         assertEquals(true, assess("phone_tap", Irreversible(IrrevAction.submit, "提交"), on = shop).payment)
         val unreadableTotal = screen.copy(elements = screen.elements + el("@e9", "TextView", "合计", listOf(0, 600, 999, 660)))

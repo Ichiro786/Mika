@@ -85,9 +85,11 @@ class DescribedActionsTest {
         assertEquals("confirmation_required", o.code)
         assertEquals(IrrevAction.order, o.hit?.action)
         assertTrue(screen.calls.isEmpty())
-        // 删除不花钱:按描述找到就做
-        assertTrue(run(executor(toolDispatcher(screen)), "phone_tap", """{"element":"删除"}""") is ActionOutcome.Ran)
-        assertEquals(listOf("tap @e4"), screen.calls)
+        // A delete found by description asks first too
+        val delete = run(executor(toolDispatcher(screen)), "phone_tap", """{"element":"删除"}""")
+        delete as ActionOutcome.Refused
+        assertEquals(IrrevAction.delete, delete.hit?.action)
+        assertTrue(screen.calls.isEmpty())
     }
 
     @Test fun descriptionWithARefIsRejected() = runTest {

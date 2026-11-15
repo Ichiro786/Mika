@@ -91,7 +91,11 @@ class ConfirmDecision(
             else risks.assess(verb, hit) { fresh ?: snap }
         outwardSite = outward(hit, fresh ?: snap)
         if (auto) {
-            if (!risk.payment) return Decision.Clear
+            if (!risk.payment) {
+                // Sends and submits still count as outward acts, so the answer gets the usual check afterwards
+                if (hit != null && risk.level.outward) recorder?.approval(origin, tool, hit, risk, "allowed")
+                return Decision.Clear
+            }
             return approve(tool, checked, origin, hit, risk, fresh ?: snap, typing, seen) ?: Decision.Clear
         }
         approve(tool, checked, origin, hit, risk, fresh ?: snap, typing, seen)?.let { return it }
