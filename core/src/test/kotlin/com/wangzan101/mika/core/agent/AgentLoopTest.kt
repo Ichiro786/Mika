@@ -892,7 +892,7 @@ class AgentLoopTest {
         com.wangzan101.mika.core.testing.assertAnswered(DONE, l.run("长任务"))
         assertEquals(60, m.requests.size)
         val observation = m.requests[1][2].results().single().content
-        assertTrue("observation should be about 6000+ chars, was ${observation.length}", observation.length >= 6000)
+        assertTrue("observation should be about 6000+ chars, was ${observation.length}: ${observation.take(600)}", observation.length >= 6000)
         val worst = m.requests.maxOf { TokenEstimate.of(it) }
         assertTrue("sent about $worst tokens", worst * ContextCompressor.UNCALIBRATED_SCALE <= ContextLimits.of(32_000).usable)
         // 只裁旧读屏已经超出预算(压缩器只在超出时才折叠),折叠后回到预算内

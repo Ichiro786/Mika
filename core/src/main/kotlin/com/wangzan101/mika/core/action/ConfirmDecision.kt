@@ -80,8 +80,8 @@ class ConfirmDecision(
         // 没有可判的不可逆字样的动作(一般改动、界面间移动)不花钱,不用问
         if (!IrreversibleDetector.needsCheck(target, args)) return Decision.Clear
         val snap = aim.aimed
-        // 自主执行时按模型手里那一屏判,不另读屏
-        val fresh = if (auto) null else aim.now()
+        // Judge on a fresh read in Autonomous mode too, so a button that turned into a payment since the model's read still stops
+        val fresh = aim.now()
         if (ownApp(tool, args, fresh)) return Decision.OwnApp
         // 复看确认过的所见文字(@vN 才有):读屏里没有文字时(自绘界面)付款的同意按它核对象
         val seen = aim.seen

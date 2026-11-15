@@ -43,8 +43,8 @@ private class Shop : ScreenPort by FakeScreen() {
 class DescribedActionsTest {
     private val sink = object : RunSink { override fun event(e: com.wangzan101.mika.core.record.RunEvent) {} }
 
-    private fun executor(tools: com.wangzan101.mika.core.tool.ToolDispatcher) =
-        ActionExecutor(tools, OperationGuards(), ConfirmationGate(), gate = {}, recorder = ActionRecorder(sink))
+    private fun executor(tools: com.wangzan101.mika.core.tool.ToolDispatcher, autonomous: Boolean = false) =
+        ActionExecutor(tools, OperationGuards(), ConfirmationGate(), gate = {}, recorder = ActionRecorder(sink), autonomous = autonomous)
 
     private suspend fun run(e: ActionExecutor, tool: String, args: String): ActionOutcome = e.run(Part.ToolCall("c", tool, args), Origin.Model(1))
 
@@ -156,12 +156,15 @@ class DescribedActionsTest {
         assertTrue(actions, "\"dialog\"" in actions)
     }
 
-    @Test fun pageDialogIsShownAndAnsweredWithoutAskingWhenItSpendsNoMoney() = runTest {
+    @Test fun pageDialogIsShownAndAnsweredWithoutAskingInAutonomousMode() = runTest {
         val web = FakeWebPort().apply { dialog = PageDialog(PageDialog.CONFIRM, "确定删除这条记录吗?") }
         val tools = toolDispatcher(FakeScreen(), web = web)
         val seen = tools.execute(Part.ToolCall("o", "web_observe", "{}")).content
         assertEquals(JsonPrimitive("确定删除这条记录吗?"), (seen["dialog"] as JsonObject)["message"])
-        val e = executor(tools)
+        // Accepting "delete this record?" is a delete: Ask mode asks first
+        val asked = run(executor(tools), "web_interact", """{"action":"dialog","answer":"accept"}""")
+        assertTrue("$asked", asked is ActionOutcome.Refused)
+        val e = executor(tools, autonomous = true)
         val accept = run(e, "web_interact", """{"action":"dialog","answer":"accept"}""")
         assertTrue("$accept", accept is ActionOutcome.Ran)
         assertTrue(web.calls.toString(), "dialog true -" in web.calls)
