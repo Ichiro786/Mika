@@ -36,11 +36,11 @@ enum class ConfirmChoice { Once, Deny;
 
 /** 询问 / 自主:此刻是不是自主模式(中途换成自主时,正在跑的任务从下一步起照它)。由设置提供,测试里换成固定值。 */
 fun interface ApprovalSettings {
-    /** 自主模式:连付款也不先问。 */
+    /** Autonomous mode: nothing asks first except payments, which always wait for the user's OK. */
     fun autonomous(): Boolean
 
     companion object {
-        /** 询问(默认):付款和工具声明要问的那几步(见 [Risk.ask])先问。 */
+        /** Ask (default): payments, sends, deletes, permission grants and steps a tool declares (see [Risk.ask]) ask first. */
         val ASK = ApprovalSettings { false }
     }
 }

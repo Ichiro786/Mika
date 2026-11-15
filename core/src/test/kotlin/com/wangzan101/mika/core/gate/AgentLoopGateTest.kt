@@ -139,10 +139,11 @@ class AgentLoopGateTest {
         assertEquals("order", r.s("action")); assertEquals("提交订单", r.s("matched"))
         assertTrue(r.s("message").startsWith("This step spends money (order), so it was not run. First call request_confirmation"))
         assertTrue(r.s("message"), "uses it up whether it succeeds or not" in r.s("message"))
-        // 打字后回车是发送:发消息不花钱,屏上有金额也照常做
-        assertEquals(null, m.result(4)["error"])
+        // Enter after typing sends a message: Ask mode asks for that too
+        val enter = m.result(4)
+        assertEquals("confirmation_required", enter.s("error")); assertEquals("send", enter.s("action"))
         assertTrue("request_confirmation" in m.offeredTools[0])
-        assertEquals(listOf("required"), sink.events.filterIsInstance<RunEvent.Confirmation>().map { it.decision })
+        assertEquals(listOf("required", "required"), sink.events.filterIsInstance<RunEvent.Confirmation>().map { it.decision })
     }
 
     // C1:读屏后界面变了(「+」变「提交订单」),不带 target 的坐标点击也要拦
@@ -314,12 +315,12 @@ class AgentLoopGateTest {
 
     private fun lookFor(target: String) = step(tools(call("phone_find_visually", """{"target":"$target"}""")))
 
-    // 自绘界面上(读屏没有元素)看图找到的点:视觉模型看到「发送」,不花钱,直接点
-    @Test fun locatedSendOnBlankScreenRunsWithoutAsking() = runTest {
+    // A point found by sight on a drawn screen: the vision model sees "发送"; in Autonomous mode it is tapped without asking
+    @Test fun locatedSendOnBlankScreenRunsWithoutAskingInAutonomousMode() = runTest {
         val s = ChatScreen().apply { png = FRAME_A; blank = true }
         lateinit var m: StepModel
         m = StepModel(lookFor("右下角的图标"), { m.tapLocated()(it) }, step(failure("停")))
-        visionLoop(m, s, """{"bbox_2d":[800,900,990,990],"seen":"发送"}""", "是").run("t")
+        visionLoop(m, s, """{"bbox_2d":[800,900,990,990],"seen":"发送"}""", "是", approvals = { true }).run("t")
         assertEquals("vision", m.results[0].s("source"))
         assertEquals(1, s.taps.size)
     }

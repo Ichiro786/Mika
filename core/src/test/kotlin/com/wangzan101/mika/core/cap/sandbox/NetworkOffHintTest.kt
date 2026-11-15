@@ -9,7 +9,7 @@ class NetworkOffHintTest {
     @Test
     fun networkCommandsThatFailWhileOfflineGetTheHint() {
         for (c in listOf("pip install requests", "pip3 install x", "cd /workspace && npm install", "apk add git", "curl -O https://a.b/c", "wget https://a.b", "git clone https://a.b/c.git")) {
-            assertEquals(HINT_NETWORK_OFF, networkOffHint(false, 1, c, ""), c)
+            assertEquals(c, HINT_NETWORK_OFF, networkOffHint(false, 1, c, ""))
         }
     }
 

@@ -42,9 +42,9 @@ class DescribedBySightTest {
     private fun model(vararg replies: String) = FakeModel(
         *replies.map { ModelReply(listOf(Part.Text(it)), StopReason.EndTurn, null) }.toTypedArray(), groundingVerified = false)
 
-    private fun executor(screen: ScreenPort, vision: FakeModel) = ActionExecutor(
+    private fun executor(screen: ScreenPort, vision: FakeModel, autonomous: Boolean = false) = ActionExecutor(
         toolDispatcher(screen, vision = VisionService(vision, JvmTestImageOps)), OperationGuards(), ConfirmationGate(), gate = {},
-        recorder = ActionRecorder(sink))
+        recorder = ActionRecorder(sink), autonomous = autonomous)
 
     private suspend fun type(e: ActionExecutor, args: String) = e.run(Part.ToolCall("c", "phone_type_text", args), Origin.Model(1))
 
@@ -74,12 +74,16 @@ class DescribedBySightTest {
         assertTrue(screen.calls.isEmpty())
     }
 
-    @Test fun boxFoundOnASendButtonIsUsedWithoutAsking() = runTest {
-        // 判过不可逆:是发送,不花钱,不先问
+    @Test fun boxFoundOnASendButtonAsksInAskModeAndRunsInAutonomousMode() = runTest {
+        // A send found by sight is still a send: Ask mode asks first, Autonomous mode only stops for payments
+        val asked = Blind()
+        val o = type(executor(asked, model("""{"bbox_2d":[800,880,999,940],"seen":"发送"}""", "是")), """{"element":"右下角的框","text":"明天见"}""")
+        assertTrue("$o", o is ActionOutcome.Refused)
+        assertTrue(asked.calls.isEmpty())
         val screen = Blind()
         val vision = model("""{"bbox_2d":[800,880,999,940],"seen":"发送"}""", "是")
-        val o = type(executor(screen, vision), """{"element":"右下角的框","text":"明天见"}""")
-        assertTrue("$o", o is ActionOutcome.Ran)
+        val ran = type(executor(screen, vision, autonomous = true), """{"element":"右下角的框","text":"明天见"}""")
+        assertTrue("$ran", ran is ActionOutcome.Ran)
         assertTrue(screen.calls.isNotEmpty())
     }
 

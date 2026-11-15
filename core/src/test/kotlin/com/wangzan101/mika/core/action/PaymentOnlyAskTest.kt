@@ -114,7 +114,7 @@ private class Settable(var auto: Boolean = false) : ApprovalSettings {
     override fun autonomous() = auto
 }
 
-/** 询问时只有花钱的那一步先问用户;别的(发送、删除、卸载、密码框、一般改动)都直接做。 */
+/** Ask mode asks before paying, sending a message and deleting; Autonomous mode only stops for payments. Other steps run directly. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class PaymentOnlyAskTest {
     private fun loop(
@@ -123,22 +123,31 @@ class PaymentOnlyAskTest {
     ) = AgentLoop(m, toolDispatcher(s), "BASE", sink = sink, confirmations = ConfirmationGate(),
         approvals = approvals, confirmTimeoutMs = timeout, flags = flags, selfPackage = self)
 
-    @Test fun sendsWithoutAskingAndAudits() = runTest {
+    @Test fun sendingAsksFirstInAskModeAndAudits() = runTest {
+        val s = Chat(); val sink = Events()
+        val m = FakeModel(OBSERVE, tap("@e3"), GIVE_UP)
+        loop(m, s, sink = sink).run("t")
+        assertTrue(s.taps.isEmpty())
+        assertEquals("confirmation_required", m.result(2).s("error"))
+        val audit = sink.all.filterIsInstance<RunEvent.Approval>().single()
+        assertEquals(listOf("model", "send", "External", "false", "required"),
+            listOf(audit.source, audit.action, audit.risk, audit.payment.toString(), audit.decision))
+    }
+
+    @Test fun autonomousModeSendsWithoutAskingAndAudits() = runTest {
         val s = Chat(); val sink = Events()
         val m = FakeModel(OBSERVE, tap("@e3"), FINISH)
-        loop(m, s, sink = sink).run("t")
+        loop(m, s, approvals = Settable(auto = true), sink = sink).run("t")
         assertEquals(listOf("@e3"), s.taps)
-        val audit = sink.all.filterIsInstance<RunEvent.Approval>().single()
-        assertEquals(listOf("model", "send", "External", "false", "allowed"),
-            listOf(audit.source, audit.action, audit.risk, audit.payment.toString(), audit.decision))
         assertTrue(sink.all.none { it is RunEvent.Confirmation })
     }
 
-    @Test fun deletingUninstallingTypingPasswordsAndPlainTapsAllRunWithoutAsking() = runTest {
+    @Test fun deletingAsksButUninstallingTypingPasswordsAndPlainTapsRun() = runTest {
         val s = Chat()
         val m = FakeModel(OBSERVE, tap("@e7"), tap("@e4"), type("@e5", "x"), tap("@e6"), FINISH)
         loop(m, s).run("t")
-        assertEquals(listOf("@e7", "@e4", "@e6"), s.taps)
+        assertEquals("confirmation_required", m.result(2).s("error"))
+        assertEquals(listOf("@e4", "@e6"), s.taps)
         assertEquals(listOf("x"), s.typed)
     }
 
@@ -219,23 +228,23 @@ class PaymentOnlyAskTest {
         assertEquals("confirmation_required", m.result(4).s("error"))
     }
 
-    @Test fun confirmationIsOnlyForSpendingMoney() = runTest {
-        // 写不出金额的申请(发消息)不交给用户,直接告诉模型去做
+    @Test fun aSendIsAskedOnTheCardWithoutAnAmountAndThenRuns() = runTest {
         val s = Chat()
         val send = tools(call("request_confirmation", """{"action":"send","target":"张三","content":"明天见","app":"com.chat"}"""))
         val m = FakeModel(OBSERVE, send, tap("@e3"), FINISH)
         val l = loop(m, s)
-        l.run("t")
-        val r = m.result(2)
-        assertEquals("false", r.s("ok"))
-        assertTrue(r.toString(), "amount" in r.toString())
+        val run = async { l.run("t") }
+        advanceUntilIdle()
+        assertTrue(l.state.value is TaskState.WaitingConfirmation)
+        l.answerConfirmation(ConfirmChoice.Once)
+        run.await()
         assertEquals(listOf("@e3"), s.taps)
     }
 
-    @Test fun switchingToAutonomousMidRunStopsAskingEvenForPaymentFromTheNextStep() = runTest {
+    @Test fun switchingToAutonomousMidRunStillStopsForPayment() = runTest {
         val s = Chat(page = checkoutPage)
         val approvals = Settable()
-        val m = FakeModel(OBSERVE, tap("@e3"), tap("@e3"), FINISH)
+        val m = FakeModel(OBSERVE, tap("@e3"), tap("@e3"), GIVE_UP)
         // 第一次点提交订单时还在询问:被拦下;模型再点之前用户换成了自主
         val flipping = object : ChatModel by m {
             override suspend fun complete(system: String, messages: List<Message>, tools: List<ToolSpec>): ModelReply {
@@ -245,14 +254,20 @@ class PaymentOnlyAskTest {
         }
         AgentLoop(flipping, toolDispatcher(s), "BASE", confirmations = ConfirmationGate(), approvals = approvals).run("t")
         assertEquals("confirmation_required", m.result(2).s("error"))
-        assertEquals(listOf("@e3"), s.taps)
+        assertEquals("confirmation_required", m.result(3).s("error"))
+        assertTrue(s.taps.isEmpty())
     }
 
-    @Test fun batchStepsSendButStopAtPayment() = runTest {
+    @Test fun batchStepsStopAtSendsAndPayments() = runTest {
         val s = Chat()
         val send = tools(call("do_steps", """{"steps":[{"tool":"phone_tap","args":{"ref":"@e3","snapshotId":"s1"}}]}"""))
-        loop(FakeModel(OBSERVE, send, FINISH), s, flags = SpeedFlags(batchSteps = true)).run("t")
-        assertEquals(listOf("@e3"), s.taps)
+        val ms = FakeModel(OBSERVE, send, GIVE_UP)
+        loop(ms, s, flags = SpeedFlags(batchSteps = true)).run("t")
+        assertTrue(s.taps.isEmpty())
+        assertEquals("confirmation_required", ms.result(2).s("error"))
+        val auto = Chat()
+        loop(FakeModel(OBSERVE, send, FINISH), auto, approvals = Settable(auto = true), flags = SpeedFlags(batchSteps = true)).run("t")
+        assertEquals(listOf("@e3"), auto.taps)
         val shop = Chat(page = checkoutPage)
         val order = tools(call("do_steps", """{"steps":[{"tool":"phone_tap","args":{"ref":"@e3","snapshotId":"s1"}}]}"""))
         val m = FakeModel(OBSERVE, order, GIVE_UP)

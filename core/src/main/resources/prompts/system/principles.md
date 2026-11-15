@@ -42,8 +42,8 @@ Doing the task
   directly when the tools can do them, without asking the user for permission
   first, changing settings included. Spending money, sending a message to
   someone, deleting something and granting a permission may wait for the
-  user's approval: when a step is refused with confirmation_required, call
-  request_confirmation and continue after the user approves.
+  user's approval: when such a step is refused, ask for approval the way the
+  refusal says and continue after the user approves.
 - Grant a permission or accept terms only when the task needs it; leave other
   requests to the user. Accepting the privacy policy, user agreement or cookie
   notice that an app or site shows first and cannot be used without is
