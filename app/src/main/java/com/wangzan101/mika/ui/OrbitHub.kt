@@ -430,7 +430,6 @@ private fun HubBrowser(onOpen: (String?) -> Unit) {
 
 @Composable
 private fun HubMemory(memory: MemoryRuntime, cache: HubSectionCache, onOpen: () -> Unit) {
-    val c = MikaTheme.colors
     LaunchedEffect(memory, cache) {
         if (cache.memory == null) {
             cache.memory = try {
@@ -444,38 +443,36 @@ private fun HubMemory(memory: MemoryRuntime, cache: HubSectionCache, onOpen: () 
     }
     val loaded = cache.memory
     val data = loaded?.getOrNull()
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        MikaCard {
-            Column(Modifier.fillMaxWidth().padding(18.dp)) {
-                Text(stringResource(R.string.memory_memory), style = MikaType.BodyStrong, color = c.ink)
-                when {
-                    loaded == null -> HubHint(stringResource(R.string.loading))
-                    data == null || !data.store.available -> HubHint(stringResource(R.string.memory_unavailable))
-                    else -> {
-                        val items by data.store.items.collectAsState()
-                        val active = items.filter { it.status == MemoryStatus.active }.sortedByDescending { it.updatedAt }.take(3)
-                        if (active.isEmpty()) HubHint(stringResource(R.string.memory_empty))
-                        active.forEach { item -> HubEntry(item.content, onOpen) }
-                        if (items.any { it.status == MemoryStatus.pending }) HubEntry(stringResource(R.string.memory_pending), onOpen)
-                    }
-                }
-                TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
+    val items = data?.store?.takeIf { it.available }?.items?.collectAsState()?.value.orEmpty()
+    val active = items.filter { it.status == MemoryStatus.active }.sortedByDescending { it.updatedAt }
+    val skills = data?.skills.orEmpty()
+    val memorySub = when {
+        loaded == null -> stringResource(R.string.loading)
+        data == null || !data.store.available -> stringResource(R.string.memory_unavailable)
+        else -> stringResource(R.string.orbit_hub_memory_count, active.size)
+    }
+    val skillsSub = when {
+        loaded == null -> stringResource(R.string.loading)
+        data == null -> stringResource(R.string.memory_unavailable)
+        else -> stringResource(R.string.orbit_hub_skills_count, skills.size)
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        HubGlowPair(
+            stringResource(R.string.memory_memory), memorySub, active.firstOrNull()?.updatedAt,
+            stringResource(R.string.memory_skills), skillsSub, skills.maxOfOrNull { it.createdAt },
+            onOpen,
+        )
+        // The latest few, plain, under the cards; the full lists open from either card.
+        val latest = active.take(3).map { it.content } + skills.take(2).map { it.name }
+        if (latest.isNotEmpty()) MikaCard {
+            Column(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 6.dp)) {
+                latest.forEach { HubEntry(it, onOpen) }
             }
         }
-        MikaCard {
-            Column(Modifier.fillMaxWidth().padding(18.dp)) {
-                Text(stringResource(R.string.memory_skills), style = MikaType.BodyStrong, color = c.ink)
-                when {
-                    loaded == null -> HubHint(stringResource(R.string.loading))
-                    data == null -> HubHint(stringResource(R.string.memory_unavailable))
-                    data.skills.isEmpty() -> HubHint(stringResource(R.string.skills_empty))
-                    else -> data.skills.take(3).forEach { skill -> HubEntry(skill.name, onOpen) }
-                }
-                TextButton(onClick = onOpen) { Text(stringResource(R.string.orbit_hub_open_section)) }
-            }
+        if (items.any { it.status == MemoryStatus.pending }) {
+            TextButton(onClick = onOpen) { Text(stringResource(R.string.memory_pending)) }
         }
     }
-
 }
 
 @Composable

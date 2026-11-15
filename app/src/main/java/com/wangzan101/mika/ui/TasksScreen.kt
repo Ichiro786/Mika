@@ -138,8 +138,11 @@ internal fun TasksScreen(
         val displayStates = remember(run) { run.state.map(::taskDisplayState).distinctUntilChanged() }
         val state by displayStates.collectAsState(initial = taskDisplayState(run.state.value))
         val recordId by run.runId.collectAsState()
-        LiveTask(run, state, recordId)
-    } }
+        // A run counts as a task once Orbit actually works on it (uses a tool, or stops to ask); a plain chat reply never does.
+        var worked by remember(run.key) { mutableStateOf(false) }
+        if (!worked && startedWork(state)) worked = true
+        LiveTask(run, state, recordId).takeIf { worked || state.isQueued() }
+    } }.filterNotNull()
     val personalConversations = personal.tasks.mapTo(mutableSetOf()) { it.conversationId }
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var selectedTask by rememberSaveable { mutableStateOf<String?>(null) }
@@ -167,8 +170,18 @@ internal fun TasksScreen(
         value = null
         try {
             value = Result.success(withContext(Dispatchers.IO) {
-                val conversations = ConversationStore.shared(context).list(includeArchived = true).mapTo(mutableSetOf()) { it.id }
-                runStore.all().filter { it.threadId in conversations && (it.phase == RunPhase.Ended || it.phase == RunPhase.Interrupted) }.asReversed()
+                val store = ConversationStore.shared(context)
+                val conversations = store.list(includeArchived = true).mapTo(mutableSetOf()) { it.id }
+                // Only runs where Orbit used a tool are tasks; chat replies stay in the chat.
+                val worked = HashMap<String, Set<String>>()
+                fun workedRuns(thread: String) = worked.getOrPut(thread) {
+                    runCatching { store.turns(thread) }.getOrDefault(emptyList())
+                        .filter { it.groups.isNotEmpty() }.mapNotNullTo(mutableSetOf()) { it.runId }
+                }
+                runStore.all().filter { r ->
+                    r.threadId in conversations && (r.phase == RunPhase.Ended || r.phase == RunPhase.Interrupted) &&
+                        workedRuns(r.threadId).let { ids -> r.id.value in ids || r.recordId in ids }
+                }.asReversed()
             })
         } catch (e: CancellationException) {
             throw e
@@ -404,7 +417,7 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
         .padding(vertical = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
         Box(Modifier.padding(top = 3.dp).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(6.dp)))
         Column(Modifier.weight(1f)) {
-            Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
             Text(status, Modifier.padding(top = 4.dp), style = MikaType.Caption,
                 color = if (item.section == TaskSection.Review || item.section == TaskSection.NeedsYou) attention else c.ink2)
             if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
@@ -454,6 +467,22 @@ internal fun OneLineTitle(text: AnnotatedString, color: Color, modifier: Modifie
                 full.copy(fontSize = size.sp, lineHeight = (size * 1.25f).sp)
             }
         }
-        Text(text, style = style, color = color, maxLines = 1, softWrap = false, overflow = TextOverflow.Ellipsis)
+        // The estimate can miss by a few pixels once the real font loads; shrink again until the whole title fits.
+        var fit by remember(text, maxWidth) { mutableStateOf(1f) }
+        Text(
+            text, style = if (fit == 1f) style else style.copy(fontSize = (style.fontSize.value * fit).sp, lineHeight = (style.fontSize.value * fit * 1.25f).sp), color = color,
+            maxLines = 1, softWrap = false, overflow = TextOverflow.Clip,
+            onTextLayout = { if ((it.didOverflowWidth || it.hasVisualOverflow) && fit > 0.6f) fit *= 0.94f },
+        )
     }
 }
+
+/** Orbit has started real work: it used a tool, or the run stopped to ask the user something. */
+private fun startedWork(state: TaskState): Boolean = when (state) {
+    is TaskState.Running -> state.tool != null || state.progress != null
+    TaskState.Idle -> false
+    is TaskState.Terminal -> false
+    else -> true
+}
+
+private fun TaskState.isQueued(): Boolean = this is TaskState.Held && reason.queued

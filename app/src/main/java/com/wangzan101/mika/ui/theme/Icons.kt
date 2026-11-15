@@ -85,6 +85,12 @@ object MikaIcons {
         "alarm", "M5 13 a7 7 0 1 0 14 0 a7 7 0 1 0 -14 0", "M12 10 v3 l2 1.5 M5 4 L2.5 6.5 M19 4 l2.5 2.5",
     )
     val Message = stroke("message", "M21 12 a8 8 0 0 1 -11.6 7.1 L4 20 l1 -4.6 A8 8 0 1 1 21 12 z")
+    /** A thought cloud with two small bubbles under it: memory. */
+    val Thought = stroke(
+        "thought",
+        "M8 15.5 a3.5 3.5 0 0 1 -0.6 -6.95 a4.5 4.5 0 0 1 8.5 -0.9 a3.6 3.6 0 0 1 1.6 6.95 a3 3 0 0 1 -3.5 0.9 a3.6 3.6 0 0 1 -6 0 z",
+        "M6.4 18.2 a1.1 1.1 0 1 0 2.2 0 a1.1 1.1 0 1 0 -2.2 0", "M4 20.6 a0.6 0.6 0 1 0 1.2 0 a0.6 0.6 0 1 0 -1.2 0",
+    )
     val Heart = stroke(
         "heart", "M12 20.5 s-8 -4.6 -8 -10.4 A4.6 4.6 0 0 1 12 7 a4.6 4.6 0 0 1 8 3.1 c0 5.8 -8 10.4 -8 10.4 z",
     )

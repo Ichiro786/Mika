@@ -50,6 +50,11 @@
     <string name="orbit_picker_unavailable">No compatible picker is available.</string>
     <string name="orbit_make_subtitle">Everything Orbit has made for you.</string>
     <string name="orbit_make_empty">Nothing here yet. Files Orbit creates in your chats will show up here.</string>
+    <string name="orbit_make_files">파일</string>
+    <string name="orbit_make_media">미디어</string>
+    <string name="orbit_make_empty_media">아직 사진, 동영상, 오디오가 없어요. Orbit이 채팅에서 만든 미디어가 여기에 표시돼요.</string>
+    <string name="orbit_hub_memory_count">저장됨: %1$d</string>
+    <string name="orbit_hub_skills_count">배운 것: %1$d</string>
     <string name="orbit_settings_reach">Calls &amp; messages</string>
     <string name="orbit_settings_look">Look &amp; feel</string>
     <string name="orbit_plan_pick_time">Pick a date and time</string>

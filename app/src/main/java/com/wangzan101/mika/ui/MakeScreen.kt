@@ -1,6 +1,20 @@
 package com.wangzan101.mika.ui
 
 import android.text.format.DateUtils
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.unit.IntOffset
+import kotlin.math.roundToInt
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -69,6 +83,21 @@ internal data class MadeArtifact(
     val source: FileSource,
 )
 
+private val MEDIA_EXTENSIONS = setOf(
+    "png", "jpg", "jpeg", "gif", "webp", "heic", "heif", "bmp", "svg", "avif",
+    "mp4", "mov", "webm", "mkv", "3gp", "m4v",
+    "mp3", "m4a", "aac", "wav", "ogg", "opus", "flac",
+)
+
+/** Pictures, video and audio go under Media; documents, code, tables and everything else under Files. */
+internal fun MadeArtifact.isMedia(): Boolean = name.substringAfterLast('.', "").lowercase() in MEDIA_EXTENSIONS
+
+private fun MadeArtifact.mediaKind(): String = when (name.substringAfterLast('.', "").lowercase()) {
+    "mp4", "mov", "webm", "mkv", "3gp", "m4v" -> "video"
+    "mp3", "m4a", "aac", "wav", "ogg", "opus", "flac" -> "audio"
+    else -> "image"
+}
+
 /** Only what the agent created: shared outputs, never the user's own uploads. Newest first. */
 internal fun madeArtifacts(files: List<LibraryFile>): List<MadeArtifact> =
     files.filterIsInstance<LibraryFile.Output>().mapNotNull { file ->
@@ -112,6 +141,7 @@ internal fun MakeScreen(
             value ?: emptyList()
         }
     }
+    var media by rememberSaveable { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().background(c.bg).testTag("make-screen")) {
         TopBar("", MikaIcons.Menu, onOpenDrawer, stringResource(R.string.chat_menu),
             titleIcon = { OrbitHubButton(presence, onOpenOrbitHub) }, centerTitle = true,
@@ -128,13 +158,14 @@ internal fun MakeScreen(
                         style = MikaType.Body, color = c.ink2)
                 }
             }
-            val list = artifacts
+            item("kind") { MadeKindToggle(media) { media = it } }
+            val list = artifacts?.filter { it.isMedia() == media }
             when {
                 list == null -> item("loading") {
                     Text(stringResource(R.string.file_library_loading), Modifier.padding(vertical = 12.dp),
                         style = MikaType.Body, color = c.ink3)
                 }
-                list.isEmpty() -> item("empty") { MakeEmpty() }
+                list.isEmpty() -> item("empty") { MakeEmpty(media) }
                 else -> item("artifacts") {
                     MikaCard {
                         list.forEachIndexed { i, artifact ->
@@ -164,14 +195,44 @@ internal fun MakeScreen(
 }
 
 @Composable
-private fun MakeEmpty() {
+private fun MakeEmpty(media: Boolean) {
     val c = MikaTheme.colors
     Column(Modifier.fillMaxWidth().testTag("make-empty").padding(top = 36.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.size(56.dp).background(c.answer, MikaShapes.Tile), contentAlignment = Alignment.Center) {
-            Icon(MikaIcons.Spark, null, Modifier.size(26.dp), tint = c.ink2)
+            Icon(if (media) MikaIcons.Photo else MikaIcons.Spark, null, Modifier.size(26.dp), tint = c.ink2)
         }
-        Text(stringResource(R.string.orbit_make_empty), Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp),
+        Text(stringResource(if (media) R.string.orbit_make_empty_media else R.string.orbit_make_empty),
+            Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp),
             style = MikaType.Body, color = c.ink3, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+    }
+}
+
+/** Files | Media: a pill track with a lighter pill that slides under the chosen side. */
+@Composable
+private fun MadeKindToggle(media: Boolean, onPick: (Boolean) -> Unit) {
+    val c = MikaTheme.colors
+    val shift by animateFloatAsState(if (media) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 520f), label = "make-kind")
+    BoxWithConstraints(
+        Modifier.fillMaxWidth().padding(bottom = 18.dp).height(52.dp).clip(MikaShapes.Pill)
+            .background(c.fill, MikaShapes.Pill).border(0.5.dp, c.hair, MikaShapes.Pill).padding(4.dp)
+            .selectableGroup().testTag("make-kind"),
+    ) {
+        val half = maxWidth / 2
+        Box(
+            Modifier.offset { IntOffset((half.toPx() * shift).roundToInt(), 0) }.width(half).fillMaxHeight()
+                .background(c.surface, MikaShapes.Pill).border(0.5.dp, c.edge, MikaShapes.Pill),
+        )
+        Row(Modifier.fillMaxSize()) {
+            listOf(false to R.string.orbit_make_files, true to R.string.orbit_make_media).forEach { (value, label) ->
+                Box(
+                    Modifier.weight(1f).fillMaxHeight().clip(MikaShapes.Pill)
+                        .selectable(selected = media == value, role = Role.Tab) { onPick(value) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(stringResource(label), style = MikaType.BodyStrong, color = if (media == value) c.ink else c.ink2)
+                }
+            }
+        }
     }
 }
 
@@ -190,7 +251,8 @@ private fun ArtifactRow(artifact: MadeArtifact, onOpen: () -> Unit, onShowInChat
         horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(38.dp).background(c.answer, MikaShapes.Tile), contentAlignment = Alignment.Center) {
-            Icon(MikaIcons.Doc, null, Modifier.size(21.dp), tint = c.ink)
+            Icon(if (!artifact.isMedia()) MikaIcons.Doc else if (artifact.mediaKind() == "image") MikaIcons.Photo else if (artifact.mediaKind() == "audio") MikaIcons.Sound else MikaIcons.Camera,
+                null, Modifier.size(21.dp), tint = c.ink)
         }
         Column(Modifier.weight(1f)) {
             Text(artifact.name, style = MikaType.BodyStrong, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)

@@ -607,6 +607,7 @@ fun ChatDrawer(
                     item("channel-new") { AddRow(stringResource(R.string.orbit_channel_new), "channel-new", enabled = canSwitch, onClick = onCreateChannel) }
                     // Side chats that don't belong to a channel.
                     val loose = sideChats.filter { it.parentId !in channelIds }
+                    // Recent lists side chats only; the main Orbit chat is always one tap away and stays out of it.
                     if (loose.isNotEmpty()) {
                         item("h-sides") { SideChatsHeader(onSideHistory) }
                         items(loose, key = { "side-${it.id}" }) { ConversationEntry(it, onOpen, onActions) }
@@ -646,7 +647,7 @@ fun ChatDrawer(
                         )
                     }
                 }
-                if (sections.recent.isNotEmpty()) {
+                if (sections.recent.isNotEmpty() && (selecting || everythingView)) {
                     item("h-recent") { SectionLabel(stringResource(R.string.drawer_recent)) }
                     if (sections.pinned.isEmpty()) busyNote()
                     items(sections.recent, key = { "c-${it.id}" }) {
@@ -695,9 +696,15 @@ private fun HeaderAction(text: String, tag: String, color: Color, onClick: () ->
 @Composable
 private fun SideChatsHeader(onSeeAll: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.orbit_side_chats)) }
-        TextButton(onClick = onSeeAll, modifier = Modifier.testTag("side-chats-see-all")) {
-            Text(stringResource(R.string.orbit_side_all), style = MikaType.Hint, color = MikaTheme.colors.ink2)
+        Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.drawer_recent)) }
+        // A small arrow, not a "See all" label: it opens the clean full list of side chats.
+        Box(
+            Modifier.size(40.dp).clip(CircleShape)
+                .clickable(role = Role.Button, onClickLabel = stringResource(R.string.orbit_side_all), onClick = onSeeAll)
+                .testTag("side-chats-see-all"),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(MikaIcons.Chevron, stringResource(R.string.orbit_side_all), Modifier.size(16.dp), tint = MikaTheme.colors.ink2)
         }
     }
 }
@@ -1398,9 +1405,15 @@ fun ChatWithDrawer(
                 // 只在打开时读盘;每次打开、开着时存储里有对话改过都重读一次
                 val history = remember(open, revision) { if (open) conversations() else emptyList() }
                 val drafts by vm.draftConversations.collectAsState()
-                val everything = remember(open, history, drafts, revision) {
-                    if (open) vm.withDrafts(history).map { summary ->
-                        if (summary.sideChat != null && summary.title.isBlank()) summary.copy(title = tr(R.string.orbit_side_chat)) else summary
+                val everything = remember(open, history, drafts, revision, ui.conversationId) {
+                    // A side chat with nothing said in it yet has no title. Opened and left empty, it's noise in
+                    // Recent (a row of identical "Side Chat"s), so only the one on screen keeps a row.
+                    if (open) vm.withDrafts(history).mapNotNull { summary ->
+                        when {
+                            summary.sideChat == null || summary.title.isNotBlank() -> summary
+                            summary.id == ui.conversationId -> summary.copy(title = tr(R.string.orbit_side_chat))
+                            else -> null
+                        }
                     } else emptyList()
                 }
                 // A space's own conversation lives behind the space, not in Recent; search still finds it.
@@ -1528,7 +1541,7 @@ fun ChatWithDrawer(
                         if (vm.createSideChat()) close { onRegularChat() }
                         else android.widget.Toast.makeText(context, context.getString(R.string.orbit_side_create_failed), android.widget.Toast.LENGTH_SHORT).show()
                     },
-                    sideChats = sideRows.filterNot { it.archived }.take(2),
+                    sideChats = sideRows.filterNot { it.archived }.take(8),
                     allSideChats = sideRows,
                     sideHistoryView = sideHistoryView,
                     spaces = spaces,

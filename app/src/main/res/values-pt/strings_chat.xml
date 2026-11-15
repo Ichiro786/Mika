@@ -12,6 +12,8 @@
     <string name="chat_example_follow">Abra o X, pesquise Wang Zan (@wangzan101) e siga a conta.</string>
     <string name="chat_example_group_summary">Abra o WhatsApp e resuma as mensagens não lidas de hoje, destacando tudo o que precisa da minha resposta.</string>
     <string name="chat_example_alarms">Defina alarmes para amanhã às 9:40, 9:50 e 10:00.</string>
+    <string name="chat_example_wind_down">Ative o Não perturbe até as 7 da manhã de amanhã e coloque um alarme para as 7:00.</string>
+    <string name="chat_example_nearby">Encontre um café bem avaliado perto de mim que esteja aberto agora.</string>
     <string name="chat_example_replace_title">Substituir o rascunho atual?</string>
     <string name="chat_example_replace_body">A tarefa recomendada substituirá o que você já digitou.</string>
     <string name="chat_example_replace_action">Substituir rascunho</string>
