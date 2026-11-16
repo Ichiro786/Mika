@@ -290,3 +290,8 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - Approvals: uninstalling an app asks in Ask mode like a delete, on screen and through the shell command tool. Autonomous mode is unchanged.
 - Phone control: a task paused because the helper dropped says why and offers Reconnect in the chat. Turning Wi-Fi off does not by itself stop a running helper (commands go over Binder, not ADB); the card covers the case where the helper dies while Wi-Fi is off.
 - Verified here: `:core:test` and `:app:testDebugUnitTest` pass, device tests compile, translation check passes. Not verified: anything on a device or emulator, including the look of every screen above, TalkBack, 200% font and the animations.
+
+## Opening screen follows the logo style, 2026-11-16
+
+- The opening screen now shows the coral Original mark by default, the same mark as inside the app, in light and dark. When the Monochrome logo style is chosen, the one-colour mark is used from the next launch on (Android 12 and later, where the system lets an app pick its opening-screen theme); on Android 11 the opening screen keeps the Original mark.
+- Opening AI model after signing in to the Gemini plan no longer crashes: the engine's disk-use scan skips folders it cannot list and files that go away mid-scan. Found from a screen recording and the code; not reproduced on a device here.

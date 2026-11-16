@@ -5,4 +5,8 @@
         <item name="android:windowSplashScreenBackground">@color/orbit_splash_background</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/orbit_splash_icon</item>
     </style>
+    <!-- The opening screen for the Monochrome identity; MainActivity selects it for the next launch on Android 12+. -->
+    <style name="Theme.Mika.Mono" parent="Theme.Mika">
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/orbit_splash_icon_mono</item>
+    </style>
 </resources>

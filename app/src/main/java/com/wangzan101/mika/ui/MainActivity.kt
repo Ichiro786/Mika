@@ -1,5 +1,6 @@
 package com.wangzan101.mika.ui
 
+import com.wangzan101.mika.settings.OrbitIdentityMode
 import com.wangzan101.mika.gemini.GeminiEngine
 import com.wangzan101.mika.ui.onboarding.FlowStep
 import com.wangzan101.mika.ui.onboarding.OnboardingFlow
@@ -136,9 +137,25 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(AppLanguage.wrap(newBase))
     }
 
+    /**
+     * The opening screen shows the same mark as the app. The manifest theme carries the coral Original mark, which
+     * is the default; when the user picks Monochrome, the system is told to use the one-colour theme from the next
+     * launch on, and back again when they return to Original. Android only lets an app choose this from version 12;
+     * on Android 11 the opening screen keeps the Original mark.
+     */
+    private fun followIdentityOnOpeningScreen() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        lifecycleScope.launch {
+            FeatureFlags.get(this@MainActivity).orbitIdentityChanges().collect { mode ->
+                splashScreen.setSplashScreenTheme(openingScreenTheme(mode))
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        followIdentityOnOpeningScreen()
         if (savedInstanceState == null) {
             (application as MikaApp).chat.cancelPendingSharedDraft()
         }
@@ -982,3 +999,7 @@ private fun com.wangzan101.mika.core.self.SelfScreen.route(): Route = when (this
     com.wangzan101.mika.core.self.SelfScreen.Screens -> Route.Screens
     com.wangzan101.mika.core.self.SelfScreen.About -> Route.About
 }
+
+/** The opening-screen theme for an identity: 0 keeps the manifest's (the coral Original mark). */
+internal fun openingScreenTheme(mode: OrbitIdentityMode): Int =
+    if (mode == OrbitIdentityMode.Monochrome) R.style.Theme_Mika_Mono else 0
