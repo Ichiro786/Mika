@@ -12,4 +12,14 @@
     <string name="tasks_waiting">En espera</string>
     <string name="tasks_empty_up_next">No hay tareas en cola ni programadas.</string>
     <string name="tasks_empty_hint">Pídele algo a Orbit en un chat, o programa una tarea para que se ejecute sola.</string>
+    <string name="tasks_mark_done">Marcar como hecha</string>
+    <string name="tasks_mark_done_live">Marcar como hecha y detener</string>
+    <string name="tasks_marked_done">Marcada como hecha</string>
+    <string name="tasks_marked_done_live">Marcada como hecha. Orbit deja de trabajar en ella.</string>
+    <string name="tasks_delete">Eliminar tarea</string>
+    <string name="tasks_deleted">Tarea eliminada. Su chat se conserva.</string>
+    <string name="task_detail_steps">Pasos</string>
+    <string name="task_detail_no_steps">No hay pasos registrados para esta tarea.</string>
+    <string name="task_detail_earlier_steps">Pasos anteriores no mostrados: %1$d</string>
+    <string name="task_detail_open_chat">Abrir chat</string>
 </resources>

@@ -172,4 +172,9 @@
     <string name="phone_root_note">Orbit нашла su на этом телефоне. Помощник, запущенный с root, по-прежнему работает от того же ограниченного пользователя и с теми же правами, что при запуске через отладку по Wi-Fi.</string>
     <string name="phone_root_entry_on">Автозапуск помощника; команды root включены</string>
     <string name="phone_root_entry_off">Автозапуск помощника; команды root выключены</string>
+    <string name="phone_down_title">Управление телефоном отключилось</string>
+    <string name="phone_down_no_wifi">Wi-Fi выключен, поэтому Orbit не может восстановить управление телефоном. Включите Wi-Fi и нажмите «Подключиться снова». Интернет не нужен.</string>
+    <string name="phone_down_wireless_off">Отладка по Wi-Fi выключена. Нажмите «Подключиться снова», и Orbit включит её, если сможет. Нужен Wi-Fi, но не интернет.</string>
+    <string name="phone_down_back_title">Управление телефоном восстановлено</string>
+    <string name="phone_down_back_body">Нажмите «Продолжить», чтобы вернуться к задаче.</string>
 </resources>

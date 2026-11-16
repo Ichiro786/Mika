@@ -295,4 +295,6 @@
     <string name="chat_reaction_orbit">Orbit reacted %1$s</string>
     <string name="chat_replying_to">Replying to your message: %1$s</string>
     <string name="chat_swipe_reply">Swipe to reply</string>
+    <string name="chat_jump_latest">Jump to latest</string>
+    <string name="chat_jump_latest_new">Jump to latest, %1$d new</string>
 </resources>

@@ -81,4 +81,41 @@ class ChatRowsTest {
         val done = Exchange("问", emptyList(), ExchangeStatus.Done("答", null), live = false, steers = listOf(withdrawn))
         assertEquals("u0", chatTargetKey(listOf(done), ChatTarget.Message(0, 0)))
     }
+
+    @Test
+    fun repliesCountOnlyWhatOrbitSaid() {
+        val asked = Exchange("问", emptyList(), ExchangeStatus.Working, live = true)
+        assertEquals(0, chatReplyCount(listOf(asked)))
+        val streaming = asked.copy(draft = "正在回答")
+        assertEquals(1, chatReplyCount(listOf(streaming)))
+        // A streamed reply that finishes is still the same one reply.
+        val done = asked.copy(status = ExchangeStatus.Done("回答", null))
+        assertEquals(1, chatReplyCount(listOf(done)))
+        assertEquals(0, chatReplyCount(listOf(asked.copy(status = ExchangeStatus.Cancelled()))))
+        assertEquals(1, chatReplyCount(listOf(asked.copy(status = ExchangeStatus.Cancelled(summary = "停在第二步")))))
+        // What the user adds mid-task is not a reply; a reply already said before it is.
+        val steered = done.copy(steers = listOf(
+            SteerNote("s1", "改成靠窗", SteerState.Joined, finished = "已经在改"),
+            SteerNote("s2", "撤回的话", SteerState.Withdrawn, finished = "不算"),
+        ))
+        assertEquals(2, chatReplyCount(listOf(steered)))
+        assertEquals(3, chatReplyCount(listOf(done, steered)))
+    }
+
+    @Test
+    fun unreadNeverGoesNegativeAndTheBadgeCapsAtNine() {
+        assertEquals(2, unreadSince(seen = 3, now = 5))
+        assertEquals(0, unreadSince(seen = 5, now = 5))
+        assertEquals(0, unreadSince(seen = 5, now = 4))
+        assertEquals("1", unreadBadge(1))
+        assertEquals("9", unreadBadge(9))
+        assertEquals("9+", unreadBadge(10))
+    }
+
+    @Test
+    fun replyBubbleLeavesAGutterOnTheRight() {
+        assertEquals(0.85f, AnswerBubbleWidth)
+        assertEquals(850, answerBubbleMaxWidth(1000))
+        assertEquals(918, answerBubbleMaxWidth(1080))
+    }
 }

@@ -295,4 +295,6 @@
     <string name="chat_reaction_orbit">Orbit با %1$s واکنش داد</string>
     <string name="chat_replying_to">در پاسخ به پیامت: %1$s</string>
     <string name="chat_swipe_reply">برای پاسخ بکشید</string>
+    <string name="chat_jump_latest">رفتن به جدیدترین پیام</string>
+    <string name="chat_jump_latest_new">رفتن به جدیدترین پیام، تازه: %1$d</string>
 </resources>

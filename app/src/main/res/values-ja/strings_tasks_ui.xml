@@ -12,4 +12,14 @@
     <string name="tasks_waiting">待機中</string>
     <string name="tasks_empty_up_next">待機中または予定されたタスクはありません。</string>
     <string name="tasks_empty_hint">チャットで Orbit に頼むか、自動で実行されるタスクを予約しましょう。</string>
+    <string name="tasks_mark_done">完了にする</string>
+    <string name="tasks_mark_done_live">完了にして停止</string>
+    <string name="tasks_marked_done">完了にしました</string>
+    <string name="tasks_marked_done_live">完了にしました。Orbit は作業を停止します。</string>
+    <string name="tasks_delete">タスクを削除</string>
+    <string name="tasks_deleted">タスクを削除しました。チャットは残ります。</string>
+    <string name="task_detail_steps">ステップ</string>
+    <string name="task_detail_no_steps">このタスクのステップは記録されていません。</string>
+    <string name="task_detail_earlier_steps">表示していない以前のステップ: %1$d 件</string>
+    <string name="task_detail_open_chat">チャットを開く</string>
 </resources>

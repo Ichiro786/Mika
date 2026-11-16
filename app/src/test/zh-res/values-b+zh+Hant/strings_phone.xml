@@ -172,4 +172,9 @@
     <string name="phone_root_note">偵測到這台手機上有 su。用 root 啟動的手機助手仍以同樣的受限身分執行,權限和經無線偵錯啟動時一樣。</string>
     <string name="phone_root_entry_on">自動啟動助手;root 指令已開啟</string>
     <string name="phone_root_entry_off">自動啟動助手;root 指令已關閉</string>
+    <string name="phone_down_title">手機操作已中斷</string>
+    <string name="phone_down_no_wifi">Wi-Fi 已關閉,Orbit 無法重新連線手機操作。請開啟 Wi-Fi,再點「重新連線」。不需要能上網。</string>
+    <string name="phone_down_wireless_off">無線偵錯已關閉。點「重新連線」,Orbit 會盡量把它重新開啟。需要連著 Wi-Fi,不需要能上網。</string>
+    <string name="phone_down_back_title">手機操作已恢復</string>
+    <string name="phone_down_back_body">點「繼續」接著做這個任務。</string>
 </resources>

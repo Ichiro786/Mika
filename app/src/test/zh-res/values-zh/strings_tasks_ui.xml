@@ -12,4 +12,14 @@
     <string name="tasks_waiting">等待中</string>
     <string name="tasks_empty_up_next">目前没有排队或排程的任务。</string>
     <string name="tasks_empty_hint">在对话里让 Orbit 做点什么，或安排一个定时任务让它自己去做。</string>
+    <string name="tasks_mark_done">标为已完成</string>
+    <string name="tasks_mark_done_live">标为已完成并停止</string>
+    <string name="tasks_marked_done">已标为完成</string>
+    <string name="tasks_marked_done_live">已标为完成,Orbit 不再继续做。</string>
+    <string name="tasks_delete">删除任务</string>
+    <string name="tasks_deleted">任务已删除,对话还在。</string>
+    <string name="task_detail_steps">步骤</string>
+    <string name="task_detail_no_steps">这个任务没有记录步骤。</string>
+    <string name="task_detail_earlier_steps">更早的步骤未显示:%1$d 步</string>
+    <string name="task_detail_open_chat">打开对话</string>
 </resources>

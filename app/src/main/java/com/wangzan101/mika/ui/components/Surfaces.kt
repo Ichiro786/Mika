@@ -245,6 +245,19 @@ fun SmokedGlassPanel(
 }
 
 /**
+ * A small round frosted surface for a button that floats over content (jump to latest): the same frost
+ * and float shadow as the bars, sized by [modifier]. Falls back to a solid surface when [backdrop] is null.
+ */
+@Composable
+fun FrostedDisc(modifier: Modifier = Modifier, backdrop: GlassBackdrop? = null, content: @Composable BoxScope.() -> Unit) {
+    val c = MikaTheme.colors
+    GlassShell(modifier, backdrop, CircleShape, if (backdrop != null) FrostBlur else GlassBlur) {
+        Box(Modifier.matchParentSize().then(frostSurface(c, backdrop, CircleShape)))
+        content()
+    }
+}
+
+/**
  * Frosted glass (Material 3 Expressive): a light, milky veil over a heavy live blur with a top-lit rim,
  * not the dark smoke of menus. Over the AMOLED black page the veil lifts the bar into a soft grey so it
  * reads as glass; over content it lets colour glow through. Without blur it falls back to a solid surface.

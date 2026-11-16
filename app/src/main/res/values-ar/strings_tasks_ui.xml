@@ -12,4 +12,14 @@
     <string name="tasks_waiting">بانتظار</string>
     <string name="tasks_empty_up_next">لا توجد مهام في الانتظار أو مجدولة.</string>
     <string name="tasks_empty_hint">اطلب من Orbit شيئًا في محادثة، أو جدولة مهمة لتعمل من تلقاء نفسها.</string>
+    <string name="tasks_mark_done">وضع علامة «تم»</string>
+    <string name="tasks_mark_done_live">وضع علامة «تم» وإيقاف المهمة</string>
+    <string name="tasks_marked_done">تم وضع علامة «تم»</string>
+    <string name="tasks_marked_done_live">تم وضع علامة «تم». سيتوقف Orbit عن العمل عليها.</string>
+    <string name="tasks_delete">حذف المهمة</string>
+    <string name="tasks_deleted">تم حذف المهمة. المحادثة باقية.</string>
+    <string name="task_detail_steps">الخطوات</string>
+    <string name="task_detail_no_steps">لا توجد خطوات مسجلة لهذه المهمة.</string>
+    <string name="task_detail_earlier_steps">خطوات سابقة غير معروضة: %1$d</string>
+    <string name="task_detail_open_chat">فتح المحادثة</string>
 </resources>

@@ -12,4 +12,14 @@
     <string name="tasks_waiting">Waiting</string>
     <string name="tasks_empty_up_next">Nothing queued or scheduled.</string>
     <string name="tasks_empty_hint">Ask Orbit for something in a chat, or schedule a task to run on its own.</string>
+    <string name="tasks_mark_done">Mark as done</string>
+    <string name="tasks_mark_done_live">Mark as done and stop</string>
+    <string name="tasks_marked_done">Marked as done</string>
+    <string name="tasks_marked_done_live">Marked as done. Orbit stops working on it.</string>
+    <string name="tasks_delete">Delete task</string>
+    <string name="tasks_deleted">Task deleted. Its chat is kept.</string>
+    <string name="task_detail_steps">Steps</string>
+    <string name="task_detail_no_steps">No steps recorded for this task.</string>
+    <string name="task_detail_earlier_steps">Earlier steps not shown: %1$d</string>
+    <string name="task_detail_open_chat">Open chat</string>
 </resources>

@@ -281,4 +281,6 @@
     <string name="chat_reaction_orbit">Orbit이 %1$s 반응함</string>
     <string name="chat_replying_to">내 메시지에 대한 답장: %1$s</string>
     <string name="chat_swipe_reply">밀어서 답장</string>
+    <string name="chat_jump_latest">최신 메시지로 이동</string>
+    <string name="chat_jump_latest_new">최신 메시지로 이동, 새 답변 %1$d개</string>
 </resources>

@@ -172,4 +172,9 @@
     <string name="phone_root_note">Orbit found su on this phone. A helper started with root still runs as the same limited user, with the same permissions as one started over Wireless debugging.</string>
     <string name="phone_root_entry_on">Automatic helper start; root commands on</string>
     <string name="phone_root_entry_off">Automatic helper start; root commands off</string>
+    <string name="phone_down_title">Phone control disconnected</string>
+    <string name="phone_down_no_wifi">Wi-Fi is off, so Orbit can’t reconnect phone control. Turn Wi-Fi on, then tap Reconnect. No internet is needed.</string>
+    <string name="phone_down_wireless_off">Wireless debugging is off. Tap Reconnect and Orbit turns it back on if it can. It needs Wi-Fi, but no internet.</string>
+    <string name="phone_down_back_title">Phone control is back</string>
+    <string name="phone_down_back_body">Tap Continue to carry on with the task.</string>
 </resources>

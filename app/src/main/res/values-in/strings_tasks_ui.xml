@@ -12,4 +12,14 @@
     <string name="tasks_waiting">Menunggu</string>
     <string name="tasks_empty_up_next">Tidak ada tugas dalam antrean atau terjadwal.</string>
     <string name="tasks_empty_hint">Minta Orbit mengerjakan sesuatu di obrolan, atau jadwalkan tugas agar berjalan sendiri.</string>
+    <string name="tasks_mark_done">Tandai selesai</string>
+    <string name="tasks_mark_done_live">Tandai selesai dan hentikan</string>
+    <string name="tasks_marked_done">Ditandai selesai</string>
+    <string name="tasks_marked_done_live">Ditandai selesai. Orbit berhenti mengerjakannya.</string>
+    <string name="tasks_delete">Hapus tugas</string>
+    <string name="tasks_deleted">Tugas dihapus. Chat-nya tetap ada.</string>
+    <string name="task_detail_steps">Langkah</string>
+    <string name="task_detail_no_steps">Tidak ada langkah yang tercatat untuk tugas ini.</string>
+    <string name="task_detail_earlier_steps">Langkah sebelumnya yang tidak ditampilkan: %1$d</string>
+    <string name="task_detail_open_chat">Buka chat</string>
 </resources>

@@ -46,6 +46,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import com.wangzan101.mika.confirm.ConfirmationNotifier
 import com.wangzan101.mika.memory.MemoryRuntime
@@ -663,6 +664,7 @@ private fun MikaRoot(
                                 onOpenDrawer = openDrawer,
                                 onOpenTask = { id -> app.chat.openPersonalTask(id); nav.reset() },
                                 onPlans = { id, create -> planToOpen = id; createPlanOnOpen = create; nav.push(Route.Plans) },
+                                onOpenRun = { runId = it; nav.push(Route.Run) },
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 presence = orbitPresence,
                                 bottomInset = navInset,
@@ -689,7 +691,10 @@ private fun MikaRoot(
                                         onPickSpeech = { nav.push(Route.SpeechModel) },
                                     )
                                 }
-                            } else ChatScreen(
+                            } else CompositionLocalProvider(
+                                // A task paused on a dropped phone helper shows why and reconnects in place
+                                LocalPhoneLink provides remember(status.builtinShell) { PhoneLink(status.builtinShell) { onFix(Fix.RetryPhoneHelper) } },
+                            ) { ChatScreen(
                                 vm = app.chat,
                                 check = check,
                                 frames = app.taskState.frames,
@@ -720,7 +725,7 @@ private fun MikaRoot(
                                 onOpenOrbitHub = { orbitHubOpen = true },
                                 onVoiceListeningChanged = { voiceListening = it },
                                 primaryBottomInset = navInset,
-                            )
+                            ) }
                             }
                             }
                         }

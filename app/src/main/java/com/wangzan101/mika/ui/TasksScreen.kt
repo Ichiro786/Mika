@@ -1,5 +1,56 @@
 package com.wangzan101.mika.ui
 
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.snap
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.SnackbarData
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathMeasure
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.CustomAccessibilityAction
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.customActions
+import androidx.compose.ui.text.TextStyle
+import com.wangzan101.mika.core.assembly.knownTools
+import com.wangzan101.mika.task.TaskService
+import com.wangzan101.mika.ui.components.floatShadow
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.MikaSize
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -22,8 +73,6 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -114,6 +163,14 @@ private data class TaskItem(
     val key: String get() = personal?.let { "personal-${it.id}" }
         ?: live?.let { "run-${it.run.key}" } ?: "stored-${stored!!.id.value}"
     val conversationId: String get() = personal?.conversationId ?: live?.run?.conversationId ?: stored!!.threadId
+    /** Every name this task goes by, for the user's done and removed marks (see [taskMarkIds]). */
+    val ids: List<String> get() = taskMarkIds(
+        personalId = personal?.id, liveKey = live?.run?.key,
+        recordId = live?.recordId ?: stored?.recordId, storedId = stored?.id?.value,
+    )
+    /** The run record that holds this task's steps, when one is known without reading the chat. */
+    val recordId: String? get() = live?.recordId ?: stored?.let { it.recordId ?: it.id.value }
+    val title: String get() = personal?.title ?: live?.run?.goal ?: stored?.userText ?: stored?.goal.orEmpty()
 }
 
 /** A view over existing task and schedule state; all execution stays with the original handlers. */
@@ -125,6 +182,8 @@ internal fun TasksScreen(
     onOpenDrawer: () -> Unit,
     onOpenTask: (String) -> Unit,
     onPlans: (String?, Boolean) -> Unit,
+    /** Opens the full run timeline ("See how it went") from a task's detail. */
+    onOpenRun: (String) -> Unit = {},
     onOpenOrbitHub: () -> Unit = {},
     presence: com.wangzan101.mika.ui.identity.PresenceState = com.wangzan101.mika.ui.identity.PresenceState.Idle,
     bottomInset: Dp = 0.dp,
@@ -145,8 +204,7 @@ internal fun TasksScreen(
         LiveTask(run, state, recordId).takeIf { worked || state.isQueued() }
     } }.filterNotNull()
     val personalConversations = personal.tasks.mapTo(mutableSetOf()) { it.conversationId }
-    var tab by rememberSaveable { mutableIntStateOf(0) }
-    var selectedTask by rememberSaveable { mutableStateOf<String?>(null) }
+    val reduceMotion = MikaTheme.reduceMotion
     var replay by rememberSaveable { mutableStateOf<String?>(null) }
     var refresh by remember { mutableIntStateOf(0) }
     var creatingPlan by rememberSaveable { mutableStateOf<String?>(null) }
@@ -204,15 +262,67 @@ internal fun TasksScreen(
         it.threadId !in personalConversations && (it.recordId == null || it.recordId !in liveRecords)
     }.map { TaskItem(stored = it, section = TaskSection.Resolved) }
     val (plans, stoppedPlans) = schedules?.getOrNull()?.triggers.orEmpty().sortedBy { it.nextAtMs }.partition { it.enabled }
-    val visibleSections = if (tab == 0) listOf(
-        TaskSection.Review, TaskSection.NeedsYou, TaskSection.Working, TaskSection.Waiting,
-        TaskSection.Resolved,
-    ) else listOf(TaskSection.Upcoming)
-    val visibleTasks = tasks.filter { it.section in visibleSections }
+    // What the user marked done or removed here. A change shows at once and sticks only once its Undo has passed.
+    val marks = remember { TaskMarks.shared(context) }
+    val marked by marks.state.collectAsState()
+    var pendingDone by remember { mutableStateOf(emptySet<String>()) }
+    var pendingDeleted by remember { mutableStateOf(emptySet<String>()) }
+    val shown = tasks.filter { it.key !in pendingDeleted && !taskMarked(it.ids, marked.deleted) }
+    fun markedDone(item: TaskItem) = item.key in pendingDone || taskMarked(item.ids, marked.done)
+    val grouped = shown.groupBy { taskGroup(it.section, markedDone(it)) }
     val historyError = personal.messages.lastOrNull { it.systemType == "history_unreadable" }
     val list = rememberLazyListState()
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val haptic = LocalHapticFeedback.current
+    val latestTasks by rememberUpdatedState(tasks)
+    var doneOpen by rememberSaveable { mutableStateOf(false) }
+    var detail by rememberSaveable { mutableStateOf<String?>(null) }
 
-    Column(Modifier.fillMaxSize().background(c.bg).testTag("tasks-screen")) {
+    /** Stops what is still going for [item]: a delegated task through its runtime, a plain run by its key. */
+    fun stop(item: TaskItem) {
+        val going = item.live?.takeIf { it.state !is TaskState.Terminal }
+        if (item.personal != null) { if (going != null || !item.personal.terminal) runtime.stop(item.personal.id) }
+        else if (going != null) TaskService.cancel(context, going.run.key)
+    }
+
+    /**
+     * Shows the change at once and offers Undo. Only when the bar goes away without Undo does it stick: the mark
+     * is saved and a task that is still going is stopped. Leaving the page while the bar is up counts as not undoing.
+     */
+    fun withUndo(item: TaskItem, message: String, pend: (Boolean) -> Unit, save: (List<String>) -> Unit) {
+        pend(true)
+        // A second change does not wait behind the first bar: the first one is settled now.
+        snackbar.currentSnackbarData?.dismiss()
+        scope.launch {
+            var undone = false
+            try {
+                undone = snackbar.showSnackbar(message, context.getString(R.string.undo), duration = SnackbarDuration.Long) == SnackbarResult.ActionPerformed
+            } finally {
+                if (!undone) {
+                    val now = latestTasks.firstOrNull { it.key == item.key } ?: item
+                    save((item.ids + now.ids).distinct())
+                    stop(now)
+                }
+                pend(false)
+            }
+        }
+    }
+    fun markDone(item: TaskItem) {
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        val going = item.section != TaskSection.Resolved
+        withUndo(item, context.getString(if (going) R.string.tasks_marked_done_live else R.string.tasks_marked_done),
+            { on -> pendingDone = if (on) pendingDone + item.key else pendingDone - item.key }, marks::markDone)
+    }
+    fun delete(item: TaskItem) {
+        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        if (detail == item.key) detail = null
+        withUndo(item, context.getString(R.string.tasks_deleted),
+            { on -> pendingDeleted = if (on) pendingDeleted + item.key else pendingDeleted - item.key }, marks::delete)
+    }
+
+    Box(Modifier.fillMaxSize().background(c.bg)) {
+    Column(Modifier.fillMaxSize().testTag("tasks-screen")) {
         TopBar(
             title = "", left = MikaIcons.Menu, onLeft = onOpenDrawer,
             leftLabel = stringResource(R.string.chat_menu),
@@ -237,23 +347,27 @@ internal fun TasksScreen(
                     }
                     OneLineTitle(styled, color = c.ink, modifier = Modifier.semantics { heading() })
                     Text(stringResource(R.string.tasks_subtitle), style = MikaType.Body, color = c.ink2,
-                        modifier = Modifier.padding(top = 6.dp, bottom = 24.dp))
-                    TaskTabs(tab) { tab = it }
+                        modifier = Modifier.padding(top = 6.dp))
                 }
                 historyError?.let { message -> item("history-error") {
                     Text(message.displayText(context), Modifier.padding(top = 20.dp), style = MikaType.Body, color = errorInk)
                 } }
-                visibleSections.filter { it != TaskSection.Resolved }.forEach { section ->
-                    val entries = visibleTasks.filter { it.section == section }
+                fun rows(entries: List<TaskItem>, group: TaskGroup) = items(entries, key = { it.key }) { item ->
+                    TaskEntry(
+                        item, group, markedDone(item), reduceMotion,
+                        onOpen = { detail = item.key },
+                        onMarkDone = { markDone(item) },
+                        onDelete = { delete(item) },
+                    )
+                }
+                listOf(
+                    TaskGroup.Running to R.string.personal_status_running,
+                    TaskGroup.NeedsYou to R.string.personal_status_needs_you,
+                ).forEach { (group, label) ->
+                    val entries = grouped[group].orEmpty()
                     if (entries.isNotEmpty()) {
-                        item("header-$section") { TaskSectionTitle(sectionLabel(section), entries.size) }
-                        items(entries, key = { it.key }) { item ->
-                            TaskRow(item) {
-                                if (item.section == TaskSection.Review && item.live != null) onOpenTask(item.live.run.conversationId)
-                                else if (item.personal != null) selectedTask = item.personal.id
-                                else onOpenTask(item.conversationId)
-                            }
-                        }
+                        item("header-$group") { TaskSectionTitle(stringResource(label), entries.size) }
+                        rows(entries, group)
                     }
                 }
                 if (schedules == null || history == null) item("schedules-loading") {
@@ -269,7 +383,7 @@ internal fun TasksScreen(
                         TextButton(onClick = { refresh++ }) { Text(stringResource(R.string.retry)) }
                     }
                 }
-                if (!exact && (tab == 1 || plans.isNotEmpty())) item("exact-alarm") {
+                if (!exact && (plans.isNotEmpty() || stoppedPlans.isNotEmpty())) item("exact-alarm") {
                     StateCard(
                         MikaIcons.Alarm, ExactAlarmGuide.TITLE, stringResource(R.string.plans_alarm_body),
                         tone = TileTone.Warn, modifier = Modifier.padding(top = 20.dp),
@@ -279,31 +393,28 @@ internal fun TasksScreen(
                         }, kind = ButtonKind.Primary, size = ButtonSize.Small)
                     }
                 }
-                if (plans.isNotEmpty()) {
-                    item("header-scheduled") { TaskSectionTitle(stringResource(R.string.tasks_scheduled), plans.size) }
+                // Up next: what is queued to start, then what is scheduled to run on its own.
+                val queued = grouped[TaskGroup.UpNext].orEmpty()
+                if (queued.isNotEmpty() || plans.isNotEmpty()) {
+                    item("header-up-next") { TaskSectionTitle(stringResource(R.string.tasks_up_next), queued.size + plans.size) }
+                    rows(queued, TaskGroup.UpNext)
                     items(plans, key = { "plan-${it.id}" }) { plan -> ScheduleRow(plan) { onPlans(plan.id, false) } }
                 }
                 // Schedules that are switched off live here too, so nothing needs a separate schedules page to find.
-                if (tab == 1 && stoppedPlans.isNotEmpty()) {
+                if (stoppedPlans.isNotEmpty()) {
                     item("header-stopped") { TaskSectionTitle(stringResource(R.string.chat_paused), stoppedPlans.size) }
                     items(stoppedPlans, key = { "stopped-${it.id}" }) { plan -> ScheduleRow(plan, stopped = true) { onPlans(plan.id, false) } }
                 }
-                if (tab == 0) {
-                    val resolved = visibleTasks.filter { it.section == TaskSection.Resolved }
-                    if (resolved.isNotEmpty()) {
-                        item("header-resolved") { TaskSectionTitle(stringResource(R.string.tasks_resolved), resolved.size) }
-                        items(resolved, key = { it.key }) { item ->
-                            TaskRow(item) {
-                                if (item.personal != null) selectedTask = item.personal.id
-                                else onOpenTask(item.conversationId)
-                            }
-                        }
-                    }
+                // Done starts folded away: finished work is one tap from here, not in the way.
+                val done = grouped[TaskGroup.Done].orEmpty()
+                if (done.isNotEmpty()) {
+                    item("header-done") { DoneHeader(done.size, doneOpen, reduceMotion) { doneOpen = !doneOpen } }
+                    if (doneOpen) rows(done, TaskGroup.Done)
                 }
-                if (visibleTasks.isEmpty() && plans.isEmpty() && (tab == 0 || stoppedPlans.isEmpty()) && schedules?.isSuccess == true && history?.isSuccess == true && historyError == null) {
+                if (shown.isEmpty() && plans.isEmpty() && stoppedPlans.isEmpty() && schedules?.isSuccess == true && history?.isSuccess == true && historyError == null) {
                     item("empty") {
                         EmptyStateCard(
-                            stringResource(if (tab == 0) R.string.personal_no_tasks else R.string.tasks_empty_up_next),
+                            stringResource(R.string.personal_no_tasks),
                             Modifier.padding(top = 30.dp).testTag("tasks-empty"),
                             hint = stringResource(R.string.tasks_empty_hint),
                             icon = MikaIcons.Clock,
@@ -322,6 +433,72 @@ internal fun TasksScreen(
         }
     }
 
+    // A task's detail slides over the list; Back returns to it.
+    val open = detail?.let { key -> tasks.firstOrNull { it.key == key } }
+    LaunchedEffect(detail, open == null) { if (detail != null && open == null) detail = null }
+    AnimatedVisibility(
+        open != null,
+        enter = if (reduceMotion) EnterTransition.None else slideInHorizontally(spring(dampingRatio = 0.8f, stiffness = 380f)) { it / 3 } + fadeIn(tween(180)),
+        exit = if (reduceMotion) ExitTransition.None else slideOutHorizontally(tween(180)) { it / 3 } + fadeOut(tween(160)),
+    ) {
+        // Keep showing the task while the page slides away after it is closed.
+        var held by remember { mutableStateOf(open) }
+        if (open != null) held = open
+        held?.let { item ->
+            BackHandler { detail = null }
+            val state = item.live?.state
+            val group = taskGroup(item.section, markedDone(item))
+            // The run record with this task's steps: known for a live or stored run, read from the chat's last turn otherwise.
+            val runId by produceState(item.recordId, item.key, item.recordId) {
+                value = item.recordId ?: withContext(Dispatchers.IO) {
+                    runCatching { ConversationStore.shared(context).turns(item.conversationId).lastOrNull { it.runId != null }?.runId }.getOrNull()
+                }
+            }
+            // Steps are reread when the run moves to a new step or ends, not on a timer.
+            val stepNow = (state as? TaskState.Running)?.step
+            val steps by produceState<List<TimelineStep>?>(null, runId, stepNow, state is TaskState.Terminal) {
+                val id = runId
+                value = if (id == null) emptyList() else withContext(Dispatchers.IO) {
+                    runCatching {
+                        RunTimelineViewModel.steps(com.wangzan101.mika.record.RunStore(context).events(id), ToolLabels(knownTools())::label)
+                    }.getOrDefault(emptyList())
+                }
+            }
+            val hasReplay by produceState(false, item.key) {
+                value = item.personal != null && runtime.replayFrames(item.conversationId).isNotEmpty()
+            }
+            val going = state != null && state !is TaskState.Terminal || (item.personal != null && item.live == null && !item.personal.terminal)
+            TaskDetail(
+                ui = TaskDetailUi(
+                    title = item.title,
+                    status = taskStatusLabel(item, markedDone(item)),
+                    group = group,
+                    checked = taskChecked(item, markedDone(item)),
+                    goal = item.personal?.goal?.takeIf { it.isNotBlank() && it != item.title },
+                    progressText = taskDetailLine(item, context),
+                    progress = state?.let(::taskProgress),
+                    result = taskResult(item, context),
+                    live = going,
+                ),
+                steps = steps,
+                reduceMotion = reduceMotion,
+                bottomInset = bottomInset,
+                onBack = { detail = null },
+                onOpenChat = { detail = null; onOpenTask(item.conversationId) },
+                onOpenRun = runId?.let { id -> { onOpenRun(id) } },
+                onStop = if (going) ({ stop(item) }) else null,
+                onReplay = if (hasReplay) ({ replay = item.conversationId }) else null,
+                onMarkDone = if (!taskChecked(item, markedDone(item))) ({ detail = null; markDone(item) }) else null,
+                onDelete = { delete(item) },
+            )
+        }
+    }
+
+    SnackbarHost(snackbar, Modifier.align(Alignment.BottomCenter).padding(start = 16.dp, end = 16.dp, bottom = bottomInset + 12.dp)) { data ->
+        UndoBar(data)
+    }
+    }
+
     creatingPlan?.let { threadId ->
         PlanEditorDialog(
             original = null,
@@ -337,38 +514,10 @@ internal fun TasksScreen(
         )
     }
 
-    selectedTask?.let { id -> personal.tasks.firstOrNull { it.id == id } }?.let { task ->
-        key(task.id) {
-            val hasReplay by produceState(false, task.id) { value = runtime.replayFrames(task.conversationId).isNotEmpty() }
-            PersonalTaskSheet(task, onDismiss = { selectedTask = null },
-                onOpen = { selectedTask = null; onOpenTask(task.conversationId) },
-                onStop = { runtime.stop(task.id) },
-                onReplay = if (hasReplay) ({ selectedTask = null; replay = task.conversationId }) else null)
-        }
-    }
     replay?.let { id -> PersonalReplayDialog(runtime, id, live.any { it.run.conversationId == id && it.state !is TaskState.Terminal }, null) { replay = null } }
     error?.let { failure ->
         AlertDialog(onDismissRequest = runtime::clearError, text = { Text(personalStopErrorText(context, failure)) },
             confirmButton = { TextButton(onClick = runtime::clearError) { Text(stringResource(R.string.personal_ok)) } })
-    }
-}
-
-@Composable
-internal fun TaskTabs(selected: Int, onSelect: (Int) -> Unit) {
-    val c = MikaTheme.colors
-    Column {
-        Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
-            listOf(R.string.tasks_active, R.string.tasks_up_next).forEachIndexed { index, label ->
-                Column(Modifier.weight(1f, fill = false).widthIn(min = 48.dp).heightIn(min = 48.dp).testTag("tasks-tab-$index")
-                    .selectable(selected == index, role = Role.Tab, onClick = { onSelect(index) }),
-                    verticalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(label), style = MikaType.BodyStrong, color = if (selected == index) c.ink else c.ink3,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Box(Modifier.fillMaxWidth().height(2.dp).background(if (selected == index) c.ink else c.bg))
-                }
-            }
-        }
-        HorizontalDivider(color = c.hair)
     }
 }
 
@@ -383,35 +532,46 @@ private fun sectionLabel(section: TaskSection): String = stringResource(when (se
 })
 
 @Composable
-private fun TaskSectionTitle(label: String, count: Int) {
+private fun sectionTitleText(label: String, count: Int): Pair<String, TextStyle> {
     val locale = LocalConfiguration.current.locales[0]
     val latin = locale.language in setOf("en", "es", "in", "pt")
-    Text("${label.uppercase(locale)} · $count", Modifier.padding(top = 28.dp, bottom = 8.dp).semantics { heading() },
-        style = MikaType.Hint.copy(letterSpacing = if (latin) 0.8.sp else 0.sp),
-        fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.ink3)
+    return "${label.uppercase(locale)} · $count" to MikaType.Hint.copy(letterSpacing = if (latin) 0.8.sp else 0.sp)
 }
 
 @Composable
-private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
-    val context = LocalContext.current
+private fun TaskSectionTitle(label: String, count: Int) {
+    val (text, style) = sectionTitleText(label, count)
+    Text(text, Modifier.padding(top = 28.dp, bottom = 4.dp).semantics { heading() },
+        style = style, fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.ink3)
+}
+
+/** The Done group's title is also its switch: folded away until tapped. */
+@Composable
+private fun DoneHeader(count: Int, open: Boolean, reduceMotion: Boolean, onToggle: () -> Unit) {
     val c = MikaTheme.colors
+    val (text, style) = sectionTitleText(stringResource(R.string.done), count)
+    val turn by animateFloatAsState(if (open) 90f else 0f, MikaMotion.spatial(reduceMotion), label = "done-chevron")
+    Row(
+        Modifier.fillMaxWidth().padding(top = 16.dp).heightIn(min = MikaSize.TouchTarget).clip(MikaShapes.Tile)
+            .clickable(onClickLabel = stringResource(if (open) R.string.hide else R.string.show), role = Role.Button, onClick = onToggle)
+            .semantics { heading() }.testTag("tasks-done-header"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(text, Modifier.weight(1f), style = style, fontWeight = FontWeight.SemiBold, color = c.ink3)
+        Icon(MikaIcons.Chevron, null, Modifier.size(18.dp).graphicsLayer { rotationZ = turn }, tint = c.ink3)
+    }
+}
+
+/** Done by Orbit (it finished the work) or marked done by the user: the circle is filled with a check. */
+private fun taskChecked(item: TaskItem, markedDone: Boolean): Boolean = markedDone ||
+    item.live?.state is TaskState.Succeeded || (item.live == null && (item.stored?.runSucceeded == true || item.personal?.status == "completed"))
+
+@Composable
+private fun taskStatusLabel(item: TaskItem, markedDone: Boolean): String {
     val state = item.live?.state
     val task = item.personal
-    val title = task?.title ?: item.live?.run?.goal ?: item.stored?.userText ?: item.stored?.goal.orEmpty()
-    val detail = when (state) {
-        is TaskState.Running -> state.progress?.let(StatusCopy::progress) ?: state.narration ?: state.reason
-        is TaskState.WaitingInput -> state.prompt
-        is TaskState.WaitingTakeover -> state.message
-        is TaskState.Held -> state.reason.why
-        is TaskState.Failed -> state.reason
-        else -> null
-    }?.takeIf { it.isNotBlank() }
-        ?: task?.takeIf { item.section == TaskSection.Resolved }?.displayResult(context)?.takeIf { it.isNotBlank() }
-        ?: task?.displayDetail(context)?.takeIf { it.isNotBlank() }
-        ?: item.stored?.reply?.takeIf { it.isNotBlank() }
-    val progress = state?.let(::taskProgress)
-    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
-    val status = when {
+    return when {
+        markedDone -> stringResource(R.string.done)
         state == TaskState.Cancelled -> stringResource(R.string.personal_status_cancelled)
         state is TaskState.Failed -> stringResource(R.string.personal_status_incomplete)
         state is TaskState.Succeeded -> stringResource(R.string.personal_status_completed)
@@ -420,23 +580,184 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
         task != null && item.live == null -> personalStatus(task)
         else -> sectionLabel(item.section)
     }
-    Row(Modifier.fillMaxWidth().clip(MikaShapes.Card)
-        .clickable(onClickLabel = stringResource(R.string.personal_task_details), role = Role.Button, onClick = onClick)
-        .padding(vertical = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-        Box(Modifier.padding(top = 3.dp).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(6.dp)))
-        Column(Modifier.weight(1f)) {
-            Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            Text(status, Modifier.padding(top = 4.dp), style = MikaType.Caption,
-                color = if (item.section == TaskSection.Review || item.section == TaskSection.NeedsYou) attention else c.ink2)
-            if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
-                Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
-                color = c.accent, trackColor = c.fill)
-        }
-        if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = attention)
-        Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
+}
+
+/** What the task is doing or waiting on right now, in the runtime's own words. */
+private fun taskDetailLine(item: TaskItem, context: android.content.Context): String? = when (val state = item.live?.state) {
+    is TaskState.Running -> state.progress?.let(StatusCopy::progress) ?: state.narration ?: state.reason
+    is TaskState.WaitingInput -> state.prompt
+    is TaskState.WaitingTakeover -> state.message
+    is TaskState.Held -> state.reason.why
+    is TaskState.Failed -> state.reason
+    else -> null
+}?.takeIf { it.isNotBlank() } ?: item.personal?.takeIf { !it.terminal }?.displayDetail(context)?.takeIf { it.isNotBlank() }
+
+/** What came out of the task once it ended. */
+private fun taskResult(item: TaskItem, context: android.content.Context): String? =
+    item.personal?.displayResult(context)?.takeIf { it.isNotBlank() } ?: item.stored?.reply?.takeIf { it.isNotBlank() }
+
+/**
+ * One task: tap the row for its detail, tap the circle to mark it done, swipe towards the start to delete it
+ * (a red strip with a bin shows underneath). TalkBack gets both as actions on the row.
+ */
+@Composable
+private fun TaskEntry(
+    item: TaskItem, group: TaskGroup, markedDone: Boolean, reduceMotion: Boolean,
+    onOpen: () -> Unit, onMarkDone: () -> Unit, onDelete: () -> Unit,
+) {
+    val c = MikaTheme.colors
+    val deleteLabel = stringResource(R.string.tasks_delete)
+    val currentDelete by rememberUpdatedState(onDelete)
+    val dismiss = rememberSwipeToDismissBoxState(
+        // Swiped all the way: the list takes the row out; if the delete is undone it comes back in place.
+        confirmValueChange = { value ->
+            if (value == SwipeToDismissBoxValue.EndToStart) currentDelete()
+            value == SwipeToDismissBoxValue.EndToStart
+        },
+    )
+    SwipeToDismissBox(
+        state = dismiss,
+        enableDismissFromStartToEnd = false,
+        backgroundContent = {
+            if (dismiss.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
+                Box(
+                    Modifier.fillMaxSize().padding(vertical = 4.dp).clip(MikaShapes.Card).background(c.bad)
+                        .padding(horizontal = 22.dp).testTag("task-delete-swipe"),
+                    contentAlignment = Alignment.CenterEnd,
+                ) { Icon(MikaIcons.Trash, null, Modifier.size(22.dp), tint = if (c.isDark) Color(0xFF1F0503) else Color.White) }
+            }
+        },
+    ) {
+        TaskRow(item, group, markedDone, reduceMotion, deleteLabel, onOpen, onMarkDone, onDelete)
     }
-    HorizontalDivider(color = c.hair)
+}
+
+@Composable
+private fun TaskRow(
+    item: TaskItem, group: TaskGroup, markedDone: Boolean, reduceMotion: Boolean, deleteLabel: String,
+    onOpen: () -> Unit, onMarkDone: () -> Unit, onDelete: () -> Unit,
+) {
+    val context = LocalContext.current
+    val c = MikaTheme.colors
+    val state = item.live?.state
+    val title = item.title
+    val checked = taskChecked(item, markedDone)
+    val status = taskStatusLabel(item, markedDone)
+    val detail = taskDetailLine(item, context)
+        ?: taskResult(item, context)?.takeIf { group == TaskGroup.Done }
+    val progress = state?.let(::taskProgress)
+    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
+    val going = item.section != TaskSection.Resolved
+    val markLabel = stringResource(if (going) R.string.tasks_mark_done_live else R.string.tasks_mark_done)
+    Column(Modifier.fillMaxWidth().background(c.bg)) {
+        Row(
+            Modifier.fillMaxWidth().clip(MikaShapes.Card)
+                .clickable(onClickLabel = stringResource(R.string.personal_task_details), role = Role.Button, onClick = onOpen)
+                .semantics {
+                    customActions = listOfNotNull(
+                        CustomAccessibilityAction(markLabel) { onMarkDone(); true }.takeIf { !checked },
+                        CustomAccessibilityAction(deleteLabel) { onDelete(); true },
+                    )
+                }
+                .padding(top = 4.dp, bottom = 12.dp).testTag("task-row"),
+            verticalAlignment = Alignment.Top,
+        ) {
+            TaskCircle(
+                checked = checked, running = group == TaskGroup.Running, progress = progress,
+                attention = group == TaskGroup.NeedsYou, reduceMotion = reduceMotion,
+                label = markLabel, onClick = onMarkDone.takeIf { !checked },
+            )
+            Column(Modifier.weight(1f).padding(top = 12.dp, end = 8.dp)) {
+                // Two lines, then an ellipsis: a long request never runs on or cuts off mid-word at the edge.
+                Text(title, style = MikaType.BodyStrong, color = if (checked) c.ink2 else c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Text(status, Modifier.padding(top = 4.dp), style = MikaType.Caption,
+                    color = if (group == TaskGroup.NeedsYou) attention else c.ink2)
+                if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
+                    Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                if (progress != null) LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
+                    color = c.accent, trackColor = c.fill)
+            }
+            if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), Modifier.padding(top = 14.dp, end = 4.dp), style = MikaType.Caption, color = attention)
+            Icon(MikaIcons.Chevron, null, Modifier.padding(top = 15.dp).size(18.dp), tint = c.ink3)
+        }
+        HorizontalDivider(color = c.hair)
+    }
+}
+
+/**
+ * The circle in front of a task, a 48 dp target around a 24 dp mark. Not done: a ring (warm when the task needs
+ * the user; a turning arc or the real progress while it runs). Done: the ring fills and a check draws itself with
+ * a small spring; with animations off it is simply there. Tapping an unfinished one marks the task done.
+ */
+@Composable
+internal fun TaskCircle(
+    checked: Boolean, running: Boolean, progress: Float?, attention: Boolean, reduceMotion: Boolean,
+    label: String, onClick: (() -> Unit)?,
+) {
+    val c = MikaTheme.colors
+    val fill by animateFloatAsState(
+        if (checked) 1f else 0f,
+        if (reduceMotion) snap() else spring(dampingRatio = 0.55f, stiffness = 420f), label = "task-check",
+    )
+    val turning = running && !checked && progress == null && !reduceMotion
+    val angle = if (turning) rememberInfiniteTransition(label = "task-arc").animateFloat(
+        0f, 360f, infiniteRepeatable(tween(1100, easing = LinearEasing), RepeatMode.Restart), label = "task-arc-angle",
+    ) else null
+    Box(
+        Modifier.size(MikaSize.TouchTarget)
+            .then(
+                if (onClick != null) Modifier.clip(CircleShape).toggleable(checked, role = Role.Checkbox, onValueChange = { onClick() })
+                else Modifier,
+            )
+            .semantics { if (onClick != null) contentDescription = label }
+            .testTag("task-circle"),
+        contentAlignment = Alignment.Center,
+    ) {
+        Canvas(Modifier.size(24.dp)) {
+            val stroke = 2.dp.toPx()
+            val radius = size.minDimension / 2 - stroke / 2
+            val ring = if (attention) c.warnSolid else c.ink3
+            drawCircle(ring.copy(alpha = if (running) 0.3f else 0.85f), radius, style = Stroke(stroke))
+            if (running && !checked) {
+                val inset = stroke / 2
+                drawArc(
+                    c.accent, startAngle = -90f + (angle?.value ?: 0f), sweepAngle = progress?.let { 360f * it.coerceIn(0.02f, 1f) } ?: 100f,
+                    useCenter = false, topLeft = Offset(inset, inset), size = Size(size.width - stroke, size.height - stroke),
+                    style = Stroke(stroke, cap = StrokeCap.Round),
+                )
+            }
+            if (fill > 0.01f) {
+                drawCircle(c.accent, size.minDimension / 2 * fill.coerceAtMost(1.12f))
+                val w = size.width; val h = size.height
+                val check = Path().apply { moveTo(w * 0.28f, h * 0.52f); lineTo(w * 0.44f, h * 0.67f); lineTo(w * 0.73f, h * 0.36f) }
+                val shown = Path()
+                val measure = PathMeasure().apply { setPath(check, false) }
+                measure.getSegment(0f, measure.length * fill.coerceIn(0f, 1f), shown, true)
+                drawPath(shown, c.onAccent, style = Stroke(2.2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+            }
+        }
+    }
+}
+
+/** The Undo bar: a quiet floating surface in the app's own shapes, message on the left, Undo on the right. */
+@Composable
+private fun UndoBar(data: SnackbarData) {
+    val c = MikaTheme.colors
+    Row(
+        Modifier.fillMaxWidth().floatShadow(c, MikaShapes.Card).clip(MikaShapes.Card).background(c.surface)
+            .border(0.75.dp, c.glassEdge, MikaShapes.Card).padding(start = 18.dp, end = 6.dp).heightIn(min = 56.dp)
+            .testTag("tasks-undo-bar"),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(data.visuals.message, Modifier.weight(1f).padding(vertical = 10.dp), style = MikaType.Body, color = c.ink)
+        data.visuals.actionLabel?.let { label ->
+            Box(
+                Modifier.heightIn(min = MikaSize.TouchTarget).clip(MikaShapes.Pill)
+                    .clickable(role = Role.Button, onClick = data::performAction).padding(horizontal = 14.dp).testTag("tasks-undo"),
+                contentAlignment = Alignment.Center,
+            ) { Text(label, style = MikaType.BodyStrong, color = c.accent) }
+        }
+    }
 }
 
 @Composable

@@ -12,4 +12,14 @@
     <string name="tasks_waiting">Aguardando</string>
     <string name="tasks_empty_up_next">Nenhuma tarefa na fila ou agendada.</string>
     <string name="tasks_empty_hint">Peça algo ao Orbit em uma conversa, ou agende uma tarefa para rodar sozinha.</string>
+    <string name="tasks_mark_done">Marcar como concluída</string>
+    <string name="tasks_mark_done_live">Marcar como concluída e parar</string>
+    <string name="tasks_marked_done">Marcada como concluída</string>
+    <string name="tasks_marked_done_live">Marcada como concluída. O Orbit para de trabalhar nela.</string>
+    <string name="tasks_delete">Excluir tarefa</string>
+    <string name="tasks_deleted">Tarefa excluída. O chat foi mantido.</string>
+    <string name="task_detail_steps">Etapas</string>
+    <string name="task_detail_no_steps">Nenhuma etapa registrada para esta tarefa.</string>
+    <string name="task_detail_earlier_steps">Etapas anteriores não exibidas: %1$d</string>
+    <string name="task_detail_open_chat">Abrir chat</string>
 </resources>

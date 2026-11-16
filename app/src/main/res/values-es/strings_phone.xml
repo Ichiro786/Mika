@@ -172,4 +172,9 @@
     <string name="phone_root_note">Orbit encontró su en este teléfono. Un asistente iniciado con root sigue ejecutándose con el mismo usuario limitado y permisos que uno iniciado por depuración inalámbrica.</string>
     <string name="phone_root_entry_on">Inicio automático del asistente; comandos root activados</string>
     <string name="phone_root_entry_off">Inicio automático del asistente; comandos root desactivados</string>
+    <string name="phone_down_title">Se desconectó el control del teléfono</string>
+    <string name="phone_down_no_wifi">El Wi-Fi está apagado, así que Orbit no puede reconectar el control del teléfono. Activa el Wi-Fi y toca Reconectar. No hace falta internet.</string>
+    <string name="phone_down_wireless_off">La depuración inalámbrica está desactivada. Toca Reconectar y Orbit la volverá a activar si puede. Necesita Wi-Fi, pero no internet.</string>
+    <string name="phone_down_back_title">El control del teléfono ha vuelto</string>
+    <string name="phone_down_back_body">Toca Continuar para seguir con la tarea.</string>
 </resources>

@@ -12,4 +12,14 @@
     <string name="tasks_waiting">در انتظار</string>
     <string name="tasks_empty_up_next">کاری در صف یا زمان‌بندی‌شده نیست.</string>
     <string name="tasks_empty_hint">در گفتگو از Orbit کاری بخواهید، یا کاری را زمان‌بندی کنید تا خودش اجرا شود.</string>
+    <string name="tasks_mark_done">علامت‌گذاری به‌عنوان انجام‌شده</string>
+    <string name="tasks_mark_done_live">علامت‌گذاری به‌عنوان انجام‌شده و توقف</string>
+    <string name="tasks_marked_done">به‌عنوان انجام‌شده علامت خورد</string>
+    <string name="tasks_marked_done_live">به‌عنوان انجام‌شده علامت خورد. Orbit کار روی آن را متوقف می‌کند.</string>
+    <string name="tasks_delete">حذف کار</string>
+    <string name="tasks_deleted">کار حذف شد. گفتگوی آن باقی می‌ماند.</string>
+    <string name="task_detail_steps">مراحل</string>
+    <string name="task_detail_no_steps">برای این کار مرحله‌ای ثبت نشده است.</string>
+    <string name="task_detail_earlier_steps">مراحل قبلی نمایش داده نشده: %1$d</string>
+    <string name="task_detail_open_chat">باز کردن گفتگو</string>
 </resources>

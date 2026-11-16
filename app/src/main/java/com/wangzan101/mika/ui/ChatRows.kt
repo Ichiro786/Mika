@@ -89,3 +89,25 @@ private val ChatTarget.turnIndex: Int
         is ChatTarget.Files -> this.turnIndex
         is ChatTarget.Status -> this.turnIndex
     }
+
+/**
+ * How many replies from Orbit the conversation holds: each reply that has text (finished, stopped with a summary,
+ * or still streaming) and each one that was already said before the user added to a running task. What the user
+ * says, progress rows, cards and file rows do not count. The jump-to-latest button shows what arrived while the
+ * user was scrolled up as the difference between two of these.
+ */
+internal fun chatReplyCount(exchanges: List<Exchange>): Int = exchanges.sumOf { ex ->
+    val finishedEarlier = ex.steers.count { it.state != SteerState.Withdrawn && !it.finished.isNullOrBlank() }
+    val reply = when (val status = ex.status) {
+        is ExchangeStatus.Done -> 1
+        is ExchangeStatus.Cancelled -> if (status.summary.isNullOrBlank()) 0 else 1
+        else -> if (ex.draft.isNullOrBlank()) 0 else 1
+    }
+    finishedEarlier + reply
+}
+
+/** Replies that arrived since [seen] were counted; never negative (a deleted turn is not "minus one new"). */
+internal fun unreadSince(seen: Int, now: Int): Int = (now - seen).coerceAtLeast(0)
+
+/** The count shown on the jump-to-latest badge: the number itself up to nine, then "9+". */
+internal fun unreadBadge(unread: Int): String = if (unread > 9) "9+" else unread.toString()

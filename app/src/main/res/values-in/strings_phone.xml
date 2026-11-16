@@ -172,4 +172,9 @@
     <string name="phone_root_note">Orbit menemukan su di ponsel ini. Pembantu yang dimulai dengan root tetap berjalan sebagai pengguna terbatas yang sama, dengan izin yang sama seperti melalui debug nirkabel.</string>
     <string name="phone_root_entry_on">Pembantu mulai otomatis; perintah root aktif</string>
     <string name="phone_root_entry_off">Pembantu mulai otomatis; perintah root nonaktif</string>
+    <string name="phone_down_title">Kontrol ponsel terputus</string>
+    <string name="phone_down_no_wifi">Wi-Fi mati, jadi Orbit tidak bisa menyambungkan kembali kontrol ponsel. Nyalakan Wi-Fi, lalu ketuk Sambungkan ulang. Tidak perlu internet.</string>
+    <string name="phone_down_wireless_off">Proses debug nirkabel mati. Ketuk Sambungkan ulang dan Orbit akan menyalakannya kembali jika bisa. Perlu Wi-Fi, tetapi tidak perlu internet.</string>
+    <string name="phone_down_back_title">Kontrol ponsel kembali tersambung</string>
+    <string name="phone_down_back_body">Ketuk Lanjutkan untuk meneruskan tugas.</string>
 </resources>
