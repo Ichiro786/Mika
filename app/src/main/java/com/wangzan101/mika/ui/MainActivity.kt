@@ -1,5 +1,11 @@
 package com.wangzan101.mika.ui
 
+import com.wangzan101.mika.gemini.GeminiEngine
+import com.wangzan101.mika.ui.onboarding.FlowStep
+import com.wangzan101.mika.ui.onboarding.OnboardingFlow
+import com.wangzan101.mika.ui.onboarding.OnboardingProgress
+import com.wangzan101.mika.ui.onboarding.OnboardingScreen
+import com.wangzan101.mika.whatsapp.WhatsappStatus
 import com.wangzan101.mika.i18n.AppLanguage
 import androidx.compose.foundation.background
 import androidx.compose.animation.AnimatedContent
@@ -417,6 +423,14 @@ private fun MikaRoot(
     var setupRepair by rememberSaveable { mutableStateOf(false) }
     // 首次上手正在走哪一步;为空时不在上手流程里。配置模型页从哪儿来就回哪儿去
     var onboarding by rememberSaveable { mutableStateOf<OnboardingStep?>(null) }
+    // The first-run flow (welcome through done) is one page, Route.Welcome. It remembers its own step on disk;
+    // a replay from Settings keeps its step here instead, and leaves those flags alone.
+    val flowProgress = remember { OnboardingProgress(context) }
+    var introReplay by rememberSaveable { mutableStateOf(false) }
+    var replayStep by rememberSaveable { mutableStateOf<String?>(null) }
+    var flowWhatsapp by rememberSaveable { mutableStateOf(false) }
+    // The three starters stay on the empty chat until the first message; the name is read again when the flow ends.
+    var flowTick by remember { mutableIntStateOf(0) }
     val onFix: (Fix) -> Unit = { fix ->
         when (fix) {
             Fix.AddModel -> nav.push(Route.Models)
@@ -518,7 +532,8 @@ private fun MikaRoot(
     // 第一次打开:欢迎 → 配置模型 → 手机操作;配过模型的跳过前两步,手机操作已就绪或看过引导的跳过最后一步
     val onboardingState = remember { OnboardingState(context) }
     fun onboardingInputs() = Onboarding.Inputs(
-        hasMainModel = store.roles.value.main != null,
+        // The Gemini plan runs without a provider in the store; someone using it has a model.
+        hasMainModel = store.roles.value.main != null || GeminiEngine.get(context).enabled.value,
         modelSetupDone = onboardingState.modelSetupDone(),
         phoneNeeded = status.builtinShell != BuiltinShellStatus.Running && status.sdkInt >= Prerequisites.MIN_SDK,
         phoneGuideSeen = phoneSetup.guideSeen(),
@@ -535,7 +550,13 @@ private fun MikaRoot(
     }
     LaunchedEffect(Unit) {
         if (onboarding == null && requestedConversation == null && nav.current != Route.Personal) {
-            Onboarding.start(onboardingInputs())?.let(::goOnboarding)
+            val inputs = onboardingInputs()
+            // New here, or left the flow half way: the full flow. Everyone else (anyone who already has a model,
+            // so every existing user after an update) never sees it; they only get the phone guide if they have
+            // not seen that yet, as before.
+            if (OnboardingFlow.shouldStart(flowProgress.done(), flowProgress.step(), inputs.hasMainModel, inputs.modelSetupDone)) {
+                nav.show(Route.Welcome)
+            } else Onboarding.start(inputs)?.takeIf { it != OnboardingStep.Welcome }?.let(::goOnboarding)
         }
     }
     val phoneSetupNeeded by phoneSetup.needed.collectAsState()
@@ -588,7 +609,31 @@ private fun MikaRoot(
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
         }
-        Route.Welcome -> WelcomeScreen { goOnboarding(OnboardingStep.Model) }
+        Route.Welcome -> {
+            val whatsapp by app.whatsapp.status.collectAsState()
+            val activity = context as? android.app.Activity
+            if (flowWhatsapp) WhatsappSettingsScreen(app.whatsapp, onBack = { flowWhatsapp = false })
+            else OnboardingScreen(
+                store, status, onFix, flowProgress, replay = introReplay,
+                startAt = if (introReplay) replayStep?.let { name -> FlowStep.entries.firstOrNull { it.name == name } } else null,
+                onStep = { if (introReplay) replayStep = it.name },
+                whatsappLinked = whatsapp in setOf(WhatsappStatus.Connected, WhatsappStatus.Connecting, WhatsappStatus.Offline, WhatsappStatus.Paused),
+                onLinkWhatsapp = { flowWhatsapp = true },
+                onOpenSource = { openInBrowser(context, OnboardingFlow.SOURCE_URL) },
+                onLeave = { if (introReplay) { introReplay = false; replayStep = null; nav.back() } else activity?.finish() },
+                onFinish = {
+                    if (introReplay) { introReplay = false; replayStep = null }
+                    else {
+                        flowProgress.markDone()
+                        onboardingState.markModelSetupDone()
+                        // The flow had its own phone step: the separate phone guide does not pop up afterwards.
+                        phoneSetup.markGuideSeen()
+                    }
+                    flowTick++
+                    nav.reset()
+                },
+            )
+        }
         Route.ModelSetup -> {
             val inOnboarding = onboarding == OnboardingStep.Model
             ModelSetupScreen(
@@ -708,6 +753,11 @@ private fun MikaRoot(
                                 openRun = { runId = it; nav.push(Route.Run) },
                                 phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
                                 openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
+                                userName = remember(flowTick) { flowProgress.name() },
+                                starters = remember(flowTick, status.builtinShell) {
+                                    if (flowProgress.startersPending()) OnboardingFlow.starters(status.builtinShell == BuiltinShellStatus.Running) else null
+                                },
+                                onStartersUsed = { if (flowProgress.startersPending()) { flowProgress.clearStarters(); flowTick++ } },
                                 loadSource = { id ->
                                     withContext(Dispatchers.IO) { evidenceSource(RunStore(context).events(id)) { ConfirmationNotifier.appLabel(context, it) } }
                                 },
@@ -800,6 +850,7 @@ private fun MikaRoot(
                 onOpenModels = { nav.push(Route.Models) },
                 autonomous = autonomous, onAutonomous = app.approvalControl::setAutonomous,
                 updateVersion = null, onOpenAbout = { nav.push(Route.About) },
+                onReplayIntro = { introReplay = true; replayStep = null; nav.push(Route.Welcome) },
                 mcpServers = app.mcpServers, onOpenSpeech = { nav.push(Route.SpeechModel) })
         }
         Route.Models -> ModelsScreen(store, onBack = back, onOpenSpeech = { nav.push(Route.SpeechModel) }, onOpenUsage = { nav.push(Route.Usage) })

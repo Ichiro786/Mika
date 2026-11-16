@@ -230,6 +230,11 @@ fun ChatScreen(
     onOpenOrbitHub: () -> Unit = {},
     onVoiceListeningChanged: (Boolean) -> Unit = {},
     primaryBottomInset: Dp = 0.dp,
+    /** The name the user gave in the first-run flow, for the greeting; blank when none. */
+    userName: String = "",
+    /** Right after the first-run flow: three starters shown in place of the saved suggestions until a message is sent. */
+    starters: List<RecommendedTask>? = null,
+    onStartersUsed: () -> Unit = {},
 ) {
     DisposableEffect(vm) {
         onDispose { onVoiceListeningChanged(false) }
@@ -311,6 +316,7 @@ fun ChatScreen(
 
     // Jump to latest: offered once the newest message is more than about a screen below; replies that arrive
     // while the user is up there are counted on the button until they are back at the bottom.
+    LaunchedEffect(starters != null, ui.exchanges.isNotEmpty()) { if (starters != null && ui.exchanges.isNotEmpty()) onStartersUsed() }
     val farFromLatest by remember(listState) { derivedStateOf { listState.farFromTail() } }
     val showJumpToLatest = farFromLatest && ui.exchanges.isNotEmpty()
     val replyCount = chatReplyCount(ui.exchanges)
@@ -518,7 +524,7 @@ fun ChatScreen(
                                     ?: stringResource(if (isSideChat) R.string.orbit_side_context else R.string.orbit_channel_empty)
                                 Text(description, Modifier.padding(top = 12.dp), style = MikaType.Body, color = c.ink2)
                             }
-                        } else EmptyState(ui.conversationId, recommendedTasks, others.size, onOpenDrawer) { prompt ->
+                        } else EmptyState(ui.conversationId, starters ?: recommendedTasks, others.size, onOpenDrawer, userName) { prompt ->
                             if (input.isEmpty()) vm.input(prompt) else pendingExample = prompt
                         }
                     }
@@ -833,13 +839,15 @@ private suspend fun LazyListState.scrollToTail(end: Int, animate: Boolean) {
 /** 问候、一句「想让 Mika 做什么？」和推荐任务。点一条把提示词填进输入框,改好了再发;一条都没有时不显示列表。 */
 @Composable
 private fun EmptyState(
-    conversation: String?, tasks: List<RecommendedTask>, runningElsewhere: Int, onOpenDrawer: () -> Unit, onPick: (String) -> Unit,
+    conversation: String?, tasks: List<RecommendedTask>, runningElsewhere: Int, onOpenDrawer: () -> Unit, name: String = "",
+    onPick: (String) -> Unit,
 ) {
     val c = MikaTheme.colors
     val hour = remember(conversation) { LocalTime.now().hour }
     val greeting = ChatCopy.greeting(hour)
     val locale = LocalConfiguration.current.locales[0]
     val english = locale.language == "en"
+    val named = if (name.isBlank()) null else stringResource(R.string.chat_greeting_named, greeting, name)
     val latin = locale.language in setOf("en", "es", "in", "pt")
     var expanded by rememberSaveable(conversation) { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth()) {
@@ -849,9 +857,10 @@ private fun EmptyState(
                     append("Good ")
                     pushStyle(SpanStyle(fontFamily = FontFamily.Serif, fontStyle = FontStyle.Italic, fontWeight = FontWeight.Normal))
                     append(greeting.removePrefix("Good "))
-                    append('.')
+                    if (name.isBlank()) append('.')
                     pop()
-                } else append(greeting)
+                    if (name.isNotBlank()) append(", $name.")
+                } else append(named ?: greeting)
             }, style = MikaType.LargeTitle, color = c.ink)
             Text(stringResource(R.string.home_editorial_subtitle), Modifier.padding(top = 8.dp), style = EmptyLead, color = c.ink2)
         }

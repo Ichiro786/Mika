@@ -103,19 +103,8 @@ fun ModelSetupScreen(
     /** 设置里查看 Token 用量;上手流程不传。 */
     onOpenUsage: (() -> Unit)? = null,
 ) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val vm = remember {
-        val signIns = (context.applicationContext as? MikaApp)?.chatGptSignIn ?: ChatGptSignIns(scope)
-        ModelSetupViewModel(
-            store, scope, browser = AndroidSignInBrowser(context.applicationContext), signIns = signIns,
-            speech = (context.applicationContext as? MikaApp)?.speech,
-            systemSpeech = {
-                val silent = (context.applicationContext as? MikaApp)?.speech?.systemSilent?.value ?: false
-                SystemSpeech.capability(context.applicationContext, silent)
-            },
-        )
-    }
+    val vm = rememberModelSetupViewModel(store)
     val ui by vm.state.collectAsState()
     var picking by rememberSaveable { mutableStateOf<ModelRole?>(null) }
     var openProvider by rememberSaveable { mutableStateOf<String?>(null) }
@@ -233,6 +222,24 @@ fun ModelSetupScreen(
                     if (!ui.accountSignIn.running) vm.dismissAccountFailure()
                 },
             ),
+        )
+    }
+}
+
+/** The model setup view model as this page builds it; the first-run flow's model step uses the same one. */
+@Composable
+internal fun rememberModelSetupViewModel(store: ProviderStore): ModelSetupViewModel {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    return remember {
+        val signIns = (context.applicationContext as? MikaApp)?.chatGptSignIn ?: ChatGptSignIns(scope)
+        ModelSetupViewModel(
+            store, scope, browser = AndroidSignInBrowser(context.applicationContext), signIns = signIns,
+            speech = (context.applicationContext as? MikaApp)?.speech,
+            systemSpeech = {
+                val silent = (context.applicationContext as? MikaApp)?.speech?.systemSilent?.value ?: false
+                SystemSpeech.capability(context.applicationContext, silent)
+            },
         )
     }
 }
