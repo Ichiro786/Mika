@@ -51,7 +51,8 @@ internal fun GeminiPlanSection() {
     val enabled by engine.enabled.collectAsState()
     var used by remember { mutableStateOf<Long?>(null) }
     LaunchedEffect(installed, progress == null) {
-        used = if (progress == null) withContext(Dispatchers.IO) { engine.runtime.usedBytes() } else null
+        // The size is a nicety: if it can't be read the row simply shows none, it never takes the page down.
+        used = if (progress == null) withContext(Dispatchers.IO) { runCatching { engine.runtime.usedBytes() }.getOrNull() } else null
     }
 
     GroupLabel(stringResource(R.string.gemini_group))
