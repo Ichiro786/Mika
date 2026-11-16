@@ -126,13 +126,22 @@ class UsageLedger(
         if (queue) writer.schedule({ runCatching { flush() } }, flushDelayMs, TimeUnit.MILLISECONDS)
     }
 
+    /** Estimates for calls whose provider reported no usage, per provider and local day; kept in memory only, used by [providerTokensToday]. */
+    private val estimates = HashMap<Pair<String, Long>, Long>()
+
+    override fun estimate(source: UsageSource, tokens: Long) {
+        if (tokens <= 0) return
+        val day = Instant.ofEpochMilli(now()).atZone(zone()).toLocalDate().toEpochDay()
+        synchronized(lock) { estimates.merge(source.providerId to day, tokens, Long::plus) }
+    }
+
     fun snapshot(): UsageSnapshot = synchronized(lock) {
         val hours = cells.entries.groupingBy { it.key.copy(offsetMs = 0) }
             .fold(UsageCounts()) { total, entry -> total + entry.value }
         UsageSnapshot(hours.map { (c, n) -> UsageRow(c.hour, c.key, n) }, HashMap(names))
     }
 
-    /** 这家服务商在当前本地日历日的已报告输入加输出。 */
+    /** 这家服务商在当前本地日历日的已报告输入加输出,加上没报用量的调用的估计。 */
     fun providerTokensToday(providerId: String): Long {
         val z = zone()
         val today = Instant.ofEpochMilli(now()).atZone(z).toLocalDate()
@@ -141,7 +150,7 @@ class UsageLedger(
         return synchronized(lock) {
             cells.entries.sumOf { (cell, counts) ->
                 if (cell.key.providerId == providerId && cell.startMs in start until end) counts.input + counts.output else 0L
-            }
+            } + (estimates[providerId to today.toEpochDay()] ?: 0L)
         }
     }
 

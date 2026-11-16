@@ -68,6 +68,16 @@ class GeminiModelTest {
         assertFalse(off.containsKey("thinkingLevel"))
     }
 
+    @Test fun thinkingLevelsMapToWhatGeminiAccepts() {
+        assertEquals("MINIMAL", GeminiModel.thinkingLevel("minimal"))
+        assertEquals("LOW", GeminiModel.thinkingLevel("low"))
+        assertEquals("MEDIUM", GeminiModel.thinkingLevel("medium"))
+        for (e in listOf("high", "xhigh", "max")) assertEquals(e, "HIGH", GeminiModel.thinkingLevel(e))
+        assertEquals(null, GeminiModel.thinkingBudget("gemini-3-pro-preview", "high"))
+        assertEquals(8192, GeminiModel.thinkingBudget("gemini-2.5-flash", "medium"))
+        assertEquals(24576, GeminiModel.thinkingBudget("models/gemini-2.5-pro", "max"))
+    }
+
     @Test fun parsesThoughtParts() = runTest {
         server.enqueue(ok(cand("""[{"text":"想","thought":true},{"text":"好"}]""")))
         val r = model().complete("s", user, emptyList())

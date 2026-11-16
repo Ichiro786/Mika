@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">Without this permission, scheduled tasks may run late or not at all. You only need to turn it on once.</string>
     <string name="plans_running_n">Active %1$d</string>
     <string name="plans_stopped_n">Off %1$d</string>
-    <string name="plans_empty">No scheduled tasks yet\nTap + to create one, or tell Orbit in a chat when to remind you or do something for you.</string>
+    <string name="plans_empty_title">No scheduled tasks yet</string>
+    <string name="plans_empty_hint">Create one here, or tell Orbit in a chat when to remind you or do something for you.</string>
     <string name="plans_none_running">No active scheduled tasks</string>
     <string name="plans_none_stopped">No scheduled tasks turned off</string>
     <string name="plans_footer">Use + to create a task yourself, or say “every day at 8…” or “tell me when the price drops” in a chat; results go back to that chat. Timed runs may be affected by battery saving; turning off or deleting only affects future runs.</string>

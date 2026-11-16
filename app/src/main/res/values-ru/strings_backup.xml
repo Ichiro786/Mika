@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">Резервная копия</string>
+    <string name="backup_export">Экспорт копии</string>
+    <string name="backup_export_sub">Сохраните чаты и личные навыки в один файл, защищённый паролем.</string>
+    <string name="backup_import">Импорт копии</string>
+    <string name="backup_import_sub">Добавьте чаты из файла копии. Чаты, которые уже есть на этом телефоне, не заменяются и не удаляются.</string>
+    <string name="backup_note">API-ключи моделей, память и файлы, сохранённые в «Загрузки», в копию не входят.</string>
+    <string name="backup_working">Выполняется…</string>
+    <string name="backup_export_dialog_title">Защитите копию</string>
+    <string name="backup_password_hint">Выберите пароль не короче 8 символов. Он понадобится для восстановления копии, и его нельзя восстановить.</string>
+    <string name="backup_password">Пароль</string>
+    <string name="backup_password_repeat">Повторите пароль</string>
+    <string name="backup_password_mismatch">Пароли не совпадают</string>
+    <string name="backup_continue">Продолжить</string>
+    <string name="backup_import_dialog_title">Импорт копии</string>
+    <string name="backup_import_dialog_body">Введите пароль, который вы задали при экспорте этой копии.</string>
+    <string name="backup_export_done">Копия сохранена. Файлов в копии: %1$d.</string>
+    <string name="backup_export_failed">Не удалось сохранить копию.</string>
+    <string name="backup_import_done">Импорт завершён. Добавлено новых файлов: %1$d. Сохранено существующих файлов: %2$d. Список чатов обновлён.</string>
+    <string name="backup_import_failed">Не удалось завершить импорт копии.</string>
+    <string name="backup_err_password">Неверный пароль или файл повреждён.</string>
+    <string name="backup_err_format">Это не файл резервной копии Orbit.</string>
+    <string name="backup_err_version">Эта копия создана более новой версией Orbit.</string>
+    <string name="backup_err_unsafe">Копия содержит небезопасные пути к файлам и была отклонена.</string>
+    <string name="backup_err_too_large">Копия слишком велика для импорта.</string>
+    <string name="backup_err_corrupt">Файл копии повреждён или неполон.</string>
+</resources>

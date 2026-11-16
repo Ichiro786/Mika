@@ -43,8 +43,8 @@ private class Shop : ScreenPort by FakeScreen() {
 class DescribedActionsTest {
     private val sink = object : RunSink { override fun event(e: com.wangzan101.mika.core.record.RunEvent) {} }
 
-    private fun executor(tools: com.wangzan101.mika.core.tool.ToolDispatcher) =
-        ActionExecutor(tools, OperationGuards(), ConfirmationGate(), gate = {}, recorder = ActionRecorder(sink))
+    private fun executor(tools: com.wangzan101.mika.core.tool.ToolDispatcher, autonomous: Boolean = false) =
+        ActionExecutor(tools, OperationGuards(), ConfirmationGate(), gate = {}, recorder = ActionRecorder(sink), autonomous = autonomous)
 
     private suspend fun run(e: ActionExecutor, tool: String, args: String): ActionOutcome = e.run(Part.ToolCall("c", tool, args), Origin.Model(1))
 
@@ -85,9 +85,11 @@ class DescribedActionsTest {
         assertEquals("confirmation_required", o.code)
         assertEquals(IrrevAction.order, o.hit?.action)
         assertTrue(screen.calls.isEmpty())
-        // 删除不花钱:按描述找到就做
-        assertTrue(run(executor(toolDispatcher(screen)), "phone_tap", """{"element":"删除"}""") is ActionOutcome.Ran)
-        assertEquals(listOf("tap @e4"), screen.calls)
+        // A delete found by description asks first too
+        val delete = run(executor(toolDispatcher(screen)), "phone_tap", """{"element":"删除"}""")
+        delete as ActionOutcome.Refused
+        assertEquals(IrrevAction.delete, delete.hit?.action)
+        assertTrue(screen.calls.isEmpty())
     }
 
     @Test fun descriptionWithARefIsRejected() = runTest {
@@ -154,12 +156,15 @@ class DescribedActionsTest {
         assertTrue(actions, "\"dialog\"" in actions)
     }
 
-    @Test fun pageDialogIsShownAndAnsweredWithoutAskingWhenItSpendsNoMoney() = runTest {
+    @Test fun pageDialogIsShownAndAnsweredWithoutAskingInAutonomousMode() = runTest {
         val web = FakeWebPort().apply { dialog = PageDialog(PageDialog.CONFIRM, "确定删除这条记录吗?") }
         val tools = toolDispatcher(FakeScreen(), web = web)
         val seen = tools.execute(Part.ToolCall("o", "web_observe", "{}")).content
         assertEquals(JsonPrimitive("确定删除这条记录吗?"), (seen["dialog"] as JsonObject)["message"])
-        val e = executor(tools)
+        // Accepting "delete this record?" is a delete: Ask mode asks first
+        val asked = run(executor(tools), "web_interact", """{"action":"dialog","answer":"accept"}""")
+        assertTrue("$asked", asked is ActionOutcome.Refused)
+        val e = executor(tools, autonomous = true)
         val accept = run(e, "web_interact", """{"action":"dialog","answer":"accept"}""")
         assertTrue("$accept", accept is ActionOutcome.Ran)
         assertTrue(web.calls.toString(), "dialog true -" in web.calls)

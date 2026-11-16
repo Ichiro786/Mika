@@ -71,6 +71,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -252,21 +253,6 @@ fun ChatScreen(
     val keptAny by vm.keptPage.collectAsState()
     // 只管这个对话留下的那一页
     val kept = keptAny?.takeIf { it.conversationId == ui.conversationId }
-    val live by frames.collectAsState()
-    val webLive by webOpen.collectAsState()
-    val pipInputLive by pipInput.collectAsState()
-    // 任务一结束虚拟屏就释放了;完成时小窗还要停留几秒打勾,继续显示最后一帧
-    var lastFrame by remember { mutableStateOf<Bitmap?>(null) }
-    var lastFrameWasWeb by remember { mutableStateOf(false) }
-    LaunchedEffect(live, webLive, ui.pip.mode) {
-        live?.let {
-            lastFrame = it
-            if (webLive) lastFrameWasWeb = true
-            else if (ui.pip.mode != PipMode.Done) lastFrameWasWeb = false
-        }
-    }
-    val frame = live ?: lastFrame.takeIf { ui.pip.visible && ui.pip.mode == PipMode.Done }
-    val webContent = if (ui.pip.mode == PipMode.Done) lastFrameWasWeb else webLive
     // 注册文字的 Android 状态保存;平时由进程内的 ViewModel 管理完整会话草稿。
     rememberSaveable(vm, saver = androidx.compose.runtime.saveable.listSaver(
         save = { model: ChatViewModel -> model.saveDraftTexts() },
@@ -669,6 +655,8 @@ fun ChatScreen(
             editRequest = editRequest,
         )
 
+        // 小画面每一帧都在变:帧、网页标记和小窗输入在 PipFeed 里收集,整个对话页不跟着重组
+        PipFeed(frames, webOpen, pipInput, ui.pip) { frame, webContent, pipInputLive ->
         AgentPip(
             pip = ui.pip,
             frame = frame,
@@ -701,6 +689,7 @@ fun ChatScreen(
                 if (card >= 0) scope.launch { if (reduceMotion) listState.scrollToItem(card) else listState.animateScrollToItem(card) }
             },
         )
+        }
         attachActions?.let { actions ->
             AttachMenuOverlay(
                 open = attachOpen && canAttachNow,
@@ -1394,6 +1383,35 @@ private fun StepDot(dot: Dot) {
     )
 }
 
+/**
+ * 小窗的实时画面:帧、网页标记和小窗输入在这里收集,一帧一变只重组这里和 [content],不带着整个对话页重组。
+ * 任务一结束虚拟屏就释放了;完成时小窗还要停留几秒打勾,继续显示最后一帧。
+ */
+@Composable
+private fun PipFeed(
+    frames: StateFlow<Bitmap?>,
+    webOpen: StateFlow<Boolean>,
+    pipInput: StateFlow<com.wangzan101.mika.cap.phone.display.PipInput?>,
+    pip: PipUi,
+    content: @Composable (frame: Bitmap?, webContent: Boolean, pipInput: com.wangzan101.mika.cap.phone.display.PipInput?) -> Unit,
+) {
+    val live by frames.collectAsState()
+    val webLive by webOpen.collectAsState()
+    val pipInputLive by pipInput.collectAsState()
+    var lastFrame by remember { mutableStateOf<Bitmap?>(null) }
+    var lastFrameWasWeb by remember { mutableStateOf(false) }
+    LaunchedEffect(live, webLive, pip.mode) {
+        live?.let {
+            lastFrame = it
+            if (webLive) lastFrameWasWeb = true
+            else if (pip.mode != PipMode.Done) lastFrameWasWeb = false
+        }
+    }
+    val frame = live ?: lastFrame.takeIf { pip.visible && pip.mode == PipMode.Done }
+    val webContent = if (pip.mode == PipMode.Done) lastFrameWasWeb else webLive
+    content(frame, webContent, pipInputLive)
+}
+
 /** 转圈:淡色圆环,顶上一段实色。[spinning] 为假(关了动画、停下来等你)时停在原处。 */
 @Composable
 internal fun Spinner(modifier: Modifier, spinning: Boolean, track: Color, head: Color) {
@@ -1912,7 +1930,7 @@ internal fun Composer(
                     val label = if (attachOpen) AttachCopy.CLOSE else AttachCopy.ADD
                     val blockedHint = stringResource(R.string.attach_blocked_running)
                     Box(
-                        Modifier.size(MikaSize.IconButton).clip(CircleShape)
+                        Modifier.minimumInteractiveComponentSize().size(MikaSize.IconButton).clip(CircleShape)
                             .clickable(enabled = !importing, onClickLabel = label, onClick = {
                                 if (attachBlocked) {
                                     Toast.makeText(context, blockedHint, Toast.LENGTH_SHORT).show()
@@ -1959,7 +1977,7 @@ internal fun Composer(
                 if (vh != null) {
                     val hint = stringResource(R.string.voice_hold_to_talk)
                     Box(
-                        Modifier.size(MikaSize.IconButton).testTag("composer-mic").holdToTalk(vh) { vh.toast = hint },
+                        Modifier.minimumInteractiveComponentSize().size(MikaSize.IconButton).testTag("composer-mic").holdToTalk(vh) { vh.toast = hint },
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(MikaIcons.Mic, hint, Modifier.size(MikaSize.Icon), tint = c.ink)
@@ -1968,7 +1986,7 @@ internal fun Composer(
                 // 任务在跑时停止一直在;写了字再多一个发送,发出去的话交给当前任务
                 if (busy) {
                     Box(
-                        Modifier.size(MikaSize.IconButton).background(c.ink, CircleShape).clip(CircleShape)
+                        Modifier.minimumInteractiveComponentSize().size(MikaSize.IconButton).background(c.ink, CircleShape).clip(CircleShape)
                             .clickable(onClickLabel = stringResource(R.string.chat_stop), onClick = onStop),
                         contentAlignment = Alignment.Center,
                     ) {
@@ -1977,7 +1995,7 @@ internal fun Composer(
                 }
                 if (!busy || canSend) {
                     Box(
-                        Modifier.size(MikaSize.IconButton)
+                        Modifier.minimumInteractiveComponentSize().size(MikaSize.IconButton)
                             .background(if (canSend) { if (editorial) c.ink else c.accent } else c.greySoft, CircleShape)
                             .clip(CircleShape)
                             .clickable(enabled = canSend, onClickLabel = stringResource(R.string.chat_send)) { closeAttach(); onSend() },

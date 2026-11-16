@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">پشتیبان‌گیری</string>
+    <string name="backup_export">خروجی گرفتن از پشتیبان</string>
+    <string name="backup_export_sub">گفتگوها و مهارت‌های شخصی خود را در یک فایل محافظت‌شده با رمز عبور ذخیره کنید.</string>
+    <string name="backup_import">وارد کردن پشتیبان</string>
+    <string name="backup_import_sub">گفتگوها را از یک فایل پشتیبان اضافه کنید. گفتگوهایی که از قبل روی این گوشی هستند هرگز جایگزین یا حذف نمی‌شوند.</string>
+    <string name="backup_note">کلیدهای API مدل‌ها، حافظه و فایل‌های ذخیره‌شده در بارگیری‌ها شامل پشتیبان نمی‌شوند.</string>
+    <string name="backup_working">در حال انجام…</string>
+    <string name="backup_export_dialog_title">از پشتیبان خود محافظت کنید</string>
+    <string name="backup_password_hint">رمز عبوری حداقل ۸ نویسه‌ای انتخاب کنید. برای بازیابی این پشتیبان به آن نیاز دارید و قابل بازیابی نیست.</string>
+    <string name="backup_password">رمز عبور</string>
+    <string name="backup_password_repeat">تکرار رمز عبور</string>
+    <string name="backup_password_mismatch">رمزهای عبور مطابقت ندارند</string>
+    <string name="backup_continue">ادامه</string>
+    <string name="backup_import_dialog_title">وارد کردن پشتیبان</string>
+    <string name="backup_import_dialog_body">رمز عبوری را که هنگام خروجی گرفتن از این پشتیبان انتخاب کردید وارد کنید.</string>
+    <string name="backup_export_done">پشتیبان ذخیره شد. تعداد فایل‌های گنجانده‌شده: %1$d.</string>
+    <string name="backup_export_failed">ذخیره پشتیبان ممکن نشد.</string>
+    <string name="backup_import_done">وارد کردن تمام شد. فایل‌های جدید افزوده‌شده: %1$d. فایل‌های موجود نگه‌داشته‌شده: %2$d. فهرست گفتگوها به‌روز شد.</string>
+    <string name="backup_import_failed">تکمیل وارد کردن پشتیبان ممکن نشد.</string>
+    <string name="backup_err_password">رمز عبور اشتباه است یا فایل آسیب دیده است.</string>
+    <string name="backup_err_format">این یک فایل پشتیبان Orbit نیست.</string>
+    <string name="backup_err_version">این پشتیبان با نسخه جدیدتری از Orbit ساخته شده است.</string>
+    <string name="backup_err_unsafe">پشتیبان شامل مسیرهای فایل ناامن است و رد شد.</string>
+    <string name="backup_err_too_large">پشتیبان برای وارد کردن بیش از حد بزرگ است.</string>
+    <string name="backup_err_corrupt">فایل پشتیبان آسیب دیده یا ناقص است.</string>
+</resources>

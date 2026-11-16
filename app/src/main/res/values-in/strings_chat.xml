@@ -131,6 +131,8 @@
     <string name="drawer_archived">Diarsipkan</string>
     <string name="drawer_archived_count">%1$d diarsipkan</string>
     <string name="drawer_archive_empty">Belum ada obrolan yang diarsipkan</string>
+    <string name="drawer_archive_empty_hint">Obrolan yang Anda arsipkan disimpan di sini, tidak mengganggu.</string>
+    <string name="drawer_archive_back">Kembali ke obrolan</string>
     <string name="drawer_archive_done">“%1$s” diarsipkan</string>
     <string name="drawer_archive_this_week">Minggu ini</string>
     <string name="drawer_archive_this_month">Bulan ini</string>

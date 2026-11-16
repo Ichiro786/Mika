@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">Apa pun yang mengeluarkan uang selalu perlu persetujuan Anda.</string>
+    <string name="confirm_note">Pembayaran selalu perlu persetujuan Anda. Dalam mode Tanya, pesan, penghapusan, dan pemberian izin juga.</string>
     <string name="confirm_pay">Bayar</string>
     <string name="confirm_delete">Hapus</string>
     <string name="confirm_order">Buat pesanan</string>

@@ -11,4 +11,5 @@
     <string name="tasks_resolved">종료됨</string>
     <string name="tasks_waiting">대기 중</string>
     <string name="tasks_empty_up_next">대기 중이거나 예정된 작업이 없습니다.</string>
+    <string name="tasks_empty_hint">채팅에서 Orbit에게 부탁하거나, 저절로 실행될 작업을 예약해 보세요.</string>
 </resources>

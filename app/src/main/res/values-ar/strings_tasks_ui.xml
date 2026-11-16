@@ -11,4 +11,5 @@
     <string name="tasks_resolved">المنتهية</string>
     <string name="tasks_waiting">بانتظار</string>
     <string name="tasks_empty_up_next">لا توجد مهام في الانتظار أو مجدولة.</string>
+    <string name="tasks_empty_hint">اطلب من Orbit شيئًا في محادثة، أو جدولة مهمة لتعمل من تلقاء نفسها.</string>
 </resources>

@@ -2,30 +2,30 @@
 name: x
 display: X
 packages: ["com.twitter.android"]
-aliases: ["X", "Twitter", "推特", "twitter", "小蓝鸟"]
+aliases: ["X", "Twitter", "推特", "twitter", "小蓝鸟", "x"]
 open: X
-description: 社交平台:帖子、趋势与私信
+description: Social platform: posts, trends and direct messages
 ---
-## 是什么
-X 是社交平台,包名 `com.twitter.android`。内容按帖子组织,可以关注账号、发帖、转帖、私信,也有 Grok 对话。网页版是 x.com。
+## What it is
+X is a social platform, package `com.twitter.android`. Content is posts; you can follow, post, repost, send DMs and chat with Grok. The web version is x.com.
 
-## 界面
-底部有五个标签:主页、探索、Grok、通知、私信,右下角是悬浮的发帖按钮。
+## Screens
+Five tabs at the bottom: Home, Explore, Grok, Notifications, Messages; bottom right is the floating post button.
 
-主页的标签是「为你推荐」「正在关注」和「添加」。帖子卡片下面有回复、转帖、喜欢、展示量、书签、分享。信息流里夹着标着 Ad 的广告。顶部的「显示导航栏」打开抽屉菜单,里面有个人资料、Premium、社群、历史、列表、空间、创作者工作室、自动化工作、设置和隐私、帮助中心、显示设置。
+The Home tabs are "For you", "Following" and "Add". Post cards: reply, repost, like, views, bookmark, share. Ads labeled Ad appear in the feed. "Show navigation bar" at the top opens the drawer menu: Profile, Premium, Communities, History, Lists, Spaces, Creator Studio, Automated work, Settings and privacy, Help Center, Display settings.
 
-探索页顶部是搜索栏,下面按「探索」「当前趋势」「新闻」「体育」「娱乐」分标签,趋势按地区分组(如「商业・金融趋势」「新加坡的趋势」),每项右侧有更多选项。
+Explore has the search bar at the top, with tabs below: "Explore", "Trending", "News", "Sports", "Entertainment"; trends are grouped by region (e.g. "Business & finance trends", "Trending in Singapore"), each item with a "More options" control.
 
-个人页分「帖子」「回复」「转帖」「视频」「文章」几个标签,右上角可以分享和编辑个人资料。
+A profile page has tabs "Posts", "Replies", "Reposts", "Videos", "Articles"; top right: share and edit profile.
 
-## 功能
-- **搜索**:从探索页的搜索栏进入,有最近搜索和清除。结果页分「热门」「最新」「用户」「媒体」「列表」,筛选条件有来自、发布的日期、语言、帖子活动、排除回复、应用。
-- **看帖**:点开帖子是详情页,有关注按钮、作者、发帖选项,时间戳旁边是查看次数,下面是回复、转帖、喜欢、书签、分享。回复框写着「发布你的回复」,可以加相片、GIF,或打开完整编辑器。页面上还有 Grok 的解释此帖子。
-- **发帖**:悬浮按钮打开全屏编辑器,顶部能切换账号和设置「所有人可以回复」,下面是相片、相机、开始一个空间、GIF、投票、开启地理标签、内容披露、添加帖子。内容为空时发布按钮不可点。
-- **通知**:分「全部」「提及」「已认证」;有「通知已禁用」的提示条,右上角是通知设置。
-- **私信**:聊天列表顶部有「全部」下拉和搜索,右下角是新私信。没有会话时显示「你的收件箱为空」,下面有推荐的人和同步通讯录。
-- **Grok**:底部标签进入,是对话界面,可以开新对话、看对话历史,有 Voice mode 和 Auto mode。
-- **视频**:点开视频是全屏播放器,有暂停、倍速(1x)、隐藏、悬浮视频播放器、全屏,底部是进度条。
+## Features
+- **Search**: enter from the search bar on Explore (recent searches, clear). Results are grouped into "Top", "Latest", "People", "Media", "Lists"; filters are From, Date posted, Language, Post activity, Exclude replies, App.
+- **Viewing a post**: the detail page with follow button, author, post options; view count next to the timestamp; below: reply, repost, like, bookmark, share. Reply box: "Post your reply", can add photos, GIFs or open the full editor. Also Grok's "Explain this post".
+- **Posting**: the floating button opens a full-screen editor; top: switch account, "Everyone can reply"; below: photo, camera, start a Space, GIF, poll, enable geotag, content disclosure, add post. Post is disabled when empty.
+- **Notifications**: tabs "All", "Mentions", "Verified"; a "Notifications are disabled" banner may show; top right is notification settings.
+- **Messages**: chat list with "All" dropdown and search at the top, new message at bottom right. With no conversations: "Your inbox is empty", plus suggested people and sync contacts.
+- **Grok**: enter from the bottom tab: chat interface with new chat, chat history, Voice mode and Auto mode.
+- **Video**: full-screen player with pause, speed (1x), hide, floating video player, full screen, progress bar at the bottom.
 
-## 已知现象
-首页的广告带认证企业徽标,和普通帖子看起来一样。发帖编辑器是全屏页,系统返回键不退出,要用左上角的关闭按钮。
+## Known behavior
+Ads on Home carry a verified-business badge and look like ordinary posts. The post editor is full-screen; the system Back key does not leave it, use the top-left close button.

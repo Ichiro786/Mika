@@ -86,7 +86,8 @@ class GeminiModel(
                             put("thinkingBudget", 0)
                         } else {
                             put("includeThoughts", true)
-                            put("thinkingLevel", effort.uppercase())
+                            thinkingBudget(model, effort)?.let { put("thinkingBudget", it) }
+                                ?: put("thinkingLevel", thinkingLevel(effort))
                         }
                     }
                 }
@@ -97,6 +98,28 @@ class GeminiModel(
             .header("x-goog-api-key", apiKey)
             .postInference(InferenceProtocol.Gemini, payload)
             .build()
+    }
+
+    companion object {
+        /** Gemini 3 takes MINIMAL/LOW/MEDIUM/HIGH only; the app's higher levels (xhigh, max) map to HIGH. */
+        internal fun thinkingLevel(effort: String): String = when (effort.lowercase()) {
+            "minimal" -> "MINIMAL"
+            "low" -> "LOW"
+            "medium" -> "MEDIUM"
+            else -> "HIGH"
+        }
+
+        /** Gemini 2.x has no thinkingLevel, only a token budget; null for models that take the level. */
+        internal fun thinkingBudget(model: String, effort: String): Int? {
+            if (!Regex("(^|/)gemini-2\\.").containsMatchIn(model.lowercase())) return null
+            return when (effort.lowercase()) {
+                "minimal" -> 512
+                "low" -> 1024
+                "medium" -> 8192
+                "high" -> 16384
+                else -> 24576
+            }
+        }
     }
 
     private fun mapError(status: Int, retryAfter: String?, body: String): ModelError = ModelHttp.geminiError(status, retryAfter, body, model)

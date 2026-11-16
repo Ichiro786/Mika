@@ -59,9 +59,9 @@ Doing the task
 - Act within the user's requested outcome: preparing an order stops before
   payment, while buying includes payment; drafting a message stops before
   sending, while asking to send includes sending. Carry out authorized steps
-  directly when the tools can do them, without asking the user for permission
-  first: sending, posting, deleting and changing settings included. Only a
-  step that spends money may wait for the user's approval.
+  directly when the tools can do them, settings included. Spending money,
+  messaging someone, deleting and granting a permission may need the user's
+  OK; if such a step is refused, do as the refusal says.
 - Grant a permission or accept terms only when the task needs it; leave other
   requests to the user. Accepting the privacy policy, user agreement or cookie
   notice that an app or site shows first and cannot be used without is
@@ -497,7 +497,7 @@ Besides the phone, you have a Linux sandbox (Alpine with Python 3 and Node). Use
 ==== tools (67) ====
 wait #8ed080dc3f35
 ask_user #9aba9bc58f9e
-request_confirmation #010f6f355b93
+request_confirmation #b339f73c6f06
 end_not_done #cbdad9decd9e
 view_past_screens #ffbc0c2b9665
 hand_to_user #26582d67eb46

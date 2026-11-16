@@ -41,6 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wangzan101.mika.R
 import androidx.compose.ui.semantics.Role
+import com.wangzan101.mika.ui.components.ButtonKind
+import com.wangzan101.mika.ui.components.ButtonSize
+import com.wangzan101.mika.ui.components.MikaButton
 import com.wangzan101.mika.ui.components.SegmentedControl
 import com.wangzan101.mika.ui.components.keepsKeyboard
 import com.wangzan101.mika.ui.theme.MikaIcons
@@ -134,7 +137,7 @@ internal fun SearchHint(text: String) {
 
 /** 一个对话都没搜到:说清楚搜了哪儿,别让人以为是功能坏了。 */
 @Composable
-internal fun SearchEmpty(query: String) {
+internal fun SearchEmpty(query: String, onClear: () -> Unit = {}) {
     val c = MikaTheme.colors
     Column(
         Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 16.dp),
@@ -149,6 +152,10 @@ internal fun SearchEmpty(query: String) {
         Text(
             stringResource(R.string.drawer_search_empty_hint), style = MikaType.Hint, color = c.ink3,
             textAlign = TextAlign.Center,
+        )
+        MikaButton(
+            stringResource(R.string.drawer_search_clear), onClear, Modifier.padding(top = 6.dp).testTag("drawer-search-empty-clear"),
+            kind = ButtonKind.Tonal, size = ButtonSize.Small,
         )
     }
 }

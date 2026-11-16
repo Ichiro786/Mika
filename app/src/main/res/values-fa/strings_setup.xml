@@ -40,6 +40,13 @@
     <string name="model_url_unencrypted">این نشانی رمزگذاری نشده است؛ دیگران در شبکه ممکن است کلید API و گفتگوهای شما را ببینند.</string>
     <string name="model_probe_failed">درخواست فراخوانی ابزار آزمایشی از %1$s ناموفق بود: %2$s</string>
     <string name="model_probe_timeout">%1$s ظرف %2$d ثانیه به فراخوانی ابزار آزمایشی پاسخ نداد</string>
+    <string name="model_err_key_rejected">ارائه‌دهنده کلید API را رد کرد</string>
+    <string name="model_err_rate_limited">تعداد درخواست‌های شما محدود شده یا سهمیهٔ حساب تمام شده است</string>
+    <string name="model_err_server">ارائه‌دهنده با مشکل روبه‌رو است (%1$s)</string>
+    <string name="model_err_network">اتصال به سرور برقرار نشد</string>
+    <string name="model_err_generic">مشکلی غیرمنتظره؛ پیام اصلی در جزئیات است</string>
+    <string name="model_details_show">جزئیات</string>
+    <string name="model_details_hide">پنهان کردن جزئیات</string>
     <string name="model_probe_no_tools">%1$s ابزار را فراخوانی نکرد. Orbit برای انجام کارها به مدلی نیاز دارد که بتواند ابزارها را فراخوانی کند. ارائه‌دهنده ذخیره شد، اما این مدل به‌عنوان مدل اصلی تنظیم نشد.</string>
     <string name="model_self_hosted_note">نشانی 127.0.0.1 به همین گوشی اشاره دارد. اگر سرور روی رایانهٔ شما اجرا می‌شود، آن را با نشانی شبکهٔ محلی رایانه جایگزین کنید و سرور را طوری تنظیم کنید که اتصال‌های شبکه را نیز بپذیرد.</string>
     <string name="preset_custom">سفارشی</string>

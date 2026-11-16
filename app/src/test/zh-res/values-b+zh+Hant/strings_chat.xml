@@ -131,6 +131,8 @@
     <string name="drawer_archived">已歸檔</string>
     <string name="drawer_archived_count">%1$d 條已歸檔</string>
     <string name="drawer_archive_empty">還沒有歸檔的對話</string>
+    <string name="drawer_archive_empty_hint">歸檔的對話收在這裡，不佔地方。</string>
+    <string name="drawer_archive_back">回到對話</string>
     <string name="drawer_archive_done">已歸檔「%1$s」</string>
     <string name="drawer_archive_this_week">本週</string>
     <string name="drawer_archive_this_month">本月</string>

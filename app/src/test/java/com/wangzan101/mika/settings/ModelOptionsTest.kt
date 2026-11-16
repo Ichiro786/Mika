@@ -42,6 +42,27 @@ class ModelOptionsTest {
         assertEquals(null, b.visionByUser)
     }
 
+    @Test fun modelIdHeuristicOnlyWhenNothingStoredListedOrSaid() {
+        assertTrue(ModelOptions.seesImages(stored = false, userSaid = null, usedForVision = false, modelId = "gpt-4o-mini"))
+        assertFalse("用户说不能看", ModelOptions.seesImages(stored = false, userSaid = false, usedForVision = false, modelId = "gpt-4o"))
+        assertFalse("列表写明了(不能看)", ModelOptions.seesImages(stored = false, userSaid = null, usedForVision = false, modelId = "gpt-4o", listed = true))
+        assertFalse("名字不像", ModelOptions.seesImages(stored = false, userSaid = null, usedForVision = false, modelId = "llama-3-8b"))
+        assertFalse("不给模型名就不猜", ModelOptions.seesImages(stored = false, userSaid = null, usedForVision = false))
+    }
+
+    @Test fun looksVisionCapableCoversKnownFamilies() {
+        for (id in listOf(
+            "gemini-1.5-pro", "gemini-2.5-flash", "gemini-3-pro-preview", "google/gemini-2.0-flash", "gpt-4o", "gpt-4o-mini", "gpt-4.1-nano", "gpt-5", "gpt-5.1-codex",
+            "o3", "o3-pro", "o4-mini", "claude-3-5-sonnet-20241022", "claude-3-7-sonnet-latest", "anthropic/claude-3.5-sonnet", "claude-sonnet-4-20250514",
+            "claude-opus-4-1", "claude-haiku-4-5", "claude-sonnet-4.5", "Qwen2.5-VL-72B-Instruct", "qwen-vl-max", "qwen3-vl-235b-a22b", "glm-4v", "glm-4.5v",
+            "glm-4.1v-thinking-flash", "pixtral-large-latest", "llava-1.6", "llava:13b",
+        )) assertTrue(id, ModelOptions.looksVisionCapable(id))
+        for (id in listOf(
+            "deepseek-chat", "gpt-4", "gpt-4-turbo-preview", "gpt-3.5-turbo", "gpt-oss-120b", "o3-mini", "o1", "claude-3-haiku", "claude-2.1", "gemini-1.0-pro", "gemma-3-27b",
+            "qwen3-235b-a22b", "qwen2.5-coder-32b", "glm-4.5", "glm-4-flash", "glm-4-voice", "mistral-large", "llama-3.3-70b", "",
+        )) assertFalse(id, ModelOptions.looksVisionCapable(id))
+    }
+
     @Test fun toolCapableFirstAndDefaultMainPrefersConfirmed() {
         val listed = listOf(ListedModel("embed", toolCalls = false), ListedModel("guess"), ListedModel("sure", toolCalls = true))
         val options = ModelOptions.merge(listed, base)

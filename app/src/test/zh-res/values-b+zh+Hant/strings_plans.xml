@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">沒有這個權限,定時任務到點可能不準時,甚至不會啟動。開一次就行。</string>
     <string name="plans_running_n">進行中 %1$d</string>
     <string name="plans_stopped_n">已停用 %1$d</string>
-    <string name="plans_empty">還沒有定時任務\n點右上角 + 新建，或在對話裡告訴 Orbit 什麼時候提醒你、什麼時候幫你做事。</string>
+    <string name="plans_empty_title">還沒有定時任務</string>
+    <string name="plans_empty_hint">在這裡新建一個，或在對話裡告訴 Orbit 什麼時候提醒你、什麼時候幫你做事。</string>
     <string name="plans_none_running">沒有進行中的定時任務</string>
     <string name="plans_none_stopped">沒有已停用的定時任務</string>
     <string name="plans_footer">可以點右上角 + 自己新建，也可以在對話裡說「每天 8 點…」「降價了告訴我」，結果會發回建它的那個對話。定時觸發可能受系統省電影響；停用或刪除隻影響後續觸發。</string>

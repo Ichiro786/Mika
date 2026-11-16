@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">Любые траты денег каждый раз требуют вашего согласия.</string>
+    <string name="confirm_note">Платежи всегда требуют вашего согласия. В режиме «Спрашивать» — также сообщения, удаления и выдача разрешений.</string>
     <string name="confirm_pay">Оплатить</string>
     <string name="confirm_delete">Удалить</string>
     <string name="confirm_order">Оформить заказ</string>

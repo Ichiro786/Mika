@@ -199,7 +199,7 @@ object PageScriptProtocol {
   const SECRET_TYPES = new Set(${js(SECRET_INPUT_TYPES)});
   const secret = (el) => {
     if (el instanceof HTMLInputElement && SECRET_TYPES.has(String(el.type).toLowerCase())) return true;
-    if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement)) return false;
+    if (!(el instanceof HTMLInputElement) && !(el instanceof HTMLTextAreaElement) && !(el instanceof HTMLSelectElement)) return false;
     const ac = el.getAttribute('autocomplete');
     return !!ac && ac.toLowerCase().split(/\s+/).some((t) => SECRET_AC.has(t));
   };

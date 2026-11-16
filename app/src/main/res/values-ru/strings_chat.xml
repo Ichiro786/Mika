@@ -155,6 +155,8 @@
     <string name="drawer_archived">В архиве</string>
     <string name="drawer_archived_count">%1$d в архиве</string>
     <string name="drawer_archive_empty">Нет архивированных чатов</string>
+    <string name="drawer_archive_empty_hint">Архивированные чаты хранятся здесь, чтобы не мешать.</string>
+    <string name="drawer_archive_back">Назад к чатам</string>
     <string name="drawer_archive_done">Чат «%1$s» добавлен в архив</string>
     <string name="drawer_archive_this_week">На этой неделе</string>
     <string name="drawer_archive_this_month">В этом месяце</string>

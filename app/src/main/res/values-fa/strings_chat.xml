@@ -113,6 +113,8 @@
     <string name="drawer_archived">بایگانی‌شده</string>
     <string name="drawer_archived_count">%1$d بایگانی‌شده</string>
     <string name="drawer_archive_empty">هیچ گفتگویی بایگانی نشده است</string>
+    <string name="drawer_archive_empty_hint">گفتگوهایی که بایگانی می‌کنید اینجا کنار می‌مانند.</string>
+    <string name="drawer_archive_back">بازگشت به گفتگوها</string>
     <string name="drawer_archive_done">«%1$s» بایگانی شد</string>
     <string name="drawer_archive_this_week">این هفته</string>
     <string name="drawer_archive_this_month">این ماه</string>

@@ -127,10 +127,10 @@ class ChildRunsTest {
         assertEquals(4000, store.all().single().result!!.length)
     }
 
-    private fun spawnWith(args: String, text: String = "x".repeat(20_000)): Pair<RunSpec, kotlinx.serialization.json.JsonObject> = runBlocking {
+    private fun spawnWith(args: String, text: String = "x".repeat(20_000), parentBudget: Int? = null): Pair<RunSpec, kotlinx.serialization.json.JsonObject> = runBlocking {
         var seen: RunSpec? = null
         val host = ChildRunHost { spec, _ -> seen = spec; ChildResult(spec.id, ChildPhase.Completed, text) }
-        val tools = toolDispatcher(FakeScreen(), runSpec = RunSpec(RunId("parent"), "goal", "thread"), childHost = host)
+        val tools = toolDispatcher(FakeScreen(), runSpec = RunSpec(RunId("parent"), "goal", "thread", stepBudget = parentBudget), childHost = host)
         val r = tools.execute(Part.ToolCall("s", "spawn_agent", args), ActionPass())
         seen!! to r.content
     }
@@ -159,6 +159,13 @@ class ChildRunsTest {
         assertEquals(500, resultLength(lowContent))
         val (_, short) = spawnWith("""{"goal":"查三家"}""", text = "短结论")
         assertEquals(null, short["truncated"])
+    }
+
+    @Test fun aCappedParentCannotGiveAChildMoreStepsThanItHas() {
+        val (spec, _) = spawnWith("""{"goal":"查三家","maxSteps":30}""", parentBudget = 8)
+        assertTrue("${spec.stepBudget}", spec.stepBudget!! <= 8)
+        val (free, _) = spawnWith("""{"goal":"查三家","maxSteps":30}""")
+        assertEquals(30, free.stepBudget)
     }
 
     @Test fun nonIntegerBudgetIsRejected() = runBlocking {

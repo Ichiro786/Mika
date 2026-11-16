@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">النسخ الاحتياطي</string>
+    <string name="backup_export">تصدير نسخة احتياطية</string>
+    <string name="backup_export_sub">احفظ محادثاتك ومهاراتك الشخصية في ملف واحد محمي بكلمة مرور.</string>
+    <string name="backup_import">استيراد نسخة احتياطية</string>
+    <string name="backup_import_sub">أضف محادثات من ملف نسخة احتياطية. لا يتم أبدًا استبدال المحادثات الموجودة على هذا الهاتف أو حذفها.</string>
+    <string name="backup_note">لا تشمل النسخة مفاتيح API للنماذج ولا الذاكرة ولا الملفات المحفوظة في التنزيلات.</string>
+    <string name="backup_working">جارٍ التنفيذ…</string>
+    <string name="backup_export_dialog_title">احمِ نسختك الاحتياطية</string>
+    <string name="backup_password_hint">اختر كلمة مرور من 8 أحرف على الأقل. ستحتاج إليها لاستعادة هذه النسخة ولا يمكن استرجاعها.</string>
+    <string name="backup_password">كلمة المرور</string>
+    <string name="backup_password_repeat">أعد كتابة كلمة المرور</string>
+    <string name="backup_password_mismatch">كلمتا المرور غير متطابقتين</string>
+    <string name="backup_continue">متابعة</string>
+    <string name="backup_import_dialog_title">استيراد نسخة احتياطية</string>
+    <string name="backup_import_dialog_body">أدخل كلمة المرور التي اخترتها عند تصدير هذه النسخة.</string>
+    <string name="backup_export_done">تم حفظ النسخة الاحتياطية. عدد الملفات المضمّنة: %1$d.</string>
+    <string name="backup_export_failed">تعذّر حفظ النسخة الاحتياطية.</string>
+    <string name="backup_import_done">اكتمل الاستيراد. الملفات الجديدة المضافة: %1$d. الملفات الموجودة التي أُبقيت: %2$d. تم تحديث قائمة المحادثات.</string>
+    <string name="backup_import_failed">تعذّر إكمال استيراد النسخة الاحتياطية.</string>
+    <string name="backup_err_password">كلمة المرور غير صحيحة أو الملف تالف.</string>
+    <string name="backup_err_format">هذا ليس ملف نسخة احتياطية لـ Orbit.</string>
+    <string name="backup_err_version">أُنشئت هذه النسخة بإصدار أحدث من Orbit.</string>
+    <string name="backup_err_unsafe">تحتوي النسخة على مسارات ملفات غير آمنة وتم رفضها.</string>
+    <string name="backup_err_too_large">النسخة الاحتياطية كبيرة جدًا للاستيراد.</string>
+    <string name="backup_err_corrupt">ملف النسخة الاحتياطية تالف أو غير مكتمل.</string>
+</resources>

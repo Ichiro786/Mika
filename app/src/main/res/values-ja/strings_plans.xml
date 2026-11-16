@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">この権限がないと、スケジュールされたタスクが遅れたり、実行されなかったりすることがあります。オンにするのは一度だけです。</string>
     <string name="plans_running_n">有効 %1$d</string>
     <string name="plans_stopped_n">オフ %1$d</string>
-    <string name="plans_empty">スケジュールされたタスクはまだありません\n+ をタップして作成するか、チャットで、いつリマインドするか、いつ代わりに何かをするかを Orbit に伝えてください。</string>
+    <string name="plans_empty_title">スケジュールされたタスクはまだありません</string>
+    <string name="plans_empty_hint">ここで作成するか、チャットで、いつリマインドするか、いつ何をしてほしいかを Orbit に伝えてください。</string>
     <string name="plans_none_running">有効なスケジュールされたタスクはありません</string>
     <string name="plans_none_stopped">オフにしたスケジュールされたタスクはありません</string>
     <string name="plans_footer">+ から自分で作成できます。チャットで「毎日 8 時に…」や「値段が下がったら教えて」と話しかけることもできます。結果はそのチャットに戻ります。時間指定の実行は、バッテリーの節約機能の影響を受けることがあります。オフにしたり削除したりすると、今後の実行にだけ影響します。</string>

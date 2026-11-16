@@ -11,4 +11,5 @@
     <string name="tasks_resolved">已结束</string>
     <string name="tasks_waiting">等待中</string>
     <string name="tasks_empty_up_next">目前没有排队或排程的任务。</string>
+    <string name="tasks_empty_hint">在对话里让 Orbit 做点什么，或安排一个定时任务让它自己去做。</string>
 </resources>

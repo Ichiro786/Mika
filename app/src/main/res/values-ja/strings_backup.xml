@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">バックアップ</string>
+    <string name="backup_export">バックアップをエクスポート</string>
+    <string name="backup_export_sub">チャットと個人スキルをパスワード付きの1つのファイルに保存します。</string>
+    <string name="backup_import">バックアップをインポート</string>
+    <string name="backup_import_sub">バックアップファイルからチャットを追加します。この端末にあるチャットは置き換えも削除もされません。</string>
+    <string name="backup_note">モデルのAPIキー、メモリ、ダウンロードに保存されたファイルは含まれません。</string>
+    <string name="backup_working">処理中…</string>
+    <string name="backup_export_dialog_title">バックアップを保護</string>
+    <string name="backup_password_hint">8文字以上のパスワードを設定してください。復元時に必要で、忘れると取り戻せません。</string>
+    <string name="backup_password">パスワード</string>
+    <string name="backup_password_repeat">パスワードを再入力</string>
+    <string name="backup_password_mismatch">パスワードが一致しません</string>
+    <string name="backup_continue">続ける</string>
+    <string name="backup_import_dialog_title">バックアップをインポート</string>
+    <string name="backup_import_dialog_body">このバックアップをエクスポートしたときに設定したパスワードを入力してください。</string>
+    <string name="backup_export_done">バックアップを保存しました。含まれるファイル数：%1$d。</string>
+    <string name="backup_export_failed">バックアップを保存できませんでした。</string>
+    <string name="backup_import_done">インポートが完了しました。追加された新しいファイル：%1$d。保持された既存のファイル：%2$d。チャット一覧を更新しました。</string>
+    <string name="backup_import_failed">バックアップのインポートを完了できませんでした。</string>
+    <string name="backup_err_password">パスワードが違うか、ファイルが破損しています。</string>
+    <string name="backup_err_format">Orbitのバックアップファイルではありません。</string>
+    <string name="backup_err_version">このバックアップはより新しいバージョンのOrbitで作成されました。</string>
+    <string name="backup_err_unsafe">バックアップに安全でないファイルパスが含まれていたため、拒否されました。</string>
+    <string name="backup_err_too_large">バックアップが大きすぎてインポートできません。</string>
+    <string name="backup_err_corrupt">バックアップファイルが破損しているか、不完全です。</string>
+</resources>

@@ -52,7 +52,9 @@ internal object SpawnAgent : AgentTool {
         val goal = a.str("goal", max = 4000)!!
         val format = a.str("format")
         // 只校验是整数;超出范围的拉回范围内,不当错误(子任务照样能派)
-        val steps = (a.int("maxSteps", Int.MIN_VALUE, Int.MAX_VALUE) ?: DEFAULT_STEPS).coerceIn(1, MAX_STEPS)
+        val asked = (a.int("maxSteps", Int.MIN_VALUE, Int.MAX_VALUE) ?: DEFAULT_STEPS).coerceIn(1, MAX_STEPS)
+        // A capped parent can't hand a child more steps than it has left itself
+        val steps = parent.stepBudget?.let { cap -> asked.coerceAtMost((cap - ctx.currentStep).coerceAtLeast(1)) } ?: asked
         val limit = (a.int("maxResultChars", Int.MIN_VALUE, Int.MAX_VALUE) ?: DEFAULT_RESULT_CHARS).coerceIn(MIN_RESULT_CHARS, MAX_RESULT_CHARS)
         val child = RunSpec(RunId(UUID.randomUUID().toString()), goal, parent.threadId,
             provenance = RunProvenance(RunOrigin.Child, Attendance.Unattended),

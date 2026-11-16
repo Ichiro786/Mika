@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">Anything that spends money needs your OK every time.</string>
+    <string name="confirm_note">Payments always need your OK. Messages, deletes and permission grants do too when you\'re in Ask mode.</string>
     <string name="confirm_pay">Pay</string>
     <string name="confirm_delete">Delete</string>
     <string name="confirm_order">Place order</string>

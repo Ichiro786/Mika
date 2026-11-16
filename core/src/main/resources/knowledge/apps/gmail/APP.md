@@ -2,30 +2,30 @@
 name: gmail
 display: Gmail
 packages: ["com.google.android.gm"]
-aliases: ["Gmail", "谷歌邮箱", "Google 邮箱", "gmail"]
+aliases: ["Gmail", "谷歌邮箱", "Google 邮箱", "gmail", "Google Mail"]
 sites: ["mail.google.com"]
 open: Gmail
-description: 谷歌的邮件 App,收发邮件、按类别和标签整理,另有会议
+description: Google's email app: send, organize by tab and label, Meet
 ---
-## 是什么
-Gmail 是谷歌的邮件 App,包名 `com.google.android.gm`。也能添加其他邮箱账号一起管理。
+## What it is
+Gmail is Google's email app, package `com.google.android.gm`. Can also manage other email accounts.
 
-## 界面
-底部两个标签:「邮件」「会议」。
-- **邮件**:顶部左边是菜单按钮(「打开抽屉式导航栏」),中间是搜索框「搜索邮件」,右边是头像(「账号和设置」)。列表开头是当前收件箱名(如「主要」),下面先是「动态」「推广」等类别的汇总行(带新邮件数),再是邮件;右下角有「写邮件」按钮。
-- **抽屉**:收件箱类别(主要、推广、社交、动态);「所有标签」下有已加星标、已延后、重要邮件、已发送、已安排、发件箱、草稿、所有邮件、垃圾邮件、已删除邮件、管理订阅、创建标签,以及自建标签;「Google 应用」下有日历、通讯录;最底下是「设置」「帮助和反馈」,要往下滑才看得到。
-- **会议**:有「发起新会议」「加入会议」。
+## Screens
+Two tabs at the bottom: "Mail" and "Meet".
+- **Mail**: top left is the menu button ("Open navigation drawer"), in the middle the search box ("Search in mail"), on the right the profile picture ("Account and settings"). The list starts with the current inbox name (e.g. "Primary"), then summary rows for categories such as "Updates" and "Promotions" (with new-mail counts), then the emails; bottom right is the "Compose" button.
+- **Drawer**: inbox categories (Primary, Promotions, Social, Updates); under "All labels": Starred, Snoozed, Important, Sent, Scheduled, Outbox, Drafts, All mail, Spam, Trash, Manage subscriptions, Create new, plus your own labels; under "Google apps": Calendar, Contacts; at the very bottom "Settings" and "Help & feedback", which you must scroll down to see.
+- **Meet**: has "New meeting" and "Join with a code".
 
-## 功能
-- **邮件列表**:每封一行,元素名把「未读」、发件人、主题、摘要连在一起;日期、星标单独一个元素。点发件人头像是选中这封,不是打开。
-- **搜索**:点顶部搜索框进入,有返回按钮、输入框和筛选按钮:标签、发件人、收件人、附件。
-- **账号**:点头像弹出账号页:管理 Google 账号、切换账号、添加其他账号、管理此设备上的账号、存储空间用量。
-- **设置**:抽屉最底下进入,第一层是「常规设置」、每个账号一行、「添加帐号」。
+## Features
+- **Mail list**: one row per email; the element name joins "Unread", sender, subject and snippet; the date and star are separate elements. Tapping the sender's avatar selects the email, it does not open it.
+- **Search**: tap the search box at the top; there is a back button, an input box and filter buttons: label, from, to, attachments.
+- **Accounts**: the profile picture opens the account sheet: Manage your Google Account, switch/add account, manage accounts on this device, storage usage.
+- **Settings**: reached from the bottom of the drawer; the first level is "General settings", one row per account, and "Add account".
 
-## 已知现象
-- 第一次打开或更新后,会先后出现:「Gmail 换新颜」介绍页(「知道了」)、管理所有电子邮件地址的页面(「转至 GMAIL」)、系统的通知权限询问(「禁止」「始终允许」)、介绍会议功能的卡片(「了解详情」「知道了」),列表顶上还有一张提示卡(「关闭」)。
-- 系统的通知权限询问读不到元素、按返回键关不掉,只能点画面上的按钮。
-- 第一次进「会议」标签,弹出「允许Gmail获取手机状态」(「取消」「授予权限」),读不到元素。
-- 账号页读不到元素,只能看画面。
-- 抽屉或搜索页打开时,元素列表里后面的邮件列表也还在,抽屉的项排在邮件后面。
-- 在邮件列表按返回键会退出 App。
+## Known behavior
+- On first launch or after an update these appear in turn: the "Gmail has a new look" intro page ("Got it"), a page about managing all your email addresses ("Go to Gmail"), the notification-permission prompt ("Don't allow" / "Allow"), a card introducing Meet ("Learn more" / "Got it"), and a tip card at the top of the list ("Dismiss").
+- The system notification-permission prompt exposes no elements and the Back key does not close it; tap its on-screen buttons.
+- The first time you open the "Meet" tab, "Allow Gmail to make and manage phone calls" appears ("Cancel" / "Allow"); elements unreadable.
+- The account sheet exposes no elements; read the screen.
+- While the drawer or search page is open, the mail list behind it is still in the element list, and the drawer items come after the emails.
+- Back in the mail list exits the app.

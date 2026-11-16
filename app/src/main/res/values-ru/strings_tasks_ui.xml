@@ -11,4 +11,5 @@
     <string name="tasks_resolved">Завершено</string>
     <string name="tasks_waiting">Ожидание</string>
     <string name="tasks_empty_up_next">Нет задач в очереди или по расписанию.</string>
+    <string name="tasks_empty_hint">Попросите Orbit о чём-нибудь в чате или запланируйте задачу, которая выполнится сама.</string>
 </resources>

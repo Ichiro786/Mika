@@ -47,6 +47,11 @@ class ConversationStore(
 
     private val _deletions = MutableSharedFlow<String>(extraBufferCapacity = 16, onBufferOverflow = BufferOverflow.DROP_OLDEST)
 
+    /** 备份导入往对话目录里放了新对话:让对话页、侧栏照 [changes] 重读(文件已经在磁盘上,这里只发通知)。 */
+    fun notifyImported(ids: Collection<String>) {
+        ids.forEach { _changes.tryEmit(it) }
+    }
+
     /** 删掉的对话编号:[delete] 时发一次([changes] 也照发)。悬浮胶囊据此拿掉这个对话刚结束的任务、卡片不再接着它。 */
     val deletions: SharedFlow<String> = _deletions.asSharedFlow()
 

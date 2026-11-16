@@ -25,7 +25,7 @@ object ConfirmationCopy {
     const val CONTENT_MAX = 60
     /** 展开的卡片和通知里内容最多显示的字数(和申报时的上限一致)。 */
     const val DETAIL_MAX = 200
-    /** 确认卡片上的说明:只有花钱的操作要你同意,每次只同意这一次。 */
+    /** Note on the confirmation card: payments always ask; sends, deletes and permission grants ask in Ask mode. */
     val NOTE: String get() = tr(R.string.confirm_note)
 
     fun actionLabel(action: IrrevAction): String = when (action) {

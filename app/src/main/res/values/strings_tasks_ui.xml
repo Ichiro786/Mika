@@ -11,4 +11,5 @@
     <string name="tasks_resolved">Resolved</string>
     <string name="tasks_waiting">Waiting</string>
     <string name="tasks_empty_up_next">Nothing queued or scheduled.</string>
+    <string name="tasks_empty_hint">Ask Orbit for something in a chat, or schedule a task to run on its own.</string>
 </resources>

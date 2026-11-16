@@ -58,8 +58,9 @@ class LoopScenarioTest {
         checker: FakeChatModel? = null,
         knowledge: KnowledgeStore? = null, skills: GuideCatalog? = null,
         installed: List<Pair<String, String>> = emptyList(), flags: SpeedFlags = SpeedFlags.OFF,
+        approvals: com.wangzan101.mika.core.action.ApprovalSettings = com.wangzan101.mika.core.action.ApprovalSettings.ASK,
     ) = AgentLoop(
-        model, tools, SystemPrompt.identity(), maxSteps, knowledge = knowledge, installedApps = { installed },
+        model, tools, SystemPrompt.identity(), maxSteps, knowledge = knowledge, installedApps = { installed }, approvals = approvals,
         verifier = checker?.let { Verifier(it, null) },
         flags = flags, clock = { CLOCK }, skills = skills, zone = ZoneOffset.UTC,
     )
@@ -302,7 +303,7 @@ class LoopScenarioTest {
     }
 
     // (m) 不可逆操作:被拦下 → 申请确认 → 用户同意 → 发送 → 读到「已发送」→ 回答;做过对外的事,回答另请核查模型
-    // 发送不花钱:不先问,直接发,发完读一遍核实
+    // In Autonomous mode a send runs without asking, and is read back afterwards to verify it
     @Test fun irreversibleDoneDirectlyIsVerified() = runTest {
         val screen = ScriptedScreen(listOf(
             Screen(CHAT, listOf(label("@e1", "张三", 40), field("@e2", "发消息"), button("@e3", "+", 950))),
@@ -317,7 +318,7 @@ class LoopScenarioTest {
             answer("已给张三发了「明天见」,聊天里显示「已发送」。")
         }
         val checker = fakeModel("checker") { verdict("pass", "聊天里显示已发送", "给张三发明天见" to "已发送") }
-        val end = loop(main, toolDispatcher(screen), checker = checker).run("给张三发明天见")
+        val end = loop(main, toolDispatcher(screen), checker = checker, approvals = { true }).run("给张三发明天见")
         assertTrue("$end", end is TaskState.Succeeded && end.verified)
         assertTrue(screen.calls.any { it.startsWith("tap @e3") })
         snapshot("m_irreversible_verified", end, "main" to main, "verifier" to checker)

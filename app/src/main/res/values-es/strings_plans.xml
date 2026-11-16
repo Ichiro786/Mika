@@ -13,7 +13,8 @@
     <string name="plans_alarm_body">Sin este permiso, las tareas programadas pueden ejecutarse tarde o no ejecutarse. Solo hace falta activarlo una vez.</string>
     <string name="plans_running_n">Activas %1$d</string>
     <string name="plans_stopped_n">Desactivadas %1$d</string>
-    <string name="plans_empty">Aún no hay tareas programadas\nToca + para crear una, o dile a Orbit en un chat cuándo recordarte algo o hacer algo por ti.</string>
+    <string name="plans_empty_title">Aún no hay tareas programadas</string>
+    <string name="plans_empty_hint">Crea una aquí, o dile a Orbit en un chat cuándo recordarte algo o hacer algo por ti.</string>
     <string name="plans_none_running">No hay tareas programadas activas</string>
     <string name="plans_none_stopped">No hay tareas programadas desactivadas</string>
     <string name="plans_footer">Usa + para crear una tarea, o di “todos los días a las 8…” o “avísame cuando baje el precio” en un chat; los resultados vuelven a ese chat. El ahorro de batería puede afectar a las ejecuciones programadas; desactivar o eliminar solo afecta a las próximas ejecuciones.</string>

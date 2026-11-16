@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="confirm_note">お金がかかる操作は、そのつど確認します。</string>
+    <string name="confirm_note">支払いは毎回あなたの確認が必要です。確認モードでは、メッセージの送信、削除、権限の許可も確認します。</string>
     <string name="confirm_pay">支払う</string>
     <string name="confirm_delete">削除</string>
     <string name="confirm_order">注文する</string>

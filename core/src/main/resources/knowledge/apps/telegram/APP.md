@@ -2,17 +2,17 @@
 name: telegram
 display: Telegram
 packages: ["org.telegram.messenger"]
-aliases: ["Telegram", "电报", "TG"]
+aliases: ["Telegram", "电报", "TG", "telegram"]
 sites: ["telegram.org"]
 open: Telegram
-description: 聊天、群和频道
+description: Chats, groups and channels
 ---
-## 是什么
-Telegram 是即时通讯 App,包名 `org.telegram.messenger`。网站知识见 `telegram.org`。
+## What it is
+Telegram is an instant-messaging app, package `org.telegram.messenger`. For the website see the `telegram.org` guide.
 
-## 界面
-有 Chats(会话列表)、Contacts(联系人)和新消息入口,新消息可以从联系人或搜索里选人。进入后默认停留的页面不一定是 Chats。
+## Screens
+Has Chats (the conversation list), Contacts and a new-message entry; for a new message you pick a person from contacts or search. The page the app lands on is not necessarily Chats.
 
-## 功能
-- **读消息**:在会话列表找到目标进入,滚动查看历史,每条有发送人和时间。群、频道、联系人是不同的对象。
-- **发消息**:在已有会话中输入,或从 Contacts、新消息入口选择收件人。发出后会话里出现新的消息气泡。联系人页可查看联系人资料。
+## Features
+- **Read messages**: find the target in the conversation list and open it, scroll to see history; each message shows sender and time. Groups, channels and contacts are different kinds of object.
+- **Send messages**: type in an existing conversation, or choose a recipient from Contacts or the new-message entry. After sending, a new message bubble appears in the conversation. The contact page shows the contact's profile.

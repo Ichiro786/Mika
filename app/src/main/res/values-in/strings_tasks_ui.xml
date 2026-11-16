@@ -11,4 +11,5 @@
     <string name="tasks_resolved">Selesai</string>
     <string name="tasks_waiting">Menunggu</string>
     <string name="tasks_empty_up_next">Tidak ada tugas dalam antrean atau terjadwal.</string>
+    <string name="tasks_empty_hint">Minta Orbit mengerjakan sesuatu di obrolan, atau jadwalkan tugas agar berjalan sendiri.</string>
 </resources>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="backup_group">Backup</string>
+    <string name="backup_export">Export backup</string>
+    <string name="backup_export_sub">Save your chats and personal skills to one password-protected file.</string>
+    <string name="backup_import">Import backup</string>
+    <string name="backup_import_sub">Add chats from a backup file. Chats already on this phone are never replaced or deleted.</string>
+    <string name="backup_note">Model API keys, memory and files saved to Downloads are not included.</string>
+    <string name="backup_working">Working…</string>
+    <string name="backup_export_dialog_title">Protect your backup</string>
+    <string name="backup_password_hint">Choose a password of at least 8 characters. You will need it to restore this backup and it cannot be recovered.</string>
+    <string name="backup_password">Password</string>
+    <string name="backup_password_repeat">Repeat password</string>
+    <string name="backup_password_mismatch">Passwords don\'t match</string>
+    <string name="backup_continue">Continue</string>
+    <string name="backup_import_dialog_title">Import backup</string>
+    <string name="backup_import_dialog_body">Enter the password you chose when you exported this backup.</string>
+    <string name="backup_export_done">Backup saved. Files included: %1$d.</string>
+    <string name="backup_export_failed">Couldn\'t save the backup.</string>
+    <string name="backup_import_done">Import finished. New files added: %1$d. Existing files kept: %2$d. The chat list is updated.</string>
+    <string name="backup_import_failed">Couldn\'t finish importing the backup.</string>
+    <string name="backup_err_password">Wrong password, or the file is damaged.</string>
+    <string name="backup_err_format">This is not an Orbit backup file.</string>
+    <string name="backup_err_version">This backup was made by a newer version of Orbit.</string>
+    <string name="backup_err_unsafe">The backup contains unsafe file paths and was rejected.</string>
+    <string name="backup_err_too_large">The backup is too large to import.</string>
+    <string name="backup_err_corrupt">The backup file is damaged or incomplete.</string>
+</resources>

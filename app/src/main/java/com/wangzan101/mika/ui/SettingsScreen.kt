@@ -656,6 +656,7 @@ fun AdvancedSettingsContent(
                 }
             }
         }
+        BackupSettingsGroup()
         // Repair and Quit now sit on the Settings home ("Fix a problem", "Quit Orbit").
         if (showDeveloper) {
             GroupLabel(stringResource(R.string.settings_developer_group))

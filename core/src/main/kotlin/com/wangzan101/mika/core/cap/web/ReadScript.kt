@@ -191,13 +191,13 @@ ${SelectorPolicy.JS}  const DENIED = new Set(${js(DENIED_PROPS)});
     const tag = tagOf(el);
     if (tag === 'input') {
       if (SECRET_TYPES.has(String(el.type).toLowerCase())) return true;
-    } else if (tag !== 'textarea') return false;
+    } else if (tag !== 'textarea' && tag !== 'select') return false;
     const ac = el.getAttribute('autocomplete');
     return !!ac && ac.toLowerCase().split(/\s+/).some((t) => SECRET_AC.has(t));
   };
   // 曾经是秘密输入框的(如「显示密码」把 type 改成 text)也一直按秘密算:从读取世界建起时起盯着
   const wasSecret = new WeakSet();
-  const markIn = (root) => { try { if (secretNow(root)) wasSecret.add(root); for (const x of root.querySelectorAll('input, textarea')) if (secretNow(x)) wasSecret.add(x); } catch (e) {} };
+  const markIn = (root) => { try { if (secretNow(root)) wasSecret.add(root); for (const x of root.querySelectorAll('input, textarea, select')) if (secretNow(x)) wasSecret.add(x); } catch (e) {} };
   try {
     new G.MutationObserver((records) => {
       for (const r of records) {
@@ -297,6 +297,8 @@ ${SelectorPolicy.JS}  const DENIED = new Set(${js(DENIED_PROPS)});
       if (DENIED.has(k)) deny('reading ' + k);
       if ((k === 'outerHTML' || k === 'innerHTML') && (typeOf(v) === 1 || (k === 'innerHTML' && native(shadowHostOf, v) !== undefined))) return html(v, k);
       if (SECRET_TEXT.has(k) && secret(v)) { const x = rget(v, k, v); return x ? MASK : x; }
+      // a card-expiry or similar select: which option is chosen is the secret
+      if ((k === 'selectedIndex' || k === 'selectedOptions') && tagOf(v) === 'select' && secret(v)) return MASK;
       if (!FIELD_SAFE.has(k) && fieldApi(v, k) && secret(v)) { const x = rget(v, k, v); return typeof x === 'function' ? x : MASK; }
       if (HELD_TEXT.has(k) && holds(v)) { const x = rget(v, k, v); return x ? MASK : x; }
       if (k === 'textContent' || k === 'innerText' || k === 'outerText') return text(v, k);
