@@ -311,4 +311,5 @@
     <string name="chat_swipe_reply">Desliza para responder</string>
     <string name="chat_jump_latest">Ir a lo más reciente</string>
     <string name="chat_jump_latest_new">Ir a lo más reciente, nuevos: %1$d</string>
+    <string name="chat_view_live">Ver cómo trabaja</string>
 </resources>

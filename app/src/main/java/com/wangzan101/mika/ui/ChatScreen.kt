@@ -326,7 +326,7 @@ fun ChatScreen(
     // 返回聊天时同一条内容不重新滚动；新进展仅在跟随末尾时滚动。
     // 目标行直接由当前 UI 状态计算:layoutInfo 还是上一帧的测量结果,发送后立即读它会滚到旧的末尾。
     val last = ui.exchanges.lastOrNull()
-    val rowCount = chatItemCount(ui.exchanges, kept, phoneSetupNeeded, hasBlocked = ui.blocked != null)
+    val rowCount = chatItemCount(ui.exchanges, kept, phoneSetupNeeded, hasBlocked = ui.blocked != null, operatingPhone = ui.operatingPhone)
     val scrollMarker = "${ui.conversationId}:${ui.exchanges.size}:${last?.steps?.size}:${last?.steers?.size}:${last?.status?.hashCode()}:${ui.blocked?.hashCode()}"
     val jump = pendingJump?.takeIf { it.conversationId == ui.conversationId }
     // 目标行的高亮:只在目标还是当前对话时算。
@@ -336,7 +336,7 @@ fun ChatScreen(
     LaunchedEffect(scrollMarker, jump) {
         // 从搜索或文件库过来:先滚到目标消息,期间不要跟末尾;目标不在了就退回原来的逻辑。
         if (jump != null) {
-            val keys = chatItemKeys(ui.exchanges, kept, phoneSetupNeeded, hasBlocked = ui.blocked != null)
+            val keys = chatItemKeys(ui.exchanges, kept, phoneSetupNeeded, hasBlocked = ui.blocked != null, operatingPhone = ui.operatingPhone)
             val index = chatTargetKey(ui.exchanges, jump.target)?.let(keys::indexOf) ?: -1
             if (index >= 0) {
                 previousScrollMarker = scrollMarker
@@ -955,13 +955,11 @@ private fun LazyListScope.exchange(
         ex.status is ExchangeStatus.NeedsTakeover || ex.status is ExchangeStatus.NeedsConfirmation ||
         ex.status is ExchangeStatus.NeedsInput || ex.status is ExchangeStatus.Queued
     val active = ex.status.isActive()
-    val answering = ex.status == ExchangeStatus.Working && !ex.draft.isNullOrBlank()
-    if (active) {
-        // Only thinking so far: the plain "Thinking" line below says it, so no second indicator above it.
-        val onlyThinking = ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isEmpty() && !backgroundNote
-        if (!answering && !onlyThinking) item("s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
-    } else if (ex.steps.isNotEmpty() || ex.runId != null) {
-        item("s$index") { DoneLine(ex, reduceMotion, openRun, tokens) }
+    // One "still going" row at a time: the working block, or the plain Thinking line before anything else exists
+    // (see [statusRows]; the row model in ChatRows asks the same function).
+    val rows = statusRows(ex, backgroundNote)
+    if (rows.work) item("s$index") {
+        if (active) WorkBlock(ex, reduceMotion, backgroundNote, openRun) else DoneLine(ex, reduceMotion, openRun, tokens)
     }
     // 任务进行中插的话:用户的原话,下面一行小字说它的去向。
     // 插话之前已经说完的回复照常显示;插话打断的那段留在原处(淡色、标「被你的新消息打断」);接着才是插话。
@@ -986,13 +984,11 @@ private fun LazyListScope.exchange(
     val (joined, waiting) = steersAroundDraft(ex.steers)
     joined.forEach(::steer)
     val draftText = ex.draft?.takeIf(String::isNotBlank)
-    if (draftText != null) {
-        item("d$index") { DraftText(draftText, ex.waitingForModel, reduceMotion) }
-        // While the answer is still streaming in, three dots under it say more is coming.
-        if (active && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
-    }
-    // While the model is thinking and nothing has streamed yet, a shimmering "Thinking" line holds the answer's place.
-    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) item("k$index") { ThinkingLine(reduceMotion) }
+    if (draftText != null) item("d$index") { DraftText(draftText, ex.waitingForModel, reduceMotion) }
+    // While the answer is still streaming in, three dots under it say more is coming.
+    if (rows.typing) item("t$index") { TypingBubble(reduceMotion) }
+    // Thinking, with nothing to show yet: a shimmering "Thinking" line holds the answer's place.
+    if (rows.thinking) item("th$index") { ThinkingLine(reduceMotion) }
     waiting.forEach(::steer)
     item("r$index") {
         JumpHighlight(highlightKey == "r$index", reduceMotion) {
@@ -1305,30 +1301,39 @@ private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boole
                 Modifier.size(16.dp), spinning = !paused && !reduceMotion,
                 track = if (paused) c.warnSoft else c.accentSoft, head = if (paused) c.warnSolid else c.accent,
             )
+            // Between steps, while the model decides what to do next, this one row says "Thinking": there is no
+            // second indicator under it.
+            val line = if (!paused && ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isNotEmpty())
+                stringResource(R.string.orbit_call_thinking) else ChatCopy.progressLine(ex)
             Text(
-                ChatCopy.progressLine(ex), Modifier.weight(1f), style = NowText, color = c.ink,
+                line, Modifier.weight(1f), style = NowText, color = c.ink,
                 maxLines = 2, overflow = TextOverflow.Ellipsis,
             )
             if (elapsed != null) Text(ChatCopy.clock(elapsed), style = ClockText, color = c.ink3)
         }
-        if (ex.steps.isNotEmpty()) {
-            Text(
+        // The two ways to look closer sit side by side on one quiet row: the steps so far, and the live run page.
+        // While the task is still going the link says so ("Watch it work"); "See how it went" is for finished runs.
+        if (ex.steps.isNotEmpty() || ex.runId != null) Row(
+            Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            if (ex.steps.isNotEmpty()) Text(
                 stringResource(if (showSteps) R.string.chat_collapse_steps else R.string.chat_expand_steps),
                 Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { showSteps = !showSteps }
-                    .heightIn(min = 48.dp).padding(horizontal = 8.dp, vertical = 8.dp),
+                    .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 8.dp),
                 style = MikaType.Caption, color = c.ink2,
             )
-            if (showSteps) StepLine(ex.steps, ex.stepActions, live = true, paused = paused)
+            ex.runId?.let { id ->
+                Text(
+                    stringResource(R.string.chat_view_live),
+                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { openRun(id) }
+                        .heightIn(min = 48.dp).wrapContentHeight(Alignment.CenterVertically).padding(horizontal = 8.dp)
+                        .testTag("work-view-process"),
+                    style = MikaType.Caption.copy(textDecoration = TextDecoration.Underline), color = c.ink2,
+                )
+            }
         }
-        // 跑的时候就能进运行过程(页面按秒接着长);结束后收进「做了 N 步 · 查看过程」那一行
-        ex.runId?.let { id ->
-            Text(
-                stringResource(R.string.chat_view_process),
-                Modifier.padding(top = 2.dp).clip(MikaShapes.Pill).clickable(role = Role.Button) { openRun(id) }
-                    .padding(horizontal = 4.dp, vertical = 4.dp).testTag("work-view-process"),
-                style = DoneText.copy(fontStyle = FontStyle.Italic, textDecoration = TextDecoration.Underline), color = c.ink3,
-            )
-        }
+        if (showSteps && ex.steps.isNotEmpty()) StepLine(ex.steps, ex.stepActions, live = true, paused = paused)
         if (backgroundNote) {
             Row(
                 Modifier.padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically,

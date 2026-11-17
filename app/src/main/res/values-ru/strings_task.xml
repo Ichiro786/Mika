@@ -87,4 +87,7 @@
     <string name="screens_waiting">Ожидание</string>
     <string name="screens_needs_you">Нужны вы</string>
     <string name="screens_zoom">Увеличить этот экран</string>
+    <string name="task_start_refused">Android не разрешил Orbit запустить эту задачу в фоне. Откройте Orbit и отправьте её ещё раз.</string>
+    <string name="schedules_reset_title">Расписание сброшено</string>
+    <string name="schedules_reset_body">Orbit не смог прочитать сохранённое расписание, поэтому список теперь пуст. Копия старого файла сохранена. Настройте расписание заново.</string>
 </resources>

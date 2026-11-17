@@ -325,4 +325,5 @@
     <string name="chat_swipe_reply">Смахните, чтобы ответить</string>
     <string name="chat_jump_latest">К последнему сообщению</string>
     <string name="chat_jump_latest_new">К последнему сообщению, новых: %1$d</string>
+    <string name="chat_view_live">Смотреть за работой</string>
 </resources>

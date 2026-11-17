@@ -60,4 +60,17 @@ class GuardRulesTest {
         assertEquals(Severity.Stop, GuardRules.failures(8, 0))
         assertEquals(Severity.Stop, GuardRules.failures(3, 3))
     }
+
+    /** A task with no step limit still has last-resort stops: they must not be scaled from the "unlimited" number. */
+    @Test fun unlimitedTasksKeepFiniteLastResortStops() {
+        val unlimited = Int.MAX_VALUE
+        val budget = GuardRules.budgetFor(unlimited, unlimited)
+        assertEquals(GuardRules.UNLIMITED_BUDGET, budget)
+        assertEquals(60, GuardRules.sameStateLadder(budget).last())
+        assertEquals(48, GuardRules.cycleLadder(budget).last())
+        // A real limit is passed through unchanged.
+        assertEquals(100, GuardRules.budgetFor(100, unlimited))
+        // What used to happen: thresholds in the hundreds of millions, which never fire.
+        assertEquals(true, GuardRules.sameStateLadder(unlimited).last() > 1_000_000)
+    }
 }

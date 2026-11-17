@@ -283,4 +283,5 @@
     <string name="chat_swipe_reply">スワイプして返信</string>
     <string name="chat_jump_latest">最新へ移動</string>
     <string name="chat_jump_latest_new">最新へ移動、新着 %1$d 件</string>
+    <string name="chat_view_live">作業の様子を見る</string>
 </resources>

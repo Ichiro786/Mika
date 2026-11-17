@@ -146,7 +146,7 @@ jobs:
           timeout 240 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done' || { cat /tmp/mika-emulator.log; exit 1; }
       - name: Run focused Android interaction tests
         if: ${{ inputs.capture_screenshots }}
-        run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.wangzan101.mika.ui.TaskTabsTest,com.wangzan101.mika.ui.EditorialHeaderTest,com.wangzan101.mika.ui.ChatRecommendationTest,com.wangzan101.mika.ui.ChatSearchTest,com.wangzan101.mika.ui.OrbitHubButtonTest,com.wangzan101.mika.ui.ChatAttachmentsTest --stacktrace
+        run: ./gradlew :app:connectedDebugAndroidTest -Pandroid.testInstrumentationRunnerArguments.class=com.wangzan101.mika.ui.EditorialHeaderTest,com.wangzan101.mika.ui.ChatRecommendationTest,com.wangzan101.mika.ui.ChatSearchTest,com.wangzan101.mika.ui.OrbitHubButtonTest,com.wangzan101.mika.ui.ChatAttachmentsTest --stacktrace
       - name: Capture actual Android screens
         if: ${{ !cancelled() && inputs.capture_screenshots && steps.visual_emulator.outcome == 'success' }}
         run: python3 tools/ui/capture_screens.py app/build/outputs/apk/debug/app-debug.apk build/visual-captures

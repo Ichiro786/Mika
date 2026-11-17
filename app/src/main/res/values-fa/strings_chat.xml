@@ -297,4 +297,5 @@
     <string name="chat_swipe_reply">برای پاسخ بکشید</string>
     <string name="chat_jump_latest">رفتن به جدیدترین پیام</string>
     <string name="chat_jump_latest_new">رفتن به جدیدترین پیام، تازه: %1$d</string>
+    <string name="chat_view_live">تماشای روند کار</string>
 </resources>

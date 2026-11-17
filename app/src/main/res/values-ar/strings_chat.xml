@@ -353,4 +353,5 @@
     <string name="chat_swipe_reply">اسحب للرد</string>
     <string name="chat_jump_latest">الانتقال إلى الأحدث</string>
     <string name="chat_jump_latest_new">الانتقال إلى الأحدث، الجديد: %1$d</string>
+    <string name="chat_view_live">شاهد سير العمل</string>
 </resources>

@@ -220,7 +220,7 @@ internal fun TasksScreen(
         onPauseOrDispose {}
     }
     val schedules by produceState<Result<TriggerSnapshot>?>(null, refresh) {
-        value = null
+        // The list already on screen stays while it reloads; only the very first load shows "Loading".
         try {
             value = Result.success(withContext(Dispatchers.IO) { TriggerRuntime.snapshot(context) })
         } catch (e: CancellationException) {
@@ -230,7 +230,6 @@ internal fun TasksScreen(
         }
     }
     val history by produceState<Result<List<StoredRun>>?>(null, refresh, runs.map { it.key }) {
-        value = null
         try {
             value = Result.success(withContext(Dispatchers.IO) {
                 val store = ConversationStore.shared(context)

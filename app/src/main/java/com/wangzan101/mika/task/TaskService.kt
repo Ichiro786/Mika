@@ -118,6 +118,8 @@ class TaskService : Service() {
     internal fun rememberRecord(run: TaskRun, recordId: String) = center.markRecord(run, recordId)
     /** 几个任务共用的屏幕常亮锁。 */
     internal val wakeLock by lazy { SharedWakeLock(ScreenWakeLock(this)) }
+    /** The CPU lock every working task shares; unlike the screen lock it is not a user setting. */
+    internal val cpuLock by lazy { SharedWakeLock(CpuWakeLock(this)) }
 
     private fun limit(): ParallelLimit {
         if (!parallel) return ParallelLimit(1, null)
@@ -238,6 +240,11 @@ class TaskService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         lastStartId = startId
+        // A start that was sent with startForegroundService must reach startForeground whatever happens next (quit
+        // requested, a teaching session blocking tasks, a duplicate channel message): otherwise Android ends the
+        // whole process a few seconds later. Paths that start nothing still stop the service below, which takes
+        // the notification away again.
+        if (intent?.action in FOREGROUND_STARTS) runCatching { keepForeground() }
         // 系统重交旧启动请求、通知按钮或外部入口都可能在完全退出后到这里:不处理动作,也不让服务驻留
         if (FeatureFlags.get(this).quitRequested()) {
             stopSelf(startId)
@@ -1056,12 +1063,28 @@ class TaskService : Service() {
         /** [messageId] 给了时这是任务进行中插的话,界面按它跟这句话的去向。 */
         fun start(context: Context, goal: String, conversationId: String? = null, messageId: String? = null) {
             if (FeatureFlags.get(context).quitRequested()) return
-            context.startForegroundService(
-                Intent(context, TaskService::class.java).setAction(ACTION_START).putExtra(EXTRA_GOAL, goal)
-                    .apply { if (conversationId != null) putExtra(EXTRA_CONVERSATION, conversationId) }
-                    .apply { if (messageId != null) putExtra(EXTRA_MESSAGE_ID, messageId) },
-            )
+            // Android may refuse a foreground-service start from the background (a start from the floating capsule
+            // while another app is in front). That used to crash the app; now the user is told and nothing starts.
+            try {
+                context.startForegroundService(
+                    Intent(context, TaskService::class.java).setAction(ACTION_START).putExtra(EXTRA_GOAL, goal)
+                        .apply { if (conversationId != null) putExtra(EXTRA_CONVERSATION, conversationId) }
+                        .apply { if (messageId != null) putExtra(EXTRA_MESSAGE_ID, messageId) },
+                )
+            } catch (e: IllegalStateException) {
+                startRefused(context, e)
+            } catch (e: SecurityException) {
+                startRefused(context, e)
+            }
         }
+
+        private fun startRefused(context: Context, e: Exception) {
+            android.util.Log.w("TaskService", "task start refused by the system", e)
+            runCatching { android.widget.Toast.makeText(context, tr(R.string.task_start_refused), android.widget.Toast.LENGTH_LONG).show() }
+        }
+
+        /** Starts sent with startForegroundService; each must be answered with startForeground. */
+        private val FOREGROUND_STARTS get() = setOf(ACTION_START, ACTION_START_TRIGGER, ACTION_START_CHANNEL, ACTION_START_MCP)
 
         /**
          * 用户明确选了「排队」:先在调用方把原话写进持久账本,再让服务认领。

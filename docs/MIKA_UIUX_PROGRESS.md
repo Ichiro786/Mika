@@ -295,3 +295,20 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 
 - The opening screen now shows the coral Original mark by default, the same mark as inside the app, in light and dark. When the Monochrome logo style is chosen, the one-colour mark is used from the next launch on (Android 12 and later, where the system lets an app pick its opening-screen theme); on Android 11 the opening screen keeps the Original mark.
 - Opening AI model after signing in to the Gemini plan no longer crashes: the engine's disk-use scan skips folders it cannot list and files that go away mid-scan. Found from a screen recording and the code; not reproduced on a device here.
+
+## Audit follow-up: reliability and status polish, 2026-11-17
+
+Fixes from the 16 Nov audit (finding IDs are the audit's).
+
+- ORB-101: a task with no step limit keeps finite last-resort stops. The guards used to scale their thresholds from the "unlimited" number and never fired; they now use a budget of 240, so returning to one state 60 times or going round one circle 48 times ends the task.
+- ORB-106: every working task holds a CPU wake lock (released shortly after it starts waiting for the user, and at once when it ends), so web and file steps and an in-flight model reply carry on with the screen off.
+- ORB-109: a task start the system refuses (a background start from the floating capsule) no longer crashes; the user is told. Every start sent as a foreground-service start is answered with the service notification before anything else, including the paths that then start nothing.
+- ORB-113: a schedule file that cannot be read is copied aside under a timestamped name (the newest five are kept) and the user gets one notification that their schedules were reset.
+- ORB-115, ORB-116: one "still going" row at a time. The working block and the Thinking line can no longer show together; between steps the working block itself says Thinking. The row model and the list ask the same function, the typing and thinking rows are counted, and the thinking row has its own key. While a task runs the link reads "Watch it work"; "See how it went" stays for finished runs. "Show steps" and that link share one row with 48 dp targets.
+- ORB-110: a streamed token no longer rebuilds the step rows; only the reply text changes.
+- ORB-126: the Tasks list keeps its content while it reloads.
+- ORB-129: schedules are re-armed after an app update.
+- ORB-138: the manual emulator job no longer names the removed Tasks tab test.
+- Upstream fixes ported: HEAD responses without a body (5524508), quota errors on 403 (8dc2c26), lock state polled while locked (8c07c55), skill outcomes when several skills were read (463871b). ff48e03 was not taken: the fork already has its own fix for the same issue.
+- Not changed, by decision: unattended runs still send and delete without asking (ORB-103). Not changed, needs a decision or a device: the shell tool gate (ORB-104), outcome verification (ORB-102), default pace (ORB-147), the stacked settle-waits (ORB-148).
+- Verified here: unit tests. Not verified: anything on a device.

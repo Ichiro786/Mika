@@ -78,4 +78,7 @@
     <string name="screens_waiting">Menunggu</string>
     <string name="screens_needs_you">Perlu Anda</string>
     <string name="screens_zoom">Perbesar layar ini</string>
+    <string name="task_start_refused">Android tidak mengizinkan Orbit memulai tugas ini di latar belakang. Buka Orbit dan kirim lagi.</string>
+    <string name="schedules_reset_title">Jadwal Anda disetel ulang</string>
+    <string name="schedules_reset_body">Orbit tidak dapat membaca jadwal yang tersimpan, jadi daftarnya sekarang kosong. Salinan file lama disimpan. Silakan atur jadwal Anda lagi.</string>
 </resources>

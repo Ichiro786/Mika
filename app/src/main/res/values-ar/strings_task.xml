@@ -93,4 +93,7 @@
     <string name="screens_waiting">بانتظار</string>
     <string name="screens_needs_you">تحتاج إليك</string>
     <string name="screens_zoom">تكبير هذه الشاشة</string>
+    <string name="task_start_refused">لم يسمح Android لـ Orbit ببدء هذه المهمة في الخلفية. افتح Orbit وأرسلها مرة أخرى.</string>
+    <string name="schedules_reset_title">تمت إعادة ضبط المهام المجدولة</string>
+    <string name="schedules_reset_body">تعذّر على Orbit قراءة المهام المجدولة المحفوظة، لذلك القائمة فارغة الآن. تم الاحتفاظ بنسخة من الملف القديم. يُرجى إعداد المهام المجدولة من جديد.</string>
 </resources>

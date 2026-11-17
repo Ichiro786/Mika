@@ -2213,11 +2213,23 @@ class ChatViewModel(
             this is ExchangeStatus.NeedsTakeover || this is ExchangeStatus.NeedsInput || this is ExchangeStatus.Paused ||
                 this is ExchangeStatus.NeedsConfirmation
 
-        internal fun reduce(ex: Exchange, s: TaskState, appLabel: (String) -> String = { it }, toolLabel: (String) -> String = { it }): Exchange =
-            state(ex, s, appLabel).let {
-                it.copy(steps = rows(it, toolLabel, appLabel), stepActions = actionsOf(it.activities, appLabel, toolLabel),
-                    toolRunning = s is TaskState.Running && s.tool != null)
-            }
+        internal fun reduce(ex: Exchange, s: TaskState, appLabel: (String) -> String = { it }, toolLabel: (String) -> String = { it }): Exchange {
+            val next = state(ex, s, appLabel)
+            val toolRunning = s is TaskState.Running && s.tool != null
+            // A streamed token changes only the reply text. The step rows and their details are built from the
+            // activities, notes and status, none of which moved, so the ones built last time are kept instead of
+            // being rebuilt on the main thread for every token.
+            if (onlyDraftChanged(ex, next, toolRunning)) return next
+            return next.copy(steps = rows(next, toolLabel, appLabel), stepActions = actionsOf(next.activities, appLabel, toolLabel),
+                toolRunning = toolRunning)
+        }
+
+        /**
+         * [next] differs from the already reduced [ex] in its reply text and nothing else. Only true while a reply
+         * is already streaming ([ex] has text), so [ex]'s rows were built from exactly these inputs.
+         */
+        internal fun onlyDraftChanged(ex: Exchange, next: Exchange, toolRunning: Boolean): Boolean =
+            ex.draft != null && next.draft != null && toolRunning == ex.toolRunning && next.copy(draft = ex.draft) == ex
 
         /** 按步号归好的动作明细:点开一步时列出来。 */
         private fun actionsOf(activities: List<RunEvent.Activity>, appLabel: (String) -> String, toolLabel: (String) -> String) =

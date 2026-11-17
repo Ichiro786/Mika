@@ -1,6 +1,7 @@
 package com.wangzan101.mika.core.agent
 
 import com.wangzan101.mika.core.trace.RunTrace
+import com.wangzan101.mika.core.guard.GuardRules
 import com.wangzan101.mika.core.guard.OperationGuards
 import com.wangzan101.mika.core.guard.GuardVerdict
 import com.wangzan101.mika.core.observation.Place
@@ -418,7 +419,9 @@ class AgentLoop(
             openGroups = tools.expanded
         }
         refreshOffer()
-        val guards = OperationGuards(maxSteps)
+        // "No step limit" must not reach the guards as a number: their last-resort stops scale with the budget, and
+        // scaled from Int.MAX_VALUE they would never fire (a task could circle until the quota or battery ran out).
+        val guards = OperationGuards(GuardRules.budgetFor(maxSteps, UNLIMITED_STEPS))
         val recorder = ActionRecorder(sink, clock, saveScreen = { id, png -> sink.media(id, png) })
         val executor = ActionExecutor(tools, guards, confirmations, gate = ::awaitGate, recorder = recorder, offScreen = tools.offScreenGuard(), approvals = approvals,
             provenance = provenance,

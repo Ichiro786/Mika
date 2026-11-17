@@ -78,4 +78,7 @@
     <string name="screens_waiting">等待中</string>
     <string name="screens_needs_you">等你处理</string>
     <string name="screens_zoom">放大这块屏</string>
+    <string name="task_start_refused">系统没有允许 Orbit 在后台开始这个任务。请打开 Orbit 再发一次。</string>
+    <string name="schedules_reset_title">定时任务已被重置</string>
+    <string name="schedules_reset_body">Orbit 读不出保存的定时任务,列表现在是空的。旧文件留了一份副本。请重新设置定时任务。</string>
 </resources>

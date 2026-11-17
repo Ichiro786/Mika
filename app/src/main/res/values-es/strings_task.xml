@@ -84,4 +84,7 @@
     <string name="screens_waiting">En espera</string>
     <string name="screens_needs_you">Te necesita</string>
     <string name="screens_zoom">Ampliar esta pantalla</string>
+    <string name="task_start_refused">Android no dejó que Orbit iniciara esta tarea en segundo plano. Abre Orbit y envíala de nuevo.</string>
+    <string name="schedules_reset_title">Tus tareas programadas se restablecieron</string>
+    <string name="schedules_reset_body">Orbit no pudo leer las tareas programadas guardadas, así que la lista está vacía. Se conservó una copia del archivo anterior. Vuelve a configurar tus tareas programadas.</string>
 </resources>

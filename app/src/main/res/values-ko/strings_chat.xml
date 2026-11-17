@@ -283,4 +283,5 @@
     <string name="chat_swipe_reply">밀어서 답장</string>
     <string name="chat_jump_latest">최신 메시지로 이동</string>
     <string name="chat_jump_latest_new">최신 메시지로 이동, 새 답변 %1$d개</string>
+    <string name="chat_view_live">진행 상황 보기</string>
 </resources>

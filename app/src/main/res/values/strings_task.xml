@@ -81,4 +81,7 @@
     <string name="screens_waiting">Waiting</string>
     <string name="screens_needs_you">Needs you</string>
     <string name="screens_zoom">Enlarge this screen</string>
+    <string name="task_start_refused">Android didn’t let Orbit start this task in the background. Open Orbit and send it again.</string>
+    <string name="schedules_reset_title">Your schedules were reset</string>
+    <string name="schedules_reset_body">Orbit couldn’t read its saved schedules, so the list is now empty. A copy of the old file was kept. Please set your schedules up again.</string>
 </resources>

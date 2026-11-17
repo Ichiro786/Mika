@@ -84,4 +84,7 @@
     <string name="screens_waiting">Aguardando</string>
     <string name="screens_needs_you">Precisa de você</string>
     <string name="screens_zoom">Ampliar esta tela</string>
+    <string name="task_start_refused">O Android não deixou o Orbit iniciar esta tarefa em segundo plano. Abra o Orbit e envie de novo.</string>
+    <string name="schedules_reset_title">Suas tarefas agendadas foram redefinidas</string>
+    <string name="schedules_reset_body">O Orbit não conseguiu ler as tarefas agendadas salvas, então a lista está vazia. Uma cópia do arquivo antigo foi mantida. Configure suas tarefas agendadas de novo.</string>
 </resources>
