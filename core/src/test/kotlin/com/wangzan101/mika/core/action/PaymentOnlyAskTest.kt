@@ -142,13 +142,23 @@ class PaymentOnlyAskTest {
         assertTrue(sink.all.none { it is RunEvent.Confirmation })
     }
 
-    @Test fun deletingAsksButUninstallingTypingPasswordsAndPlainTapsRun() = runTest {
+    @Test fun deletingAndUninstallingAskButTypingPasswordsAndPlainTapsRun() = runTest {
         val s = Chat()
         val m = FakeModel(OBSERVE, tap("@e7"), tap("@e4"), type("@e5", "x"), tap("@e6"), FINISH)
         loop(m, s).run("t")
         assertEquals("confirmation_required", m.result(2).s("error"))
-        assertEquals(listOf("@e4", "@e6"), s.taps)
+        // Uninstalling an app asks in Ask mode, the same as a delete.
+        assertEquals("confirmation_required", m.result(3).s("error"))
+        assertEquals(listOf("@e6"), s.taps)
         assertEquals(listOf("x"), s.typed)
+    }
+
+    @Test fun autonomousModeUninstallsWithoutAsking() = runTest {
+        val s = Chat(); val sink = Events()
+        val m = FakeModel(OBSERVE, tap("@e4"), FINISH)
+        loop(m, s, approvals = Settable(auto = true), sink = sink).run("t")
+        assertEquals(listOf("@e4"), s.taps)
+        assertTrue(sink.all.none { it is RunEvent.Confirmation })
     }
 
     @Test fun placingAnOrderAsksFirst() = runTest {

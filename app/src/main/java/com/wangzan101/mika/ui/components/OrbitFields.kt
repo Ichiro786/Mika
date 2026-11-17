@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
@@ -46,6 +48,8 @@ fun OrbitTextField(
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     trailing: (@Composable RowScope.() -> Unit)? = null,
+    /** Shows dots instead of the text (an API key until the user asks to see it). */
+    secret: Boolean = false,
 ) {
     val c = MikaTheme.colors
     Column(Modifier.fillMaxWidth()) {
@@ -70,6 +74,7 @@ fun OrbitTextField(
                     textStyle = MikaType.Body.copy(color = c.ink, textDirection = TextDirection.Content),
                     cursorBrush = SolidColor(c.accent),
                     keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+                    visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
                 )
             }
             if (trailing != null) Row(verticalAlignment = Alignment.CenterVertically, content = trailing)

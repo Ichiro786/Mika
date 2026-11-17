@@ -42,6 +42,8 @@ object IrreversibleDetector {
     val STRONG: Map<String, IrrevAction> = linkedMapOf(
         "支付" to IrrevAction.pay, "付款" to IrrevAction.pay, "转账" to IrrevAction.pay,
         "删除" to IrrevAction.delete, "撤回" to IrrevAction.delete,
+        // Uninstalling an app removes it and its data: it asks like any other delete.
+        "卸载" to IrrevAction.delete,
         "下单" to IrrevAction.order, "购买" to IrrevAction.order, "结算" to IrrevAction.order, "结账" to IrrevAction.order,
         "取消订单" to IrrevAction.order, "确认收货" to IrrevAction.order, "退款" to IrrevAction.order,
         "转发" to IrrevAction.send,
@@ -100,6 +102,7 @@ object IrreversibleDetector {
         "send" to IrrevAction.send, "post" to IrrevAction.send, "reply" to IrrevAction.send,
         "pay" to IrrevAction.pay, "donate" to IrrevAction.pay,
         "delete" to IrrevAction.delete, "remove" to IrrevAction.delete, "clear all" to IrrevAction.delete,
+        "uninstall" to IrrevAction.delete,
         "place order" to IrrevAction.order, "buy now" to IrrevAction.order, "checkout" to IrrevAction.order,
     )
 
@@ -134,9 +137,16 @@ object IrreversibleDetector {
     private val RESOURCE_WORDS: Map<String, IrrevAction> = mapOf(
         "send" to IrrevAction.send, "reply" to IrrevAction.send,
         "pay" to IrrevAction.pay,
-        "delete" to IrrevAction.delete, "remove" to IrrevAction.delete,
+        "delete" to IrrevAction.delete, "remove" to IrrevAction.delete, "uninstall" to IrrevAction.delete,
         "checkout" to IrrevAction.order,
     )
+
+    /**
+     * English text that says an app is about to be uninstalled ("Do you want to uninstall this app?"). The system
+     * dialog's buttons are a plain OK and Cancel, so the OK counts as a delete when the same screen says this.
+     */
+    private val UNINSTALL_TEXT = Regex("\\buninstall\\b", RegexOption.IGNORE_CASE)
+    private const val UNINSTALL_TEXT_MAX = 120
 
     /** 输入框明确是搜索框才不算发送:其余输入框里回车一律按发送拦。提示语里找这些字,资源 ID 里按单词找 search。 */
     private val SEARCH_FIELD = listOf("search", "搜索", "搜寻")
@@ -398,7 +408,9 @@ object IrreversibleDetector {
      * 金额:合计一类总算;别的金额在可滚动区里、而被点的元素不在那个区里时不算(筛选面板的价格档、商品列表)。
      */
     private fun contextAction(screen: ScreenSnapshot, hit: UiElement?): IrrevAction? {
-        val found = screen.elements.mapNotNull { strong(it.name) }
+        val found = screen.elements.mapNotNull { e ->
+            strong(e.name) ?: IrrevAction.delete.takeIf { e.name.length <= UNINSTALL_TEXT_MAX && UNINSTALL_TEXT.containsMatchIn(e.name) }
+        }
         if (IrrevAction.pay in found) return IrrevAction.pay
         found.firstOrNull { it != IrrevAction.order }?.let { return it }
         val shown = screen.elements.filter { !it.editable && !it.hint }

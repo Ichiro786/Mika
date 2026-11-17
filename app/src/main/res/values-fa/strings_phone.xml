@@ -172,4 +172,9 @@
     <string name="phone_root_note">Orbit su را در این گوشی پیدا کرد. برنامهٔ کمکی که با روت شروع می‌شود همچنان با همان کاربر محدودشده و مجوزهای نسخهٔ شروع‌شده از طریق اشکال‌زدایی بی‌سیم اجرا می‌شود.</string>
     <string name="phone_root_entry_on">شروع خودکار برنامهٔ کمکی؛ دستورهای روت روشن</string>
     <string name="phone_root_entry_off">شروع خودکار برنامهٔ کمکی؛ دستورهای روت خاموش</string>
+    <string name="phone_down_title">اتصال کنترل تلفن قطع شد</string>
+    <string name="phone_down_no_wifi">Wi-Fi خاموش است و Orbit نمی‌تواند دوباره به کنترل تلفن وصل شود. Wi-Fi را روشن کنید و سپس «اتصال دوباره» را بزنید. به اینترنت نیازی نیست.</string>
+    <string name="phone_down_wireless_off">اشکال‌زدایی بی‌سیم خاموش است. «اتصال دوباره» را بزنید تا Orbit در صورت امکان آن را دوباره روشن کند. به Wi-Fi نیاز دارد، اما نه به اینترنت.</string>
+    <string name="phone_down_back_title">کنترل تلفن دوباره برقرار شد</string>
+    <string name="phone_down_back_body">برای ادامهٔ کار «ادامه» را بزنید.</string>
 </resources>

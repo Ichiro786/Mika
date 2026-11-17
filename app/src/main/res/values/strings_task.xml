@@ -6,7 +6,7 @@
     <string name="parallel_second_display_failed">Couldn’t create a second virtual screen, so only one task runs at a time for now</string>
     <string name="parallel_needs_14">Running several tasks at once needs Android 14 or later</string>
     <string name="parallel_low_ram">This phone has little memory, so one task runs at a time</string>
-    <string name="skill_suspended">This skill hasn’t been working lately, so it’s paused</string>
+    <string name="skill_suspended">This skill hasn’t been working lately, so it’s paused: %1$s</string>
     <string name="skill_verified">Skill worked, now in regular use: %1$s</string>
     <string name="skill_learned">Orbit learned a skill: %1$s</string>
     <string name="skill_app_draft">Orbit noted a few facts about %1$s for you to review</string>
@@ -81,4 +81,7 @@
     <string name="screens_waiting">Waiting</string>
     <string name="screens_needs_you">Needs you</string>
     <string name="screens_zoom">Enlarge this screen</string>
+    <string name="task_start_refused">Android didn’t let Orbit start this task in the background. Open Orbit and send it again.</string>
+    <string name="schedules_reset_title">Your schedules were reset</string>
+    <string name="schedules_reset_body">Orbit couldn’t read its saved schedules, so the list is now empty. A copy of the old file was kept. Please set your schedules up again.</string>
 </resources>

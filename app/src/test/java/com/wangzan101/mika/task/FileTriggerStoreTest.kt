@@ -83,7 +83,7 @@ class FileTriggerStoreTest {
         assertEquals(listOf("08:00", "20:00"), FileTriggerStore(file).get("multi")!!.calendarClocks())
         sidecar.writeText("""{"states":{"multi":{"calendarTimes":["08:00","bad"]}}}""")
         assertEquals(listOf("08:00"), FileTriggerStore(file).get("multi")!!.calendarClocks())
-        assertEquals(false, File(file.parentFile, file.name + ".corrupt").exists())
+        assertEquals(false, unreadableCopies(file).isNotEmpty())
         sidecar.writeText("""{"states":{"multi":{"calendarTimes":["09:00","20:00"]}}}""")
         assertEquals(listOf("08:00"), FileTriggerStore(file).get("multi")!!.calendarClocks())
     }
@@ -148,7 +148,7 @@ class FileTriggerStoreTest {
         assertEquals(true, restored.lastConditionMet)
         assertEquals(ConditionNotify.BecomesMet, restored.notifyWhen)
         assertEquals(null, restored.baselineValue)
-        assertEquals(false, File(file.parentFile, file.name + ".corrupt").exists())
+        assertEquals(false, unreadableCopies(file).isNotEmpty())
     }
 
     @Test fun oldReaderCanStillReadEveryPlanAfterConditionStateIsSaved() {
@@ -173,7 +173,12 @@ class FileTriggerStoreTest {
 
         val restored = FileTriggerStore(file)
         assertEquals("fixed", restored.all().single().id)
-        assertEquals(true, File(file.parentFile, sidecar.name + ".corrupt").isFile)
-        assertEquals(false, File(file.parentFile, file.name + ".corrupt").exists())
+        // The damaged sidecar is kept under a timestamped name; the main plans file is untouched.
+        assertEquals(1, unreadableCopies(sidecar).size)
+        assertEquals(false, unreadableCopies(file).isNotEmpty())
     }
+
+    /** Copies kept of [file] when it could not be read: `<name>.corrupt-<time>` beside it. */
+    private fun unreadableCopies(file: File): List<File> =
+        file.parentFile.listFiles { f -> f.name.startsWith(file.name + ".corrupt-") }.orEmpty().toList()
 }

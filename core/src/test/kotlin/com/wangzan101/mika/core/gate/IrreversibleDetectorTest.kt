@@ -565,4 +565,24 @@ class IrreversibleDetectorTest {
             d.classify(tool, args("""{"action":"select","ref":"@e1","snapshotId":"s1","option":"删除账户"}"""), form))
         assertEquals(IrrevAction.delete, d.classify(tool, args("""{"action":"select","ref":"@e3","snapshotId":"s1","option":"x"}"""), form)?.action)
     }
+
+    /** Uninstalling an app is a delete: the button itself, in Chinese and English, and its resource ID. */
+    @Test fun uninstallCountsAsDelete() {
+        for (w in listOf("卸载", "卸載", "卸载应用", "卸载更新", "Uninstall", "UNINSTALL", "Uninstall app", "Uninstall updates")) {
+            assertEquals(w, IrrevAction.delete, d.matchName(w))
+        }
+        // A status, not a button; and a word that merely starts the same way.
+        assertNull(d.matchName("已卸载"))
+        assertNull(d.matchName("Uninstalled apps"))
+    }
+
+    /** The system's uninstall dialog has a plain OK: it counts as a delete because the same screen says what it does. */
+    @Test fun plainOkOnAnUninstallDialogCountsAsDelete() {
+        val zh = snap(el("@e1", "要卸载此应用吗?", listOf(0, 300, 999, 400), clickable = false), el("@e2", "确定", listOf(500, 500, 999, 600)))
+        assertEquals(IrrevAction.delete, d.matchName("确定", zh))
+        val en = snap(el("@e1", "Do you want to uninstall this app?", listOf(0, 300, 999, 400), clickable = false), el("@e2", "OK", listOf(500, 500, 999, 600)))
+        assertEquals(IrrevAction.delete, d.matchName("OK", en))
+        val other = snap(el("@e1", "Turn on Bluetooth?", listOf(0, 300, 999, 400), clickable = false), el("@e2", "OK", listOf(500, 500, 999, 600)))
+        assertNull(d.matchName("OK", other))
+    }
 }

@@ -6,7 +6,7 @@
     <string name="parallel_second_display_failed">تعذّر إنشاء شاشة افتراضية ثانية، لذا لا يمكن تشغيل أكثر من مهمة واحدة في الوقت الحالي</string>
     <string name="parallel_needs_14">يتطلب تشغيل عدة مهام في آنٍ واحد Android 14 أو أحدث</string>
     <string name="parallel_low_ram">ذاكرة هذا الهاتف قليلة، لذا تُشغّل مهمة واحدة في كل مرة</string>
-    <string name="skill_suspended">لم تكن هذه المهارة تعمل مؤخرًا، لذا أُوقفت مؤقتًا</string>
+    <string name="skill_suspended">لم تكن هذه المهارة تعمل مؤخرًا، لذا أُوقفت مؤقتًا: %1$s</string>
     <string name="skill_verified">نجحت المهارة، وهي الآن قيد الاستخدام المعتاد: %1$s</string>
     <string name="skill_learned">تعلّم Orbit مهارة: %1$s</string>
     <string name="skill_app_draft">دوّن Orbit بعض المعلومات عن %1$s لمراجعتها</string>
@@ -93,4 +93,7 @@
     <string name="screens_waiting">بانتظار</string>
     <string name="screens_needs_you">تحتاج إليك</string>
     <string name="screens_zoom">تكبير هذه الشاشة</string>
+    <string name="task_start_refused">لم يسمح Android لـ Orbit ببدء هذه المهمة في الخلفية. افتح Orbit وأرسلها مرة أخرى.</string>
+    <string name="schedules_reset_title">تمت إعادة ضبط المهام المجدولة</string>
+    <string name="schedules_reset_body">تعذّر على Orbit قراءة المهام المجدولة المحفوظة، لذلك القائمة فارغة الآن. تم الاحتفاظ بنسخة من الملف القديم. يُرجى إعداد المهام المجدولة من جديد.</string>
 </resources>

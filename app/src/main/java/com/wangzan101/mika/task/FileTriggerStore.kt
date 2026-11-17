@@ -116,6 +116,13 @@ class FileTriggerStore(
         memory.mark(key, state, reason).also { if (it) save() }
     @Synchronized override fun retireDeliveredOneShots() { memory.retireDeliveredOneShots(); save() }
 
+    /**
+     * The copy kept of a schedule file that could not be read when this store opened, or null when it read fine.
+     * Whoever opens the store tells the user once (see [TriggerRuntime]).
+     */
+    @Volatile var unreadableCopy: File? = null
+        private set
+
     private fun load(): Committed {
         val empty = Committed(null, TriggerSnapshot(emptyList(), emptyList()))
         if (!file.isFile) return empty
@@ -125,7 +132,10 @@ class FileTriggerStore(
             bytes = file.readBytes()
             snapshot = Json.decodeFromString<TriggerSnapshot>(bytes.toString(Charsets.UTF_8))
         } catch (_: Exception) {
-            file.copyTo(File(file.parentFile, file.name + ".corrupt"), overwrite = true)
+            // The schedules could not be read. Keep this copy under its own name (an earlier one is never
+            // overwritten) and remember it, so the user is told their schedules were reset instead of finding
+            // them silently gone; the next save starts a fresh file.
+            unreadableCopy = keepUnreadable(file)
             return empty
         }
         val hash = bytes.sha256()
@@ -140,7 +150,7 @@ class FileTriggerStore(
         return runCatching {
             CONDITION_JSON.decodeFromString<ConditionPlanSnapshot>(conditionFile.readText())
         }.getOrElse {
-            conditionFile.copyTo(File(conditionFile.parentFile, conditionFile.name + ".corrupt"), overwrite = true)
+            keepUnreadable(conditionFile)
             ConditionPlanSnapshot()
         }
     }
@@ -171,4 +181,23 @@ class FileTriggerStore(
         FileOutputStream(temp).use { out -> out.write(bytes); out.fd.sync() }
         Files.move(temp.toPath(), target.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
     }
+}
+
+/** How many unreadable copies of one schedule file are kept; older ones are removed. */
+internal const val UNREADABLE_KEPT = 5
+
+/**
+ * Copies an unreadable [file] beside itself as `<name>.corrupt-<time>` and returns the copy (null if even the copy
+ * failed). Copies never overwrite each other; only the newest [UNREADABLE_KEPT] stay.
+ */
+internal fun keepUnreadable(file: File, now: Long = System.currentTimeMillis()): File? {
+    val dir = file.parentFile ?: return null
+    val copy = File(dir, "${file.name}.corrupt-$now")
+    val kept = runCatching { file.copyTo(copy, overwrite = false) }.getOrNull()
+    runCatching {
+        dir.listFiles { f -> f.name.startsWith(file.name + ".corrupt-") }.orEmpty()
+            .sortedByDescending { it.name.substringAfterLast('-').toLongOrNull() ?: 0L }
+            .drop(UNREADABLE_KEPT).forEach { it.delete() }
+    }
+    return kept
 }

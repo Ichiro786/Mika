@@ -3,4 +3,6 @@
     <style name="Theme.Mika" parent="@android:style/Theme.Material.NoActionBar">
         <item name="android:windowBackground">@drawable/orbit_window_splash</item>
     </style>
+    <!-- Defined so the name exists everywhere; the opening screen can only be switched on Android 12+. -->
+    <style name="Theme.Mika.Mono" parent="Theme.Mika" />
 </resources>

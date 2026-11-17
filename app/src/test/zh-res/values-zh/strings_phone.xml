@@ -172,4 +172,9 @@
     <string name="phone_root_note">检测到这台手机上有 su。用 root 启动的手机助手仍以同样的受限身份运行,权限和经无线调试启动时一样。</string>
     <string name="phone_root_entry_on">自动启动助手;root 命令已开启</string>
     <string name="phone_root_entry_off">自动启动助手;root 命令已关闭</string>
+    <string name="phone_down_title">手机操作已断开</string>
+    <string name="phone_down_no_wifi">Wi-Fi 已关闭,Orbit 无法重新连接手机操作。请打开 Wi-Fi,再点「重新连接」。不需要能上网。</string>
+    <string name="phone_down_wireless_off">无线调试已关闭。点「重新连接」,Orbit 会尽量把它重新打开。需要连着 Wi-Fi,不需要能上网。</string>
+    <string name="phone_down_back_title">手机操作已恢复</string>
+    <string name="phone_down_back_body">点「继续」接着做这个任务。</string>
 </resources>

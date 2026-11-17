@@ -73,14 +73,7 @@ class GeminiRuntime(private val context: Context) {
     }
 
     /** Space Orbit's Gemini engine takes on the phone, in bytes (links not followed). */
-    fun usedBytes(): Long {
-        if (!root.exists()) return 0
-        var total = 0L
-        java.nio.file.Files.walk(root.toPath()).use { s ->
-            s.forEach { p -> if (java.nio.file.Files.isRegularFile(p, java.nio.file.LinkOption.NOFOLLOW_LINKS)) total += runCatching { java.nio.file.Files.size(p) }.getOrDefault(0) }
-        }
-        return total
-    }
+    fun usedBytes(): Long = treeBytes(root)
 
     // ---- base system ----
 
@@ -281,4 +274,26 @@ class GeminiRuntime(private val context: Context) {
         const val NEEDED_FREE = 1200L * MB
         val TOOLS = listOf("orbit_prepare.py", "orbit_agy.py", "agy_acp_server", "open-url", "orbit_mcp_bridge.py")
     }
+}
+
+/**
+ * Total size of the regular files under [root], links not followed. It never throws: a folder that can't be
+ * listed (the Linux inside sets its own permissions) or a file that goes away mid-walk (Google's server writes
+ * and removes files while it runs) is skipped. The earlier stream walk threw on either, and the models page
+ * asks for this as it opens.
+ */
+internal fun treeBytes(root: File): Long {
+    if (!root.exists()) return 0
+    var total = 0L
+    runCatching {
+        java.nio.file.Files.walkFileTree(root.toPath(), object : java.nio.file.SimpleFileVisitor<java.nio.file.Path>() {
+            override fun visitFile(file: java.nio.file.Path, attrs: java.nio.file.attribute.BasicFileAttributes): java.nio.file.FileVisitResult {
+                if (attrs.isRegularFile) total += attrs.size()
+                return java.nio.file.FileVisitResult.CONTINUE
+            }
+            override fun visitFileFailed(file: java.nio.file.Path, exc: java.io.IOException) = java.nio.file.FileVisitResult.CONTINUE
+            override fun postVisitDirectory(dir: java.nio.file.Path, exc: java.io.IOException?) = java.nio.file.FileVisitResult.CONTINUE
+        })
+    }
+    return total
 }

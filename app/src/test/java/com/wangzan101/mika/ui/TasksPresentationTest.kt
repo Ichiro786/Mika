@@ -48,4 +48,38 @@ class TasksPresentationTest {
         assertNull(taskProgress(state(RunProgress.Replay(1, 4))))
         assertNull(taskProgress(TaskState.Idle))
     }
+
+    @Test
+    fun fourGroupsFoldTheRuntimeStates() {
+        assertEquals(TaskGroup.Running, taskGroup(TaskSection.Working))
+        assertEquals(TaskGroup.Running, taskGroup(TaskSection.Waiting))
+        assertEquals(TaskGroup.NeedsYou, taskGroup(TaskSection.Review))
+        assertEquals(TaskGroup.NeedsYou, taskGroup(TaskSection.NeedsYou))
+        assertEquals(TaskGroup.UpNext, taskGroup(TaskSection.Upcoming))
+        assertEquals(TaskGroup.Done, taskGroup(TaskSection.Resolved))
+        // Marked done by the user: filed under Done whatever the runtime still says.
+        assertEquals(TaskGroup.Done, taskGroup(TaskSection.Working, markedDone = true))
+        assertEquals(TaskGroup.Done, taskGroup(TaskSection.NeedsYou, markedDone = true))
+    }
+
+    @Test
+    fun aMarkMadeWhileRunningStillFindsTheTaskInHistory() {
+        val live = taskMarkIds(personalId = null, liveKey = "k1", recordId = "rec1", storedId = null)
+        val stored = taskMarkIds(personalId = null, liveKey = null, recordId = "rec1", storedId = "run9")
+        assertEquals(listOf("l:k1", "r:rec1"), live)
+        assertEquals(listOf("r:rec1", "r:run9"), stored)
+        assertEquals(true, taskMarked(stored, live.toSet()))
+        assertEquals(false, taskMarked(taskMarkIds(null, null, "rec2", "run10"), live.toSet()))
+        assertEquals(listOf("p:t1"), taskMarkIds(personalId = "t1", liveKey = null, recordId = null, storedId = null))
+    }
+
+    @Test
+    fun marksKeepTheNewestWithoutRepeats() {
+        assertEquals(listOf("a", "c", "b"), TaskMarks.kept(listOf("a", "b", "c"), listOf("b")))
+        val many = List(TaskMarks.MAX + 5) { "id$it" }
+        val kept = TaskMarks.kept(many, listOf("new"))
+        assertEquals(TaskMarks.MAX, kept.size)
+        assertEquals("new", kept.last())
+        assertEquals("id6", kept.first())
+    }
 }

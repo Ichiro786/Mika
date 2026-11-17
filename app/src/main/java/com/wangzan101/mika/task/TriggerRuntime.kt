@@ -200,6 +200,11 @@ object TriggerRuntime {
 
     private fun store(context: Context): FileTriggerStore {
         val store = FileTriggerStore(File(context.filesDir, "triggers-v3.json"))
+        // The saved schedules could not be read and the list starts empty: say so once, not silently.
+        if (store.unreadableCopy != null && !lossTold) {
+            lossTold = true
+            tellSchedulesReset(context)
+        }
         if (!recovered) {
             store.windows().filter { it.state in setOf(TriggerWindowState.Claimed,
                 TriggerWindowState.Dispatched, TriggerWindowState.ActionDispatched) }.forEach {
@@ -270,6 +275,25 @@ object TriggerRuntime {
         }
         notifyLocal(context, trigger.threadId, key, tr(R.string.trigger_unconfirmed), message)
     }
+
+    @Volatile private var lossTold = false
+
+    private fun tellSchedulesReset(context: Context) {
+        val notifications = context.getSystemService(NotificationManager::class.java)
+        if (!notifications.areNotificationsEnabled()) return
+        TaskService.ensureChannels(context)
+        val open = PendingIntent.getActivity(context, SCHEDULES_RESET.hashCode(),
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP),
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+        val text = tr(R.string.schedules_reset_body)
+        runCatching { notifications.notify(SCHEDULES_RESET.hashCode(), Notification.Builder(context, TaskService.CHANNEL_RESULT)
+            .setSmallIcon(R.drawable.ic_notification).setContentTitle(tr(R.string.schedules_reset_title))
+            .setContentText(text).setStyle(Notification.BigTextStyle().bigText(text))
+            .setContentIntent(open).setAutoCancel(true).build()) }
+            .onFailure { Log.w("MikaTrigger", "schedules-reset notification failed", it) }
+    }
+
+    private const val SCHEDULES_RESET = "schedules-reset"
 
     private fun notifyLocal(context: Context, threadId: String, key: String, title: String, text: String) {
         val notifications = context.getSystemService(NotificationManager::class.java)

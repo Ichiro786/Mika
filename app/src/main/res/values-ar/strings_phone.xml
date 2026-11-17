@@ -172,4 +172,9 @@
     <string name="phone_root_note">وجد Orbit ملف su على هذا الهاتف. يظل المساعد الذي يبدأ باستخدام root يعمل بالمستخدم المحدود نفسه وبالأذونات نفسها كما عند بدئه عبر تصحيح الأخطاء اللاسلكي.</string>
     <string name="phone_root_entry_on">بدء المساعد تلقائيًا؛ أوامر root مفعّلة</string>
     <string name="phone_root_entry_off">بدء المساعد تلقائيًا؛ أوامر root متوقفة</string>
+    <string name="phone_down_title">انقطع التحكم في الهاتف</string>
+    <string name="phone_down_no_wifi">شبكة Wi-Fi متوقفة، لذلك لا يستطيع Orbit إعادة الاتصال بالتحكم في الهاتف. شغّل Wi-Fi ثم اضغط «إعادة الاتصال». لا حاجة إلى الإنترنت.</string>
+    <string name="phone_down_wireless_off">تصحيح الأخطاء اللاسلكي متوقف. اضغط «إعادة الاتصال» وسيعيد Orbit تشغيله إن أمكن. يحتاج إلى Wi-Fi دون إنترنت.</string>
+    <string name="phone_down_back_title">عاد التحكم في الهاتف</string>
+    <string name="phone_down_back_body">اضغط «متابعة» لإكمال المهمة.</string>
 </resources>

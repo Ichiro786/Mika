@@ -40,3 +40,28 @@ internal fun taskProgress(state: TaskState): Float? {
     val total = progress.total ?: return null
     return if (total > 0 && done in 0..total) done.toFloat() / total else null
 }
+
+/**
+ * The four groups the Tasks page shows, top to bottom. They fold the runtime's finer states together:
+ * waiting for an approval or for the user is "Needs you"; working, or briefly held on something that clears by
+ * itself, is "Running"; queued is "Up next"; finished, stopped, or marked done by the user is "Done".
+ */
+internal enum class TaskGroup { Running, NeedsYou, UpNext, Done }
+
+internal fun taskGroup(section: TaskSection, markedDone: Boolean = false): TaskGroup = if (markedDone) TaskGroup.Done else when (section) {
+    TaskSection.Working, TaskSection.Waiting -> TaskGroup.Running
+    TaskSection.Review, TaskSection.NeedsYou -> TaskGroup.NeedsYou
+    TaskSection.Upcoming -> TaskGroup.UpNext
+    TaskSection.Resolved -> TaskGroup.Done
+}
+
+/**
+ * The names one task goes by over its life, so a mark made while it runs still finds it once it is history:
+ * the delegated task's id, the live run's key, and the run record's id (a stored run has its own id and, when it
+ * was recorded, the record's).
+ */
+internal fun taskMarkIds(personalId: String?, liveKey: String?, recordId: String?, storedId: String?): List<String> = listOfNotNull(
+    personalId?.let { "p:$it" }, liveKey?.let { "l:$it" }, recordId?.let { "r:$it" }, storedId?.let { "r:$it" },
+).distinct()
+
+internal fun taskMarked(ids: List<String>, marks: Set<String>): Boolean = ids.any { it in marks }

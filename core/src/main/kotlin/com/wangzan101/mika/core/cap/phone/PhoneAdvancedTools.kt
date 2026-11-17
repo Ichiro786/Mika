@@ -1,9 +1,13 @@
 package com.wangzan101.mika.core.cap.phone
 
+import com.wangzan101.mika.core.action.ActionRisk
+import com.wangzan101.mika.core.action.Risk as ApprovalRisk
+import com.wangzan101.mika.core.gate.ConfirmationRequest
 import com.wangzan101.mika.core.model.Part
 import com.wangzan101.mika.core.observation.Untrusted
 import com.wangzan101.mika.core.prompt.Feedback
 import com.wangzan101.mika.core.prompt.Prompts
+import com.wangzan101.mika.core.risk.IrrevAction
 import com.wangzan101.mika.core.tool.ArgError
 import com.wangzan101.mika.core.tool.Args
 import com.wangzan101.mika.core.tool.Risk
@@ -318,6 +322,24 @@ internal object PhoneCommand : PhoneTool {
     override val def = ToolDef("phone_system_command", Prompts.tool("phone_system_command"), mapOf(
         "command" to str("Android shell command. MIKA_DISPLAY_ID is the current task's virtual display ID."),
     ), listOf("command"))
+
+    /**
+     * A command that uninstalls an app or wipes its data is a delete that leaves no screen to judge, so it declares
+     * itself: in Ask mode the user sees the command and the app it removes, and it runs only once they agree.
+     * Every other command is unchanged.
+     */
+    override fun approvalRisk(args: JsonObject): ApprovalRisk? {
+        val command = (args["command"] as? JsonPrimitive)?.contentOrNull?.trim().orEmpty()
+        val removed = PackageRemoval.target(command) ?: return null
+        return ApprovalRisk(ActionRisk.Irreversible, ask = removalAsk(command, removed))
+    }
+
+    /** What the user is shown: the command, filed under the app it removes (or the system when that can't be read). */
+    fun removalAsk(command: String, removed: String) =
+        ConfirmationRequest(IrrevAction.delete, removed, command, null, removed.ifEmpty { REMOVAL_CONFIRM_APP })
+
+    /** Stands in for the app when the package a removal command names can't be read out. */
+    const val REMOVAL_CONFIRM_APP = "android"
 
     override suspend fun execute(a: Args, ctx: ToolContext): ToolExecution {
         val command = a.str("command", max = 4_000)!!

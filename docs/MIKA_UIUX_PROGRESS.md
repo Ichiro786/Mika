@@ -279,3 +279,36 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - Debug and perf builds take their versionCode from the commit time, so each new APK counts up.
 - The WhatsApp library is now linked for 16 KB memory pages (NDK r28 and max-page-size=16384). The sandbox programs were already aligned.
 - CI runs tools/ci/check_16kb.py and zipalign -P 16 on the built APKs and fails if any 64-bit native library is not 16 KB aligned.
+
+## First-run flow, chat bubbles, tasks rework, 2026-11-16
+
+- First-run flow, built from the approved mockups: welcome (the orb rises and settles, then the text fades up), three swipeable example cards, privacy, pick a model, phone control, permissions, optional name and WhatsApp, done. A segmented progress bar and Back on every step, Skip on every optional one. The step is saved as the user moves, so a killed app reopens there. Settings has Replay the intro. Anyone who already has a model (every existing user after an update) never sees it; they still get the separate phone guide once if they had not seen it.
+- The model step tests an API key in place and shows Connected or what went wrong; the Gemini plan section and the ChatGPT sign-in are the existing ones, and More and custom opens the existing models page. It is the only step without Skip. The phone step is the existing pairing guide inside the flow's frame with a live state pill. The permissions step asks for nothing by itself. The floating capsule row is informational because the capsule is drawn by the accessibility service and has no system permission of its own.
+- After the flow the empty chat greets by name (if one was given) and offers three starters until the first message; without phone control the starters are ones that need no other app.
+- Chat: Orbit's replies are left-aligned bubbles capped at 85% of the row. A frosted jump-to-latest button sits above the message bar once the newest message is more than a screen away and counts replies that arrive meanwhile.
+- Tasks: one list with Running, Needs you, Up next and a collapsed Done; the Active / Up next tabs are gone and schedules sit under Up next. The circle marks a task done, a swipe deletes it, both with Undo; a task that is still going is stopped only once Undo has passed, and deleting keeps its chat. A task opens a detail page with steps from the run record, progress, result and its chat.
+- Approvals: uninstalling an app asks in Ask mode like a delete, on screen and through the shell command tool. Autonomous mode is unchanged.
+- Phone control: a task paused because the helper dropped says why and offers Reconnect in the chat. Turning Wi-Fi off does not by itself stop a running helper (commands go over Binder, not ADB); the card covers the case where the helper dies while Wi-Fi is off.
+- Verified here: `:core:test` and `:app:testDebugUnitTest` pass, device tests compile, translation check passes. Not verified: anything on a device or emulator, including the look of every screen above, TalkBack, 200% font and the animations.
+
+## Opening screen follows the logo style, 2026-11-16
+
+- The opening screen now shows the coral Original mark by default, the same mark as inside the app, in light and dark. When the Monochrome logo style is chosen, the one-colour mark is used from the next launch on (Android 12 and later, where the system lets an app pick its opening-screen theme); on Android 11 the opening screen keeps the Original mark.
+- Opening AI model after signing in to the Gemini plan no longer crashes: the engine's disk-use scan skips folders it cannot list and files that go away mid-scan. Found from a screen recording and the code; not reproduced on a device here.
+
+## Audit follow-up: reliability and status polish, 2026-11-17
+
+Fixes from the 16 Nov audit (finding IDs are the audit's).
+
+- ORB-101: a task with no step limit keeps finite last-resort stops. The guards used to scale their thresholds from the "unlimited" number and never fired; they now use a budget of 240, so returning to one state 60 times or going round one circle 48 times ends the task.
+- ORB-106: every working task holds a CPU wake lock (released shortly after it starts waiting for the user, and at once when it ends), so web and file steps and an in-flight model reply carry on with the screen off.
+- ORB-109: a task start the system refuses (a background start from the floating capsule) no longer crashes; the user is told. Every start sent as a foreground-service start is answered with the service notification before anything else, including the paths that then start nothing.
+- ORB-113: a schedule file that cannot be read is copied aside under a timestamped name (the newest five are kept) and the user gets one notification that their schedules were reset.
+- ORB-115, ORB-116: one "still going" row at a time. The working block and the Thinking line can no longer show together; between steps the working block itself says Thinking. The row model and the list ask the same function, the typing and thinking rows are counted, and the thinking row has its own key. While a task runs the link reads "Watch it work"; "See how it went" stays for finished runs. "Show steps" and that link share one row with 48 dp targets.
+- ORB-110: a streamed token no longer rebuilds the step rows; only the reply text changes.
+- ORB-126: the Tasks list keeps its content while it reloads.
+- ORB-129: schedules are re-armed after an app update.
+- ORB-138: the manual emulator job no longer names the removed Tasks tab test.
+- Upstream fixes ported: HEAD responses without a body (5524508), quota errors on 403 (8dc2c26), lock state polled while locked (8c07c55), skill outcomes when several skills were read (463871b). ff48e03 was not taken: the fork already has its own fix for the same issue.
+- Not changed, by decision: unattended runs still send and delete without asking (ORB-103). Not changed, needs a decision or a device: the shell tool gate (ORB-104), outcome verification (ORB-102), default pace (ORB-147), the stacked settle-waits (ORB-148).
+- Verified here: unit tests. Not verified: anything on a device.

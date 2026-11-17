@@ -12,4 +12,14 @@
     <string name="tasks_waiting">대기 중</string>
     <string name="tasks_empty_up_next">대기 중이거나 예정된 작업이 없습니다.</string>
     <string name="tasks_empty_hint">채팅에서 Orbit에게 부탁하거나, 저절로 실행될 작업을 예약해 보세요.</string>
+    <string name="tasks_mark_done">완료로 표시</string>
+    <string name="tasks_mark_done_live">완료로 표시하고 중지</string>
+    <string name="tasks_marked_done">완료로 표시했습니다</string>
+    <string name="tasks_marked_done_live">완료로 표시했습니다. Orbit이 작업을 중지합니다.</string>
+    <string name="tasks_delete">작업 삭제</string>
+    <string name="tasks_deleted">작업을 삭제했습니다. 채팅은 그대로 남습니다.</string>
+    <string name="task_detail_steps">단계</string>
+    <string name="task_detail_no_steps">이 작업에 기록된 단계가 없습니다.</string>
+    <string name="task_detail_earlier_steps">표시하지 않은 이전 단계: %1$d개</string>
+    <string name="task_detail_open_chat">채팅 열기</string>
 </resources>

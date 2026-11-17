@@ -104,7 +104,12 @@ private val StepSetSaver = Saver<Set<SetupStep>, String>(
  * [repair] 是从设置页「重新配对」进来的。
  */
 @Composable
-fun PhoneSetupScreen(status: SystemStatus, repair: Boolean, onFix: (Fix) -> Unit, onboarding: Boolean = false, onClose: () -> Unit) {
+fun PhoneSetupScreen(
+    status: SystemStatus, repair: Boolean, onFix: (Fix) -> Unit, onboarding: Boolean = false,
+    /** Set when the guide is a step of the first-run flow: the flow's header replaces the top bar and Back goes a step back. */
+    chrome: PhoneSetupChrome? = null,
+    onClose: () -> Unit,
+) {
     val context = LocalContext.current
     val phone = remember { PhoneServices.of(context) }
     val pairing = phone.pairing
@@ -184,8 +189,14 @@ fun PhoneSetupScreen(status: SystemStatus, repair: Boolean, onFix: (Fix) -> Unit
         if (view.phase == SetupPhase.Guide || view.phase == SetupPhase.Failed) pairing.end() else pairing.cancelRepair()
         onClose()
     }
-    BackHandler(onBack = close)
+    // In the first-run flow Back leaves the guide the same way (pairing notices withdrawn) and goes a step back.
+    val back = {
+        if (view.phase == SetupPhase.Guide || view.phase == SetupPhase.Failed) pairing.end() else pairing.cancelRepair()
+        chrome?.onBack?.invoke() ?: onClose()
+    }
+    BackHandler(onBack = if (chrome != null) back else close)
     PhoneSetupContent(
+        header = chrome?.let { frame -> { frame.header(back, close) } },
         view = view,
         onStepAction = { step ->
             when (step) {
@@ -247,6 +258,15 @@ fun PhoneSetupScreen(status: SystemStatus, repair: Boolean, onFix: (Fix) -> Unit
  * [SetupView.usbFallback] 为真时,在当前这一步里给一张卡片,是一句说明、命令和复制按钮([onCopyUsbCommand])。
  * [SetupPhase.Unavailable] 时这个环境设置不了手机操作:只有一张说明卡片和「知道了」,不列步骤。
  */
+/**
+ * The first-run flow's frame for the guide. [header] draws the flow's top row (back, progress, Later) and is
+ * handed what Back and Later do here; [onBack] is the flow going one step back.
+ */
+class PhoneSetupChrome(
+    val header: @Composable (onBack: () -> Unit, onLater: () -> Unit) -> Unit,
+    val onBack: () -> Unit,
+)
+
 @Composable
 fun PhoneSetupContent(
     view: SetupView,
@@ -269,6 +289,8 @@ fun PhoneSetupContent(
     usbCommand: String? = null,
     onAskUsb: () -> Unit = {},
     onCopyUsbCommand: () -> Unit = {},
+    /** The first-run flow's header; when set, the page takes the flow's look (title, live status, Continue). */
+    header: (@Composable () -> Unit)? = null,
 ) {
     val canRevisit = view.phase == SetupPhase.Guide || view.phase == SetupPhase.Failed
     fun revisitable(step: SetupStep) = canRevisit && step != view.current && step in PhoneSetupFlow.REVISITABLE &&
@@ -276,8 +298,9 @@ fun PhoneSetupContent(
     val c = MikaTheme.colors
     PageBackground {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars)) {
-            TopBar(PhoneSetupCopy.BAR_TITLE, MikaIcons.Back, onClose, stringResource(R.string.back))
+            if (header != null) header() else TopBar(PhoneSetupCopy.BAR_TITLE, MikaIcons.Back, onClose, stringResource(R.string.back))
             Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+                if (header != null) com.wangzan101.mika.ui.onboarding.PhoneStepIntro(connected = view.phase == SetupPhase.Success)
                 if (view.phase == SetupPhase.Unavailable) {
                     // 这个环境没有能起助手的路:只说明,不列走不通的步骤
                     GroupCard {
@@ -290,7 +313,8 @@ fun PhoneSetupContent(
                         }
                     }
                 } else {
-                    if (view.phase == SetupPhase.Success) {
+                    if (header != null) Unit
+                    else if (view.phase == SetupPhase.Success) {
                         Text(
                             PhoneSetupCopy.SUCCESS_LINE, Modifier.padding(top = 4.dp, bottom = 16.dp).testTag("setup-success"),
                             style = MikaType.Body, fontWeight = FontWeight.SemiBold, color = c.ok,
@@ -331,8 +355,16 @@ fun PhoneSetupContent(
                         style = MikaType.Caption, color = c.ink3, textAlign = TextAlign.Center,
                     )
                 }
-                if (onboarding) ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Phone), Modifier.padding(bottom = 8.dp))
-                when (view.phase) {
+                if (onboarding && header == null) ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Phone), Modifier.padding(bottom = 8.dp))
+                if (header != null) when (view.phase) {
+                    // In the flow, both Continue and "Set up later" move on to the next step.
+                    SetupPhase.Success, SetupPhase.Unavailable -> com.wangzan101.mika.ui.onboarding.FlowButton(
+                        stringResource(R.string.ob_continue), onClose, Modifier.testTag("setup-done"),
+                    )
+                    SetupPhase.Guide, SetupPhase.Working, SetupPhase.Failed -> com.wangzan101.mika.ui.onboarding.FlowLater(
+                        stringResource(R.string.ob_phone_later), stringResource(R.string.ob_phone_later_note), onClose, "setup-later",
+                    )
+                } else when (view.phase) {
                     SetupPhase.Success -> MikaButton(
                         if (onboarding) PhoneSetupCopy.START_USING else PhoneSetupCopy.SUCCESS_DONE, onClose,
                         Modifier.fillMaxWidth().testTag("setup-done"),

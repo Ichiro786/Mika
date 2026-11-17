@@ -13,19 +13,25 @@ internal fun chatItemKeys(
     kept: KeptPage?,
     phoneSetupNeeded: Boolean,
     hasBlocked: Boolean,
+    /** The last exchange is operating the phone in the background (it then always shows its working block). */
+    operatingPhone: Boolean = false,
 ): List<String> = buildList {
     if (exchanges.isEmpty() && !hasBlocked) add("empty")
     exchanges.forEachIndexed { index, ex ->
         if (ex.goal.isNotEmpty()) add("u$index")
-        val answering = ex.status == ExchangeStatus.Working && !ex.draft.isNullOrBlank()
-        if (if (ex.status.isActive()) !answering else ex.steps.isNotEmpty() || ex.runId != null) add("s$index")
+        val rows = statusRows(ex, backgroundNote = operatingPhone && index == exchanges.lastIndex)
+        if (rows.work) add("s$index")
         val (joined, waiting) = steersAroundDraft(ex.steers)
-        (joined + waiting).forEach { note ->
+        fun steer(note: SteerNote) {
             if (!note.finished.isNullOrBlank()) add("a$index-${note.id}")
             if (!note.interrupted.isNullOrBlank()) add("i$index-${note.id}")
             add("m$index-${note.id}")
         }
+        joined.forEach(::steer)
         if (!ex.draft.isNullOrBlank()) add("d$index")
+        if (rows.typing) add("t$index")
+        if (rows.thinking) add("th$index")
+        waiting.forEach(::steer)
         add("r$index")
         if (KeptRow.of(ex, kept) != null) add("k$index")
         if (ex.files.isNotEmpty()) add("f$index")
@@ -33,6 +39,27 @@ internal fun chatItemKeys(
     }
     if (phoneSetupNeeded && exchanges.isNotEmpty()) add("phone-setup")
     if (hasBlocked) add("blocked")
+}
+
+/**
+ * Which status rows one exchange shows. The list in ChatScreen and the row model above both ask this, so they
+ * cannot disagree, and at most one of them says "still going" at a time:
+ * - [work]: the working block (spinner, what it is doing, timer) while the task runs, or the finished line after it.
+ * - [thinking]: the plain "Thinking" line, only before anything else exists (no step, no text, not operating the phone).
+ * - [typing]: the three dots under a reply that is still streaming.
+ */
+internal data class StatusRows(val work: Boolean, val thinking: Boolean, val typing: Boolean)
+
+internal fun statusRows(ex: Exchange, backgroundNote: Boolean): StatusRows {
+    val active = ex.status.isActive()
+    val hasDraft = !ex.draft.isNullOrBlank()
+    val answering = ex.status == ExchangeStatus.Working && hasDraft
+    val onlyThinking = ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isEmpty() && !backgroundNote && !hasDraft
+    return StatusRows(
+        work = if (active) !answering && !onlyThinking else ex.steps.isNotEmpty() || ex.runId != null,
+        thinking = onlyThinking,
+        typing = hasDraft && active && ex.waitingForModel,
+    )
 }
 
 /**
@@ -44,7 +71,8 @@ internal fun chatItemCount(
     kept: KeptPage?,
     phoneSetupNeeded: Boolean,
     hasBlocked: Boolean,
-): Int = chatItemKeys(exchanges, kept, phoneSetupNeeded, hasBlocked).size
+    operatingPhone: Boolean = false,
+): Int = chatItemKeys(exchanges, kept, phoneSetupNeeded, hasBlocked, operatingPhone).size
 
 /** 目标消息在 [chatItemKeys] 里的 key;轮次或消息已经不在了时返回 null。 */
 internal fun chatTargetKey(exchanges: List<Exchange>, target: ChatTarget): String? {
@@ -89,3 +117,25 @@ private val ChatTarget.turnIndex: Int
         is ChatTarget.Files -> this.turnIndex
         is ChatTarget.Status -> this.turnIndex
     }
+
+/**
+ * How many replies from Orbit the conversation holds: each reply that has text (finished, stopped with a summary,
+ * or still streaming) and each one that was already said before the user added to a running task. What the user
+ * says, progress rows, cards and file rows do not count. The jump-to-latest button shows what arrived while the
+ * user was scrolled up as the difference between two of these.
+ */
+internal fun chatReplyCount(exchanges: List<Exchange>): Int = exchanges.sumOf { ex ->
+    val finishedEarlier = ex.steers.count { it.state != SteerState.Withdrawn && !it.finished.isNullOrBlank() }
+    val reply = when (val status = ex.status) {
+        is ExchangeStatus.Done -> 1
+        is ExchangeStatus.Cancelled -> if (status.summary.isNullOrBlank()) 0 else 1
+        else -> if (ex.draft.isNullOrBlank()) 0 else 1
+    }
+    finishedEarlier + reply
+}
+
+/** Replies that arrived since [seen] were counted; never negative (a deleted turn is not "minus one new"). */
+internal fun unreadSince(seen: Int, now: Int): Int = (now - seen).coerceAtLeast(0)
+
+/** The count shown on the jump-to-latest badge: the number itself up to nine, then "9+". */
+internal fun unreadBadge(unread: Int): String = if (unread > 9) "9+" else unread.toString()

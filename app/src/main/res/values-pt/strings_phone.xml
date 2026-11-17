@@ -172,4 +172,9 @@
     <string name="phone_root_note">O Orbit encontrou o su neste celular. Um assistente iniciado com root ainda é executado como o mesmo usuário limitado, com as mesmas permissões de um iniciado por depuração wireless.</string>
     <string name="phone_root_entry_on">Início automático do assistente; comandos root ativados</string>
     <string name="phone_root_entry_off">Início automático do assistente; comandos root desativados</string>
+    <string name="phone_down_title">O controle do telefone foi desconectado</string>
+    <string name="phone_down_no_wifi">O Wi-Fi está desligado, então o Orbit não consegue reconectar o controle do telefone. Ligue o Wi-Fi e toque em Reconectar. Não é preciso internet.</string>
+    <string name="phone_down_wireless_off">A depuração sem fio está desativada. Toque em Reconectar e o Orbit a reativa se puder. Precisa de Wi-Fi, mas não de internet.</string>
+    <string name="phone_down_back_title">O controle do telefone voltou</string>
+    <string name="phone_down_back_body">Toque em Continuar para seguir com a tarefa.</string>
 </resources>

@@ -351,4 +351,7 @@
     <string name="chat_reaction_orbit">تفاعل Orbit بـ %1$s</string>
     <string name="chat_replying_to">ردًا على رسالتك: %1$s</string>
     <string name="chat_swipe_reply">اسحب للرد</string>
+    <string name="chat_jump_latest">الانتقال إلى الأحدث</string>
+    <string name="chat_jump_latest_new">الانتقال إلى الأحدث، الجديد: %1$d</string>
+    <string name="chat_view_live">شاهد سير العمل</string>
 </resources>

@@ -12,4 +12,14 @@
     <string name="tasks_waiting">Ожидание</string>
     <string name="tasks_empty_up_next">Нет задач в очереди или по расписанию.</string>
     <string name="tasks_empty_hint">Попросите Orbit о чём-нибудь в чате или запланируйте задачу, которая выполнится сама.</string>
+    <string name="tasks_mark_done">Отметить как выполненную</string>
+    <string name="tasks_mark_done_live">Отметить как выполненную и остановить</string>
+    <string name="tasks_marked_done">Отмечено как выполненное</string>
+    <string name="tasks_marked_done_live">Отмечено как выполненное. Orbit прекращает работу над задачей.</string>
+    <string name="tasks_delete">Удалить задачу</string>
+    <string name="tasks_deleted">Задача удалена. Чат сохранён.</string>
+    <string name="task_detail_steps">Шаги</string>
+    <string name="task_detail_no_steps">Для этой задачи шаги не записаны.</string>
+    <string name="task_detail_earlier_steps">Более ранние шаги не показаны: %1$d</string>
+    <string name="task_detail_open_chat">Открыть чат</string>
 </resources>

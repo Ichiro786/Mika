@@ -6,7 +6,7 @@
     <string name="parallel_second_display_failed">Gagal membuat layar virtual kedua, jadi untuk sementara hanya satu tugas yang berjalan sekaligus</string>
     <string name="parallel_needs_14">Menjalankan beberapa tugas sekaligus memerlukan Android 14 atau lebih baru</string>
     <string name="parallel_low_ram">Ponsel ini memorinya kecil, jadi satu tugas berjalan sekaligus</string>
-    <string name="skill_suspended">Keterampilan ini belakangan tidak berhasil, jadi dijeda</string>
+    <string name="skill_suspended">Keterampilan ini belakangan tidak berhasil, jadi dijeda: %1$s</string>
     <string name="skill_verified">Keterampilan berhasil, kini dipakai secara rutin: %1$s</string>
     <string name="skill_learned">Orbit mempelajari keterampilan: %1$s</string>
     <string name="skill_app_draft">Orbit mencatat beberapa fakta tentang %1$s untuk Anda tinjau</string>
@@ -78,4 +78,7 @@
     <string name="screens_waiting">Menunggu</string>
     <string name="screens_needs_you">Perlu Anda</string>
     <string name="screens_zoom">Perbesar layar ini</string>
+    <string name="task_start_refused">Android tidak mengizinkan Orbit memulai tugas ini di latar belakang. Buka Orbit dan kirim lagi.</string>
+    <string name="schedules_reset_title">Jadwal Anda disetel ulang</string>
+    <string name="schedules_reset_body">Orbit tidak dapat membaca jadwal yang tersimpan, jadi daftarnya sekarang kosong. Salinan file lama disimpan. Silakan atur jadwal Anda lagi.</string>
 </resources>

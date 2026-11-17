@@ -59,6 +59,16 @@ internal object GuardRules {
     /** 连续没到过新状态的动作数的阶梯。 */
     fun noNewStateLadder(budget: Int?) = listOf(8, 16, lateStop(budget, 2, 24))
 
+    /**
+     * The budget the last-resort stops are scaled from when a task has no step limit. Larger than the default so
+     * long real work (dozens of items, the same list screen revisited between each) is not cut short, but finite:
+     * going back to one state 60 times, or round the same circle 48 times, still ends the task.
+     */
+    const val UNLIMITED_BUDGET = 240
+
+    /** The budget for the guards: [maxSteps], or [UNLIMITED_BUDGET] when it is the "no limit" value [unlimited]. */
+    fun budgetFor(maxSteps: Int, unlimited: Int): Int = if (maxSteps == unlimited) UNLIMITED_BUDGET else maxSteps
+
     /** 安全网的门槛:步数上限的 1/[divisor],至少 [floor](要远在提醒之后)。 */
     fun lateStop(budget: Int?, divisor: Int, floor: Int): Int = maxOf(floor, (budget ?: DEFAULT_BUDGET) / divisor)
 

@@ -293,6 +293,7 @@ class TaskRun(
     @Volatile var muteFailedFor: String? = null
         private set
     @Volatile private var awake: KeepAwake? = null
+    @Volatile private var cpuAwake: KeepAwake? = null
     /**
      * 收尾时还有任务排着:先替接班的拿一份屏幕锁再放开自己的,服务收尾时交给放出来的那个,它开跑拿上自己那份后放开;
      * 没人接班、或没跑起来就结束了,由服务放开。否则这里一放开,屏幕若已过了系统的熄屏时间就当场熄掉,
@@ -532,6 +533,8 @@ class TaskRun(
         if (awake != null && service.hasQueuedRuns()) wakeHandoff = service.wakeLock.lease().also { it.acquire() }
         awake?.close()
         awake = null
+        cpuAwake?.close()
+        cpuAwake = null
         c.shellDeath?.let { d -> runCatching { c.shellBinder?.unlinkToDeath(d, 0) } }
         loop = null
         children = null
@@ -613,6 +616,8 @@ class TaskRun(
             // 用户在「干活时」关掉了常亮就不拿唤醒锁;开跑就按此刻的状态(准备中)拿上:
             // 开模型、读知识、选路线、判断意图这些第一步之前的准备和推理期间屏幕也不熄
             awake = if (FeatureFlags.get(service).keepScreenOn()) KeepAwake(service.wakeLock.lease(), side).also { it.onState(_state.value) } else null
+            // The CPU stays awake for the working parts of every run, with the screen on or off.
+            cpuAwake = KeepAwake(service.cpuLock.lease(), side).also { it.onState(_state.value) }
             // 前一个任务替这个拿着的那份,自己的拿上了就放开
             wakeHandoff?.release()
             wakeHandoff = null
@@ -1472,6 +1477,7 @@ class TaskRun(
             if (ended) return
             setState(shown)
             awake?.onState(state)
+            cpuAwake?.onState(state)
         }
         service.refreshNotifications(this)
     }

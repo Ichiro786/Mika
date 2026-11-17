@@ -6,7 +6,7 @@
     <string name="parallel_second_display_failed">ساخت صفحهٔ مجازی دوم ممکن نشد، بنابراین فعلاً هر بار فقط یک کار اجرا می‌شود</string>
     <string name="parallel_needs_14">اجرای هم‌زمان چند کار به اندروید ۱۴ یا جدیدتر نیاز دارد</string>
     <string name="parallel_low_ram">حافظهٔ این گوشی کم است، بنابراین هر بار یک کار اجرا می‌شود</string>
-    <string name="skill_suspended">این مهارت اخیراً درست کار نکرده است، بنابراین موقتاً متوقف شده است</string>
+    <string name="skill_suspended">این مهارت اخیراً درست کار نکرده است، بنابراین موقتاً متوقف شده است: %1$s</string>
     <string name="skill_verified">مهارت موفق بود و اکنون به‌طور معمول استفاده می‌شود: %1$s</string>
     <string name="skill_learned">Orbit مهارتی یاد گرفت: %1$s</string>
     <string name="skill_app_draft">Orbit چند نکته دربارهٔ %1$s یادداشت کرد تا بررسی کنید</string>
@@ -81,4 +81,7 @@
     <string name="screens_waiting">در انتظار</string>
     <string name="screens_needs_you">به توجه شما نیاز دارد</string>
     <string name="screens_zoom">بزرگ کردن این صفحه</string>
+    <string name="task_start_refused">Android اجازه نداد Orbit این کار را در پس‌زمینه شروع کند. Orbit را باز کنید و دوباره بفرستید.</string>
+    <string name="schedules_reset_title">کارهای زمان‌بندی‌شده بازنشانی شدند</string>
+    <string name="schedules_reset_body">Orbit نتوانست زمان‌بندی‌های ذخیره‌شده را بخواند و فهرست اکنون خالی است. یک نسخه از پروندهٔ قبلی نگه داشته شد. لطفاً زمان‌بندی‌ها را دوباره تنظیم کنید.</string>
 </resources>

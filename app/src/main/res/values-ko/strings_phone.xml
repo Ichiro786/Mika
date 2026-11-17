@@ -172,4 +172,9 @@
     <string name="phone_root_note">이 휴전화에서 su를 찾았어요. root로 시작한 도우미도 같은 제한된 사용자로 실행되며 무선 디버깅으로 시작할 때와 권한이 같아요.</string>
     <string name="phone_root_entry_on">도우미 자동 시작;root 명령 켜짐</string>
     <string name="phone_root_entry_off">도우미 자동 시작;root 명령 꺼짐</string>
+    <string name="phone_down_title">휴대폰 제어 연결이 끊겼습니다</string>
+    <string name="phone_down_no_wifi">Wi-Fi가 꺼져 있어 Orbit이 휴대폰 제어에 다시 연결할 수 없습니다. Wi-Fi를 켠 다음 다시 연결을 누르세요. 인터넷은 필요하지 않습니다.</string>
+    <string name="phone_down_wireless_off">무선 디버깅이 꺼져 있습니다. 다시 연결을 누르면 Orbit이 가능한 경우 다시 켭니다. Wi-Fi는 필요하지만 인터넷은 필요하지 않습니다.</string>
+    <string name="phone_down_back_title">휴대폰 제어가 다시 연결되었습니다</string>
+    <string name="phone_down_back_body">계속을 눌러 작업을 이어가세요.</string>
 </resources>

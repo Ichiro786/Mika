@@ -136,3 +136,24 @@ class ScreenWakeLock(context: Context) : WakeLockPort {
         private const val MAX_HOLD_MS = 6 * 60 * 60 * 1000L
     }
 }
+
+/**
+ * Keeps the CPU running while a task works, whatever the screen does. The screen lock above only helps steps on
+ * the phone; web and file steps, and a model reply still on its way, carry on with the screen off, and without
+ * this the phone may sleep between network calls and the task appears to hang until it is picked up again.
+ * Held and released by the same task-state rules as the screen lock (see [KeepAwake]): on while working or queued,
+ * dropped shortly after the task starts waiting for the user, dropped at once when it ends.
+ */
+class CpuWakeLock(context: Context) : WakeLockPort {
+    private val lock = context.getSystemService(PowerManager::class.java)
+        .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "Orbit:task-cpu")
+        .apply { setReferenceCounted(false) }
+
+    override fun acquire() = lock.acquire(MAX_HOLD_MS)
+    override fun release() { if (lock.isHeld) lock.release() }
+
+    private companion object {
+        /** A ceiling in case some path misses its release; normally the task state releases it. */
+        const val MAX_HOLD_MS = 6 * 60 * 60 * 1000L
+    }
+}
