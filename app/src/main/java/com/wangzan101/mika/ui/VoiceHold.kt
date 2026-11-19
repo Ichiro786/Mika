@@ -10,17 +10,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -110,6 +100,11 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import androidx.compose.ui.graphics.TransformOrigin
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /**
  * 对话输入栏的按住说话:输入框上的手势([holdToTalk])、按住时整条变蓝的输入栏([VoiceBarCover])、
@@ -489,7 +484,7 @@ internal fun VoiceBarCover(vh: VoiceHold, state: HoldToTalk.State, reduceMotion:
     }
     Row(
         modifier.clip(CircleShape).background(aimTone(s, c.accent)).testTag("voice-bar"),
-        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         VoiceWave(s.level, flat = s.cancelArmed, reduceMotion = reduceMotion, color = c.onAccent)
@@ -578,14 +573,14 @@ internal fun VoiceFloat(vh: VoiceHold, state: HoldToTalk.State, title: String, b
     ) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             val armed = listening?.cancelArmed == true
-            AnimatedVisibility(vh.holding && listening != null, enter = fadeIn(tween(if (reduceMotion) 0 else 200)), exit = fadeOut(tween(if (reduceMotion) 0 else 150))) {
-                CancelHint(armed, Modifier.padding(bottom = 14.dp))
+            val motion = MikaMotion.specs(reduceMotion)
+            AnimatedVisibility(vh.holding && listening != null, enter = motion.fadeEnter(), exit = motion.fadeExit()) {
+                CancelHint(armed, Modifier.padding(bottom = MikaSpace.S16))
             }
             AnimatedVisibility(
                 listening != null,
-                enter = if (reduceMotion) fadeIn(snap()) else
-                    fadeIn(tween(200)) + slideInVertically(tween(200)) { it / 12 } + scaleIn(tween(200), initialScale = 0.98f),
-                exit = fadeOut(tween(if (reduceMotion) 0 else 150)),
+                enter = motion.enter(TransformOrigin(0.5f, 1f)),
+                exit = motion.exit(TransformOrigin(0.5f, 1f)),
             ) {
                 last[0]?.let { ListenCard(it, title, vh.engine, backdrop) { at -> vh.cardAt = at } }
             }
@@ -599,12 +594,12 @@ internal fun VoiceFloat(vh: VoiceHold, state: HoldToTalk.State, title: String, b
 @Composable
 private fun CancelHint(armed: Boolean, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(MikaRadius.Lg)
     Row(
         modifier.floatShadow(c, shape).background(if (armed) c.bad else c.surface, shape)
-            .padding(horizontal = 14.dp, vertical = 7.dp).testTag("voice-cancel-hint"),
+            .padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8).testTag("voice-cancel-hint"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         val fg = if (armed) c.onAccent else c.ink2
         Icon(MikaIcons.Up, null, Modifier.size(15.dp), tint = fg)
@@ -622,19 +617,19 @@ private fun ListenCard(
     s: HoldToTalk.State.Listening, title: String, engine: String, backdrop: GlassBackdrop?, onPlaced: (Rect) -> Unit,
 ) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(22.dp)
+    val shape = RoundedCornerShape(MikaRadius.Xl)
     GlassBar(
         Modifier.fillMaxWidth().testTag("voice-listen").onGloballyPositioned { onPlaced(it.boundsInRoot()) }
             .then(if (s.cancelArmed || s.sendArmed) Modifier.border(1.5.dp, aimTone(s, c.accent), shape) else Modifier),
         backdrop, shape,
     ) {
-        Column(Modifier.weight(1f).padding(start = 10.dp, end = 10.dp, top = 8.dp, bottom = 6.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.weight(1f).padding(start = MikaSpace.S12, end = MikaSpace.S12, top = MikaSpace.S8, bottom = MikaSpace.S8)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 RecDot(s)
                 Text(title, Modifier.weight(1f, fill = false), style = HeadText, color = c.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 if (engine.isNotEmpty()) {
                     Text(
-                        engine, Modifier.background(c.fill, RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+                        engine, Modifier.background(c.fill, RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8, vertical = 2.dp),
                         style = ChipText, color = c.ink2, maxLines = 1,
                     )
                 }
@@ -643,7 +638,7 @@ private fun ListenCard(
             }
             val heard = s.stable + s.tail
             val style = if (s.cancelArmed) ListenText.copy(textDecoration = TextDecoration.LineThrough) else ListenText
-            val modifier = Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 54.dp).alpha(if (s.cancelArmed) 0.4f else 1f)
+            val modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S12).heightIn(min = 54.dp).alpha(if (s.cancelArmed) 0.4f else 1f)
             if (heard.isEmpty()) {
                 Text(
                     stringResource(if (s.live) R.string.voice_say_now else R.string.voice_recording), modifier,
@@ -652,7 +647,7 @@ private fun ListenCard(
             } else {
                 HeardText(s.stable, s.tail, style, maxLines = 6, modifier)
             }
-            Row(Modifier.fillMaxWidth().padding(top = 8.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S8)) {
                 Text(
                     stringResource(if (s.live) R.string.voice_foot_live else R.string.voice_foot_convert),
                     Modifier.weight(1f), style = FootText, color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -669,9 +664,7 @@ private fun RecDot(s: HoldToTalk.State.Listening) {
     val c = MikaTheme.colors
     val reduce = MikaTheme.reduceMotion
     val armed = s.cancelArmed || s.sendArmed
-    val halo = if (armed || reduce) 0f else rememberInfiniteTransition(label = "rec").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "rec-halo",
-    ).value
+    val halo = if (armed || reduce) 0f else rememberMikaPulse(still = 0f, label = "rec-halo").value
     val dot = aimTone(s, c.accent)
     val soft = c.accentSoft
     Box(
@@ -699,7 +692,7 @@ private fun VoiceToast(text: String) {
     val c = MikaTheme.colors
     Text(
         text,
-        Modifier.background(c.ink.copy(alpha = 0.88f), RoundedCornerShape(18.dp)).padding(horizontal = 16.dp, vertical = 9.dp).testTag("voice-toast"),
+        Modifier.background(c.ink.copy(alpha = 0.88f), RoundedCornerShape(MikaRadius.Xl)).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8).testTag("voice-toast"),
         style = ToastText, color = c.bg, maxLines = 2,
     )
 }
@@ -708,7 +701,7 @@ private fun VoiceToast(text: String) {
 @Composable
 internal fun VoiceConverting(modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
-    Row(modifier.testTag("voice-converting"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(modifier.testTag("voice-converting"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         Spinner(Modifier.size(13.dp), spinning = !MikaTheme.reduceMotion, track = c.accentSoft, head = c.accent)
         Text(stringResource(R.string.voice_converting), style = MikaType.Body, color = c.ink2, maxLines = 1)
     }
@@ -726,7 +719,7 @@ internal fun VoicePlaceholder(mode: ComposerMode, followUp: FollowUpMode = Follo
 /** 按着说话时对话内容虚化变淡,注意力在卡片上;安卓 12 以下只变淡。 */
 @Composable
 internal fun Modifier.voiceDim(on: Boolean, reduceMotion: Boolean): Modifier {
-    val p by animateFloatAsState(if (on) 1f else 0f, if (reduceMotion) snap() else tween(250), label = "voice-dim")
+    val p by animateFloatAsState(if (on) 1f else 0f, MikaMotion.specs(reduceMotion).effectsDefault(), label = "voice-dim")
     if (p == 0f) return this
     return graphicsLayer {
         alpha = 1f - 0.55f * p
@@ -772,12 +765,12 @@ internal fun VoiceSheetHost(vh: VoiceHold, onPickSpeech: () -> Unit) {
         onDismissRequest = { vh.sheet = null },
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xxl, topEnd = MikaRadius.Xxl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 20.dp, end = 20.dp, bottom = 18.dp).testTag("voice-sheet")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = MikaSpace.S24, end = MikaSpace.S24, bottom = MikaSpace.S16).testTag("voice-sheet")) {
             Text(title, style = MikaType.Title, color = c.ink)
-            Text(body, Modifier.padding(top = 8.dp), style = SheetBody, color = c.ink2)
-            Row(Modifier.fillMaxWidth().padding(top = 18.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(body, Modifier.padding(top = MikaSpace.S8), style = SheetBody, color = c.ink2)
+            Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 MikaButton(stringResource(R.string.ok_got_it), { vh.sheet = null }, Modifier.weight(1f), kind = ButtonKind.Tonal, size = ButtonSize.Medium)
                 MikaButton(action, { vh.sheet = null; go() }, Modifier.weight(1f), size = ButtonSize.Medium)
             }
@@ -785,12 +778,12 @@ internal fun VoiceSheetHost(vh: VoiceHold, onPickSpeech: () -> Unit) {
     }
 }
 
-private val BarLabel = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
-private val HintText = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
-private val HeadText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
-private val ChipText = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
+private val BarLabel = MikaType.Body.copy(fontWeight = FontWeight.Medium)
+private val HintText = MikaType.Label
+private val HeadText = MikaType.Hint
+private val ChipText = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
 private val TimeText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, fontFeatureSettings = "tnum")
-private val ListenText = TextStyle(fontSize = 18.sp, lineHeight = 27.sp)
-private val FootText = TextStyle(fontSize = 12.sp, lineHeight = 16.sp)
-private val ToastText = TextStyle(fontSize = 13.5.sp, lineHeight = 19.sp)
-private val SheetBody = TextStyle(fontSize = 14.sp, lineHeight = 23.sp)
+private val ListenText = MikaType.Title.copy(fontWeight = FontWeight.Normal)
+private val FootText = MikaType.Hint
+private val ToastText = MikaType.Caption
+private val SheetBody = MikaType.Callout

@@ -1,15 +1,7 @@
 package com.wangzan101.mika.ui.theme
 
-import android.content.Context
 import android.os.Build
-import android.provider.Settings
 import android.view.View
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.LocalContentColor
@@ -40,27 +32,6 @@ import com.wangzan101.mika.settings.ThemeAccent
 import com.wangzan101.mika.settings.ThemeMode
 import com.wangzan101.mika.settings.OrbitIdentityMode
 import com.wangzan101.mika.settings.OrbitPresenceSize
-
-/** 动效:时长和曲线。系统关了动画时([MikaTheme.reduceMotion])直接到位。 */
-object MikaMotion {
-    const val PAGE_MS = 220
-    const val SWITCH_MS = 200
-    /** 减速曲线:起步快、落地慢。 */
-    val Decelerate: Easing = CubicBezierEasing(0f, 0f, 0.2f, 1f)
-
-    // Expressive spatial and effects springs; keep existing page transitions unchanged.
-    fun <T> spatial(reduceMotion: Boolean): AnimationSpec<T> =
-        if (reduceMotion) snap() else spring(dampingRatio = 0.8f, stiffness = 380f)
-    fun <T> effects(reduceMotion: Boolean): AnimationSpec<T> =
-        if (reduceMotion) snap() else spring(dampingRatio = 1f, stiffness = 1600f)
-
-    fun <T> page(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(PAGE_MS, easing = Decelerate)
-    fun <T> switch(reduceMotion: Boolean): AnimationSpec<T> = if (reduceMotion) snap() else tween(SWITCH_MS, easing = Decelerate)
-}
-
-/** 系统「移除动画」(动画时长缩放为 0)时为真。 */
-fun animationsOff(context: Context): Boolean =
-    Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
 
 val LocalReduceMotion = staticCompositionLocalOf { false }
 val LocalOrbitIdentity = staticCompositionLocalOf { OrbitIdentityMode.Original }
@@ -145,7 +116,7 @@ fun ComponentActivity.systemBarsFor(dark: Boolean) {
 fun MikaTheme(
     dark: Boolean = appearanceDark(),
     accent: ThemeAccent = appearanceAccent(),
-    reduceMotion: Boolean = false,
+    reduceMotion: Boolean = rememberAnimationsOff(),
     identity: OrbitIdentityMode = appearanceIdentity(),
     presence: OrbitPresenceSize = appearancePresence(),
     content: @Composable () -> Unit,

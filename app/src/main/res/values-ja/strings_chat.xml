@@ -281,4 +281,20 @@
     <string name="chat_reaction_orbit">Orbit が %1$s でリアクション</string>
     <string name="chat_replying_to">あなたのメッセージへの返信: %1$s</string>
     <string name="chat_swipe_reply">スワイプして返信</string>
+    <string name="plan_step_pending">未開始</string>
+    <string name="plan_step_running">実行中</string>
+    <string name="plan_step_done">完了</string>
+    <string name="plan_step_waiting">あなたを待っています</string>
+    <string name="plan_step_needs_approval">承認が必要です</string>
+    <string name="plan_step_stopped">停止</string>
+    <string name="plan_step_of">ステップ %1$d / %2$d</string>
+    <string name="chat_jump_latest">最新へ移動</string>
+    <string name="skill_section_entry">始める場所</string>
+    <string name="skill_section_steps">手順</string>
+    <string name="skill_section_caution">間違えやすいところ</string>
+    <string name="skill_section_done">うまくいったかの確認</string>
+    <string name="skill_section_handoff">あなたに任せるとき</string>
+    <string name="chat_hold_to_allow">長押しで今回だけ許可</string>
+    <string name="hold_to_allow_hint">リングが満ちるまで長押し</string>
+    <string name="hold_to_allow_holding">そのまま押し続けて</string>
 </resources>

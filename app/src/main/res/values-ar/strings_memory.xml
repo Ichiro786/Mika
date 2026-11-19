@@ -25,7 +25,7 @@
     <string name="memory_use_sub">عند إيقافه، لا يقرأ Orbit الذاكرة ولا يحفظ فيها</string>
     <string name="memory_auto">تذكّر ما أقوله</string>
     <string name="memory_auto_sub">تُنظّم من كلماتك بعد كل مهمة</string>
-    <string name="memory_infer">السماح لـ Mika بحفظ استنتاجاته</string>
+    <string name="memory_infer">السماح لـ Orbit بحفظ استنتاجاته</string>
     <string name="memory_infer_sub">عندما تطلب منه التذكّر، تُحفظ استنتاجاته أيضًا مع الإشارة إلى أنها ليست كلامك</string>
     <string name="memory_learn">التعلّم من المهام السابقة (المهارات وملاحظات التطبيقات)</string>
     <string name="memory_learn_sub">لا يستخدم Orbit ما يتعلّمه إلا بعد موافقتك</string>
@@ -61,7 +61,7 @@
     <string name="date_pattern_md">MMM d</string>
     <string name="memory_said_via">قلت في %1$s عبر %2$s: «%3$s»</string>
     <string name="memory_said">قلت في %1$s: «%2$s»</string>
-    <string name="memory_inferred">استنتاج Mika في %1$s بطلب منك: «%2$s»</string>
+    <string name="memory_inferred">استنتاج Orbit في %1$s بطلب منك: «%2$s»</string>
     <string name="verify_returned">أعادها التحقق</string>
     <string name="skills_drafts">مسودات مهارات جديدة — تُجرّب بعد موافقتك</string>
     <string name="skills_accept_try">قبول وتجربة</string>
@@ -94,4 +94,11 @@
     <string name="skills_imported">مستوردة</string>
     <string name="skill_builtin_name">توجد مهارة مدمجة بهذا الاسم بالفعل. غيّر الاسم وحاول مجددًا.</string>
     <string name="skill_draft_pending">توجد مسودة بهذا الاسم بانتظار المراجعة بالفعل. تعامل معها أولًا.</string>
+    <string name="skill_use_prompt">استخدم مهارتي «%1$s».</string>
+    <string name="skill_add_to_home">إضافة إلى الشاشة الرئيسية</string>
+    <string name="skill_pin_unsupported">لا يمكن للمشغّل إضافة اختصارات</string>
+    <string name="skill_widget_title">مهارات Orbit</string>
+    <string name="skill_widget_empty">احفظ مهارة في Orbit لتظهر هنا</string>
+    <string name="skill_widget_use">استخدام %1$s</string>
+    <string name="skill_widget_description">أهم مهاراتك في Orbit بنقرة واحدة</string>
 </resources>

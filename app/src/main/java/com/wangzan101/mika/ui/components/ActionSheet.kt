@@ -16,6 +16,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 操作面板里的一项;[icon] 放在文字左边;[destructive] 为真时文字用出错红。 */
 class SheetAction(
@@ -37,12 +39,12 @@ fun ActionSheet(title: String?, actions: List<SheetAction>, onDismiss: () -> Uni
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8)) {
             if (!title.isNullOrEmpty()) {
                 Text(
-                    title, Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    title, Modifier.padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S4),
                     style = MikaType.Caption, color = c.ink3, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
             }

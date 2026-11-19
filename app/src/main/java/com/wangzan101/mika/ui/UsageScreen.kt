@@ -100,6 +100,8 @@ import java.time.ZoneId
 import java.time.ZoneOffset
 import com.wangzan101.mika.i18n.uiLocale
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 用量页顶上的五段:前四段是固定的范围,[Custom] 打开日期选择。 */
 enum class UsagePreset(private val labelRes: Int) {
@@ -318,7 +320,7 @@ fun UsageContent(
             tags = UsagePreset.entries.map { "usage-range-${it.name}" },
         )
         if (report == null) return@PageScaffold
-        Row(Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp), horizontalArrangement = Arrangement.Center) {
+        Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S8, bottom = MikaSpace.S12), horizontalArrangement = Arrangement.Center) {
             Text(UsageCopy.rangeText(report.range, today), style = MikaType.Hint, color = c.ink3)
             if (preset == UsagePreset.Custom) {
                 Text(" · ", style = MikaType.Hint, color = c.ink3)
@@ -341,7 +343,7 @@ fun UsageContent(
 
         ChartCard(UsageCopy.BY_PROVIDER, UsageCopy.BY_PROVIDER_HINT) {
             val max = report.providers.maxOf { it.totals.tokens }.coerceAtLeast(1)
-            Column(Modifier.padding(top = 6.dp)) {
+            Column(Modifier.padding(top = MikaSpace.S8)) {
                 report.providers.forEach { p ->
                     RankRow(
                         UsageCopy.providerName(p), mono = false, muted = p.deleted, color = seriesColor(c, p),
@@ -355,8 +357,8 @@ fun UsageContent(
 
         ChartCard(UsageCopy.BY_MODEL, pick?.let(report::provider)?.let(UsageCopy::providerName) ?: UsageCopy.ALL_PROVIDERS) {
             Row(
-                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 10.dp, bottom = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = MikaSpace.S12, bottom = MikaSpace.S4),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
             ) {
                 UsageChip(UsageCopy.ALL, pick == null, { onSelect(null) }, tag = "usage-chip-all")
                 report.providers.sortedBy { it.order }.forEach { p ->
@@ -374,7 +376,7 @@ fun UsageContent(
             }
         }
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(MikaSpace.S16))
         if (report.totals.callsWithoutUsage > 0) {
             FooterNote(UsageCopy.missing(report.totals.callsWithoutUsage), Modifier.testTag("usage-missing"))
         }
@@ -389,16 +391,16 @@ private fun seriesColor(c: MikaColors, p: ProviderUsage): Color = UsageCopy.colo
 private fun TotalsCard(t: UsageTotals) {
     val c = MikaTheme.colors
     MikaCard {
-        Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 18.dp, bottom = 16.dp)) {
+        Column(Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S16)) {
             Text(UsageCopy.TOTAL, style = MikaType.Caption, color = c.ink3)
             Row(Modifier.padding(top = 2.dp), verticalAlignment = Alignment.Bottom) {
                 Text(UsageCopy.tokens(t.tokens), Modifier.testTag("usage-total"), style = TotalStyle, color = c.ink)
                 Text(
-                    UsageCopy.UNIT, Modifier.padding(start = 4.dp, bottom = 6.dp),
+                    UsageCopy.UNIT, Modifier.padding(start = MikaSpace.S4, bottom = MikaSpace.S8),
                     style = MikaType.Value, fontWeight = FontWeight.Medium, color = c.ink2,
                 )
             }
-            Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 Stat(tr(R.string.usage_input), UsageCopy.tokens(t.input), Modifier.weight(1f))
                 Stat(tr(R.string.usage_output), UsageCopy.tokens(t.output), Modifier.weight(1f))
                 Stat(tr(R.string.usage_cached), UsageCopy.tokens(t.cached), Modifier.weight(1f))
@@ -408,7 +410,7 @@ private fun TotalsCard(t: UsageTotals) {
     }
 }
 
-private val TotalStyle = TextStyle(fontSize = 34.sp, lineHeight = 40.sp, fontWeight = FontWeight.Bold)
+private val TotalStyle = MikaType.LargeTitle
 
 @Composable
 private fun Stat(label: String, value: String, modifier: Modifier) {
@@ -425,8 +427,8 @@ private fun Stat(label: String, value: String, modifier: Modifier) {
 @Composable
 private fun ChartCard(title: String, hint: String, content: @Composable () -> Unit) {
     val c = MikaTheme.colors
-    MikaCard(Modifier.padding(top = 12.dp)) {
-        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 14.dp)) {
+    MikaCard(Modifier.padding(top = MikaSpace.S12)) {
+        Column(Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S16)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(title, Modifier.weight(1f), style = CardTitle, color = c.ink)
                 Text(hint, style = MikaType.Hint, color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -436,7 +438,7 @@ private fun ChartCard(title: String, hint: String, content: @Composable () -> Un
     }
 }
 
-private val CardTitle = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold)
+private val CardTitle = MikaType.BodyStrong
 
 /** 没有用量时:一张居中的说明卡。 */
 @Composable
@@ -444,12 +446,12 @@ private fun EmptyCard() {
     val c = MikaTheme.colors
     MikaCard(Modifier.testTag("usage-empty")) {
         Column(
-            Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 40.dp),
+            Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S32),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             IconTile(MikaIcons.Chart)
-            Text(UsageCopy.EMPTY_TITLE, Modifier.padding(top = 12.dp), style = MikaType.BodyStrong, color = c.ink)
-            Text(UsageCopy.EMPTY_BODY, Modifier.padding(top = 6.dp), style = MikaType.Caption, color = c.ink3, textAlign = TextAlign.Center)
+            Text(UsageCopy.EMPTY_TITLE, Modifier.padding(top = MikaSpace.S12), style = MikaType.BodyStrong, color = c.ink)
+            Text(UsageCopy.EMPTY_BODY, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = c.ink3, textAlign = TextAlign.Center)
         }
     }
 }
@@ -468,10 +470,10 @@ private fun RankRow(
         Modifier.fillMaxWidth()
             .then(if (onClick != null) Modifier.clip(RowShape).clickable(role = Role.Button, onClick = onClick) else Modifier)
             .alpha(if (dim) 0.4f else 1f)
-            .padding(vertical = 8.dp)
+            .padding(vertical = MikaSpace.S8)
             .testTag(tag),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         Text(
             name, Modifier.width(118.dp), maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -495,11 +497,11 @@ private fun RankRow(
     }
 }
 
-private val RowShape = RoundedCornerShape(8.dp)
-private val RankText = TextStyle(fontSize = 13.5.sp, lineHeight = 18.sp)
+private val RowShape = RoundedCornerShape(MikaRadius.Sm)
+private val RankText = MikaType.Caption
 private val RankMono = TextStyle(fontSize = 12.5.sp, lineHeight = 18.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Medium)
-private val RankValue = TextStyle(fontSize = 13.sp, lineHeight = 17.sp)
-private val RankShare = TextStyle(fontSize = 11.sp, lineHeight = 14.sp)
+private val RankValue = MikaType.Caption
+private val RankShare = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
 
 /** 切换服务商的胶囊:选中时强调色实底;[deleted] 的名字变淡、后面写「（已删除）」。 */
 @Composable
@@ -515,7 +517,7 @@ private fun UsageChip(text: String, selected: Boolean, onClick: () -> Unit, dele
             .then(if (selected) Modifier.background(c.accent, MikaShapes.Pill) else Modifier.cardSurface(c, MikaShapes.Pill))
             .clip(MikaShapes.Pill)
             .selectable(selected, role = Role.Tab, onClick = onClick)
-            .padding(horizontal = 14.dp)
+            .padding(horizontal = MikaSpace.S16)
             .testTag(tag),
         contentAlignment = Alignment.Center,
     ) {
@@ -523,7 +525,7 @@ private fun UsageChip(text: String, selected: Boolean, onClick: () -> Unit, dele
     }
 }
 
-private val ChipText = TextStyle(fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
+private val ChipText = MikaType.Callout.copy(fontWeight = FontWeight.Medium)
 
 /** 趋势图里的一段:有自己颜色的服务商各一段([slot] 是颜色序号),其余合成「其他」([slot] 为 null)。 */
 private data class StackPart(val slot: Int?, val tokens: Long)
@@ -554,11 +556,11 @@ private fun TrendChart(report: UsageReport, selected: String?, today: LocalDate)
     var tapped by remember(series) { mutableStateOf<Int?>(null) }
     val gutter = 38.dp
 
-    FlowRow(Modifier.padding(top = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    FlowRow(Modifier.padding(top = MikaSpace.S8), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         colored.forEach { p -> LegendItem(c.series[UsageCopy.colorSlot(p)!!], UsageCopy.providerName(p)) }
         if (hasOthers) LegendItem(c.seriesOther, UsageCopy.OTHERS)
     }
-    Box(Modifier.fillMaxWidth().padding(top = 12.dp).height(132.dp)) {
+    Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S12).height(132.dp)) {
         Canvas(
             Modifier.fillMaxSize().testTag("usage-chart")
                 .semantics { contentDescription = "${UsageCopy.TREND}，${UsageCopy.stepLabel(report.step)}" }
@@ -611,7 +613,7 @@ private fun TrendChart(report: UsageReport, selected: String?, today: LocalDate)
         GridLabel(UsageCopy.tokens(nice / 2), Modifier.align(Alignment.CenterEnd).offset(y = (-7).dp))
         tapped?.let { i -> TrendTip(series[i], report, i, gutter, today) }
     }
-    Box(Modifier.fillMaxWidth().padding(top = 6.dp, end = gutter)) {
+    Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S8, end = gutter)) {
         val style = MikaType.Hint
         Text(UsageCopy.axis(series.first(), report.step, today), Modifier.align(Alignment.CenterStart), style = style, color = c.ink3)
         if (series.size > 2) {
@@ -625,20 +627,20 @@ private fun TrendChart(report: UsageReport, selected: String?, today: LocalDate)
 
 @Composable
 private fun LegendItem(color: Color, name: String) {
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         Box(Modifier.size(9.dp).background(color, LegendShape))
         Text(name, style = MikaType.Hint, color = MikaTheme.colors.ink2, maxLines = 1)
     }
 }
 
-private val LegendShape = RoundedCornerShape(3.dp)
+private val LegendShape = RoundedCornerShape(MikaRadius.Xs)
 
 @Composable
 private fun GridLabel(text: String, modifier: Modifier) {
     Text(text, modifier.width(34.dp), style = GridText, color = MikaTheme.colors.ink3, textAlign = TextAlign.End, maxLines = 1)
 }
 
-private val GridText = TextStyle(fontSize = 10.5.sp, lineHeight = 14.sp)
+private val GridText = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
 
 /** 点中一根柱子时的说明:哪段时间、合计,下面各家服务商各一行(按用量从多到少);横向对着那根柱子,不出图的左右边。 */
 @Composable
@@ -655,7 +657,7 @@ private fun TrendTip(b: UsageBucket, report: UsageReport, index: Int, gutter: Dp
                 val center = if (rtl) cons.maxWidth - logicalCenter else logicalCenter
                 p.place((center - p.width / 2f).toInt().coerceIn(0, (cons.maxWidth - p.width).coerceAtLeast(0)), 0)
             }
-        }.background(c.ink, TipShape).padding(horizontal = 9.dp, vertical = 6.dp).testTag("usage-chart-tip"),
+        }.background(c.ink, TipShape).padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8).testTag("usage-chart-tip"),
     ) {
         Text(
             "${UsageCopy.period(b, report.step, today)} · ${UsageCopy.tokens(b.tokens)}",
@@ -668,8 +670,8 @@ private fun TrendTip(b: UsageBucket, report: UsageReport, index: Int, gutter: Dp
     }
 }
 
-private val TipShape = RoundedCornerShape(8.dp)
-private val TipText = TextStyle(fontSize = 11.5.sp, lineHeight = 18.sp)
+private val TipShape = RoundedCornerShape(MikaRadius.Sm)
+private val TipText = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
 
 /** 自定义范围的日期选择:只能选账本还留着的日子(最近 [UsageLedger.KEEP_DAYS] 天)到今天,两头都选了才可查看。 */
 @OptIn(ExperimentalMaterial3Api::class)

@@ -279,3 +279,164 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - Debug and perf builds take their versionCode from the commit time, so each new APK counts up.
 - The WhatsApp library is now linked for 16 KB memory pages (NDK r28 and max-page-size=16384). The sandbox programs were already aligned.
 - CI runs tools/ci/check_16kb.py and zipalign -P 16 on the built APKs and fails if any 64-bit native library is not 16 KB aligned.
+
+## Orbit UI/UX program, Stage 1: motion system, 2026-11-19
+
+**Branch:** `orbit-uiux-motion-plan` (from `main` @ c1c962b). **Status:** implemented. Builds and unit tests pass locally. Device frame checks still need doing.
+
+- New `ui/theme/Motion.kt` holds the only motion tokens in the app.
+  - Spatial springs: fast 0.9/1400, default 0.9/700, slow 0.9/300.
+  - Bouncy spring: 0.6/500.
+  - Effects springs, damping 1: fast 3800, default 1600, slow 800.
+  - Durations: 100, 200, 300 and 450 ms.
+  - Standard and emphasized easing curves.
+  - Enter is fade + scale from 0.94 + a 6% rise. Exit uses the faster springs.
+  - Press feedback scales to 0.96. List stagger is 30 ms, up to 6 items.
+  - Loading loops (pulse and phase) share one 1200 ms loop.
+- Material 3 `MotionScheme.expressive()` is not available in material3 1.3.x (Compose BOM 2024.12.01). We did not upgrade any dependency. The tokens use the same values, so they can map directly onto it later.
+- "Remove animations" now has a single source. `MikaTheme` reads `rememberAnimationsOff()`, which watches `ANIMATOR_DURATION_SCALE` live. `MotionSpecs.Reduced` then turns every spec into `snap()`. Activities and overlay windows no longer pass the flag themselves.
+- Animation sites moved onto the tokens:
+  - Chat, drawer, VoiceHold, capsule (pill, morph, card, voice), AgentPip, page/tab transitions, OrbitHub, presence avatar, call screen, update capsule, attachments, message swipe, switches, scrollbar, recommendations, Make toggle and browser wiggle.
+  - Overlay window snapping is a View `ValueAnimator`. It now uses the 200 ms token and an emphasized-decelerate PathInterpolator.
+- Chat rows keep their stable keys and now fade in with `animateItem`. They have no placement animation, so rows below a streaming reply never lag behind it.
+- MikaButton, BarIconButton and SelectChip now use the shared press-scale feedback.
+- Guard tests:
+  - `MotionGuardTest` fails the build if any source outside `Motion.kt` creates a `tween`, `spring`, `keyframes` or `infiniteRepeatable`, or uses an untokened default enter/exit.
+  - `MotionSpecsTest` checks the token values and that reduce-motion snaps every spec.
+- **Not yet verified:** on-device frame pacing during streaming, TalkBack, and 200% font. No emulator is available in the container (no KVM). Screenshots come from the CI emulator capture.
+
+## Orbit UI/UX program, Stage 2: one live plan card, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. Device checks still need doing.
+
+- New `ui/plan/LivePlanModel.kt` holds the `LivePlan` model and the `LivePlans.from(Exchange)` mapper. The mapper only uses the task's real steps and its current action. Nothing is invented.
+  - It does not claim a total ("Step 3", not "3 of 5") until a plan length is known.
+- New `ui/plan/LivePlanCard.kt` is the one card used on every surface.
+  - Header: ring, task, "Step N" and elapsed time, and a Stop button with a 48dp touch target.
+  - Every step shows while running:
+    - pending: a dim dot;
+    - running: a spinning ring;
+    - done: a check that draws itself on the spatial spring;
+    - failed: a red mark with a one-line reason;
+    - waiting or needs approval: amber, saying what it is waiting for.
+  - New steps animate in with the shared enter; rows already there do not.
+  - The bounded form scrolls by itself, keeps the current step in view while you are at the bottom, and fades older steps at the top.
+  - LivePlanSteps is the expanded list under a finished task's one-line summary.
+  - PlanRing and LivePlanPill are the compact form.
+- The four old views are replaced:
+  1. Chat: WorkBlock and `StepLine` now use the card. Steps no longer hide behind "Show steps". DoneLine expands into LivePlanSteps.
+  2. Floating card and browser page: `Steps` is now a thin adapter onto the card. The existing `capsule-steps` tag and its follow/scroll behaviour are kept.
+  3. Capsule pill: a running task shows the shared ring next to the current step. Tapping still opens the card.
+  4. Mini view: the AgentPip pill shows PlanRing, and the LiveSheet lists the steps (bounded at 136dp).
+- Approval stays only on the existing keyed confirmation card. The plan step turns amber and names the action, but has no approve control.
+- Accessibility: each step row has a translated `stateDescription`, the current step is a polite live region, and the title is a heading.
+- New strings were added in all 9 languages.
+- **Not done (needs approval):** a cheap "plan" tool the model updates, so the card can show the whole plan up front. This needs a new tool in `:core`'s agent tool set, which `AGENTS.md` protects. The model already has a `total` field ready for it.
+- **Not yet verified:** on-device rendering, TalkBack, 200% font, and the capsule device tests (compiled but not run; no emulator in the container).
+
+## Orbit UI/UX program, Stage 3: shared style on every screen, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. Device checks still need doing.
+
+- **Spacing.** Every padding, gap, spacer and `PaddingValues` in the app now uses the 4/8/12/16/24/32 scale (1,643 values). Off-scale values were snapped to the nearest step, rounding up for roominess, e.g. 10 to 12, 14 to 16, 20 to 24. Hairlines of 2dp or less and layout values above 40dp were left as they are.
+- **Corners.** Every rounded corner uses the new radius scale: Xs 6, Sm 9, Md 12, Lg 16, Xl 20, Xxl 28. Exact icon, touch-target and tile sizes use the existing size tokens.
+- **Type.** There is one type scale, `MikaType`. It gained these steps: Headline, Reading, Button, Callout, CalloutStrong, LabelStrong, HintStrong, Micro and Overline.
+  - Moved onto it: the private text styles in chat, drawer, capsule, card, settings, welcome and the shared components, plus 98 inline or simple text styles elsewhere.
+  - All 37 `MaterialTheme.typography` uses (the call screens) are gone.
+  - Raw sp values went from 325 to 55. The rest are monospace codes, letter-spaced codes and Markdown internals.
+- **Colours.** Chat, capsule, settings, tasks and the call hang-up button now take their colours from the theme: the settings tile palette plus new indicator, shimmer, attention/error ink, media scrim and hang-up colours.
+  - What remains is artwork palettes: hub card glows, the update-glass material, space colours, the Orbit mark and terminal colours.
+- **Chat.**
+  - Orbit's replies are bubbles at most 85% of the column wide.
+  - A frosted jump-to-latest arrow appears above the message bar when you scroll up. It uses the shared enter/exit motion and press scale, and has a 48dp target and a translated label.
+- **200% font.** The shared button, chip, segmented control and search field use minimum heights instead of fixed ones. The settings stepper −/+ now has 48dp targets and a button role.
+- **Guard.** `TokenRatchetTest` with `app/src/test/resources/token-ratchet.txt` holds each file to its raw dp/sp/hex count, which may only go down. Files not listed must have none. Regenerate with `tools/ui/token_baseline.py`.
+- **Not yet verified:** every screen at 200% font and in TalkBack, and how the snapped spacing looks on a device. There is no emulator in the container.
+
+## Orbit UI/UX program, Stage 4: clean-up of leftovers, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally (`:app` and `:core`).
+
+- **Tool names.** ToolLabels now maps every agent tool by its stable English name. Before, tools went through a map keyed on their Chinese declared labels, and the gaps fell back to showing that Chinese label.
+  - The old label map stays only for run records that stored a label.
+  - An unknown or new tool reads as its name made readable ("phone_brand_new_thing" → "Brand new thing"). It can never show Chinese.
+  - 5 new strings for the tools that had none, in all 9 languages.
+  - ToolLabelsTest now checks three things: every tool is mapped, the name map agrees with the label map, and English never shows CJK.
+- **Site marker.** `网站 ` is the run-record format the core writes, so it is unchanged in records. RecordPlace is now the single place the app reads it and always strips it before display. It replaces 4 duplicate constants plus SourceViewModel's inline copy.
+- **File viewer.** The internal error messages ("打不开") are now English. They were log-only; the screen already shows a translated message.
+- **Clipboard.** The clip label is now the app name (Orbit) in the message menu, the MCP screen and self-operation copy. The shell service's own label was left alone (protected service).
+- **Skill sections.** Skills now recognise the five learned-skill sections from Chinese or English headings, show the right icon, and display a translated title. The stored skill keeps its own headings. 5 new strings.
+- **Licenses screen.** Rewritten in English. Orbit comes first and Mika is credited as upstream (wangzan101, Apache-2.0, link).
+  - The four Chinese component headings in `licenses/THIRD_PARTY_NOTICES.md` are now English to match.
+  - LicensesTest is updated and gains an English-throughout check.
+- **"Mika" in strings.** 220 strings that used "Mika" for the assistant now say "Orbit" across all languages, most of them Korean. Korean particles were adjusted for the final consonant (이/을/과/으로/은).
+  - Kept as Mika on purpose: upstream release and update strings, the `mika` CLI prompt, the OpenRouter key name, and the real `Download/Mika` export folder.
+- **Known stale tests.** The capsule device tests assert Chinese UI text that the app's resources no longer contain. This was pre-existing and was not changed here.
+
+## Orbit UI/UX program, Stage 5a: hold-to-allow and skills on the home screen, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. The hold tests are added to the CI emulator suite.
+
+- **Hold to allow.** HoldToAllowButton replaces the "Allow this once" tap on the chat approval card and on the capsule's confirm card.
+  - Holding for 800ms fills a ring and gives a haptic tick, then the existing keyed approve runs once. Releasing early cancels and the ring springs back.
+  - The hold is measured in real frame time, not with an animation spec, so "Remove animations" can never make it a one-tap approval.
+  - TalkBack and switch access get the button's click action, a deliberate double tap.
+  - "Don't allow" stays a plain button (the English label changed from "Refuse").
+  - ApprovalCardTest covers three cases: a full hold approves once, a tap or early release never approves, and the accessibility click approves once.
+- **Skills on the home screen.** A skill's action sheet gains "Add to home screen", which pins a launcher shortcut through the platform ShortcutManager (no new dependency). A small glass widget lists the three most-used enabled skills.
+  - Both open Orbit with "Use my skill “…”." in the message bar, through the share-draft path. Nothing runs until you send.
+  - The widget refreshes when the skills list changes.
+  - New strings in 9 languages. SkillLauncherTest covers which skills the widget shows.
+- **Not yet verified:** the haptic feel on device, pinning on different launchers, and how the widget renders on various launchers.
+
+## Orbit UI/UX program, Stage 5b: onboarding, 2026-11-19
+
+**Status:** implemented after the owner approved the mockups. Builds and unit tests pass locally.
+
+- The Welcome route now holds three pages, moving forward and back with the shared spring and sideways slide. System back steps back through the pages.
+  - **Hello:** the Orbit presence mark arrives on the spatial spring, and the title and promise rise after it, 30ms apart.
+  - **What Orbit can do:** a HorizontalPager of four peeking cards (apps, web, files, schedules). Each card has an example request, labelled Example, with spring progress dots.
+  - **Privacy:** four facts that are already true of Orbit: keys encrypted on the phone, requests go to the chosen provider, hold to allow for payments, memory you control.
+- After that, the existing Choose a model screen (its real Test and save check) and Phone setup screen (its live status checks) follow, unchanged, so provider sign-in and setup logic were not touched.
+  - The dots now count 5 steps.
+  - Going back from the model step lands on the privacy page.
+- When onboarding shows is unchanged: only with no model and no completed setup, as before.
+- The progress dots stretch on the spatial spring.
+- 18 new strings in 9 languages. OnboardingTest and the welcome device test are updated for the new flow.
+- **Difference from the mockup:** screens 4 and 5 are the existing model and phone setup screens rather than new layouts. Rebuilding them would touch provider authentication, which is protected.
+- **Not yet verified on a device:** the welcome entrance, swiping the cards, and 200% font on the new pages.
+
+## Orbit UI/UX program, Stage 6: reliability that shows, and the plan tool, 2026-11-19
+
+**Status:** implemented with the owner's go-ahead for protected areas. Builds and unit tests pass locally (`:core` and `:app`).
+
+- **Tap verification and retry: already in place, verified rather than rewritten.**
+  - AndroidScreen.tapRef and tapXY already wait for a change after each tap, through ChangeWait.
+  - When nothing changed, they retry once by the other route: accessibility click ↔ gesture, and the gesture itself falls back to a tap injected by the shell helper.
+  - ClickFallback already refuses that retry for send, submit, pay, delete, confirm and toggle-like buttons.
+  - No change was needed. Rewriting it would only have put working phone control at risk.
+- **Settled screen: already event-driven, verified.** ChangeWait waits for accessibility events to go quiet, then compares the element tree and frame signatures (two similar frames for self-drawn screens). It has a 2.5s cap and a single probe for the fallback route. No change was needed.
+- **Helper drop banner (new).**
+  - When phone control was set up before and the wireless-debugging helper is no longer running, chat shows a frosted banner under the header. It appears after 3s, so the reconnect at launch doesn't flash it.
+  - The banner says what happened and offers one action:
+    - Reconnect (the existing RetryPhoneHelper fix) when a retry can fix it;
+    - Turn on when wireless debugging is off;
+    - otherwise Fix, which opens phone setup.
+  - While reconnecting it shows a spinner, and it is a polite live region for TalkBack.
+  - First-time setup keeps its existing line. 8 new strings in 9 languages.
+- **Plan tool (new, approved).**
+  - `update_plan` in `:core` is read-only, in the always-offered base group. It takes 2–12 short steps and the current step, and its prompt says when to use it.
+  - It is recorded as a run activity of kind "plan": steps in the title, the current step in the target.
+  - StopSummary and TaskMemoryRecorder skip plan activities, and chat step rows and step actions skip them too.
+  - When a plan exists, the live plan card shows every planned step up front, with "Step 2 of 5" and a determinate ring.
+  - Prompt and loop snapshots were regenerated with -PupdateSnapshots; the only change in them is `update_plan` added to the tool lists.
+  - Tests: UpdatePlanTest, ToolGroupsTest updated, and LivePlansTest covers the plan cases.
+- **Not yet verified:** a model actually calling update_plan on device, and the banner when the helper really drops on a phone.
+
+### Emulator check after Stage 6 (CI run 44628711686, commit e619cf1)
+
+- **ApprovalCardTest: all four pass on the emulator.** That includes a tap or early release never approving. The earlier failure was the test framework fast-forwarding its clock while a hold was in progress; the test now drives the clock by hand.
+- **Open regression:** all three ChatSearchTest cases time out in their first setContent (drawer plus chat, Chinese UI rule, no MikaTheme). The error is "Compose busy, possibly infinite recomposition".
+  - At 026ec11 the same step went idle.
+  - The cause is not yet found. It needs device runs of the commits in between.
+- The remaining failures assert Chinese text that the app no longer ships; they were failing before this work.

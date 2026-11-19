@@ -285,6 +285,9 @@ sealed interface RunEvent {
         /** 运行记录里写的地方:App 是包名,站点是「网站 域名」(和以往的记录同一写法)。 */
         fun placeLabel(p: Place?): String? = p?.let { if (it.kind == com.wangzan101.mika.core.observation.PlaceKind.Site) "网站 ${it.name}" else it.name }
 
+        /** [Activity.kind] of a recorded plan (update_plan): steps one per line in [Activity.title], current step in [Activity.target]. */
+        const val PLAN_ACTIVITY = "plan"
+
         fun clip(s: String): String = if (s.length <= MAX_FIELD) s else s.take(MAX_FIELD) + "… (truncated)"
 
         fun clipResult(s: String): String =

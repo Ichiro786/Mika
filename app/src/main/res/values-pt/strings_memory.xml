@@ -25,7 +25,7 @@
     <string name="memory_use_sub">Desativado, o Orbit não lê nem salva memória</string>
     <string name="memory_auto">Lembrar o que eu disser</string>
     <string name="memory_auto_sub">Organizado a partir das suas próprias palavras após cada tarefa</string>
-    <string name="memory_infer">Deixar o Mika guardar as próprias conclusões</string>
+    <string name="memory_infer">Deixar o Orbit guardar as próprias conclusões</string>
     <string name="memory_infer_sub">Quando você pedir para lembrar, também guarda as próprias conclusões, marcadas como não suas</string>
     <string name="memory_learn">Aprender com tarefas anteriores (habilidades e notas de apps)</string>
     <string name="memory_learn_sub">O que o Orbit aprende só é usado depois que você aceitar</string>
@@ -61,7 +61,7 @@
     <string name="date_pattern_md">d MMM</string>
     <string name="memory_said_via">Você disse em %1$s por %2$s: “%3$s”</string>
     <string name="memory_said">Você disse em %1$s: “%2$s”</string>
-    <string name="memory_inferred">Conclusão do Mika em %1$s, a seu pedido: “%2$s”</string>
+    <string name="memory_inferred">Conclusão do Orbit em %1$s, a seu pedido: “%2$s”</string>
     <string name="verify_returned">Devolvida pela verificação</string>
     <string name="skills_drafts">Rascunhos de novas habilidades — testados depois que você aceitar</string>
     <string name="skills_accept_try">Aceitar e testar</string>
@@ -94,4 +94,11 @@
     <string name="skills_imported">Importada</string>
     <string name="skill_builtin_name">Já existe uma habilidade integrada com esse nome. Mude o nome e tente de novo.</string>
     <string name="skill_draft_pending">Já há um rascunho com esse nome esperando revisão. Resolva esse primeiro.</string>
+    <string name="skill_use_prompt">Use minha habilidade “%1$s”.</string>
+    <string name="skill_add_to_home">Adicionar à tela inicial</string>
+    <string name="skill_pin_unsupported">Seu launcher não pode adicionar atalhos</string>
+    <string name="skill_widget_title">Habilidades do Orbit</string>
+    <string name="skill_widget_empty">Salve uma habilidade no Orbit para vê-la aqui</string>
+    <string name="skill_widget_use">Usar %1$s</string>
+    <string name="skill_widget_description">Suas principais habilidades do Orbit, a um toque</string>
 </resources>

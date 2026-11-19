@@ -309,4 +309,20 @@
     <string name="chat_reaction_orbit">Orbit reagiu com %1$s</string>
     <string name="chat_replying_to">Respondendo à sua mensagem: %1$s</string>
     <string name="chat_swipe_reply">Deslize para responder</string>
+    <string name="plan_step_pending">Não iniciado</string>
+    <string name="plan_step_running">Em andamento</string>
+    <string name="plan_step_done">Concluído</string>
+    <string name="plan_step_waiting">Aguardando você</string>
+    <string name="plan_step_needs_approval">Precisa da sua aprovação</string>
+    <string name="plan_step_stopped">Parado</string>
+    <string name="plan_step_of">Etapa %1$d de %2$d</string>
+    <string name="chat_jump_latest">Ir para o mais recente</string>
+    <string name="skill_section_entry">Por onde começar</string>
+    <string name="skill_section_steps">Etapas</string>
+    <string name="skill_section_caution">Fácil de errar</string>
+    <string name="skill_section_done">Como saber que deu certo</string>
+    <string name="skill_section_handoff">Quando passar para você</string>
+    <string name="chat_hold_to_allow">Segure para permitir uma vez</string>
+    <string name="hold_to_allow_hint">Segure até o anel encher</string>
+    <string name="hold_to_allow_holding">Continue segurando</string>
 </resources>

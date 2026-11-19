@@ -111,6 +111,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.UUID
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 浏览器页上「问 Mika」那一块的固定说法。 */
 object PageAskCopy {
@@ -304,7 +307,7 @@ class PageChat(private val context: Context, private val browser: UserBrowser, p
             val row = rows.getOrNull(i) ?: return@mapIndexed null
             val target = ex.activities.lastOrNull { it.step == row.step }?.target?.trim().orEmpty()
             when {
-                target.startsWith(SITE_PREFIX) -> PageAskCopy.WEB
+                RecordPlace.isSite(target) -> PageAskCopy.WEB
                 PACKAGE_NAME_RE.matches(target) -> PageAskCopy.APP
                 else -> null
             }
@@ -387,8 +390,6 @@ class PageChat(private val context: Context, private val browser: UserBrowser, p
 
     private companion object {
         const val TAG = "MikaPageChat"
-        /** 运行记录里网页那一屏的对象写成「网站 <域名>」。 */
-        const val SITE_PREFIX = "网站 "
     }
 }
 
@@ -444,11 +445,11 @@ fun BoxScope.PageAskOverlay(chat: PageChat, site: String, pageTitle: String) {
     val state = chat.state
     if (PageAskModel.glow(state)) PageGlow()
     if (PageAskModel.pausedForUser(state)) {
-        PausedBanner({ chat.card?.run?.key?.let(chat.actions::resume) }, Modifier.align(Alignment.TopCenter).padding(10.dp))
+        PausedBanner({ chat.card?.run?.key?.let(chat.actions::resume) }, Modifier.align(Alignment.TopCenter).padding(MikaSpace.S12))
     }
     when (chat.mode) {
         PageAskMode.Panel -> PagePanel(chat, site, pageTitle, Modifier.align(Alignment.BottomCenter).fillMaxHeight(PANEL_SHARE).imePadding())
-        PageAskMode.Card -> PageCard(chat, Modifier.align(Alignment.BottomCenter).padding(10.dp))
+        PageAskMode.Card -> PageCard(chat, Modifier.align(Alignment.BottomCenter).padding(MikaSpace.S12))
         PageAskMode.Bar -> Unit
     }
 }
@@ -485,10 +486,10 @@ private val GlowColor = Color(0xFF7B5CFF)
 @Composable
 fun PageAskBar(chat: PageChat, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
-    Column(modifier.fillMaxWidth().background(c.bg).padding(start = 12.dp, end = 12.dp, top = 8.dp, bottom = 6.dp).testTag("page-ask-bar")) {
+    Column(modifier.fillMaxWidth().background(c.bg).padding(start = MikaSpace.S12, end = MikaSpace.S12, top = MikaSpace.S8, bottom = MikaSpace.S8).testTag("page-ask-bar")) {
         val continuing = chat.conversationId
         if (continuing != null && !chat.started) {
-            Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     if (chat.fresh) CardCopyText.NEW_CHAT else PageAskCopy.continuing(ChatCopy.plainTitle(AttachedPage.words(chat.title.orEmpty())).take(TITLE_MAX)),
                     Modifier.weight(1f, fill = false), style = MikaType.Hint, color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -496,7 +497,7 @@ fun PageAskBar(chat: PageChat, modifier: Modifier = Modifier) {
                 Text(" · ", style = MikaType.Hint, color = c.ink3)
                 Text(
                     if (chat.fresh) CardCopyText.CONTINUE_LAST else CardCopyText.NEW_CHAT,
-                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { chat.fresh = !chat.fresh }.padding(horizontal = 4.dp, vertical = 2.dp)
+                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { chat.fresh = !chat.fresh }.padding(horizontal = MikaSpace.S4, vertical = 2.dp)
                         .testTag("page-ask-fresh"),
                     style = MikaType.Hint, color = c.accent,
                 )
@@ -520,8 +521,8 @@ private object CardCopyText {
 private fun SelectionChip(text: String, onRemove: () -> Unit) {
     val c = MikaTheme.colors
     Row(
-        Modifier.padding(bottom = 6.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.ink.copy(alpha = 0.05f))
-            .padding(start = 10.dp, top = 6.dp, bottom = 6.dp, end = 4.dp).testTag("page-ask-selection"),
+        Modifier.padding(bottom = MikaSpace.S8).fillMaxWidth().clip(RoundedCornerShape(MikaRadius.Md)).background(c.ink.copy(alpha = 0.05f))
+            .padding(start = MikaSpace.S12, top = MikaSpace.S8, bottom = MikaSpace.S8, end = MikaSpace.S4).testTag("page-ask-selection"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
@@ -540,16 +541,16 @@ private fun SelectionChip(text: String, onRemove: () -> Unit) {
 @Composable
 private fun AskField(chat: PageChat, hint: String, stop: (() -> Unit)?) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(MikaRadius.Lg)
     val focus = remember { FocusRequester() }
     LaunchedEffect(chat.focusAsk) { if (chat.focusAsk > 0) runCatching { focus.requestFocus() } }
     val canSend = chat.draft.isNotBlank() || chat.selection != null
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(shape).background(c.fill).padding(start = 12.dp, end = 5.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.fillMaxWidth().heightIn(min = 44.dp).clip(shape).background(c.fill).padding(start = MikaSpace.S12, end = MikaSpace.S4),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Icon(MikaIcons.Spark, null, Modifier.size(17.dp), tint = GlowColor)
-        Box(Modifier.weight(1f).padding(vertical = 11.dp)) {
+        Box(Modifier.weight(1f).padding(vertical = MikaSpace.S12)) {
             if (chat.draft.isEmpty()) Text(hint, style = MikaType.Body.copy(fontSize = 14.5.sp), color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis)
             BasicTextField(
                 chat.draft, { chat.draft = it },
@@ -566,13 +567,13 @@ private fun AskField(chat: PageChat, hint: String, stop: (() -> Unit)?) {
                     .clickable(enabled = canSend, role = Role.Button, onClick = chat::send)
                     .semantics { contentDescription = tr(R.string.chat_send) },
                 contentAlignment = Alignment.Center,
-            ) { Icon(MikaIcons.Up, null, Modifier.size(16.dp), tint = c.bg) }
+            ) { Icon(MikaIcons.Up, null, Modifier.size(MikaSize.SmallIcon), tint = c.bg) }
         }
     }
 }
 
-private val PanelShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
-private val CardShape = RoundedCornerShape(16.dp)
+private val PanelShape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl)
+private val CardShape = RoundedCornerShape(MikaRadius.Lg)
 
 /**
  * 半屏对话面板:盖在网页下半截,上面露出来的网页就是 Mika 正在操作的那一页。顶上是网站名、「从这一页开始 · 页面标题」、
@@ -588,13 +589,13 @@ fun PagePanel(chat: PageChat, site: String, pageTitle: String, modifier: Modifie
     val live = card?.run?.state?.isActive() == true
     Column(
         modifier.fillMaxWidth().clip(PanelShape).background(c.bg).border(0.5.dp, c.hair, PanelShape)
-            .padding(horizontal = 14.dp).testTag("page-panel"),
+            .padding(horizontal = MikaSpace.S16).testTag("page-panel"),
     ) {
         Box(
-            Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = tr(R.string.collapse)) { chat.open = false }.padding(vertical = 8.dp),
+            Modifier.fillMaxWidth().clickable(role = Role.Button, onClickLabel = tr(R.string.collapse)) { chat.open = false }.padding(vertical = MikaSpace.S8),
             contentAlignment = Alignment.Center,
         ) { Box(Modifier.width(36.dp).height(4.dp).clip(MikaShapes.Pill).background(c.hair)) }
-        Row(Modifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             Column(Modifier.weight(1f)) {
                 Text(site, style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold), color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
@@ -604,16 +605,16 @@ fun PagePanel(chat: PageChat, site: String, pageTitle: String, modifier: Modifie
             }
             chat.conversationId?.let { id ->
                 Row(
-                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { chat.actions.openMika(id) }.padding(horizontal = 6.dp, vertical = 6.dp)
+                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { chat.actions.openMika(id) }.padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8)
                         .testTag("page-panel-open-chat"),
-                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(3.dp),
+                    verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
                 ) {
                     Text(PageAskCopy.OPEN_CHAT, style = MikaType.Hint.copy(fontSize = 12.5.sp), color = c.accent)
                     Icon(MikaIcons.External, null, Modifier.size(13.dp), tint = c.accent)
                 }
             }
             Box(
-                Modifier.size(30.dp).clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = chat.actions::collapse)
+                Modifier.size(MikaSize.Tile).clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = chat.actions::collapse)
                     .semantics { contentDescription = tr(R.string.collapse) }.testTag("page-panel-collapse"),
                 contentAlignment = Alignment.Center,
             ) { Icon(MikaIcons.Close, null, Modifier.size(17.dp), tint = c.ink3) }
@@ -621,18 +622,18 @@ fun PagePanel(chat: PageChat, site: String, pageTitle: String, modifier: Modifie
         Box(Modifier.fillMaxWidth().height(0.5.dp).background(c.hair))
         // 步骤紧接在对话来回的最后一条(「网站 · 在干活」那一行)下面,和对话页一样跟着往下长,不压到面板底部
         val steps: (@Composable () -> Unit)? = if (content is CardContent.Working && content.steps.isNotEmpty()) {
-            { Box(Modifier.padding(bottom = 6.dp)) { Steps(content.steps, StepsMax, chat.stepTags) } }
+            { Box(Modifier.padding(bottom = MikaSpace.S8)) { Steps(content.steps, StepsMax, chat.stepTags) } }
         } else null
-        Box(Modifier.weight(1f).fillMaxWidth().padding(top = 6.dp)) {
+        Box(Modifier.weight(1f).fillMaxWidth().padding(top = MikaSpace.S8)) {
             chat.thread?.let { t -> androidx.compose.runtime.key(chat.conversationId) { ThreadList(t, chat.conversationId, chat.actions, footer = steps) } }
         }
         if (card != null && card.run.stage == Takeover.Stage.HandedOver) {
-            Column(Modifier.padding(top = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.padding(top = MikaSpace.S8), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 Text(PageAskCopy.HANDLING, style = MikaType.Caption, color = c.ink2)
                 MikaButton(tr(R.string.action_hand_back), chat::handBack, Modifier.fillMaxWidth().testTag("page-panel-hand-back"), kind = ButtonKind.Primary, size = ButtonSize.Medium)
             }
         } else if (card != null && content != null && live) {
-            Box(Modifier.padding(top = 4.dp)) { Pinned(content, card.run.key, chat.actions) }
+            Box(Modifier.padding(top = MikaSpace.S4)) { Pinned(content, card.run.key, chat.actions) }
         }
         val hint = when (content) {
             is CardContent.Takeover, is CardContent.Confirm -> null
@@ -641,7 +642,7 @@ fun PagePanel(chat: PageChat, site: String, pageTitle: String, modifier: Modifie
             else -> CapsuleCards.HINT_CONTINUE
         }
         val stoppable = live && (content is CardContent.Working || content is CardContent.Question || content is CardContent.Held)
-        if (hint != null) Column(Modifier.padding(top = 8.dp, bottom = 10.dp)) {
+        if (hint != null) Column(Modifier.padding(top = MikaSpace.S8, bottom = MikaSpace.S12)) {
             chat.selection?.let { SelectionChip(it) { chat.selection = null } }
             AskField(chat, hint, stop = if (stoppable) ({ card?.run?.key?.let(chat.actions::stop) }) else null)
         } else Box(Modifier.height(10.dp))
@@ -662,8 +663,8 @@ fun PageCard(chat: PageChat, modifier: Modifier = Modifier) {
     Row(
         modifier.fillMaxWidth().floatShadow(c, CardShape).clip(CardShape).background(c.bg).border(0.5.dp, c.hair, CardShape)
             .clickable(role = Role.Button, onClickLabel = PageAskCopy.EXPAND) { chat.open = true }
-            .padding(start = 12.dp, end = 8.dp, top = 10.dp, bottom = 10.dp).testTag("page-card"),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(start = MikaSpace.S12, end = MikaSpace.S8, top = MikaSpace.S12, bottom = MikaSpace.S12).testTag("page-card"),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         Box(Modifier.size(8.dp).clip(MikaShapes.Pill).background(if (warn) c.warnSolid else GlowColor))
         Column(Modifier.weight(1f)) {
@@ -674,7 +675,7 @@ fun PageCard(chat: PageChat, modifier: Modifier = Modifier) {
             if (paused) Text(PageAskCopy.PAUSED_HINT, style = MikaType.Hint, color = c.ink3, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
         if (paused) MikaButton(tr(R.string.chat_continue), { chat.actions.resume(card.run.key) }, Modifier.testTag("page-card-resume"), kind = ButtonKind.Primary, size = ButtonSize.Small)
-        Icon(MikaIcons.Up, PageAskCopy.EXPAND, Modifier.size(18.dp), tint = c.ink3)
+        Icon(MikaIcons.Up, PageAskCopy.EXPAND, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
     }
 }
 
@@ -682,16 +683,16 @@ fun PageCard(chat: PageChat, modifier: Modifier = Modifier) {
 @Composable
 fun PausedBanner(onResume: () -> Unit, modifier: Modifier = Modifier) {
     Row(
-        modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF1D1F24))
-            .padding(start = 12.dp, end = 6.dp, top = 6.dp, bottom = 6.dp).testTag("page-paused-banner"),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier.fillMaxWidth().clip(RoundedCornerShape(MikaRadius.Md)).background(Color(0xFF1D1F24))
+            .padding(start = MikaSpace.S12, end = MikaSpace.S8, top = MikaSpace.S8, bottom = MikaSpace.S8).testTag("page-paused-banner"),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        Icon(MikaIcons.Hand, null, Modifier.size(16.dp), tint = Color.White)
+        Icon(MikaIcons.Hand, null, Modifier.size(MikaSize.SmallIcon), tint = Color.White)
         Text(PageAskCopy.PAUSED, Modifier.weight(1f), style = MikaType.Caption, color = Color.White, maxLines = 1, overflow = TextOverflow.Ellipsis)
         Text(
             tr(R.string.chat_continue),
-            Modifier.clip(RoundedCornerShape(8.dp)).background(Color.White).clickable(role = Role.Button, onClick = onResume)
-                .padding(horizontal = 12.dp, vertical = 5.dp).testTag("page-paused-resume"),
+            Modifier.clip(RoundedCornerShape(MikaRadius.Sm)).background(Color.White).clickable(role = Role.Button, onClick = onResume)
+                .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4).testTag("page-paused-resume"),
             style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold), color = Color(0xFF111111),
         )
     }
@@ -703,11 +704,11 @@ internal fun SentPage(page: AttachedPage.Page, maxWidth: androidx.compose.ui.uni
     val c = MikaTheme.colors
     val host = com.wangzan101.mika.core.cap.web.WebUrlPolicy.host(page.url) ?: page.url
     Column(
-        Modifier.padding(bottom = 4.dp).widthIn(max = maxWidth).background(c.ink.copy(alpha = 0.05f), RoundedCornerShape(12.dp))
-            .padding(horizontal = 10.dp, vertical = 6.dp).testTag("sent-page"),
+        Modifier.padding(bottom = MikaSpace.S4).widthIn(max = maxWidth).background(c.ink.copy(alpha = 0.05f), RoundedCornerShape(MikaRadius.Md))
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8).testTag("sent-page"),
         verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
             Icon(MikaIcons.Globe, null, Modifier.size(13.dp), tint = c.ink3)
             Text("${PageAskCopy.WEB} · $host", style = MikaType.Hint, color = c.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }

@@ -59,6 +59,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 private data class LibraryRow(
     val key: String,
@@ -334,13 +337,13 @@ internal fun FileLibraryScreen(
                     onCancel = { exitSelection() },
                     onSelectAll = { selectedList = LibrarySelection.toggleAll(selectedList.toSet(), rows.map { it.key }).toList() },
                 )
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp)) {
+                Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = 2.dp)) {
                     Text(
                         "$conversationLabel · $sourceLabel", Modifier.weight(1f).testTag("file-library-scope"),
                         style = MikaType.Hint, color = MikaTheme.colors.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                     Text(
-                        stringResource(R.string.file_library_file_count, rows.size), Modifier.padding(start = 12.dp),
+                        stringResource(R.string.file_library_file_count, rows.size), Modifier.padding(start = MikaSpace.S12),
                         style = MikaType.Hint, color = MikaTheme.colors.ink3, maxLines = 1,
                     )
                 }
@@ -351,12 +354,12 @@ internal fun FileLibraryScreen(
                     onBack = onBack,
                     onSelect = { selecting = true },
                 )
-                Column(Modifier.padding(horizontal = 16.dp)) {
+                Column(Modifier.padding(horizontal = MikaSpace.S16)) {
                     SearchField(query, { query = it }, stringResource(R.string.file_library_search), Modifier.testTag("file-library-search"))
                     // The filters scroll sideways instead of splitting the width, so neither label is cut short.
                     Row(
-                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = 10.dp, bottom = 10.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()).padding(top = MikaSpace.S12, bottom = MikaSpace.S12),
+                        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                     ) {
                         val pillMaxWidth = (LocalConfiguration.current.screenWidthDp.dp * 0.7f).coerceAtLeast(160.dp)
                         LibraryFilterPill(
@@ -403,8 +406,8 @@ internal fun FileLibraryScreen(
                 }
             }
             if (loaded?.partial == true && loaded?.failed == false) {
-                Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(stringResource(R.string.file_library_partial), Modifier.weight(1f).padding(vertical = 12.dp), style = MikaType.Hint, color = MikaTheme.colors.warn)
+                Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16), horizontalArrangement = Arrangement.SpaceBetween) {
+                    Text(stringResource(R.string.file_library_partial), Modifier.weight(1f).padding(vertical = MikaSpace.S12), style = MikaType.Hint, color = MikaTheme.colors.warn)
                     TextButton(onClick = { revision++ }) { Text(stringResource(R.string.file_library_retry)) }
                 }
             }
@@ -423,7 +426,7 @@ internal fun FileLibraryScreen(
                     }
                     LazyColumn(
                         Modifier.weight(1f).fillMaxWidth().testTag("file-library-list"),
-                        contentPadding = PaddingValues(start = 6.dp, end = 6.dp, bottom = 8.dp),
+                        contentPadding = PaddingValues(start = MikaSpace.S8, end = MikaSpace.S8, bottom = MikaSpace.S8),
                     ) {
                         groups.forEach { (day, members) ->
                             item(key = "day:${day ?: "unknown"}") {
@@ -464,7 +467,7 @@ internal fun FileLibraryScreen(
                     if (!selecting) {
                         Text(
                             stringResource(R.string.file_library_file_count, rows.size),
-                            Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 12.dp),
+                            Modifier.fillMaxWidth().padding(top = MikaSpace.S8, bottom = MikaSpace.S12),
                             style = MikaType.Hint, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
                         )
                     }
@@ -506,15 +509,15 @@ internal fun FileLibraryScreen(
                 if (vm.canSwitch()) Text(stringResource(R.string.file_library_new), Modifier.fillMaxWidth().clickable {
                     choosing = null
                     add(item, store.newConversation())
-                }.padding(vertical = 12.dp))
+                }.padding(vertical = MikaSpace.S12))
                 titles.filter { (id, _) -> vm.canSwitch() || id == vm.ui.value.conversationId }.forEach { (id, title) -> Text(title, Modifier.fillMaxWidth().clickable {
                     choosing = null
                     add(item, id)
-                }.padding(vertical = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                }.padding(vertical = MikaSpace.S12), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 if (vm.ui.value.conversationId == null) Text(stringResource(R.string.file_library_current), Modifier.fillMaxWidth().clickable {
                     choosing = null
                     add(item, vm.libraryTargetConversation())
-                }.padding(vertical = 12.dp))
+                }.padding(vertical = MikaSpace.S12))
             }
         }, confirmButton = { TextButton(onClick = { choosing = null }) { Text(stringResource(R.string.cancel)) } })
     }
@@ -524,19 +527,19 @@ internal fun FileLibraryScreen(
                 if (vm.canSwitch()) Text(stringResource(R.string.file_library_new), Modifier.fillMaxWidth().clickable {
                     choosingBatch = false
                     addSelected(store.newConversation())
-                }.padding(vertical = 12.dp))
+                }.padding(vertical = MikaSpace.S12))
                 titles.filter { (id, _) -> vm.canSwitch() || id == vm.ui.value.conversationId }.forEach { (id, title) -> Text(title, Modifier.fillMaxWidth().clickable {
                     choosingBatch = false
                     addSelected(id)
-                }.padding(vertical = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis) }
+                }.padding(vertical = MikaSpace.S12), maxLines = 1, overflow = TextOverflow.Ellipsis) }
                 if (initialConversation != null && initialConversation !in titles) Text(stringResource(R.string.file_library_current), Modifier.fillMaxWidth().clickable {
                     choosingBatch = false
                     addSelected(initialConversation)
-                }.padding(vertical = 12.dp))
+                }.padding(vertical = MikaSpace.S12))
                 if (vm.ui.value.conversationId == null) Text(stringResource(R.string.file_library_current), Modifier.fillMaxWidth().clickable {
                     choosingBatch = false
                     addSelected(vm.libraryTargetConversation())
-                }.padding(vertical = 12.dp))
+                }.padding(vertical = MikaSpace.S12))
             }
         }, confirmButton = { TextButton(onClick = { choosingBatch = false }) { Text(stringResource(R.string.cancel)) } })
     }
@@ -552,7 +555,7 @@ internal fun FileLibraryScreen(
                         val shown = outcome.failed.take(5).joinToString(stringResource(R.string.list_sep))
                         Text(
                             stringResource(R.string.file_library_batch_failed_names, if (outcome.failed.size > 5) "$shown…" else shown),
-                            Modifier.padding(top = 8.dp),
+                            Modifier.padding(top = MikaSpace.S8),
                         )
                     }
                 }
@@ -587,7 +590,7 @@ internal fun FileLibraryScreen(
                     val shown = outcome.failed.take(5).joinToString(stringResource(R.string.list_sep))
                     Text(
                         stringResource(R.string.file_library_share_failed_names, if (outcome.failed.size > 5) "$shown…" else shown),
-                        Modifier.padding(top = 8.dp),
+                        Modifier.padding(top = MikaSpace.S8),
                     )
                 }
             },
@@ -614,22 +617,22 @@ private fun LibraryTopBar(canSelect: Boolean, working: Boolean, onBack: () -> Un
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().windowInsetsPadding(WindowInsets.statusBars)
-            .heightIn(min = 64.dp).padding(start = 4.dp, end = 12.dp),
+            .heightIn(min = 64.dp).padding(start = MikaSpace.S4, end = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         BarIconButton(MikaIcons.Back, stringResource(R.string.back), onBack)
         Text(
-            stringResource(R.string.file_library_title), Modifier.weight(1f).padding(start = 4.dp),
+            stringResource(R.string.file_library_title), Modifier.weight(1f).padding(start = MikaSpace.S4),
             style = LibraryTitleStyle, color = c.ink, maxLines = 1,
         )
         Row(
-            Modifier.clip(RoundedCornerShape(13.dp)).background(c.fill)
+            Modifier.clip(RoundedCornerShape(MikaRadius.Md)).background(c.fill)
                 .clickable(enabled = canSelect && !working, role = Role.Button, onClick = onSelect)
                 .testTag("file-library-select")
                 .alpha(if (canSelect && !working) 1f else 0.4f)
-                .padding(horizontal = 12.dp, vertical = 9.dp),
+                .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
             Icon(MikaIcons.ListChecks, null, Modifier.size(17.dp), tint = c.ink2)
             Text(stringResource(R.string.file_library_select), style = MikaType.Label, color = c.ink2)
@@ -655,20 +658,20 @@ private fun LibrarySelectionTopBar(
             style = MikaType.Title, color = c.ink, textAlign = TextAlign.Center, maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
         Row(
-            Modifier.fillMaxSize().padding(horizontal = 4.dp),
+            Modifier.fillMaxSize().padding(horizontal = MikaSpace.S4),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween,
         ) {
             TextButton(
                 onClick = onCancel, enabled = !working,
-                contentPadding = PaddingValues(horizontal = 12.dp),
+                contentPadding = PaddingValues(horizontal = MikaSpace.S12),
                 modifier = Modifier.testTag("file-library-select-cancel"),
             ) {
                 Text(stringResource(R.string.cancel), style = MikaType.Body, color = if (working) c.ink3 else c.accent)
             }
             TextButton(
                 onClick = onSelectAll, enabled = !working && canSelectAll,
-                contentPadding = PaddingValues(horizontal = 12.dp),
+                contentPadding = PaddingValues(horizontal = MikaSpace.S12),
                 modifier = Modifier.testTag("file-library-select-all"),
             ) {
                 Text(
@@ -692,16 +695,16 @@ private fun LibraryFilterPill(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(20.dp)
+    val shape = RoundedCornerShape(MikaRadius.Xl)
     Box(modifier) {
         Row(
             Modifier.heightIn(min = 40.dp).clip(shape)
                 .background(if (active) c.accent.copy(alpha = 0.14f) else c.fill)
                 .border(1.dp, if (active || expanded) c.accent.copy(alpha = 0.55f) else c.hair, shape)
                 .clickable(role = Role.Button, onClick = onToggle)
-                .padding(start = 14.dp, end = 10.dp),
+                .padding(start = MikaSpace.S16, end = MikaSpace.S12),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
             Text(
                 label, Modifier.weight(1f, fill = false),
@@ -713,13 +716,13 @@ private fun LibraryFilterPill(
             expanded = expanded,
             onDismissRequest = onDismiss,
             offset = DpOffset(0.dp, 6.dp),
-            shape = RoundedCornerShape(18.dp),
+            shape = RoundedCornerShape(MikaRadius.Xl),
             containerColor = c.surface,
             tonalElevation = 0.dp,
             shadowElevation = 10.dp,
             border = BorderStroke(0.5.dp, c.edge),
         ) {
-            Column(Modifier.padding(6.dp).widthIn(min = 200.dp, max = 280.dp), content = content)
+            Column(Modifier.padding(MikaSpace.S8).widthIn(min = 200.dp, max = 280.dp), content = content)
         }
     }
 }
@@ -729,26 +732,26 @@ private fun LibraryFilterPill(
 private fun FilterMenuItem(label: String, selected: Boolean, onClick: () -> Unit) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp))
+        Modifier.fillMaxWidth().clip(RoundedCornerShape(MikaRadius.Md))
             .background(if (selected) c.accentSoft else Color.Transparent)
             .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Text(
             label, Modifier.weight(1f), style = MikaType.Body,
             color = if (selected) c.accent else c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
         )
-        if (selected) Icon(MikaIcons.Check, null, Modifier.size(16.dp), tint = c.accent)
-        else Spacer(Modifier.size(16.dp))
+        if (selected) Icon(MikaIcons.Check, null, Modifier.size(MikaSize.SmallIcon), tint = c.accent)
+        else Spacer(Modifier.size(MikaSpace.S16))
     }
 }
 
 @Composable
 private fun LibraryDayHeader(label: String) {
     Text(
-        label, Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, top = 13.dp, bottom = 5.dp),
+        label, Modifier.fillMaxWidth().padding(start = MikaSpace.S12, end = MikaSpace.S12, top = MikaSpace.S12, bottom = MikaSpace.S4),
         style = MikaType.Label, color = MikaTheme.colors.ink3,
     )
 }
@@ -787,10 +790,10 @@ private fun LibraryFileRow(
     onMore: () -> Unit,
 ) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(13.dp)
+    val shape = RoundedCornerShape(MikaRadius.Md)
     Column(Modifier.fillMaxWidth()) {
         if (divider && !selected) {
-            Box(Modifier.fillMaxWidth().padding(start = 70.dp, end = 4.dp).height(0.5.dp).background(c.hair))
+            Box(Modifier.fillMaxWidth().padding(start = 70.dp, end = MikaSpace.S4).height(0.5.dp).background(c.hair))
         }
         Row(
             Modifier.fillMaxWidth().clip(shape)
@@ -803,7 +806,7 @@ private fun LibraryFileRow(
                     )
                 )
                 .testTag("file-library-row")
-                .padding(start = 10.dp, top = 10.dp, bottom = 10.dp),
+                .padding(start = MikaSpace.S12, top = MikaSpace.S12, bottom = MikaSpace.S12),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selecting) {
@@ -822,7 +825,7 @@ private fun LibraryFileRow(
             } else {
                 FileTypeTile(item.name)
             }
-            Column(Modifier.weight(1f).padding(start = 12.dp, end = 4.dp)) {
+            Column(Modifier.weight(1f).padding(start = MikaSpace.S12, end = MikaSpace.S4)) {
                 Text(item.name, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
                 Text(
                     listOfNotNull(
@@ -831,7 +834,7 @@ private fun LibraryFileRow(
                         sourceLabel,
                         if (available == false) stringResource(R.string.file_library_missing) else null,
                     ).joinToString(" · "),
-                    Modifier.padding(top = 3.dp),
+                    Modifier.padding(top = MikaSpace.S4),
                     style = MikaType.Hint, color = if (available == false) c.bad else c.ink3,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
@@ -839,7 +842,7 @@ private fun LibraryFileRow(
                     Row(
                         Modifier.padding(top = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
                     ) {
                         Text(
                             conversationLabel, Modifier.weight(1f, fill = false),
@@ -851,20 +854,20 @@ private fun LibraryFileRow(
             }
             if (selecting) {
                 Box(
-                    Modifier.width(56.dp).height(48.dp).clip(RoundedCornerShape(10.dp)).clickable(enabled = !working, onClick = onOpen),
+                    Modifier.width(56.dp).height(48.dp).clip(RoundedCornerShape(MikaRadius.Sm)).clickable(enabled = !working, onClick = onOpen),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(stringResource(R.string.file_library_preview), style = MikaType.Label, color = c.accent)
                 }
             } else {
                 Box(
-                    Modifier.width(56.dp).height(48.dp).clip(RoundedCornerShape(10.dp)).clickable(enabled = !working, onClick = onMore),
+                    Modifier.width(56.dp).height(48.dp).clip(RoundedCornerShape(MikaRadius.Sm)).clickable(enabled = !working, onClick = onMore),
                     contentAlignment = Alignment.Center,
                 ) {
                     Icon(MikaIcons.More, stringResource(R.string.more), Modifier.size(20.dp), tint = c.ink3)
                 }
             }
-            Spacer(Modifier.width(4.dp))
+            Spacer(Modifier.width(MikaSpace.S4))
         }
     }
 }
@@ -874,10 +877,10 @@ private fun LibraryFileRow(
 private fun ArchivedTag() {
     val c = MikaTheme.colors
     Row(
-        Modifier.clip(RoundedCornerShape(6.dp)).background(c.accentSoft).padding(horizontal = 5.dp, vertical = 1.dp)
+        Modifier.clip(RoundedCornerShape(MikaRadius.Xs)).background(c.accentSoft).padding(horizontal = MikaSpace.S4, vertical = 1.dp)
             .testTag("file-library-archived"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
     ) {
         Icon(MikaIcons.Archive, null, Modifier.size(10.dp), tint = c.ink3)
         Text(stringResource(R.string.drawer_archived), style = MikaType.Hint, color = c.ink3, maxLines = 1)
@@ -890,14 +893,14 @@ private fun FileTypeTile(name: String) {
     val c = MikaTheme.colors
     val (icon, label) = fileBadge(name)
     Column(
-        Modifier.size(width = 48.dp, height = 54.dp).clip(RoundedCornerShape(11.dp)).background(c.fill),
+        Modifier.size(width = 48.dp, height = 54.dp).clip(RoundedCornerShape(MikaRadius.Md)).background(c.fill),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        Icon(icon, null, Modifier.size(22.dp), tint = c.ink2)
+        Icon(icon, null, Modifier.size(MikaSize.Icon), tint = c.ink2)
         Text(
             label, Modifier.padding(top = 2.dp),
-            style = TextStyle(fontSize = 9.sp, lineHeight = 11.sp, fontWeight = FontWeight.Medium, letterSpacing = 0.6.sp),
+            style = MikaType.Overline,
             color = c.ink2, maxLines = 1,
         )
     }
@@ -931,49 +934,49 @@ private fun LibraryBatchBar(
     Column(Modifier.fillMaxWidth()) {
         Box(Modifier.fillMaxWidth().height(0.5.dp).background(c.hair))
         Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 10.dp)
+            Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12, bottom = MikaSpace.S12)
                 .testTag("file-library-select-bar"),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Row(
-                Modifier.height(48.dp).clip(RoundedCornerShape(14.dp)).background(c.fill)
+                Modifier.height(48.dp).clip(RoundedCornerShape(MikaRadius.Lg)).background(c.fill)
                     .clickable(enabled = enabled, role = Role.Button, onClick = onShare)
                     .testTag("file-library-share-selected")
-                    .padding(horizontal = 16.dp),
+                    .padding(horizontal = MikaSpace.S16),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
             ) {
-                Icon(MikaIcons.Share, null, Modifier.size(18.dp), tint = if (enabled) c.ink else c.ink3)
+                Icon(MikaIcons.Share, null, Modifier.size(MikaSize.TileIcon), tint = if (enabled) c.ink else c.ink3)
                 Text(
                     stringResource(R.string.file_library_share), style = MikaType.BodyStrong,
                     color = if (enabled) c.ink else c.ink3,
                 )
             }
             Row(
-                Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(14.dp))
+                Modifier.weight(1f).height(48.dp).clip(RoundedCornerShape(MikaRadius.Lg))
                     .background(if (enabled) c.accent else c.accent.copy(alpha = 0.35f))
                     .clickable(enabled = enabled, role = Role.Button, onClick = onAdd)
                     .testTag("file-library-add-selected")
-                    .padding(horizontal = 14.dp),
+                    .padding(horizontal = MikaSpace.S16),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center,
             ) {
                 if (working) {
-                    CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp, color = c.onAccent)
+                    CircularProgressIndicator(Modifier.size(MikaSize.SmallIcon), strokeWidth = 2.dp, color = c.onAccent)
                     Text(
                         stringResource(if (sharing) R.string.file_library_sharing else R.string.file_library_adding, done, total),
-                        Modifier.padding(start = 8.dp),
+                        Modifier.padding(start = MikaSpace.S8),
                         style = MikaType.Label, color = c.onAccent, maxLines = 1, overflow = TextOverflow.Ellipsis,
                     )
                 } else {
                     Icon(
-                        MikaIcons.ListPlus, null, Modifier.size(18.dp),
+                        MikaIcons.ListPlus, null, Modifier.size(MikaSize.TileIcon),
                         tint = if (enabled) c.onAccent else c.onAccent.copy(alpha = 0.6f),
                     )
                     Text(
                         if (count > 0) stringResource(R.string.file_library_add_selected, count) else stringResource(R.string.file_library_add),
-                        Modifier.padding(start = 7.dp),
+                        Modifier.padding(start = MikaSpace.S8),
                         style = MikaType.BodyStrong,
                         color = if (enabled) c.onAccent else c.onAccent.copy(alpha = 0.6f),
                         maxLines = 1, overflow = TextOverflow.Ellipsis,

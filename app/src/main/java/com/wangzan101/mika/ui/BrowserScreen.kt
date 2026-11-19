@@ -70,6 +70,7 @@ import com.wangzan101.mika.core.cap.web.WebUrlPolicy
 import com.wangzan101.mika.core.uistate.PageDialog
 import com.wangzan101.mika.ui.components.PageBackground
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 浏览器页(侧栏「浏览器」):没有打开的网页时是起始页([BrowserStart]:搜索框、常用网站、最近打开),
@@ -427,7 +428,7 @@ private fun WebPermissionDialog(site: String, what: String, onAllow: () -> Unit,
         onDismissRequest = onDeny,
         title = { Text(site) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
                 Text(tr(R.string.browser_permission_ask))
                 Text(what, style = MikaType.BodyStrong)
             }
@@ -466,7 +467,7 @@ private fun PageDialogBox(d: PageDialog, answer: (Boolean, String?) -> Unit) {
         onDismissRequest = { answer(false, null) },
         title = { Text(if (leave) tr(R.string.browser_leave_q) else tr(R.string.browser_page_says)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 if (d.message.isNotBlank()) Text(d.message)
                 if (leave && d.message.isBlank()) Text(tr(R.string.browser_leave_body))
                 if (d.kind == PageDialog.PROMPT) TextField(input, { input = it }, singleLine = true)

@@ -188,3 +188,34 @@ fun userBubbleTone(accent: Color, dark: Boolean): UserBubbleColors {
     }
     return UserBubbleColors(bg, text)
 }
+
+/** Solid icon-tile colours on the Settings home, so a row can be found by eye. */
+object SettingsTint {
+    val Blue = Color(0xFF0A7CFF)
+    val Purple = Color(0xFF9B5CF5)
+    val Green = Color(0xFF25B35F)
+    val Orange = Color(0xFFF08A1C)
+    val Red = Color(0xFFE5483D)
+    val Teal = Color(0xFF1AA5A5)
+    val WhatsApp = Color(0xFF1FA855)
+    val Pink = Color(0xFFE0306A)
+    val Indigo = Color(0xFF5856D6)
+    val Gray = Color(0xFF636366)
+    val Yellow = Color(0xFFC99700)
+}
+
+/** Typing dots: a little lighter than tertiary ink on black so they read as alive, not disabled. */
+val MikaColors.indicator: Color get() = if (isDark) Color(0xFFB4B6BA) else ink3
+/** The pill behind the typing dots. */
+val MikaColors.indicatorSurface: Color get() = if (isDark) Color(0xFF222326) else surface
+/** The "Thinking" shimmer: its resting tone and the light that sweeps across it. */
+val MikaColors.shimmerBase: Color get() = if (isDark) Color(0xFF8E9197) else ink3
+val MikaColors.shimmerShine: Color get() = if (isDark) Color(0xFFF2F3F5) else ink
+/** Needs-you and error text on cards; darker than [MikaColors.warn]/[MikaColors.bad] in light mode for 4.5:1 contrast. */
+val MikaColors.attentionInk: Color get() = if (isDark) warn else Color(0xFF8C5000)
+val MikaColors.errorInk: Color get() = if (isDark) bad else Color(0xFFAB3028)
+/** Over a live screen or photo: a black scrim and white text, the same in light and dark. */
+val MikaColors.mediaScrim: Color get() = Color.Black
+val MikaColors.onMedia: Color get() = Color.White
+/** The end-call button: the universal hang-up red, the same in light and dark. */
+val MikaColors.hangUp: Color get() = Color(0xFFFF3B30)

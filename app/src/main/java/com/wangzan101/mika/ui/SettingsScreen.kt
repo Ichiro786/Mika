@@ -95,6 +95,10 @@ import com.wangzan101.mika.whatsapp.WhatsappStatus
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.SettingsTint
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 设置里能进入的子页面;[Home] 是设置首页,[Advanced] 集中放置连接、维护和工程能力。 */
 private enum class SettingsPage { Home, Advanced, AppAccess, PhoneOps, Calls, Whatsapp, DuringWork, Capsule, Language, Appearance, Voice, Prompts, PromptInstructions, PromptSystem, Notifications, Recommendations, Sandbox, Recovery, SelfCheck, ComputerAccess, McpServers, Root, Developer, RunStats }
@@ -387,20 +391,6 @@ fun SettingsScreen(
     }
 }
 
-/** Solid icon-tile colours on the Settings home, so a row can be found by eye. */
-internal object SettingsTint {
-    val Blue = Color(0xFF0A7CFF)
-    val Purple = Color(0xFF9B5CF5)
-    val Green = Color(0xFF25B35F)
-    val Orange = Color(0xFFF08A1C)
-    val Red = Color(0xFFE5483D)
-    val Teal = Color(0xFF1AA5A5)
-    val WhatsApp = Color(0xFF1FA855)
-    val Pink = Color(0xFFE0306A)
-    val Indigo = Color(0xFF5856D6)
-    val Gray = Color(0xFF636366)
-    val Yellow = Color(0xFFC99700)
-}
 
 /** One row on the Settings home; [keywords] are extra words the search box matches. */
 private class SettingsEntry(
@@ -572,12 +562,12 @@ private fun SettingsSearchField(value: String, onChange: (String) -> Unit) {
     val c = MikaTheme.colors
     val label = stringResource(R.string.settings_search)
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 12.dp).heightIn(min = 46.dp)
-            .background(c.surface, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp),
+        Modifier.fillMaxWidth().padding(bottom = MikaSpace.S12).heightIn(min = 46.dp)
+            .background(c.surface, RoundedCornerShape(MikaRadius.Lg)).padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Icon(MikaIcons.Search, null, Modifier.size(18.dp), tint = c.ink3)
+        Icon(MikaIcons.Search, null, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
         Box(Modifier.weight(1f)) {
             if (value.isEmpty()) Text(label, style = MikaType.Body, color = c.ink3, maxLines = 1)
             BasicTextField(
@@ -587,7 +577,7 @@ private fun SettingsSearchField(value: String, onChange: (String) -> Unit) {
         }
         if (value.isNotEmpty()) {
             Icon(MikaIcons.Close, stringResource(R.string.settings_search_clear),
-                Modifier.size(32.dp).clip(CircleShape).clickable { onChange("") }.padding(7.dp), tint = c.ink3)
+                Modifier.size(32.dp).clip(CircleShape).clickable { onChange("") }.padding(MikaSpace.S8), tint = c.ink3)
         }
     }
 }

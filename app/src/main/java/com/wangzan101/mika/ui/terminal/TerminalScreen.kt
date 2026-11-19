@@ -48,6 +48,8 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 终端页的入口:打开(或附着)这个对话的会话,把状态交给 [TerminalScreen]。 */
 @Composable
@@ -172,7 +174,7 @@ private fun TerminalScreen(
             if (taskRunning) {
                 Text(
                     tr(R.string.terminal_task_running),
-                    Modifier.fillMaxWidth().background(c.warn.copy(alpha = 0.12f)).padding(horizontal = 16.dp, vertical = 8.dp),
+                    Modifier.fillMaxWidth().background(c.warn.copy(alpha = 0.12f)).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8),
                     style = MikaType.Hint,
                     color = c.warn,
                 )
@@ -232,16 +234,16 @@ private fun TerminalScreen(
 
 @Composable
 private fun Message(text: String) {
-    Box(Modifier.fillMaxSize().padding(24.dp), contentAlignment = Alignment.TopStart) {
+    Box(Modifier.fillMaxSize().padding(MikaSpace.S24), contentAlignment = Alignment.TopStart) {
         Text(text, style = MikaType.Body, color = ConsoleDim)
     }
 }
 
 @Composable
 private fun ErrorBox(error: SandboxError, onRetry: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(24.dp)) {
+    Column(Modifier.fillMaxSize().padding(MikaSpace.S24)) {
         Text(errorText(error), style = MikaType.Body, color = ConsoleFg)
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(MikaSpace.S16))
         TextButton(onClick = onRetry) { Text(tr(R.string.terminal_retry), color = MikaTheme.colors.accent) }
     }
 }
@@ -250,7 +252,7 @@ private fun ErrorBox(error: SandboxError, onRetry: () -> Unit) {
 private fun ResultBanner(phase: TerminalSession.Phase, exitCode: Int?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
     Row(
-        modifier.fillMaxWidth().background(c.surface.copy(alpha = 0.96f)).padding(horizontal = 16.dp, vertical = 10.dp),
+        modifier.fillMaxWidth().background(c.surface.copy(alpha = 0.96f)).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(resultText(phase, exitCode), Modifier.weight(1f), style = MikaType.Body, color = c.ink)
@@ -272,8 +274,8 @@ private fun ExtraKeys(
 ) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().background(c.surface).navigationBarsPadding().padding(horizontal = 6.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(3.dp),
+        Modifier.fillMaxWidth().background(c.surface).navigationBarsPadding().padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Key("Esc", onEsc)
@@ -295,9 +297,9 @@ private fun Key(text: String, onClick: () -> Unit, bad: Boolean = false) {
     Text(
         text,
         Modifier
-            .background(c.fill, RoundedCornerShape(6.dp))
+            .background(c.fill, RoundedCornerShape(MikaRadius.Xs))
             .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
+            .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
         style = MikaType.Caption,
         color = if (bad) c.bad else c.ink,
     )

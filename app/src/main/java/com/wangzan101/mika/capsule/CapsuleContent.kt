@@ -2,13 +2,7 @@ package com.wangzan101.mika.capsule
 
 import com.wangzan101.mika.i18n.tr
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -76,27 +70,29 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlin.math.ceil
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import com.wangzan101.mika.ui.theme.rememberMikaPhase
+import com.wangzan101.mika.ui.plan.RingSpinner
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.onMedia
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 胶囊外面留给阴影的边:浮层窗口按内容大小,阴影画在窗口里面;留得越少,窗口挡住下面 App 的透明边越窄。 */
 internal val CapsuleShadowRoom = 8.dp
 private val CapsuleHeight = 40.dp
 private val BarHeight = 48.dp
 private val LogoSize = 30.dp
-private const val FADE_MS = 400
-/** 截到屏幕时一颗上那一闪:多亮、多久退掉。 */
+/** 截到屏幕时一颗上那一闪有多亮。 */
 private const val FLASH_ALPHA = 0.8f
-private const val FLASH_MS = 320
-/** 一颗展开成胶囊、缩回一颗的时长。 */
-private const val MORPH_MS = 260
-/** 长按说话时放大多少、外圈多粗、变过去多久。 */
+/** 长按说话时放大多少、外圈多粗。 */
 private const val HOLD_SCALE = 0.06f
 private val HoldRing = 3.dp
-private const val HOLD_MS = 180
-/** 干活中的圈转一周的时长。 */
-private const val SPIN_MS = 1_200
-private val CapsuleText = TextStyle(fontSize = 13.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
-private val BarDetail = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
-private val CountText = TextStyle(fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold)
+private val CapsuleText = MikaType.Label
+private val BarDetail = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
+private val CountText = MikaType.Micro
 
 /** 胶囊上的固定说法。 */
 object CapsuleCopy {
@@ -148,7 +144,7 @@ fun CapsuleContent(
     talkLabel: String = "",
 ) {
     // 淡下去、恢复都慢慢来;关了动画时直接换
-    val shown = if (MikaTheme.reduceMotion) alpha else animateFloatAsState(alpha, tween(FADE_MS), label = "fade").value
+    val shown = animateFloatAsState(alpha, MikaTheme.motion.effectsSlow(), label = "fade").value
     val a11y = Modifier.semantics {
         customActions = listOfNotNull(
             onSwapSide?.let { f -> CustomAccessibilityAction(CapsuleCopy.SWAP_SIDE) { f(); true } },
@@ -167,8 +163,7 @@ fun CapsuleContent(
 private fun Capsule(view: CapsuleView.Shown, end: Boolean, onTap: () -> Unit, tapLabel: String, a11y: Modifier, alpha: Float, flash: Int, holding: Boolean) {
     val c = MikaTheme.colors
     // 长按说话中:放大一点、外面一圈蓝边(画在阴影边里,窗口大小不变)
-    val press = if (MikaTheme.reduceMotion) (if (holding) 1f else 0f)
-        else animateFloatAsState(if (holding) 1f else 0f, tween(HOLD_MS), label = "hold").value
+    val press = animateFloatAsState(if (holding) 1f else 0f, MikaTheme.motion.spatialFast(), label = "hold").value
     val need = view.kind.needsYou || view.needCount > 0
     // 截到屏幕:白光从亮到无,和截图时屏幕闪一下一个意思;关了动画时不闪
     val glow = remember { Animatable(0f) }
@@ -177,7 +172,7 @@ private fun Capsule(view: CapsuleView.Shown, end: Boolean, onTap: () -> Unit, ta
     LaunchedEffect(flash) {
         if (flash == 0 || still) return@LaunchedEffect
         glow.snapTo(FLASH_ALPHA)
-        glow.animateTo(0f, tween(FLASH_MS))
+        glow.animateTo(0f, MikaMotion.specs(still).effectsSlow())
     }
     Box(
         Modifier.graphicsLayer {
@@ -203,7 +198,7 @@ private fun Capsule(view: CapsuleView.Shown, end: Boolean, onTap: () -> Unit, ta
         ) {
             if (view.pill) PillRow(view, end, need)
             else Box(Modifier.size(CapsuleHeight), contentAlignment = Alignment.Center) { CapsuleLogo() }
-            if (glow.value > 0f) Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Color.White.copy(alpha = glow.value)))
+            if (glow.value > 0f) Box(Modifier.matchParentSize().background(c.onMedia.copy(alpha = glow.value)))
         }
         // 外圈和角标不随底淡下去;缩回时贴着图标那一边,不跟着还没收完的宽度走
         if (!view.pill) Box(Modifier.align(if (end) Alignment.CenterEnd else Alignment.CenterStart).size(CapsuleHeight)) {
@@ -225,9 +220,9 @@ private fun PillRow(view: CapsuleView.Shown, end: Boolean, need: Boolean) {
         Modifier.widthIn(min = minWidth.coerceAtMost(maxWidth), max = maxWidth)
             .onSizeChanged { if (it.width > widest) widest = it.width }
             .height(CapsuleHeight)
-            .padding(start = if (end) 13.dp else 5.dp, end = if (end) 5.dp else 13.dp),
+            .padding(start = if (end) MikaSpace.S12 else MikaSpace.S4, end = if (end) MikaSpace.S4 else MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, if (end) Alignment.End else Alignment.Start),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, if (end) Alignment.End else Alignment.Start),
     ) {
         if (!end) CapsuleLogo()
         Leading(view.kind)
@@ -239,16 +234,18 @@ private fun PillRow(view: CapsuleView.Shown, end: Boolean, need: Boolean) {
     }
 }
 
-/** 文字前面的状态标记:要你处理是呼吸点,办好了是勾,没办成是叹号,已停止是停止,后台网页运行中是绿点。 */
+/** 文字前面的状态标记:干活中是实时计划的小圈,要你处理是呼吸点,办好了是勾,没办成是叹号,已停止是停止,后台网页运行中是绿点。 */
 @Composable
 private fun Leading(kind: CapsuleKind) {
     val c = MikaTheme.colors
     when {
         kind.needsYou -> BreathingDot(c)
-        kind == CapsuleKind.Done -> Icon(MikaIcons.Check, null, Modifier.size(16.dp), tint = c.ok)
-        kind == CapsuleKind.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(16.dp), tint = c.ink3)
-        kind == CapsuleKind.Cancelled -> Icon(MikaIcons.Stop, null, Modifier.size(16.dp), tint = c.ink3)
+        kind == CapsuleKind.Done -> Icon(MikaIcons.Check, null, Modifier.size(MikaSize.SmallIcon), tint = c.ok)
+        kind == CapsuleKind.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
+        kind == CapsuleKind.Cancelled -> Icon(MikaIcons.Stop, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
         kind == CapsuleKind.KeptPage -> LiveDot(c)
+        // Working: the live plan's compact ring beside the current step (the pill's text); tap opens the card.
+        kind == CapsuleKind.Running -> RingSpinner(Modifier.size(14.dp).testTag("capsule-plan-ring"), c.accent, c.accentSoft, spinning = true)
         else -> Unit
     }
 }
@@ -274,9 +271,7 @@ private fun BreathingDot(c: MikaColors) {
 
 /** 一呼一吸(0..1 来回);关了动画时停在 [still]。 */
 @Composable
-private fun breathe(still: Float): Float = if (MikaTheme.reduceMotion) still else rememberInfiniteTransition(label = "breathe").animateFloat(
-    0f, 1f, infiniteRepeatable(tween(700), RepeatMode.Reverse), label = "breathe",
-).value
+private fun breathe(still: Float): Float = rememberMikaPulse(still, label = "breathe").value
 
 /** 一颗图标的外圈:干活中一段蓝弧绕着转(关了动画时是一整圈不动),等条件灰色一整圈,要你处理橙色一整圈一呼一吸;其余没有。 */
 @Composable
@@ -289,9 +284,7 @@ private fun Ring(kind: CapsuleKind, need: Boolean, modifier: Modifier) {
         else -> return
     }
     val spin = kind == CapsuleKind.Running && !need && !MikaTheme.reduceMotion
-    val angle = if (!spin) 0f else rememberInfiniteTransition(label = "spin").animateFloat(
-        0f, 360f, infiniteRepeatable(tween(SPIN_MS, easing = LinearEasing)), label = "spin",
-    ).value
+    val angle = if (!spin) 0f else (rememberMikaPhase(label = "spin")?.value ?: 0f) * 360f
     val strength = if (need) 0.45f + 0.55f * breathe(still = 1f) else 1f
     Canvas(modifier.testTag("capsule-ring")) {
         val stroke = 2.dp.toPx()
@@ -318,7 +311,7 @@ private fun Badge(view: CapsuleView.Shown, need: Boolean, modifier: Modifier) {
         }
         Box(
             modifier.testTag("capsule-count").background(c.surface, MikaShapes.Pill).padding(1.5.dp)
-                .sizeIn(minWidth = 15.dp, minHeight = 15.dp).background(fill, MikaShapes.Pill).padding(horizontal = 3.dp),
+                .sizeIn(minWidth = 15.dp, minHeight = 15.dp).background(fill, MikaShapes.Pill).padding(horizontal = MikaSpace.S4),
             contentAlignment = Alignment.Center,
         ) {
             Text("${view.count}", style = CountText, color = c.onAccent, maxLines = 1)
@@ -332,7 +325,7 @@ private fun Badge(view: CapsuleView.Shown, need: Boolean, modifier: Modifier) {
         else -> return
     }
     Box(
-        modifier.testTag("capsule-badge").size(16.dp).background(c.surface, MikaShapes.Pill).padding(1.5.dp)
+        modifier.testTag("capsule-badge").size(MikaSize.SmallIcon).background(c.surface, MikaShapes.Pill).padding(1.5.dp)
             .background(tint, MikaShapes.Pill),
         contentAlignment = Alignment.Center,
     ) {
@@ -360,7 +353,7 @@ private fun rememberMorph(animate: Boolean): Morph {
         if (!animate || m.width.value == 0f) m.width.snapTo(t.toFloat())
         else {
             m.hold = maxOf(ceil(m.width.value).toInt(), t)
-            m.width.animateTo(t.toFloat(), tween(MORPH_MS))
+            m.width.animateTo(t.toFloat(), MikaMotion.specs(reduceMotion = false).spatialDefault())
         }
         m.hold = t
     }
@@ -419,9 +412,9 @@ private fun TakeoverBar(view: CapsuleView.Shown, onStop: () -> Unit, onHandBack:
             .glass(c, MikaShapes.Pill, need = false)
             .widthIn(max = maxWidth)
             .height(BarHeight)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         CapsuleLogo()
         Column(Modifier.weight(1f, fill = false).semantics(mergeDescendants = true) {}) {
@@ -430,7 +423,7 @@ private fun TakeoverBar(view: CapsuleView.Shown, onStop: () -> Unit, onHandBack:
         }
         Box(
             Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onStop)
-                .heightIn(min = 36.dp).padding(horizontal = 10.dp),
+                .heightIn(min = 36.dp).padding(horizontal = MikaSpace.S12),
             contentAlignment = Alignment.Center,
         ) {
             Text(CapsuleCopy.STOP, style = CapsuleText.copy(fontWeight = FontWeight.Normal), color = c.ink2, maxLines = 1)

@@ -23,6 +23,7 @@ import com.wangzan101.mika.i18n.tr
 import com.wangzan101.mika.settings.NetProxyStore
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 设置 › 网络代理 的文案(纯函数,便于测试)。地址只写协议、主机、端口,不带账号密码(这一行随时看得到)。
@@ -63,10 +64,10 @@ fun NetProxyDialog(initial: String, onDismiss: () -> Unit, onSave: (String) -> U
             Column {
                 Text(NetProxyCopy.HINT, style = MikaType.Caption, color = MikaTheme.colors.ink3)
                 OutlinedTextField(
-                    text, { text = it }, Modifier.fillMaxWidth().padding(top = 8.dp).testTag("net-proxy-input"),
+                    text, { text = it }, Modifier.fillMaxWidth().padding(top = MikaSpace.S8).testTag("net-proxy-input"),
                     singleLine = true, isError = !ok, placeholder = { Text("http://127.0.0.1:7890") },
                 )
-                if (!ok) Text(NetProxyCopy.INVALID, Modifier.padding(top = 4.dp), style = MikaType.Hint, color = MikaTheme.colors.bad)
+                if (!ok) Text(NetProxyCopy.INVALID, Modifier.padding(top = MikaSpace.S4), style = MikaType.Hint, color = MikaTheme.colors.bad)
             }
         },
         confirmButton = { TextButton({ onSave(text) }, enabled = ok) { Text(stringResource(R.string.save)) } },

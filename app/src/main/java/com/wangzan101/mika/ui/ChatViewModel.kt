@@ -2221,7 +2221,7 @@ class ChatViewModel(
 
         /** 按步号归好的动作明细:点开一步时列出来。 */
         private fun actionsOf(activities: List<RunEvent.Activity>, appLabel: (String) -> String, toolLabel: (String) -> String) =
-            activities.groupBy { it.step }.mapValues { (_, list) ->
+            activities.filter { it.kind != RunEvent.PLAN_ACTIVITY }.groupBy { it.step }.mapValues { (_, list) ->
                 // 用工具的界面说法(和运行过程页同一份),不把工具名露给用户
                 list.map { a -> StepAction(toolLabel(a.label), a.target?.let { where(it, appLabel) }, a.effect, a.failed) }
             }
@@ -2278,6 +2278,8 @@ class ChatViewModel(
             val out = mutableListOf<StepRow>()
             val said = mutableSetOf<Int>()
             for (a in ex.activities) {
+                // The plan is shown as the plan (see LivePlans), not as a step it took.
+                if (a.kind == RunEvent.PLAN_ACTIVITY) continue
                 val where = a.target?.let { where(it, appLabel) }
                 if (a.kind == "observe") {
                     // 读成功了却不知道读的是哪里:不列;没读成的照样列出来
@@ -2307,7 +2309,7 @@ class ChatViewModel(
         /** 活动对象给人看的说法:包名换成 App 名,「网站 域名」只留域名。 */
         private fun where(target: String, appLabel: (String) -> String): String? = when {
             target.isBlank() -> null
-            target.startsWith(SITE_PREFIX) -> target.removePrefix(SITE_PREFIX)
+            RecordPlace.isSite(target) -> RecordPlace.site(target)
             com.wangzan101.mika.core.tool.PACKAGE_NAME_RE.matches(target) -> appLabel(target)
             else -> target
         }
@@ -2361,16 +2363,14 @@ fun evidenceSource(events: List<RunEvent>, appLabel: (String) -> String = { it }
     val shots = events.filterIsInstance<RunEvent.Media>()
     val lastStep = shots.maxOfOrNull { it.step } ?: return EvidenceSource(null, emptyList())
     val final = shots.filter { it.step == lastStep }
-    val place = shots.lastOrNull { it.place != null }?.place?.let { if (it.startsWith(SITE_PREFIX)) it.removePrefix(SITE_PREFIX) else appLabel(it) }
+    val place = shots.lastOrNull { it.place != null }?.place?.let { RecordPlace.site(it) ?: appLabel(it) }
     return EvidenceSource(place, final.map { it.mediaId }.distinct())
 }
 
-/** 运行记录里网页那一屏的「地方」写成「网站 <域名>」。 */
-private const val SITE_PREFIX = "网站 "
 
 /** 来源里的地方:「网站 域名」和网址显示域名,包名换成 App 名,别的(命令、文件)原样。 */
 private fun placeLabel(place: String, appLabel: (String) -> String): String = when {
-    place.startsWith(SITE_PREFIX) -> place.removePrefix(SITE_PREFIX)
+    RecordPlace.isSite(place) -> RecordPlace.site(place).orEmpty()
     place.startsWith("http://") || place.startsWith("https://") -> runCatching { java.net.URI(place).host }.getOrNull() ?: place
     com.wangzan101.mika.core.tool.PACKAGE_NAME_RE.matches(place) -> appLabel(place)
     else -> place
@@ -2398,17 +2398,147 @@ fun splitEvidence(answer: String): Pair<String, String?> {
 private val EVIDENCE = Regex("""(^|\n|[。.!！?？]\s*)[\s*#>\-]*\**(?:依据|证据|来源)\**\s*[:：]\**""")
 
 /**
- * 工具在界面上的说法:工具声明里的 label(中文)按界面语言换成对应的资源;没有 label 的原样显示工具名。
- * 改名前的运行记录里的旧名按 [legacy] 认成现在的工具。
+ * How a tool reads in the UI. Looked up by the tool's stable English name ([TOOL_NAMES]); records from before a
+ * rename resolve through [legacy] first. A tool with no entry reads as its name made readable ("phone_new_thing" →
+ * "New thing"), never as the Chinese label the tool declares, so a new tool can't leak untranslated text.
  */
 class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames = legacyNames()) {
     fun label(tool: String): String {
-        val declared = (tools[tool] ?: legacy.resolve(tool)?.let { tools[it] })?.label ?: return tool
-        return TOOL_LABELS[declared]?.let { tr(it) } ?: declared
+        val name = if (tools[tool] != null) tool else legacy.resolve(tool) ?: tool
+        TOOL_NAMES[name]?.let { return tr(it) }
+        // Old run records may store the declared label itself instead of a name.
+        TOOL_LABELS[tool]?.let { return tr(it) }
+        return readable(name)
     }
 
     companion object {
-        /** Upstream tool labels remain stable keys; localized display text may use the Orbit name. */
+        /** "phone_launch_app" → "Launch app": the surface prefix goes, underscores become spaces. */
+        fun readable(name: String): String {
+            val bare = name.substringAfter('_').takeIf { name.substringBefore('_') in Surfaces && name.contains('_') } ?: name
+            return bare.replace('_', ' ').trim().replaceFirstChar { it.uppercase() }
+        }
+
+        private val Surfaces = setOf("phone", "web", "mika", "orbit")
+
+        /** Every tool the agent can call, by its stable name. */
+        val TOOL_NAMES: Map<String, Int> = mapOf(
+            "ask_user" to R.string.tool_ask_user,
+            "end_not_done" to R.string.tool_explain_failure,
+            "hand_to_user" to R.string.tool_takeover,
+            "handle_obstacle" to R.string.tool_obstacle,
+            "history_read" to R.string.tool_history,
+            "knowledge_read" to R.string.tool_read_knowledge,
+            "knowledge_search" to R.string.tool_find_knowledge,
+            "memory_edit" to R.string.tool_memory_edit,
+            "memory_save" to R.string.tool_memory_save,
+            "memory_search" to R.string.tool_memory_search,
+            "mika_confirm_login" to R.string.tool_mika_confirm_login,
+            "mika_copy" to R.string.tool_mika_copy,
+            "mika_favorites" to R.string.tool_mika_favorites,
+            "mika_login_site" to R.string.tool_mika_login_site,
+            "mika_notify" to R.string.tool_mika_notify,
+            "mika_open_file" to R.string.tool_mika_open_file,
+            "mika_open_in_browser" to R.string.tool_mika_open_in_browser,
+            "mika_open_screen" to R.string.tool_mika_open_screen,
+            "mika_search_in_browser" to R.string.tool_mika_search_in_browser,
+            "mika_sites" to R.string.tool_mika_sites,
+            "mika_status" to R.string.tool_mika_status,
+            "mika_user_page" to R.string.tool_mika_user_page,
+            "phone_add_calendar_event" to R.string.tool_add_calendar_event,
+            "phone_app_after_task" to R.string.tool_app_after_task,
+            "phone_back" to R.string.tool_back,
+            "phone_calendar_bulk_insert" to R.string.tool_calendar_bulk_insert,
+            "phone_call_answer" to R.string.calls_answer,
+            "phone_call_dial" to R.string.calls_tool_dial,
+            "phone_call_hangup" to R.string.calls_tool_hangup,
+            "phone_call_state" to R.string.calls_tool_state,
+            "phone_call_takeover" to R.string.calls_takeover,
+            "phone_clear_text" to R.string.tool_clear,
+            "phone_collect" to R.string.tool_collect,
+            "phone_describe" to R.string.tool_observe,
+            "phone_diagnose" to R.string.tool_diagnose,
+            "phone_dialog" to R.string.tool_check_dialog,
+            "phone_event" to R.string.tool_wait_event,
+            "phone_extract" to R.string.tool_extract,
+            "phone_find" to R.string.tool_scroll_find,
+            "phone_find_visually" to R.string.tool_find_element,
+            "phone_gesture" to R.string.tool_gesture,
+            "phone_launch_app" to R.string.tool_open_app,
+            "phone_list_apps" to R.string.tool_list_apps,
+            "phone_list_elements" to R.string.tool_list_elements,
+            "phone_observe" to R.string.tool_observe,
+            "phone_open_link" to R.string.tool_open_page,
+            "phone_press_key" to R.string.tool_press_key,
+            "phone_query" to R.string.tool_find_element,
+            "phone_run" to R.string.tool_phone_run,
+            "phone_screenshot" to R.string.tool_screenshot,
+            "phone_scroll" to R.string.tool_scroll,
+            "phone_set_alarm" to R.string.tool_set_alarm,
+            "phone_set_timer" to R.string.tool_set_timer,
+            "phone_set_wheel" to R.string.tool_set_wheel,
+            "phone_share_text" to R.string.tool_share_text,
+            "phone_show_alarms" to R.string.tool_show_alarms,
+            "phone_swipe" to R.string.tool_swipe,
+            "phone_system_command" to R.string.tool_shell,
+            "phone_tap" to R.string.tool_tap,
+            "phone_type_text" to R.string.tool_type,
+            "phone_wait" to R.string.tool_wait_condition,
+            "profile_edit" to R.string.tool_profile,
+            "read_file" to R.string.tool_read_file,
+            "request_confirmation" to R.string.tool_confirm,
+            "root_run_command" to R.string.tool_root,
+            "run_bundled_script" to R.string.tool_run_script,
+            "run_command" to R.string.tool_process_files,
+            "schedule_task" to R.string.tool_schedule,
+            "search_files" to R.string.tool_search_files,
+            "settings_list" to R.string.tool_list_settings,
+            "settings_set" to R.string.tool_set_setting,
+            "share_file" to R.string.tool_export_file,
+            "skill_read" to R.string.tool_read_skill,
+            "skill_save" to R.string.tool_save_skill,
+            "skill_search" to R.string.tool_find_skill,
+            "spawn_agent" to R.string.tool_helper,
+            "task_memory_search" to R.string.tool_memory_search,
+            "task_memory_step" to R.string.tool_memory_search,
+            "task_memory_timeline" to R.string.tool_memory_search,
+            "view_past_screens" to R.string.tool_observe,
+            "view_user_screen" to R.string.tool_user_screen,
+            "wait" to R.string.tool_wait,
+            "update_plan" to R.string.tool_update_plan,
+            "web_back" to R.string.tool_back,
+            "web_capture" to R.string.tool_network,
+            "web_clear_text" to R.string.tool_clear,
+            "web_describe" to R.string.tool_observe,
+            "web_diagnose" to R.string.tool_diagnose,
+            "web_downloads" to R.string.tool_downloads,
+            "web_evaluate_js" to R.string.tool_read_script,
+            "web_find_visually" to R.string.tool_find_element,
+            "web_interact" to R.string.tool_tap,
+            "web_keep_open" to R.string.tool_keep_page,
+            "web_list_elements" to R.string.tool_list_elements,
+            "web_navigate" to R.string.tool_open_page,
+            "web_observe" to R.string.tool_observe,
+            "web_press_key" to R.string.tool_press_key,
+            "web_read_page" to R.string.tool_read_page,
+            "web_run_site_command" to R.string.tool_site_command,
+            "web_screenshot" to R.string.tool_screenshot,
+            "web_script" to R.string.tool_read_script,
+            "web_scroll" to R.string.tool_scroll,
+            "web_search" to R.string.web_search_action,
+            "web_site_mode" to R.string.tool_switch_version,
+            "web_swipe" to R.string.tool_swipe,
+            "web_tabs" to R.string.tool_switch_tab,
+            "web_tap" to R.string.tool_tap,
+            "web_type_text" to R.string.tool_type,
+            "web_upload" to R.string.tool_upload,
+            "web_wait_for" to R.string.tool_wait_page,
+            "whatsapp_chats" to R.string.whatsapp_tool_chats,
+            "whatsapp_read" to R.string.whatsapp_tool_read,
+            "whatsapp_send" to R.string.whatsapp_tool_send,
+            "write_file" to R.string.tool_write_file,
+        )
+
+        /** Declared labels as old records stored them; only read for records that kept the label, not the name. */
         val TOOL_LABELS: Map<String, Int> = mapOf(
             "查看已装的 App" to R.string.tool_list_apps,
             "打开 App" to R.string.tool_open_app,

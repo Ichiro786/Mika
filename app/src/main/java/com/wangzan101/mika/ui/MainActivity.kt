@@ -7,11 +7,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.spring
 import com.wangzan101.mika.ui.theme.MikaMotion
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -105,6 +102,8 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.animationsOff
 import com.wangzan101.mika.ui.theme.appearanceDark
 import com.wangzan101.mika.ui.theme.systemBarsFor
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.skills.SkillLauncher
 
 class MainActivity : ComponentActivity() {
     private lateinit var monitor: SystemStatusMonitor
@@ -151,7 +150,7 @@ class MainActivity : ComponentActivity() {
             // 外观按设置来,改了当场换;系统栏图标的深浅跟着界面
             val dark = appearanceDark()
             LaunchedEffect(dark) { systemBarsFor(dark) }
-            MikaTheme(dark = dark, reduceMotion = animationsOff(this)) {
+            MikaTheme(dark = dark) {
                 // 在输入框外面点一下或拖动就收起键盘,全 App 统一
                 KeyboardDismissArea(Modifier.fillMaxSize()) {
                     MikaRoot(
@@ -209,6 +208,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun receiveShare(intent: Intent, inCurrentConversation: Boolean) {
+        // A skill shortcut or the skills widget: the skill's request goes into the message bar like a shared text,
+        // so the user still presses send.
+        if (intent.action == SkillLauncher.ACTION_USE_SKILL) {
+            val title = intent.getStringExtra(SkillLauncher.EXTRA_SKILL_TITLE)?.takeIf { it.isNotBlank() }
+                ?: intent.getStringExtra(SkillLauncher.EXTRA_SKILL_NAME)?.takeIf { it.isNotBlank() } ?: return
+            requestedSharedDraft = SharedDraftRequest(SharedDraft("", SkillLauncher.prompt(this, title)), ++shareSerial, inCurrentConversation)
+            return
+        }
         if (intent.action != Intent.ACTION_SEND) return
         shareJob?.cancel()
         val type = intent.type.orEmpty()
@@ -416,6 +423,8 @@ private fun MikaRoot(
     var setupRepair by rememberSaveable { mutableStateOf(false) }
     // 首次上手正在走哪一步;为空时不在上手流程里。配置模型页从哪儿来就回哪儿去
     var onboarding by rememberSaveable { mutableStateOf<OnboardingStep?>(null) }
+    /** Coming back from choosing a model lands on the last welcome page (privacy), not the first. */
+    var welcomeFromBack by rememberSaveable { mutableStateOf(false) }
     val onFix: (Fix) -> Unit = { fix ->
         when (fix) {
             Fix.AddModel -> nav.push(Route.Models)
@@ -577,7 +586,7 @@ private fun MikaRoot(
                 scaleX = scale
                 scaleY = scale
                 translationX = (if (backFromLeft) 1f else -1f) * 24.dp.toPx() * p
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp * p)
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(MikaRadius.Xxl * p)
                 clip = true
             }
         },
@@ -587,12 +596,15 @@ private fun MikaRoot(
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
         }
-        Route.Welcome -> WelcomeScreen { goOnboarding(OnboardingStep.Model) }
+        Route.Welcome -> WelcomeScreen(startPage = if (welcomeFromBack) Onboarding.WELCOME_PAGES - 1 else 0) {
+            welcomeFromBack = false
+            goOnboarding(OnboardingStep.Model)
+        }
         Route.ModelSetup -> {
             val inOnboarding = onboarding == OnboardingStep.Model
             ModelSetupScreen(
                 store, onboarding = inOnboarding,
-                onBack = { if (inOnboarding) goOnboarding(OnboardingStep.Welcome) else nav.back() },
+                onBack = { if (inOnboarding) { welcomeFromBack = true; goOnboarding(OnboardingStep.Welcome) } else nav.back() },
                 onDone = {
                     if (inOnboarding) {
                         onboardingState.markModelSetupDone()
@@ -701,6 +713,11 @@ private fun MikaRoot(
                                 onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                                 openSettings = { nav.push(Route.Settings) },
                                 openRun = { runId = it; nav.push(Route.Run) },
+                                // Set up before (paired) and now not running: the drop banner says so with a one-tap fix.
+                                helperDropped = status.builtinShell.takeIf {
+                                    it != BuiltinShellStatus.Running && it != BuiltinShellStatus.NotPaired && !phoneSetupNeeded
+                                },
+                                onReconnectHelper = { onFix(Fix.RetryPhoneHelper) },
                                 phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
                                 openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
                                 loadSource = { id ->
@@ -765,9 +782,8 @@ private fun MikaRoot(
                         // Keep the presence synchronized with the panel in both directions.
                         val expansion by transition.animateFloat(
                             transitionSpec = {
-                                if (still) snap()
-                                else if (targetState == EnterExitState.Visible) spring(dampingRatio = 0.86f, stiffness = 380f)
-                                else tween(200, easing = MikaMotion.Decelerate)
+                                val motion = MikaMotion.specs(still)
+                                if (targetState == EnterExitState.Visible) motion.spatialDefault() else motion.spatialFast()
                             },
                             label = "orbit-hub-presence",
                         ) { if (it == EnterExitState.Visible) 1f else 0f }

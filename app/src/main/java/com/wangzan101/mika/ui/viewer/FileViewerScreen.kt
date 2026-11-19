@@ -87,6 +87,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 文本类和 Markdown 最多读这么多字节,再多只显示前面一部分。 */
 private const val TEXT_CAP = 1 shl 20
@@ -179,7 +180,7 @@ private fun load(context: Context, uri: Uri, kind: ViewerKind): Loaded = when (k
 }
 
 private fun open(context: Context, uri: Uri) =
-    context.contentResolver.openInputStream(uri) ?: error("打不开 $uri")
+    context.contentResolver.openInputStream(uri) ?: error("Can't open $uri")
 
 // ---------- 各类内容 ----------
 
@@ -188,10 +189,10 @@ private fun MarkdownView(l: Loaded.Text) {
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState())
             .windowInsetsPadding(WindowInsets.navigationBars)
-            .padding(horizontal = 20.dp, vertical = 16.dp)
+            .padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S16)
             .testTag("viewer.markdown"),
     ) {
-        if (l.truncated) TruncatedNote(Modifier.padding(bottom = 12.dp))
+        if (l.truncated) TruncatedNote(Modifier.padding(bottom = MikaSpace.S12))
         MarkdownText(l.text, MikaType.Body)
     }
 }
@@ -204,9 +205,9 @@ private fun PlainTextView(l: Loaded.Text) {
     SelectionContainer {
         LazyColumn(
             Modifier.fillMaxSize().testTag("viewer.text"),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp),
+            contentPadding = PaddingValues(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12, bottom = MikaSpace.S24),
         ) {
-            if (l.truncated) item { TruncatedNote(Modifier.padding(bottom = 12.dp)) }
+            if (l.truncated) item { TruncatedNote(Modifier.padding(bottom = MikaSpace.S12)) }
             itemsIndexed(chunks) { _, chunk -> Text(chunk, style = MonoText, color = c.ink) }
             item { Box(Modifier.windowInsetsPadding(WindowInsets.navigationBars)) }
         }
@@ -286,7 +287,7 @@ private fun PdfView(uri: Uri, openElsewhere: () -> Unit) {
     val context = LocalContext.current
     val doc by produceState<Result<PdfDoc>?>(null, uri) {
         val opened = withContext(Dispatchers.IO) {
-            runCatching { PdfDoc(context.contentResolver.openFileDescriptor(uri, "r") ?: error("打不开 $uri")) }
+            runCatching { PdfDoc(context.contentResolver.openFileDescriptor(uri, "r") ?: error("Can't open $uri")) }
         }
         value = opened
         try { awaitCancellation() } finally { opened.getOrNull()?.close() }
@@ -309,16 +310,16 @@ private fun PdfPages(doc: PdfDoc) {
         LazyColumn(
             Modifier.fillMaxSize().testTag("viewer.pdf").zoomable(zoom, panWithOneFinger = false),
             state = list,
-            contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = 8.dp, bottom = 64.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            contentPadding = PaddingValues(start = MikaSpace.S8, end = MikaSpace.S8, top = MikaSpace.S8, bottom = 64.dp),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             itemsIndexed(doc.sizes) { index, size -> PdfPage(doc, index, size) }
         }
         if (doc.sizes.isNotEmpty()) {
             Text(
                 "${current + 1} / ${doc.sizes.size}",
-                Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = 12.dp)
-                    .background(c.ink.copy(alpha = 0.72f), MikaShapes.Pill).padding(horizontal = 12.dp, vertical = 4.dp),
+                Modifier.align(Alignment.BottomCenter).windowInsetsPadding(WindowInsets.navigationBars).padding(bottom = MikaSpace.S12)
+                    .background(c.ink.copy(alpha = 0.72f), MikaShapes.Pill).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4),
                 style = MikaType.Label, color = c.bg,
             )
         }
@@ -411,8 +412,8 @@ private fun Loading() {
 @Composable
 private fun Failure(message: String, openElsewhere: () -> Unit, modifier: Modifier = Modifier) {
     Column(
-        modifier.fillMaxSize().padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+        modifier.fillMaxSize().padding(horizontal = MikaSpace.S32),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S16, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(message, style = MikaType.Body, color = MikaTheme.colors.ink2, textAlign = TextAlign.Center)

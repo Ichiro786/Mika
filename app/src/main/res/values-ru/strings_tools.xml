@@ -77,4 +77,10 @@
     <string name="tool_mika_login_site">Войти на сайт</string>
     <string name="tool_mika_confirm_login">Подтвердить вход</string>
     <string name="tool_mika_favorites">Частые сайты</string>
+    <string name="tool_schedule">Запланировать задачу</string>
+    <string name="tool_helper">Попросить помощника</string>
+    <string name="tool_profile">Обновить профиль</string>
+    <string name="tool_history">Прочитать прошлые сообщения</string>
+    <string name="tool_user_screen">Посмотреть на ваш экран</string>
+    <string name="tool_update_plan">Обновить план</string>
 </resources>

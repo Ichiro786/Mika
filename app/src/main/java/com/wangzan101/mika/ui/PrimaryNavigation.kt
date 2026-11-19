@@ -2,8 +2,6 @@ package com.wangzan101.mika.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +32,8 @@ import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 @Composable
 internal fun PrimaryNavigation(
@@ -51,7 +51,7 @@ internal fun PrimaryNavigation(
     val selected = if (current == Route.Personal) Route.Chat else current
     GlassBar(
         // Floats: inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
-        modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 6.dp, bottom = 16.dp),
+        modifier.fillMaxWidth().padding(start = MikaSpace.S32, end = MikaSpace.S32, top = MikaSpace.S8, bottom = MikaSpace.S16),
         backdrop = backdrop,
         frosted = true,
     ) {
@@ -61,14 +61,14 @@ internal fun PrimaryNavigation(
                 val selectedColor = if (c.isDark) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f) else c.answer
                 val background by animateColorAsState(
                     if (active) selectedColor else androidx.compose.ui.graphics.Color.Transparent,
-                    animationSpec = if (MikaTheme.reduceMotion) snap() else tween(MikaMotion.SWITCH_MS, easing = MikaMotion.Decelerate),
+                    animationSpec = MikaTheme.motion.effectsDefault(),
                     label = "primary-navigation-selection",
                 )
                 Column(
                     Modifier.weight(1f).heightIn(min = 50.dp).testTag("primary-nav-${route.name}").clip(MikaShapes.Pill)
                         .background(background)
                         .selectable(selected = active, role = Role.Tab, onClick = { onSelect(route) })
-                        .padding(horizontal = 4.dp, vertical = 6.dp),
+                        .padding(horizontal = MikaSpace.S4, vertical = MikaSpace.S8),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {

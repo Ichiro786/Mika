@@ -49,6 +49,8 @@ import com.wangzan101.mika.ui.components.keepsKeyboard
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 搜索时按归档状态筛选:[All] 全部(归档的带上标记)、[Active] 只看未归档、[Archived] 只看已归档。 */
 enum class SearchArchiveFilter { All, Active, Archived }
@@ -65,7 +67,7 @@ data class DrawerSearch(
 internal fun DrawerSearchField(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp),
+    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4),
 ) {
     val c = MikaTheme.colors
     val clear = stringResource(R.string.drawer_search_clear)
@@ -79,11 +81,11 @@ internal fun DrawerSearchField(
             .clip(CircleShape)
             .background(c.fill)
             .then(if (focused) Modifier.border(1.dp, c.accent, CircleShape) else Modifier)
-            .padding(start = 14.dp, end = 6.dp),
+            .padding(start = MikaSpace.S16, end = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        Icon(MikaIcons.Search, null, Modifier.size(16.dp), tint = c.ink3)
+        Icon(MikaIcons.Search, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (query.isEmpty()) {
                 Text(stringResource(R.string.drawer_search_hint), style = SearchText, color = c.ink3, maxLines = 1)
@@ -101,7 +103,7 @@ internal fun DrawerSearchField(
         }
         if (query.isNotEmpty()) {
             Box(
-                Modifier.size(30.dp).clip(CircleShape)
+                Modifier.size(MikaSize.Tile).clip(CircleShape)
                     .clickable(role = Role.Button, onClickLabel = clear) { onQueryChange("") }
                     .testTag("drawer-search-clear"),
                 contentAlignment = Alignment.Center,
@@ -121,7 +123,7 @@ internal fun SearchArchiveFilterRow(selected: SearchArchiveFilter, onSelect: (Se
         ),
         selected = SearchArchiveFilter.entries.indexOf(selected),
         onSelect = { onSelect(SearchArchiveFilter.entries[it]) },
-        modifier = Modifier.padding(horizontal = 12.dp, vertical = 2.dp),
+        modifier = Modifier.padding(horizontal = MikaSpace.S12, vertical = 2.dp),
         tags = listOf("drawer-search-filter-all", "drawer-search-filter-active", "drawer-search-filter-archived"),
     )
 }
@@ -130,7 +132,7 @@ internal fun SearchArchiveFilterRow(selected: SearchArchiveFilter, onSelect: (Se
 @Composable
 internal fun SearchHint(text: String) {
     Text(
-        text, Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 6.dp, bottom = 4.dp),
+        text, Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S8, bottom = MikaSpace.S4),
         style = MikaType.Hint, color = MikaTheme.colors.ink3,
     )
 }
@@ -140,11 +142,11 @@ internal fun SearchHint(text: String) {
 internal fun SearchEmpty(query: String, onClear: () -> Unit = {}) {
     val c = MikaTheme.colors
     Column(
-        Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 22.dp, bottom = 16.dp),
+        Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S24, bottom = MikaSpace.S16),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        Icon(MikaIcons.Search, null, Modifier.size(22.dp), tint = c.ink3)
+        Icon(MikaIcons.Search, null, Modifier.size(MikaSize.Icon), tint = c.ink3)
         Text(
             stringResource(R.string.drawer_search_empty, query), style = MikaType.Body, color = c.ink2,
             textAlign = TextAlign.Center,
@@ -154,7 +156,7 @@ internal fun SearchEmpty(query: String, onClear: () -> Unit = {}) {
             textAlign = TextAlign.Center,
         )
         MikaButton(
-            stringResource(R.string.drawer_search_clear), onClear, Modifier.padding(top = 6.dp).testTag("drawer-search-empty-clear"),
+            stringResource(R.string.drawer_search_clear), onClear, Modifier.padding(top = MikaSpace.S8).testTag("drawer-search-empty-clear"),
             kind = ButtonKind.Tonal, size = ButtonSize.Small,
         )
     }

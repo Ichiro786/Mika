@@ -26,6 +26,8 @@ import com.wangzan101.mika.R
 import com.wangzan101.mika.ui.MarkdownText
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /**
  * App 内统一弹窗：保留调用方的内容、动作和测试标识，只统一容器、正文层级与操作区。
@@ -49,7 +51,7 @@ fun MikaDialog(
             {
                 CompositionLocalProvider(
                     LocalContentColor provides c.ink,
-                    LocalTextStyle provides MikaType.Title.copy(fontSize = 20.sp, lineHeight = 26.sp),
+                    LocalTextStyle provides MikaType.Headline,
                 ) { content() }
             }
         },
@@ -57,19 +59,19 @@ fun MikaDialog(
             {
                 CompositionLocalProvider(
                     LocalContentColor provides c.ink2,
-                    LocalTextStyle provides MikaType.Body.copy(fontSize = 14.5.sp, lineHeight = 23.sp),
+                    LocalTextStyle provides MikaType.Reading,
                 ) { content() }
             }
         },
         confirmButton = {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 if (dismissButton != null) {
                     DialogAction(Modifier.weight(1f), c.fill) { dismissButton() }
                 }
                 DialogAction(Modifier.weight(1f), c.accentSoft) { confirmButton() }
             }
         },
-        shape = RoundedCornerShape(26.dp),
+        shape = RoundedCornerShape(MikaRadius.Xxl),
         containerColor = c.surface,
         titleContentColor = c.ink,
         textContentColor = c.ink2,
@@ -80,7 +82,7 @@ fun MikaDialog(
 
 @Composable
 private fun DialogAction(modifier: Modifier, background: Color, content: @Composable () -> Unit) {
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(MikaRadius.Lg)
     Box(
         modifier.heightIn(min = 44.dp).background(background, shape).clip(shape),
         contentAlignment = Alignment.Center,

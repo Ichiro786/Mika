@@ -85,6 +85,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
+import com.wangzan101.mika.ui.theme.MikaMotion
 
 /**
  * 悬浮胶囊的接线:把各任务的状态([TaskCenterState.runs] 和每个 [TaskRun] 的状态、接管阶段、活动)、开关、
@@ -1088,6 +1089,9 @@ class CapsuleController(
             return
         }
         snap = ValueAnimator.ofInt(fromX, toX).setDuration(SNAP_MS).apply {
+            // Overlay windows move through WindowManager, outside Compose: same token duration and the
+            // emphasized-decelerate curve the springs approximate.
+            interpolator = MikaMotion.viewInterpolator()
             addUpdateListener { w.place(OverlayPlacement(Gravity.TOP or Gravity.LEFT, it.animatedValue as Int, y)) }
             addListener(object : android.animation.AnimatorListenerAdapter() {
                 override fun onAnimationEnd(animation: android.animation.Animator) {
@@ -1412,7 +1416,7 @@ class CapsuleController(
     @Composable
     private fun CardOverlay() {
         val c = card ?: return
-        MikaTheme(reduceMotion = animationsOff(context)) {
+        MikaTheme {
             val scale = last?.cardScale ?: CapsuleCardScale.DEFAULT
             CompositionLocalProvider(
                 LocalDensity provides LocalDensity.current.zoomed(scale.factor),
@@ -1443,7 +1447,7 @@ class CapsuleController(
         val a = windowOn?.overlays()?.area()
         val top = placedY + room()
         val bottom = placedY + (window?.height ?: 0) - room()
-        MikaTheme(reduceMotion = animationsOff(context)) {
+        MikaTheme {
             CapsuleVoicePanel(talk, top, bottom.coerceAtLeast(top), a?.insetTop ?: 0, a?.insetBottom ?: 0)
         }
     }
@@ -1457,7 +1461,7 @@ class CapsuleController(
         val v = if (n == null || shown.kind == CapsuleKind.HandedOver) shown
             else shown.copy(kind = n.kind, text = n.text, detail = null, count = 0, needCount = 0, pill = true, widthEpoch = -n.id)
         if (edgeHidden) {
-            MikaTheme(reduceMotion = animationsOff(context)) {
+            MikaTheme {
                 CapsuleEdgeContent(dock.side, alpha) {
                     resetTaps()
                     wake()
@@ -1467,7 +1471,7 @@ class CapsuleController(
             return
         }
         val talking = talk.active && !talk.released
-        MikaTheme(reduceMotion = animationsOff(context)) {
+        MikaTheme {
             OverlayMotion(open = true, origin = { TransformOrigin(if (dock.side == DockSide.Right) 1f else 0f, 0.5f) }, onClosed = {}) {
                 CapsuleContent(
                     v,
@@ -1532,7 +1536,7 @@ class CapsuleController(
         /** 胶囊、那一条连同阴影边的窗口高度(按比例摆高度时用)。 */
         const val PILL_DP = 40 + 16
         const val BAR_DP = 48 + 16
-        const val SNAP_MS = 220L
+        const val SNAP_MS = MikaMotion.Duration.SHORT.toLong()
 
         const val ROTATE_SETTLE_MS = 300L
         /**

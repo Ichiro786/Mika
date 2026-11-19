@@ -6,8 +6,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
@@ -73,6 +71,10 @@ import com.wangzan101.mika.ui.components.cardSurface
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /**
  * 对话页里长按的一条消息:[key] 认是哪一条(「选择文字」记的就是它),[from] 是谁说的,[text] 是复制、引用用的纯文字
@@ -157,6 +159,7 @@ internal fun MessageArea(
     val replyNow by rememberUpdatedState(reply)
     val swipe = remember { Animatable(0f) }
     val swipeScope = rememberCoroutineScope()
+    val swipeBack = MikaTheme.motion.spatialDefault<Float>()
     val density = LocalDensity.current
     val trigger = with(density) { SwipeTrigger.toPx() }
     val limit = with(density) { SwipeLimit.toPx() }
@@ -171,9 +174,9 @@ internal fun MessageArea(
                         if (pulled >= trigger) replyNow?.invoke(target())
                         armed = false
                         pulled = 0f
-                        swipeScope.launch { swipe.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) }
+                        swipeScope.launch { swipe.animateTo(0f, swipeBack) }
                     },
-                    onDragCancel = { armed = false; pulled = 0f; swipeScope.launch { swipe.animateTo(0f) } },
+                    onDragCancel = { armed = false; pulled = 0f; swipeScope.launch { swipe.animateTo(0f, swipeBack) } },
                 ) { change, dx ->
                     val toward = if (rtl) -dx else dx
                     val next = (pulled + toward * (if (pulled > trigger) 0.35f else 1f)).coerceIn(0f, limit)
@@ -285,10 +288,10 @@ internal fun MessageMenu(
 @Composable
 internal fun ReactionBar(picked: String?, onPick: (String) -> Unit) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(28.dp)
+    val shape = RoundedCornerShape(MikaRadius.Xxl)
     Row(
         Modifier.floatShadow(c, shape).background(c.surface, shape).border(0.5.dp, c.hair, shape)
-            .padding(horizontal = 6.dp, vertical = 4.dp).testTag("reaction-bar"),
+            .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4).testTag("reaction-bar"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         AnswerMarkup.REACTIONS.forEach { emoji ->
@@ -301,7 +304,7 @@ internal fun ReactionBar(picked: String?, onPick: (String) -> Unit) {
                     .semantics { contentDescription = label; selected = on }
                     .testTag("react-$emoji"),
                 contentAlignment = Alignment.Center,
-            ) { Text(emoji, fontSize = 24.sp) }
+            ) { Text(emoji, style = MikaType.Headline) }
         }
     }
 }
@@ -312,11 +315,11 @@ internal fun ReactionBadge(emoji: String, description: String, modifier: Modifie
     val c = MikaTheme.colors
     Box(
         modifier.background(c.surface, CircleShape).border(1.5.dp, c.bg, CircleShape)
-            .padding(horizontal = 7.dp, vertical = 3.dp)
+            .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4)
             .semantics { contentDescription = description }
             .testTag("reaction-badge"),
         contentAlignment = Alignment.Center,
-    ) { Text(emoji, fontSize = 15.sp) }
+    ) { Text(emoji, style = MikaType.Body) }
 }
 
 /** 菜单开着时后面那层:安卓 12 起按出现的进度模糊([MenuBlur]),无障碍也只读菜单。菜单没开时什么也不加。 */
@@ -332,7 +335,7 @@ internal fun Modifier.behindMenu(open: Boolean, progress: () -> Float): Modifier
 
 /** 把消息的纯文字放进剪贴板,提示一句「已复制」。 */
 internal fun copyMessage(context: Context, text: String) {
-    context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText("Mika", text))
+    context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(context.getString(R.string.app_name), text))
     Toast.makeText(context, context.getString(R.string.chat_copied), Toast.LENGTH_SHORT).show()
 }
 
@@ -357,16 +360,16 @@ internal fun QuoteChip(quote: QuoteMessage.Quote, onRemove: () -> Unit, modifier
     val remove = stringResource(R.string.chat_quote_remove)
     val said = quoteDescription(quote)
     Row(
-        modifier.fillMaxWidth().testTag("quote-chip").cardSurface(c, QuoteShape).padding(start = 12.dp, top = 6.dp, bottom = 6.dp),
+        modifier.fillMaxWidth().testTag("quote-chip").cardSurface(c, QuoteShape).padding(start = MikaSpace.S12, top = MikaSpace.S8, bottom = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(3.dp).height(30.dp).background(c.accent, CircleShape))
         Text(
-            quote.text, Modifier.weight(1f).padding(start = 10.dp).semantics { contentDescription = said },
+            quote.text, Modifier.weight(1f).padding(start = MikaSpace.S12).semantics { contentDescription = said },
             style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis,
         )
         Box(
-            Modifier.size(40.dp).clip(CircleShape)
+            Modifier.size(MikaSize.IconButton).clip(CircleShape)
                 .clickable(role = Role.Button, onClickLabel = remove, onClick = onRemove)
                 .semantics { contentDescription = remove }
                 .testTag("quote-remove"),
@@ -383,15 +386,15 @@ internal fun SentQuote(quote: QuoteMessage.Quote, maxWidth: Dp) {
     val c = MikaTheme.colors
     val said = quoteDescription(quote)
     Row(
-        Modifier.padding(bottom = 4.dp).widthIn(max = maxWidth).background(c.ink.copy(alpha = 0.05f), QuoteShape)
-            .padding(horizontal = 10.dp, vertical = 6.dp)
+        Modifier.padding(bottom = MikaSpace.S4).widthIn(max = maxWidth).background(c.ink.copy(alpha = 0.05f), QuoteShape)
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8)
             .semantics(mergeDescendants = true) { contentDescription = said }
             .testTag("sent-quote"),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(2.dp).height(16.dp).background(c.ink3, CircleShape))
-        Text(quote.text, Modifier.padding(start = 8.dp), style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        Text(quote.text, Modifier.padding(start = MikaSpace.S8), style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }
 
-private val QuoteShape = RoundedCornerShape(12.dp)
+private val QuoteShape = RoundedCornerShape(MikaRadius.Md)

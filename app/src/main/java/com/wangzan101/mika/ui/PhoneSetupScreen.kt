@@ -91,6 +91,9 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 用户确认做好的几步,转屏、进后台后还在。 */
 private val StepSetSaver = Saver<Set<SetupStep>, String>(
@@ -277,28 +280,28 @@ fun PhoneSetupContent(
     PageBackground {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars)) {
             TopBar(PhoneSetupCopy.BAR_TITLE, MikaIcons.Back, onClose, stringResource(R.string.back))
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 16.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16)) {
                 if (view.phase == SetupPhase.Unavailable) {
                     // 这个环境没有能起助手的路:只说明,不列走不通的步骤
                     GroupCard {
-                        Column(Modifier.padding(16.dp).testTag("setup-unavailable")) {
+                        Column(Modifier.padding(MikaSpace.S16).testTag("setup-unavailable")) {
                             Text(PhoneSetupCopy.UNAVAILABLE, style = MikaType.Body, fontWeight = FontWeight.SemiBold, color = c.ink)
                             Text(
-                                PhoneSetupCopy.UNAVAILABLE_REASON, Modifier.padding(top = 8.dp),
-                                fontSize = 14.5.sp, lineHeight = 23.sp, color = c.ink2,
+                                PhoneSetupCopy.UNAVAILABLE_REASON, Modifier.padding(top = MikaSpace.S8),
+                                style = MikaType.Callout, color = c.ink2,
                             )
                         }
                     }
                 } else {
                     if (view.phase == SetupPhase.Success) {
                         Text(
-                            PhoneSetupCopy.SUCCESS_LINE, Modifier.padding(top = 4.dp, bottom = 16.dp).testTag("setup-success"),
+                            PhoneSetupCopy.SUCCESS_LINE, Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S16).testTag("setup-success"),
                             style = MikaType.Body, fontWeight = FontWeight.SemiBold, color = c.ok,
                         )
                     } else {
                         Text(
-                            PhoneSetupCopy.INTRO, Modifier.padding(top = 4.dp, bottom = 16.dp),
-                            fontSize = 14.5.sp, lineHeight = 23.sp, color = c.ink2,
+                            PhoneSetupCopy.INTRO, Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S16),
+                            style = MikaType.Callout, color = c.ink2,
                         )
                     }
                     GroupCard {
@@ -324,14 +327,14 @@ fun PhoneSetupContent(
                     if (view.phase != SetupPhase.Success) FooterNote(PhoneSetupCopy.SKIP_NOTE)
                 }
             }
-            Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 8.dp)) {
+            Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S8, bottom = MikaSpace.S8)) {
                 if (view.phase == SetupPhase.Success) {
                     Text(
-                        PhoneSetupCopy.successNote(view.restart), Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                        PhoneSetupCopy.successNote(view.restart), Modifier.fillMaxWidth().padding(bottom = MikaSpace.S12),
                         style = MikaType.Caption, color = c.ink3, textAlign = TextAlign.Center,
                     )
                 }
-                if (onboarding) ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Phone), Modifier.padding(bottom = 8.dp))
+                if (onboarding) ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Phone), Modifier.padding(bottom = MikaSpace.S8))
                 when (view.phase) {
                     SetupPhase.Success -> MikaButton(
                         if (onboarding) PhoneSetupCopy.START_USING else PhoneSetupCopy.SUCCESS_DONE, onClose,
@@ -363,12 +366,12 @@ fun PhoneSetupContent(
 private fun UsbStartCard(restart: HelperRestart, command: String, onCopy: () -> Unit) {
     val c = MikaTheme.colors
     val (title, body) = PhoneSetupCopy.usbCard(restart)
-    Column(Modifier.padding(top = 10.dp).fillMaxWidth().background(c.accentSoft, RoundedCornerShape(12.dp)).padding(12.dp).testTag("setup-usb")) {
-        Text(title, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = c.ink)
-        Text(body, Modifier.padding(top = 2.dp), fontSize = 13.sp, lineHeight = 18.sp, color = c.ink2)
+    Column(Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(c.accentSoft, RoundedCornerShape(MikaRadius.Md)).padding(MikaSpace.S12).testTag("setup-usb")) {
+        Text(title, style = MikaType.CalloutStrong, color = c.ink)
+        Text(body, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink2)
         Text(
-            command, Modifier.padding(top = 8.dp).fillMaxWidth().background(c.fill, RoundedCornerShape(10.dp)).padding(10.dp).testTag("setup-usb-command"),
-            fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 17.sp, color = c.ink,
+            command, Modifier.padding(top = MikaSpace.S8).fillMaxWidth().background(c.fill, RoundedCornerShape(MikaRadius.Sm)).padding(MikaSpace.S12).testTag("setup-usb-command"),
+            fontFamily = FontFamily.Monospace, style = MikaType.Hint, color = c.ink,
         )
         PillButton(PhoneSetupCopy.USB_COPY, primary = false, tag = "setup-usb-copy", onClick = onCopy)
     }
@@ -380,7 +383,7 @@ private fun StepRow(step: SetupStep, mark: StepMark, current: Boolean, first: Bo
     val c = MikaTheme.colors
     Box(Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier).testTag("setup-step-${step.name}")) {
         if (!first) Box(Modifier.padding(start = 58.dp).fillMaxWidth().height(0.5.dp).background(c.hair))
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16)) {
             StepBadge(step.ordinal + 1, mark)
             Column(Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -412,7 +415,7 @@ private fun StepBadge(n: Int, mark: StepMark) {
         when (mark) {
             StepMark.Done -> Icon(MikaIcons.Check, null, Modifier.size(15.dp), tint = c.onAccent)
             StepMark.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(15.dp), tint = c.onAccent)
-            else -> Text("$n", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = if (mark == StepMark.Todo || mark == StepMark.Skipped) c.ink3 else c.onAccent)
+            else -> Text("$n", style = MikaType.LabelStrong, color = if (mark == StepMark.Todo || mark == StepMark.Skipped) c.ink3 else c.onAccent)
         }
     }
 }
@@ -440,10 +443,10 @@ private fun CurrentStepBody(
     view.failure?.let { f ->
         val fc = PhoneSetupCopy.failure(f.reason)
         Column(
-            Modifier.padding(top = 10.dp).fillMaxWidth().background(MikaTheme.colors.badSoft, RoundedCornerShape(12.dp)).padding(12.dp),
+            Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(MikaTheme.colors.badSoft, RoundedCornerShape(MikaRadius.Md)).padding(MikaSpace.S12),
         ) {
-            Text(fc.title, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.bad)
-            Text(fc.body, Modifier.padding(top = 2.dp), fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.ink2)
+            Text(fc.title, style = MikaType.CalloutStrong, color = MikaTheme.colors.bad)
+            Text(fc.body, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = MikaTheme.colors.ink2)
         }
         // 要再运行 USB 命令时,下面的卡片里就有命令和复制按钮,不再重复一个
         if (f.fix != BuiltinShellFix.RunUsbCommand || !view.usbFallback) {
@@ -457,9 +460,9 @@ private fun CurrentStepBody(
     view.suspect?.let { s ->
         Text(
             PhoneSetupCopy.suspect(s),
-            Modifier.padding(top = 10.dp).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(12.dp)).padding(12.dp)
+            Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(MikaRadius.Md)).padding(MikaSpace.S12)
                 .testTag("setup-suspect"),
-            fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.ink,
+            style = MikaType.Caption, color = MikaTheme.colors.ink,
         )
         PillButton(PhoneSetupCopy.goBackTo(s.step), primary = view.failure == null, tag = "setup-suspect-back") { onRevisit(s.step) }
     }
@@ -468,20 +471,20 @@ private fun CurrentStepBody(
     if (step == SetupStep.PairingCode) {
         when (view.notifyIssue) {
             PairingNotifyIssue.NotificationsOff -> {
-                Text(PhoneSetupCopy.NEED_NOTIFICATIONS, Modifier.padding(top = 8.dp), fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.warn)
+                Text(PhoneSetupCopy.NEED_NOTIFICATIONS, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = MikaTheme.colors.warn)
                 PillButton(PhoneSetupCopy.ALLOW_NOTIFICATIONS, primary = fixNotificationsFirst, tag = "setup-notify-fix") { onAllowNotifications() }
             }
             PairingNotifyIssue.ChannelOff -> {
-                Text(PhoneSetupCopy.PAIRING_CHANNEL_OFF, Modifier.padding(top = 8.dp), fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.warn)
+                Text(PhoneSetupCopy.PAIRING_CHANNEL_OFF, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = MikaTheme.colors.warn)
                 PillButton(PhoneSetupCopy.OPEN_PAIRING_CHANNEL, primary = fixNotificationsFirst, tag = "setup-notify-fix") { onOpenPairingChannel() }
             }
             // 不弹出也能下拉去填:只提醒,不抢主按钮;无障碍开着时用不上通知,不提
             PairingNotifyIssue.NotHeadsUp -> if (!view.autoRead) {
                 Text(
                     PhoneSetupCopy.PAIRING_LOWERED,
-                    Modifier.padding(top = 10.dp).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(12.dp)).padding(12.dp)
+                    Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(MikaRadius.Md)).padding(MikaSpace.S12)
                         .testTag("setup-pairing-lowered"),
-                    fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.ink,
+                    style = MikaType.Caption, color = MikaTheme.colors.ink,
                 )
                 PillButton(PhoneSetupCopy.OPEN_HEADS_UP, primary = false, tag = "setup-pairing-lowered-open") { onOpenPairingChannel() }
             }
@@ -489,15 +492,15 @@ private fun CurrentStepBody(
         }
         if (headsUpLowered && !view.needsNotifications) {
             Column(
-                Modifier.padding(top = 10.dp).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(12.dp)).padding(12.dp)
+                Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(MikaTheme.colors.warnSoft, RoundedCornerShape(MikaRadius.Md)).padding(MikaSpace.S12)
                     .testTag("setup-heads-up"),
             ) {
-                Text(PhoneSetupCopy.HEADS_UP_LOWERED, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.warn)
+                Text(PhoneSetupCopy.HEADS_UP_LOWERED, style = MikaType.CalloutStrong, color = MikaTheme.colors.warn)
             }
             PillButton(PhoneSetupCopy.OPEN_HEADS_UP, primary = false, tag = "setup-heads-up-open") { onOpenHeadsUp() }
         }
         if (view.autoRead) AutoReadHint() else NotifyGuide()
-        if (view.portFound && !view.autoRead) Text(PhoneSetupCopy.PORT_FOUND, Modifier.padding(top = 8.dp), fontSize = 13.sp, color = MikaTheme.colors.ok)
+        if (view.portFound && !view.autoRead) Text(PhoneSetupCopy.PORT_FOUND, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = MikaTheme.colors.ok)
     }
     // 无障碍一步推荐跳过:配对后 Mika 自己打开,也不会被「受限制的设置」拦住
     val a11y = step == SetupStep.Accessibility
@@ -515,8 +518,8 @@ private fun CurrentStepBody(
 @Composable
 private fun LinkText(text: String, tag: String?, onClick: () -> Unit) {
     Text(
-        text, Modifier.padding(top = 6.dp).clickable(onClick = onClick).padding(vertical = 4.dp).then(if (tag != null) Modifier.testTag(tag) else Modifier),
-        fontSize = 13.sp, color = MikaTheme.colors.accent,
+        text, Modifier.padding(top = MikaSpace.S8).clickable(onClick = onClick).padding(vertical = MikaSpace.S4).then(if (tag != null) Modifier.testTag(tag) else Modifier),
+        style = MikaType.Caption, color = MikaTheme.colors.accent,
     )
 }
 
@@ -525,15 +528,15 @@ private fun LinkText(text: String, tag: String?, onClick: () -> Unit) {
 private fun AutoReadHint() {
     val c = MikaTheme.colors
     Row(
-        Modifier.padding(top = 10.dp).fillMaxWidth().background(c.okSoft, RoundedCornerShape(12.dp))
-            .padding(12.dp).testTag("setup-pairing-hint"),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(c.okSoft, RoundedCornerShape(MikaRadius.Md))
+            .padding(MikaSpace.S12).testTag("setup-pairing-hint"),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         Icon(MikaIcons.Check, null, Modifier.size(20.dp), tint = c.ok)
         Column {
-            Text(PhoneSetupCopy.AUTO_READ_HINT, fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold, color = c.ink)
+            Text(PhoneSetupCopy.AUTO_READ_HINT, style = MikaType.CalloutStrong, color = c.ink)
             // 有的系统一进设置就停掉 Mika 的无障碍、冻结后台:读不到时填码通知已经在通知栏里了
-            Text(PhoneSetupCopy.AUTO_READ_FALLBACK, Modifier.padding(top = 4.dp), fontSize = 13.sp, lineHeight = 18.sp, color = c.ink2)
+            Text(PhoneSetupCopy.AUTO_READ_FALLBACK, Modifier.padding(top = MikaSpace.S4), style = MikaType.Caption, color = c.ink2)
         }
     }
 }
@@ -544,17 +547,17 @@ private fun NotifyGuide() {
     val c = MikaTheme.colors
     val icons = listOf(MikaIcons.Phone, MikaIcons.Bell, MikaIcons.Key)
     Column(
-        Modifier.padding(top = 10.dp).fillMaxWidth().background(c.accentSoft, RoundedCornerShape(12.dp))
-            .padding(12.dp).testTag("setup-pairing-guide"),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.padding(top = MikaSpace.S12).fillMaxWidth().background(c.accentSoft, RoundedCornerShape(MikaRadius.Md))
+            .padding(MikaSpace.S12).testTag("setup-pairing-guide"),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         PhoneSetupCopy.NOTIFY_GUIDE.forEachIndexed { i, line ->
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Box(Modifier.size(22.dp).background(c.accent, CircleShape), contentAlignment = Alignment.Center) {
-                    Text("${i + 1}", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = c.onAccent)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
+                Box(Modifier.size(MikaSize.Icon).background(c.accent, CircleShape), contentAlignment = Alignment.Center) {
+                    Text("${i + 1}", style = MikaType.HintStrong, color = c.onAccent)
                 }
-                Icon(icons[i], null, Modifier.size(18.dp), tint = c.accent)
-                Text(line, Modifier.weight(1f), fontSize = 14.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium, color = c.ink)
+                Icon(icons[i], null, Modifier.size(MikaSize.TileIcon), tint = c.accent)
+                Text(line, Modifier.weight(1f), style = MikaType.Callout.copy(fontWeight = FontWeight.Medium), color = c.ink)
             }
         }
     }
@@ -568,24 +571,24 @@ private fun ManualCode(askPort: Boolean, onSubmit: (String, Int?) -> Unit) {
     var port by rememberSaveable { mutableStateOf("") }
     var error by remember { mutableStateOf<String?>(null) }
     Text(
-        PhoneSetupCopy.MANUAL_TOGGLE, Modifier.padding(top = 8.dp).clickable { open = !open }.padding(vertical = 4.dp).testTag("setup-manual"),
-        fontSize = 13.sp, color = MikaTheme.colors.accent,
+        PhoneSetupCopy.MANUAL_TOGGLE, Modifier.padding(top = MikaSpace.S8).clickable { open = !open }.padding(vertical = MikaSpace.S4).testTag("setup-manual"),
+        style = MikaType.Caption, color = MikaTheme.colors.accent,
     )
     if (!open) return
-    Text(PhoneSetupCopy.MANUAL_HINT, fontSize = 12.5.sp, lineHeight = 17.sp, color = MikaTheme.colors.ink3)
+    Text(PhoneSetupCopy.MANUAL_HINT, style = MikaType.Hint, color = MikaTheme.colors.ink3)
     OutlinedTextField(
-        code, { code = it; error = null }, Modifier.fillMaxWidth().padding(top = 6.dp).keepsKeyboard().testTag("setup-code"),
+        code, { code = it; error = null }, Modifier.fillMaxWidth().padding(top = MikaSpace.S8).keepsKeyboard().testTag("setup-code"),
         label = { Text(PhoneSetupCopy.CODE_LABEL) }, singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
     )
     if (askPort) {
         OutlinedTextField(
-            port, { port = it; error = null }, Modifier.fillMaxWidth().padding(top = 6.dp).keepsKeyboard().testTag("setup-port"),
+            port, { port = it; error = null }, Modifier.fillMaxWidth().padding(top = MikaSpace.S8).keepsKeyboard().testTag("setup-port"),
             label = { Text(PhoneSetupCopy.PORT_LABEL) }, supportingText = { Text(PhoneSetupCopy.PORT_HINT) }, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         )
     }
-    error?.let { Text(it, Modifier.padding(top = 4.dp), fontSize = 12.5.sp, color = MikaTheme.colors.bad) }
+    error?.let { Text(it, Modifier.padding(top = MikaSpace.S4), style = MikaType.Hint, color = MikaTheme.colors.bad) }
     PillButton(PhoneSetupCopy.SUBMIT, primary = true, tag = "setup-submit") {
         val c = PairingCode.normalize(code)
         val p = if (askPort && port.isNotBlank()) PairingCode.port(port) else null
@@ -613,7 +616,7 @@ private fun ConnectPort(onConnect: (Int) -> Unit) {
     var port by rememberSaveable { mutableStateOf("") }
     var invalid by remember { mutableStateOf(false) }
     OutlinedTextField(
-        port, { port = it; invalid = false }, Modifier.fillMaxWidth().padding(top = 10.dp).keepsKeyboard().testTag("setup-connect-port"),
+        port, { port = it; invalid = false }, Modifier.fillMaxWidth().padding(top = MikaSpace.S12).keepsKeyboard().testTag("setup-connect-port"),
         label = { Text(PhoneSetupCopy.CONNECT_PORT_LABEL) },
         supportingText = { Text(if (invalid) PhoneSetupCopy.PORT_INVALID else PhoneSetupCopy.CONNECT_PORT_HINT, color = if (invalid) MikaTheme.colors.bad else MikaTheme.colors.ink3) },
         singleLine = true, isError = invalid,
@@ -628,11 +631,11 @@ private fun ConnectPort(onConnect: (Int) -> Unit) {
 
 @Composable
 private fun WorkingLine(scanning: Boolean) {
-    Row(Modifier.padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        CircularProgressIndicator(Modifier.size(16.dp), color = MikaTheme.colors.accent, strokeWidth = 2.dp)
+    Row(Modifier.padding(top = MikaSpace.S8), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
+        CircularProgressIndicator(Modifier.size(MikaSize.SmallIcon), color = MikaTheme.colors.accent, strokeWidth = 2.dp)
         Text(
             if (scanning) PhoneSetupCopy.SCANNING_PORTS else PhoneSetupCopy.WORKING, Modifier.testTag("setup-working"),
-            fontSize = 13.5.sp, color = MikaTheme.colors.ink2,
+            style = MikaType.Caption, color = MikaTheme.colors.ink2,
         )
     }
 }
@@ -640,7 +643,7 @@ private fun WorkingLine(scanning: Boolean) {
 @Composable
 private fun PillButton(text: String, primary: Boolean, tag: String? = null, onClick: () -> Unit) {
     MikaButton(
-        text, onClick, Modifier.padding(top = 10.dp).then(if (tag != null) Modifier.testTag(tag) else Modifier),
+        text, onClick, Modifier.padding(top = MikaSpace.S12).then(if (tag != null) Modifier.testTag(tag) else Modifier),
         kind = if (primary) ButtonKind.Primary else ButtonKind.Tonal, size = ButtonSize.Small,
     )
 }
@@ -683,14 +686,14 @@ fun PhoneHelperSection(status: BuiltinShellStatus, onRepair: () -> Unit, onUnpai
 fun PhoneSetupLine(onOpen: () -> Unit) {
     val shape = MikaShapes.Card
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 12.dp).cardSurface(MikaTheme.colors, shape)
-            .padding(horizontal = 16.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp),
+        Modifier.fillMaxWidth().padding(bottom = MikaSpace.S12).cardSurface(MikaTheme.colors, shape)
+            .padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Text(PhoneSetupCopy.DEGRADED_LINE, Modifier.weight(1f), fontSize = 13.sp, lineHeight = 18.sp, color = MikaTheme.colors.ink2)
+        Text(PhoneSetupCopy.DEGRADED_LINE, Modifier.weight(1f), style = MikaType.Caption, color = MikaTheme.colors.ink2)
         Text(
-            PhoneSetupCopy.DEGRADED_ACTION, Modifier.clickable(onClick = onOpen).padding(4.dp).testTag("phone-setup-open"),
-            fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.accent,
+            PhoneSetupCopy.DEGRADED_ACTION, Modifier.clickable(onClick = onOpen).padding(MikaSpace.S4).testTag("phone-setup-open"),
+            style = MikaType.CalloutStrong, color = MikaTheme.colors.accent,
         )
     }
 }

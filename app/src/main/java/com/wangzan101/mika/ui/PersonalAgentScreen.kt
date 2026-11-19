@@ -80,6 +80,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 internal fun personalStatus(task: PersonalTask): String = stringResource(when (task.status) {
@@ -184,14 +187,14 @@ fun PersonalAgentScreen(
         )
         Box(Modifier.weight(1f).fillMaxWidth().voiceDim(voiceHolding, reduceMotion)) {
             LazyColumn(state = list, modifier = Modifier.fillMaxSize().testTag("personal-timeline"),
-                contentPadding = PaddingValues(horizontal = MikaSpace.Page, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                contentPadding = PaddingValues(horizontal = MikaSpace.Page, vertical = MikaSpace.S12),
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 if (messages.isEmpty()) item("welcome") {
-                    Column(Modifier.fillMaxWidth().padding(top = 60.dp, bottom = 40.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Column(Modifier.fillMaxWidth().padding(top = 60.dp, bottom = MikaSpace.S32), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(stringResource(R.string.personal_welcome_title), style = MikaType.LargeTitle, color = c.ink, textAlign = TextAlign.Center)
                         Text(stringResource(R.string.personal_welcome_body),
-                            Modifier.padding(top = 12.dp), color = c.ink2, style = MikaType.Body, textAlign = TextAlign.Center)
-                        TextButton(onClick = onModels, Modifier.padding(top = 16.dp)) { Text(stringResource(R.string.personal_view_model)) }
+                            Modifier.padding(top = MikaSpace.S12), color = c.ink2, style = MikaType.Body, textAlign = TextAlign.Center)
+                        TextButton(onClick = onModels, Modifier.padding(top = MikaSpace.S16)) { Text(stringResource(R.string.personal_view_model)) }
                     }
                 }
                 itemsIndexed(messages, key = { _, message -> message.id }) { index, message ->
@@ -203,26 +206,26 @@ fun PersonalAgentScreen(
                     val user = message.role == "user"
                     Column(Modifier.fillMaxWidth(), horizontalAlignment = if (user) Alignment.End else Alignment.Start) {
                         if (date != priorDate) {
-                            Text(dayFormat.format(date), Modifier.align(Alignment.CenterHorizontally).padding(vertical = 8.dp),
-                                color = c.ink3, fontSize = 11.sp)
-                            Spacer(Modifier.height(12.dp))
+                            Text(dayFormat.format(date), Modifier.align(Alignment.CenterHorizontally).padding(vertical = MikaSpace.S8),
+                                color = c.ink3, style = MikaType.Micro.copy(fontWeight = FontWeight.Normal))
+                            Spacer(Modifier.height(MikaSpace.S12))
                         }
                         if (task != null) Text(task.title + " · " + personalStatus(task),
-                            Modifier.padding(start = 4.dp, bottom = 6.dp), fontSize = 10.sp, color = c.ink2)
+                            Modifier.padding(start = MikaSpace.S4, bottom = MikaSpace.S8), style = MikaType.Micro.copy(fontWeight = FontWeight.Normal), color = c.ink2)
                         val bubble = Modifier.fillMaxWidth(if (user) 0.8f else 1f)
                             .wrapContentWidth(if (user) Alignment.End else Alignment.Start)
                             .background(if (user) c.accent else c.answer, if (user) MikaShapes.UserBubble else MikaShapes.AnswerBubble)
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                            .padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12)
                         if (user) {
                             Text(message.text, bubble, style = MikaType.Body, color = c.onAccent)
                         } else {
                             MarkdownText(message.displayText(context), MikaType.Body.copy(color = if (message.error) c.bad else c.ink), bubble)
                         }
-                        if (!message.handled) Text(stringResource(R.string.personal_received), Modifier.padding(top = 4.dp, end = 5.dp), fontSize = 10.sp, color = c.ink3)
-                        if (task != null) TextButton(onClick = { selectedTask = task.id }) { Text(stringResource(R.string.personal_view_task), fontSize = 12.sp) }
+                        if (!message.handled) Text(stringResource(R.string.personal_received), Modifier.padding(top = MikaSpace.S4, end = MikaSpace.S4), style = MikaType.Micro.copy(fontWeight = FontWeight.Normal), color = c.ink3)
+                        if (task != null) TextButton(onClick = { selectedTask = task.id }) { Text(stringResource(R.string.personal_view_task), style = MikaType.Hint) }
                     }
                 }
-                item("bottom") { Spacer(Modifier.height(4.dp)) }
+                item("bottom") { Spacer(Modifier.height(MikaSpace.S4)) }
             }
             if (!followLatest && messages.isNotEmpty()) TextButton(
                 onClick = { followLatest = true; scope.launch { list.scrollToItem(messages.size) } },
@@ -332,7 +335,7 @@ internal fun PersonalProfileDialog(
                 Box(Modifier.fillMaxWidth()) {
                     if (compact) {
                         Row(
-                            Modifier.align(Alignment.Center).padding(horizontal = 40.dp),
+                            Modifier.align(Alignment.Center).padding(horizontal = MikaSpace.S32),
                             horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
@@ -358,7 +361,7 @@ internal fun PersonalProfileDialog(
                         } else {
                             LazyColumn(
                                 Modifier.fillMaxWidth(),
-                                contentPadding = PaddingValues(horizontal = 6.dp, vertical = MikaSpace.S8),
+                                contentPadding = PaddingValues(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
                                 verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
                             ) {
                                 items(tasks.asReversed(), key = { it.id }) { task -> PersonalTaskCard(task) { onTask(task) } }
@@ -373,7 +376,7 @@ internal fun PersonalProfileDialog(
                             val ui by vm.ui.collectAsState()
                             key(tab) {
                                 Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState())
-                                    .padding(horizontal = 6.dp, vertical = MikaSpace.S8)) {
+                                    .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8)) {
                                     if (tab == PersonalProfileTab.Memory) {
                                         MemoryEntries(vm, ui, allowAdd = false)
                                     } else {
@@ -412,23 +415,23 @@ internal fun PersonalProfileTabs(selected: PersonalProfileTab, showIcons: Boolea
                     .then(if (active) Modifier.cardSurface(c, CircleShape) else Modifier)
                     .clip(CircleShape).selectable(selected = active, role = Role.Tab) { onSelect(tab) }
                     .padding(horizontal = MikaSpace.S4),
-                horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (showIcons) Icon(tab.icon, null, Modifier.size(16.dp), tint = ink)
+                if (showIcons) Icon(tab.icon, null, Modifier.size(MikaSize.SmallIcon), tint = ink)
                 Text(label, style = MikaType.Label, color = ink, maxLines = 1)
             }
         }
         if (stacked) {
             Column(
-                Modifier.fillMaxWidth().selectableGroup().clip(RoundedCornerShape(24.dp)).background(c.fill).padding(3.dp),
+                Modifier.fillMaxWidth().selectableGroup().clip(RoundedCornerShape(MikaRadius.Xxl)).background(c.fill).padding(MikaSpace.S4),
                 verticalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 PersonalProfileTab.entries.forEachIndexed { i, tab -> item(tab, labels[i], Modifier.fillMaxWidth()) }
             }
         } else {
             Row(
-                Modifier.fillMaxWidth().selectableGroup().clip(CircleShape).background(c.fill).padding(3.dp),
+                Modifier.fillMaxWidth().selectableGroup().clip(CircleShape).background(c.fill).padding(MikaSpace.S4),
                 horizontalArrangement = Arrangement.spacedBy(2.dp),
             ) {
                 PersonalProfileTab.entries.forEachIndexed { i, tab -> item(tab, labels[i], Modifier.weight(1f)) }
@@ -453,8 +456,8 @@ internal fun PersonalHeader(
     val previewTask = active.firstOrNull { it.conversationId == preview?.conversationId }
     val frame = preview?.frame?.takeUnless { previewTask == null || it.isRecycled }
     val previewWidth = frame?.let { minOf(76.dp, 104.dp * (it.width.toFloat() / it.height)) } ?: 0.dp
-    Box(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.Page, vertical = 6.dp)) {
-        Box(Modifier.align(Alignment.TopStart).padding(top = 4.dp)) {
+    Box(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.Page, vertical = MikaSpace.S8)) {
+        Box(Modifier.align(Alignment.TopStart).padding(top = MikaSpace.S4)) {
             BarIconButton(MikaIcons.Menu, stringResource(R.string.personal_open_sidebar), onOpenDrawer)
         }
         Column(Modifier.align(Alignment.TopCenter).widthIn(max = 250.dp),
@@ -473,7 +476,7 @@ internal fun PersonalHeader(
                     ) {
                         MikaLogo(52.dp, corner = 26.dp)
                     }
-                    Text(stringResource(R.string.app_name), Modifier.padding(top = 7.dp), style = MikaType.Title, color = c.ink)
+                    Text(stringResource(R.string.app_name), Modifier.padding(top = MikaSpace.S8), style = MikaType.Title, color = c.ink)
                 }
                 if (frame != null) {
                     Image(
@@ -495,8 +498,8 @@ internal fun PersonalHeader(
                     Modifier.padding(top = MikaSpace.S4).heightIn(min = 32.dp).clip(MikaShapes.Pill)
                         .background(tone.fill).testTag("personal-task-progress")
                         .clickable(role = Role.Button) { if (showAll) onActivity() else onTask(task) }
-                        .padding(horizontal = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        .padding(horizontal = MikaSpace.S12),
+                    horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Icon(tone.icon, null, Modifier.size(14.dp), tint = tone.ink)
@@ -531,7 +534,7 @@ private fun personalTaskTone(task: PersonalTask): PersonalTaskTone {
 
 @Composable
 private fun PersonalTaskIcon(tone: PersonalTaskTone, label: String?) {
-    Box(Modifier.size(40.dp).background(tone.fill, RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+    Box(Modifier.size(MikaSize.IconButton).background(tone.fill, RoundedCornerShape(MikaRadius.Md)), contentAlignment = Alignment.Center) {
         Icon(tone.icon, label, Modifier.size(19.dp), tint = tone.ink)
     }
 }
@@ -546,19 +549,19 @@ private fun PersonalTaskCard(task: PersonalTask, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().testTag("personal-task-" + task.id).cardSurface(c).clip(MikaShapes.Card)
             .clickable(onClickLabel = stringResource(R.string.personal_task_details), role = Role.Button, onClick = onClick)
-            .padding(14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+            .padding(MikaSpace.S16),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         PersonalTaskIcon(tone, personalStatus(task).takeIf { task.iconOnlyStatus })
-        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
             Text(task.title, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
             if (description.isNotBlank() && description != task.title) {
                 Text(description, style = MikaType.Caption, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
             if (!task.iconOnlyStatus) Text(personalStatus(task), style = MikaType.Label, color = tone.ink)
         }
-        Icon(MikaIcons.Chevron, null, Modifier.size(16.dp), tint = c.ink3)
+        Icon(MikaIcons.Chevron, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
     }
 }
 
@@ -587,7 +590,7 @@ internal fun PersonalTaskSheet(
                 Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState()).padding(bottom = MikaSpace.S16),
                 verticalArrangement = Arrangement.spacedBy(MikaSpace.S16),
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.CenterVertically) {
                     PersonalTaskIcon(tone, personalStatus(task).takeIf { task.iconOnlyStatus })
                     if (!task.iconOnlyStatus) Text(personalStatus(task), style = MikaType.Label, color = tone.ink)
                 }

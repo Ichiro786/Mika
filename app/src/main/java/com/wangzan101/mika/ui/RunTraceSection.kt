@@ -36,6 +36,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 运行还在录 Trace 时,多久重读一次。 */
 private const val TRACE_REFRESH_MS = 1_000L
@@ -109,7 +110,7 @@ private fun TraceEntryRow(archive: TraceArchive, row: TraceRow, worst: Boolean) 
             value = withContext(Dispatchers.IO) { runCatching { archive.bodyPage(row.id, page * 3000) }.getOrNull() }
         }
         body?.let { result ->
-            Column(Modifier.padding(horizontal = 16.dp)) {
+            Column(Modifier.padding(horizontal = MikaSpace.S16)) {
                 SelectionContainer { Text(result.text.ifEmpty { unknown }, style = MikaType.Hint) }
                 if (page > 0 || result.hasMore) Row {
                     TextButton(onClick = { page-- }, enabled = page > 0) { Text("‹") }
@@ -142,7 +143,7 @@ private fun TraceExportControls(archive: TraceArchive) {
     ListRow(MikaIcons.Doc, stringResource(R.string.trace_save), onClick = {
         if (includeBody) zip.launch("mika-trace-${archive.runId}.zip") else proto.launch("mika-trace-${archive.runId}.pb")
     }) { RowChevron() }
-    if (result != 0) Text(stringResource(result), Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MikaType.Hint)
+    if (result != 0) Text(stringResource(result), Modifier.padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8), style = MikaType.Hint)
 }
 
 private suspend fun saveTrace(archive: TraceArchive, includeBody: Boolean, open: () -> java.io.OutputStream?): Int =

@@ -25,6 +25,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 分类名只在界面上出现,core 里不存中文;分类本身是 AI 判断的用途,不改变权限。 */
 @Composable
@@ -200,11 +201,11 @@ fun AppAccessScreen(onBack: () -> Unit, classifyApps: Boolean = true) {
                 Column(Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState())) {
                     Text(stringResource(R.string.appaccess_recommend_body))
                     if (recommended.isEmpty()) {
-                        Text(stringResource(R.string.appaccess_recommend_empty), Modifier.padding(top = 12.dp))
+                        Text(stringResource(R.string.appaccess_recommend_empty), Modifier.padding(top = MikaSpace.S12))
                     }
                     recommended.forEach { (pkg, label) ->
                         Row(
-                            Modifier.fillMaxWidth().padding(top = 8.dp),
+                            Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Column(Modifier.weight(1f)) { Text(label) }

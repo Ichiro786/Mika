@@ -34,6 +34,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
 
 @RunWith(AndroidJUnit4::class)
 class CapsuleCardContentTest {
@@ -204,7 +206,9 @@ class CapsuleCardContentTest {
         val r = run("a", TaskState.Idle, CapsuleKind.NeedConfirm)
         show(CardView.Detail(r, CardContent.Confirm("要你同意:下单", "金额:¥19.9", 9)))
         compose.onNodeWithText(ConfirmationCopy.NOTE).assertIsDisplayed()
-        compose.onNodeWithText(CardCopy.APPROVE_ONCE_ONLY).performClick()
+        // A tap does nothing; the hold (or the accessibility click) approves.
+        compose.onNodeWithTag("capsule-approve").performClick()
+        compose.onNodeWithTag("capsule-approve").performSemanticsAction(SemanticsActions.OnClick)
         compose.onNodeWithText(CardCopy.DECLINE).performClick()
         assertEquals(listOf("approve a 9", "decline a 9"), calls)
     }

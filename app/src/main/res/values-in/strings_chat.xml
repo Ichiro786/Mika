@@ -281,4 +281,20 @@
     <string name="chat_reaction_orbit">Orbit memberi reaksi %1$s</string>
     <string name="chat_replying_to">Membalas pesan Anda: %1$s</string>
     <string name="chat_swipe_reply">Geser untuk membalas</string>
+    <string name="plan_step_pending">Belum dimulai</string>
+    <string name="plan_step_running">Sedang berjalan</string>
+    <string name="plan_step_done">Selesai</string>
+    <string name="plan_step_waiting">Menunggu Anda</string>
+    <string name="plan_step_needs_approval">Perlu persetujuan Anda</string>
+    <string name="plan_step_stopped">Dihentikan</string>
+    <string name="plan_step_of">Langkah %1$d dari %2$d</string>
+    <string name="chat_jump_latest">Lompat ke terbaru</string>
+    <string name="skill_section_entry">Mulai dari mana</string>
+    <string name="skill_section_steps">Langkah</string>
+    <string name="skill_section_caution">Yang mudah keliru</string>
+    <string name="skill_section_done">Cara tahu berhasil</string>
+    <string name="skill_section_handoff">Kapan diserahkan ke Anda</string>
+    <string name="chat_hold_to_allow">Tahan untuk izinkan sekali</string>
+    <string name="hold_to_allow_hint">Tahan sampai cincin penuh</string>
+    <string name="hold_to_allow_holding">Terus tahan</string>
 </resources>

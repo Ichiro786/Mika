@@ -76,7 +76,7 @@ class StopSummary(
             val lines = mutableListOf<String>()
             val said = mutableSetOf<Int>()
             var lastObserve: String? = null
-            for (a in events.filterIsInstance<RunEvent.Activity>()) {
+            for (a in events.filterIsInstance<RunEvent.Activity>().filter { it.kind != com.wangzan101.mika.core.action.ActivityRecord.PLAN_KIND }) {
                 val where = a.target?.let { where(it, appLabel) }
                 val what = listOfNotNull(label(a.label), where, a.title?.takeIf(String::isNotBlank)).joinToString(" · ")
                 val tags = listOfNotNull("sent outward".takeIf { a.outward && !a.failed }, "failed".takeIf { a.failed })
@@ -109,7 +109,7 @@ class StopSummary(
          * 几步没成功、停下时写了一半的字;最后说没做完的部分没有接着做。
          */
         fun plain(goal: String, events: List<RunEvent>, draft: String?, label: (String) -> String = { it }, appLabel: (String) -> String = { it }): String {
-            val acts = events.filterIsInstance<RunEvent.Activity>()
+            val acts = events.filterIsInstance<RunEvent.Activity>().filter { it.kind != com.wangzan101.mika.core.action.ActivityRecord.PLAN_KIND }
             val notes = notes(events)
             val lines = mutableListOf<String>()
             val places = acts.mapNotNull { a -> a.target?.let { placeOf(it, appLabel) } }.distinct()

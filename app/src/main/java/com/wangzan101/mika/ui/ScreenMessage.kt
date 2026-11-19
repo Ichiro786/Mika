@@ -49,6 +49,10 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
+import androidx.compose.ui.text.font.FontWeight
 
 /** 用户发来的屏幕在界面上的说法(对话页、卡片、截屏按钮共用)。 */
 object ScreenCopy {
@@ -142,14 +146,14 @@ fun UserMessage(conversationId: String?, raw: String, thumbWidth: Dp, modifier: 
         bubble(text)
         return
     }
-    Column(modifier, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(modifier, horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         p.screens.forEach { id -> ScreenItem(rememberShownScreen(conversationId, id), thumbWidth) }
         if (p.words.isNotEmpty()) bubble(p.words)
     }
 }
 
-private val ThumbShape = RoundedCornerShape(10.dp)
-private val TagText = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
+private val ThumbShape = RoundedCornerShape(MikaRadius.Sm)
+private val TagText = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
 
 /** 一屏:缩略图和下面那一行;还没读到时先占着位置。 */
 @Composable
@@ -158,19 +162,19 @@ private fun ScreenItem(shown: ShownScreen?, width: Dp) {
     val screen = shown?.screen
     if (screen?.blocked == true) {
         Row(
-            Modifier.testTag("screen-blocked").background(c.ink.copy(alpha = 0.05f), ThumbShape).padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
+            Modifier.testTag("screen-blocked").background(c.ink.copy(alpha = 0.05f), ThumbShape).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
             Icon(MikaIcons.Lock, null, Modifier.size(15.dp), tint = c.ink2)
-            Text(ScreenCopy.BLOCKED, style = TextStyle(fontSize = 12.sp, lineHeight = 16.sp), color = c.ink2)
+            Text(ScreenCopy.BLOCKED, style = MikaType.Hint, color = c.ink2)
         }
         return
     }
     val tag = screen?.let(ScreenCopy::tag) ?: ScreenCopy.TAG
     Column(Modifier.semantics(mergeDescendants = true) { contentDescription = tag }, horizontalAlignment = Alignment.End,
-        verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         ScreenThumb(shown?.thumb, width, Modifier.testTag("screen-thumb"))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
             Icon(MikaIcons.Phone, null, Modifier.size(13.dp), tint = c.ink3)
             Text(tag, Modifier.testTag("screen-tag"), style = TagText, color = c.ink3)
         }

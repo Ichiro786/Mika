@@ -65,7 +65,8 @@ data class CardInput(val hint: String, val kind: CardInputKind)
 /** 详情里按状态放的内容;按钮都转成任务服务现有的动作。 */
 sealed interface CardContent {
     /** 干活中:做过的步骤(最多 [CapsuleCards.STEPS] 步),最后一步是此刻在做的;停止在输入框右边。 */
-    data class Working(val steps: List<String>) : CardContent
+    /** [plan] is the shared live plan (every step with its state); [steps] stays for surfaces that only list text. */
+    data class Working(val steps: List<String>, val plan: com.wangzan101.mika.ui.plan.LivePlan? = null) : CardContent
 
     /**
      * 要你接管:[need] 是那一句「需要你:…」,[body] 是为什么(模型写的话,付款时加上商品、金额、地址);
@@ -186,7 +187,7 @@ object CapsuleCards {
             is TaskState.Succeeded -> CardContent.Result(CapsuleKind.Done)
             is TaskState.Failed -> CardContent.Result(CapsuleKind.Failed)
             TaskState.Cancelled -> CardContent.Result(CapsuleKind.Cancelled)
-            else -> CardContent.Working(steps(ex, r.line))
+            else -> CardContent.Working(steps(ex, r.line), ex?.let { com.wangzan101.mika.ui.plan.LivePlans.from(it, r.line) })
         }
     }
 

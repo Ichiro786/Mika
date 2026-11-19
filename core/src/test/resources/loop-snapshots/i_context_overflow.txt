@@ -2,7 +2,7 @@ outcome: Succeeded(answer=等完了, verified=false, note=null, sources=[], unco
 
 ## main #1
 system: len=19003 #5cbd88cd | You are Mika, the user's personal assistant on their phone. Your job is to get ⏎…
-tools: #5f880fca [wait, ask_user, request_confirmation, end_not_done, phone_list_apps, phone_launch_app, phone_set_alarm, phone_set_timer, phone_add_calendar_event, phone_calendar_bulk_insert]
+tools: #4d89a805 [wait, update_plan, ask_user, request_confirmation, end_not_done, phone_list_apps, phone_launch_app, phone_set_alarm, phone_set_timer, phone_add_calendar_event, phone_calendar_bulk_insert]
 user:
   text #68045003 | 等一会儿
   ctx:runtime_state source="runtime" #91deb1d0 | Current place: no screen or page read yet ⏎…

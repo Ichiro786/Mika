@@ -408,8 +408,9 @@ phone on the main screen at the same time.
 - If back does not change the page, use the page's own back control instead
   of pressing back again.
 
-==== tools (37) ====
+==== tools (38) ====
 wait #8ed080dc3f35
+update_plan #284d5c5b67e2
 ask_user #9aba9bc58f9e
 request_confirmation #0c298c727502
 end_not_done #cbdad9decd9e

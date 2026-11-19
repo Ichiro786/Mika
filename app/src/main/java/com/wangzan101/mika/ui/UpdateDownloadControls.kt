@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 @Composable
 internal fun UpdateDownloadControls(release: ReleaseInfo) {
@@ -133,12 +134,12 @@ internal fun UpdateDownloadActions(
         else -> stringResource(R.string.about_update_download_in_app)
     }
     MikaButton(text, if (state.phase == DownloadPhase.Ready) onInstall else onDownload,
-        Modifier.fillMaxWidth().padding(top = 14.dp), enabled = !busy && !active)
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S16), enabled = !busy && !active)
     if (active || state.phase == DownloadPhase.Ready) {
         MikaButton(stringResource(R.string.about_update_cancel), onCancel,
-            Modifier.fillMaxWidth().padding(top = 10.dp), kind = ButtonKind.Tonal, enabled = !busy)
+            Modifier.fillMaxWidth().padding(top = MikaSpace.S12), kind = ButtonKind.Tonal, enabled = !busy)
     }
     val note = error ?: if (state.phase == DownloadPhase.Failed) R.string.about_update_error else R.string.about_update_install_hint
     Text(stringResource(note),
-        Modifier.padding(top = 8.dp), style = MikaType.Caption, color = MikaTheme.colors.ink3)
+        Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = MikaTheme.colors.ink3)
 }

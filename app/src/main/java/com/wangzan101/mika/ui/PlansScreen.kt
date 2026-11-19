@@ -55,6 +55,7 @@ import java.time.Instant
 import com.wangzan101.mika.i18n.uiLocale
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 已保存的定时任务:分「进行中」「已停用」两段,每条三行(做什么、什么时候与下次、上次结果),右边开关。
@@ -109,7 +110,7 @@ fun PlansScreen(
             listOf(tr(R.string.plans_running_n, running.size), tr(R.string.plans_stopped_n, stopped.size)), segment, { segment = it },
             tags = listOf("plans-segment-running", "plans-segment-stopped"),
         )
-        error?.let { Text(it, Modifier.padding(top = 8.dp), style = MikaType.Caption, color = MikaTheme.colors.bad) }
+        error?.let { Text(it, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = MikaTheme.colors.bad) }
         if (shown.isEmpty()) {
             GroupLabel("")
             if (snapshot.triggers.isEmpty()) {

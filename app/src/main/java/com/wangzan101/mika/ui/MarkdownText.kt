@@ -46,6 +46,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.withContext
 import com.wangzan101.mika.ui.theme.MikaTheme
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 按 Markdown 显示一段回答；流式草稿用临时闭合的语法预览。 */
 @Composable
@@ -111,26 +113,26 @@ private fun Block(b: MdBlock, style: TextStyle, depth: Int) {
             ),
         )
         is MdBlock.Code -> Box(
-            Modifier.fillMaxWidth().background(MikaTheme.colors.fill, RoundedCornerShape(10.dp))
-                .horizontalScroll(rememberScrollState()).padding(horizontal = 11.dp, vertical = 9.dp),
+            Modifier.fillMaxWidth().background(MikaTheme.colors.fill, RoundedCornerShape(MikaRadius.Sm))
+                .horizontalScroll(rememberScrollState()).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
         ) {
             Text(b.code, style = style.copy(fontFamily = FontFamily.Monospace, fontSize = 13.sp, lineHeight = 19.sp), softWrap = false)
         }
         is MdBlock.Quote -> Row(Modifier.height(IntrinsicSize.Min)) {
-            Box(Modifier.width(3.dp).fillMaxHeight().background(MikaTheme.colors.hair, RoundedCornerShape(2.dp)))
-            MarkdownBlocks(b.blocks, style.copy(color = MikaTheme.colors.ink2), Modifier.padding(start = 10.dp), depth + 1)
+            Box(Modifier.width(3.dp).fillMaxHeight().background(MikaTheme.colors.hair, RoundedCornerShape(MikaRadius.Xs)))
+            MarkdownBlocks(b.blocks, style.copy(color = MikaTheme.colors.ink2), Modifier.padding(start = MikaSpace.S12), depth + 1)
         }
-        is MdBlock.ListBlock -> Column(verticalArrangement = Arrangement.spacedBy(if (b.tight) 3.dp else 8.dp)) {
+        is MdBlock.ListBlock -> Column(verticalArrangement = Arrangement.spacedBy(if (b.tight) MikaSpace.S4 else MikaSpace.S8)) {
             b.items.forEachIndexed { i, item ->
                 Row {
                     val marker = if (b.start != null) "${b.start + i}." else if (depth % 2 == 0) "•" else "◦"
-                    Text(marker, Modifier.widthIn(min = 18.dp).padding(end = 6.dp), style = style.copy(color = MikaTheme.colors.ink2))
+                    Text(marker, Modifier.widthIn(min = 18.dp).padding(end = MikaSpace.S8), style = style.copy(color = MikaTheme.colors.ink2))
                     MarkdownBlocks(item, style, depth = depth + 1, gap = if (b.tight) 3 else 8)
                 }
             }
         }
         is MdBlock.Table -> TableBlock(b, style)
-        MdBlock.Rule -> Box(Modifier.fillMaxWidth().padding(vertical = 4.dp).height(0.5.dp).background(MikaTheme.colors.hair))
+        MdBlock.Rule -> Box(Modifier.fillMaxWidth().padding(vertical = MikaSpace.S4).height(0.5.dp).background(MikaTheme.colors.hair))
     }
 }
 
@@ -149,14 +151,14 @@ private fun TableBlock(t: MdBlock.Table, style: TextStyle) {
                         Box(
                             Modifier.border(0.5.dp, MikaTheme.colors.hair)
                                 .then(if (r == 0) Modifier.background(MikaTheme.colors.fill) else Modifier)
-                                .padding(horizontal = 9.dp, vertical = 6.dp),
+                                .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
                         ) {
                             Text(cell, style = if (r == 0) cellStyle.copy(fontWeight = FontWeight.SemiBold) else cellStyle)
                         }
                     }
                 }
             },
-            modifier = Modifier.border(0.5.dp, MikaTheme.colors.hair, RoundedCornerShape(2.dp)),
+            modifier = Modifier.border(0.5.dp, MikaTheme.colors.hair, RoundedCornerShape(MikaRadius.Xs)),
         ) { measurables, _ ->
             val maxCol = 240.dp.roundToPx()
             val minCol = 48.dp.roundToPx()

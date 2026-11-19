@@ -351,4 +351,20 @@
     <string name="chat_reaction_orbit">تفاعل Orbit بـ %1$s</string>
     <string name="chat_replying_to">ردًا على رسالتك: %1$s</string>
     <string name="chat_swipe_reply">اسحب للرد</string>
+    <string name="plan_step_pending">لم يبدأ</string>
+    <string name="plan_step_running">قيد التنفيذ</string>
+    <string name="plan_step_done">تم</string>
+    <string name="plan_step_waiting">بانتظارك</string>
+    <string name="plan_step_needs_approval">يحتاج إلى موافقتك</string>
+    <string name="plan_step_stopped">متوقف</string>
+    <string name="plan_step_of">الخطوة %1$d من %2$d</string>
+    <string name="chat_jump_latest">الانتقال إلى الأحدث</string>
+    <string name="skill_section_entry">من أين تبدأ</string>
+    <string name="skill_section_steps">الخطوات</string>
+    <string name="skill_section_caution">أخطاء شائعة</string>
+    <string name="skill_section_done">كيف تعرف أنها نجحت</string>
+    <string name="skill_section_handoff">متى تُسلَّم إليك</string>
+    <string name="chat_hold_to_allow">اضغط مطولًا للسماح مرة واحدة</string>
+    <string name="hold_to_allow_hint">اضغط حتى تمتلئ الحلقة</string>
+    <string name="hold_to_allow_holding">واصل الضغط</string>
 </resources>

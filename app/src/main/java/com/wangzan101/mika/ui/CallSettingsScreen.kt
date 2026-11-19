@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
+import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** The current call and receiving controls come first; the rest expands without changing pages. */
 @Composable
@@ -236,7 +238,7 @@ private fun CallSettingsWorkspace(
                 }
                 Column(
                     Modifier.weight(1f).fillMaxWidth().verticalScroll(scroll)
-                        .padding(horizontal = MikaSpace.Page).padding(top = 8.dp, bottom = 24.dp)
+                        .padding(horizontal = MikaSpace.Page).padding(top = MikaSpace.S8, bottom = MikaSpace.S24)
                         .testTag("call-page-" + tab.name.lowercase()),
                 ) {
                     val visibleFeedback = feedback?.takeIf {
@@ -363,8 +365,8 @@ private fun CallWorkspaceTabs(selected: CallWorkspaceTab, onSelect: (CallWorkspa
                 selected = tab == selected, onClick = { onSelect(tab) },
                 modifier = Modifier.heightIn(min = 48.dp).testTag("call-tab-" + tab.name.lowercase()),
             ) {
-                Text(stringResource(tab.label), Modifier.padding(horizontal = 3.dp, vertical = 6.dp),
-                    textAlign = TextAlign.Center, style = MaterialTheme.typography.labelLarge,
+                Text(stringResource(tab.label), Modifier.padding(horizontal = MikaSpace.S4, vertical = MikaSpace.S8),
+                    textAlign = TextAlign.Center, style = MikaType.Label,
                     maxLines = 2, overflow = TextOverflow.Ellipsis)
             }
         }
@@ -403,18 +405,18 @@ private fun CurrentCallCard(
         CallAutoAnswerStage.ANSWERING -> stringResource(R.string.calls_auto_answering)
         else -> if (state.aiActive) stringResource(R.string.calls_ai_active) else phaseLabel(state.phase)
     }
-    MikaCard(modifier.padding(bottom = 6.dp).testTag("call-current")) {
-        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    MikaCard(modifier.padding(bottom = MikaSpace.S8).testTag("call-current")) {
+        Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 IconTile(MikaIcons.Phone, if (state.aiActive || cancelAuto) TileTone.Accent else TileTone.Neutral)
                 Column(Modifier.weight(1f)) {
-                    Text(phase, style = MaterialTheme.typography.titleSmall, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(phase, style = MikaType.BodyStrong, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     val party = state.number?.let { "\u2066$it\u2069" }
                         ?: stringResource(R.string.calls_unknown_number).takeIf { state.direction == CallDirection.INCOMING }
                     val direction = state.direction?.let { directionLabel(it) }
                     val subtitle = listOfNotNull(direction, party).joinToString(" · ")
-                    if (subtitle.isNotBlank()) Text(subtitle, style = MaterialTheme.typography.bodySmall,
+                    if (subtitle.isNotBlank()) Text(subtitle, style = MikaType.Hint,
                         color = MikaTheme.colors.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 if (state.aiActive || state.liveTranscript.isNotEmpty()) {
@@ -425,7 +427,7 @@ private fun CurrentCallCard(
                 }
             }
             if (ringing || showTakeover || cancelAuto || state.canHangUp) {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp),
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
                     verticalAlignment = Alignment.CenterVertically) {
                     if (ringing || showTakeover) {
                         val action = when {
@@ -435,24 +437,24 @@ private fun CurrentCallCard(
                         }
                         Button(onClick = action.second, enabled = if (cancelManual || showTakeover) canControl else canAnswer,
                             modifier = Modifier.weight(1.25f).heightIn(min = 48.dp).testTag(action.third),
-                            shape = MikaShapes.Button, contentPadding = PaddingValues(horizontal = 7.dp, vertical = 6.dp),
+                            shape = MikaShapes.Button, contentPadding = PaddingValues(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
                             colors = ButtonDefaults.buttonColors(containerColor = MikaTheme.colors.accent, contentColor = MikaTheme.colors.onAccent),
                         ) { Text(stringResource(action.first), textAlign = TextAlign.Center) }
                     }
                     if (cancelAuto) OutlinedButton(onClick = onCancelAuto, enabled = canControl,
                         modifier = Modifier.weight(1.25f).heightIn(min = 48.dp).testTag("call-cancel-auto"),
-                        contentPadding = PaddingValues(horizontal = 6.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
                     ) { Text(stringResource(R.string.calls_auto_cancel), textAlign = TextAlign.Center) }
                     if (state.canHangUp) TextButton(onClick = onHangup, enabled = canControl,
                         modifier = Modifier.weight(.85f).heightIn(min = 48.dp).testTag("call-hangup"),
-                        contentPadding = PaddingValues(horizontal = 4.dp, vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = MikaSpace.S4, vertical = MikaSpace.S8),
                     ) { Text(stringResource(R.string.calls_hangup), textAlign = TextAlign.Center,
                         color = if (canControl) MaterialTheme.colorScheme.error else MikaTheme.colors.ink3) }
                 }
             }
             feedback?.let {
                 Text(it.message, Modifier.semantics { liveRegion = LiveRegionMode.Polite },
-                    style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = TextOverflow.Ellipsis,
+                    style = MikaType.Hint, maxLines = 2, overflow = TextOverflow.Ellipsis,
                     color = if (it.ok) MikaTheme.colors.ink3 else MaterialTheme.colorScheme.error)
             }
         }
@@ -463,14 +465,14 @@ private fun CurrentCallCard(
 private fun LiveCallTranscript(callId: String?, lines: List<CallTranscriptLine>) {
     var expanded by rememberSaveable(callId) { mutableStateOf(false) }
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(R.string.calls_live_transcript), Modifier.weight(1f), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(R.string.calls_live_transcript), Modifier.weight(1f), style = MikaType.BodyStrong)
         if (lines.size > 3) TextButton(onClick = { expanded = !expanded }) {
             Text(stringResource(if (expanded) R.string.calls_collapse else R.string.calls_expand))
         }
     }
     if (lines.isEmpty()) {
-        Text(stringResource(R.string.calls_live_waiting), style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
-    } else Column(Modifier.testTag("call-live-transcript"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(stringResource(R.string.calls_live_waiting), style = MikaType.Hint, color = MikaTheme.colors.ink3)
+    } else Column(Modifier.testTag("call-live-transcript"), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         (if (expanded) lines else lines.takeLast(3)).forEach { line ->
             CallTranscriptText(line)
         }
@@ -489,7 +491,7 @@ private fun CallReceivePage(
     var pauseOpen by rememberSaveable { mutableStateOf(false) }
     if (state.aiActive || state.liveTranscript.isNotEmpty()) {
         GroupCard {
-            Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(Modifier.fillMaxWidth().padding(MikaSpace.S16), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 LiveCallTranscript(state.callId, state.liveTranscript)
             }
         }
@@ -499,17 +501,17 @@ private fun CallReceivePage(
         (config.allowAllIncoming || config.allowedIncomingNumbers.isNotEmpty())
     GroupCard {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+            Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.CenterVertically,
         ) {
             IconTile(MikaIcons.Bell, when (state.autoAnswerStage) {
                 CallAutoAnswerStage.STANDBY -> TileTone.Ok
                 CallAutoAnswerStage.PAUSED, CallAutoAnswerStage.BLOCKED -> TileTone.Warn
                 else -> TileTone.Neutral
             })
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(3.dp)) {
-                Text(autoLabel, style = MaterialTheme.typography.titleMedium)
-                Text(autoAnswerSummary(config, state), style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
+                Text(autoLabel, style = MikaType.Title)
+                Text(autoAnswerSummary(config, state), style = MikaType.Hint, color = MikaTheme.colors.ink3)
             }
             MikaSwitch(
                 config.autoAnswer, onToggle,
@@ -555,7 +557,7 @@ private fun CallReceivePage(
         if (pauseOpen) {
             if (!config.autoAnswer && !paused) {
                 FooterNote(stringResource(R.string.calls_pause_enable_first))
-            } else Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            } else Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S12), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 if (paused) {
                     TextButton(onClick = onResume, enabled = controlsEnabled,
                         modifier = Modifier.weight(1f).testTag("call-resume-auto")) {
@@ -612,14 +614,14 @@ private fun CallPreferencesPage(
             val canVerify = canConfigure && (ready || config.audioVerified)
             Row(
                 Modifier.fillMaxWidth().toggleable(config.audioVerified, enabled = canVerify, role = Role.Checkbox,
-                    onValueChange = onVerifyAudio).padding(horizontal = 16.dp, vertical = 8.dp).heightIn(min = 48.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+                    onValueChange = onVerifyAudio).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8).heightIn(min = 48.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.CenterVertically,
             ) {
                 Checkbox(config.audioVerified, onCheckedChange = null, enabled = canVerify)
                 Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    Text(stringResource(R.string.calls_audio_verified), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.calls_audio_verified), style = MikaType.Caption)
                     if (!config.audioVerified) Text(stringResource(R.string.calls_verify_note),
-                        style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+                        style = MikaType.Hint, color = MikaTheme.colors.ink3)
                 }
             }
             state.audioDetail?.let { FooterNote(it) }
@@ -649,12 +651,12 @@ private fun CallPreferencesPage(
     GroupCard {
         Row(
             Modifier.fillMaxWidth().toggleable(config.summaryEnabled, enabled = canConfigure, role = Role.Switch,
-                onValueChange = onSummaryEnabled).padding(horizontal = 16.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+                onValueChange = onSummaryEnabled).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.CenterVertically,
         ) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(stringResource(R.string.calls_summary_enable), style = MaterialTheme.typography.bodyMedium)
-                Text(stringResource(R.string.calls_summary_cloud_consent), style = MaterialTheme.typography.bodySmall,
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
+                Text(stringResource(R.string.calls_summary_enable), style = MikaType.Caption)
+                Text(stringResource(R.string.calls_summary_cloud_consent), style = MikaType.Hint,
                     color = MikaTheme.colors.ink3)
             }
             Switch(config.summaryEnabled, onCheckedChange = null, enabled = canConfigure,
@@ -706,15 +708,15 @@ private fun CallReadinessActions(
     onPrepare: () -> Unit, onStop: () -> Unit, onCredentials: () -> Unit,
 ) {
     val canPrepare = state.shellConnected && device.phoneAllowed && device.callNotificationsAllowed
-    Column(Modifier.fillMaxWidth().testTag("call-readiness").padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxWidth().testTag("call-readiness").padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         Text(
             when {
                 !config.enabled -> stringResource(R.string.calls_system_default)
                 ready -> stringResource(R.string.calls_limits, config.maxCallSeconds)
                 else -> stringResource(R.string.calls_needs_setup)
             },
-            style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3,
+            style = MikaType.Hint, color = MikaTheme.colors.ink3,
         )
         if (canPrepare && state.prepared && !config.credentialsConfigured) {
             CallPrimaryButton(stringResource(R.string.calls_credentials), enabled, onCredentials)
@@ -723,7 +725,7 @@ private fun CallReadinessActions(
                 enabled, onPrepare, Modifier.testTag("call-enable"))
         }
         if (config.enabled) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 if (ready) TextButton(onClick = onPrepare, enabled = enabled, modifier = Modifier.weight(1f)) {
                     Text(stringResource(R.string.calls_prepare))
                 }
@@ -776,14 +778,14 @@ internal fun CallFoldRow(
     val expansion = stringResource(if (expanded) R.string.calls_collapse else R.string.calls_expand)
     Row(
         Modifier.fillMaxWidth().testTag(testTag).clickable(role = Role.Button, onClick = onClick)
-            .semantics { stateDescription = expansion }.heightIn(min = 52.dp).padding(horizontal = 16.dp, vertical = 10.dp),
+            .semantics { stateDescription = expansion }.heightIn(min = 52.dp).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
     ) {
         IconTile(icon)
         Column(Modifier.weight(1f)) {
-            Text(title, style = MaterialTheme.typography.bodyLarge)
-            subtitle?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3) }
+            Text(title, style = MikaType.Body)
+            subtitle?.let { Text(it, style = MikaType.Hint, color = MikaTheme.colors.ink3) }
         }
         CallExpandIcon(expanded)
     }
@@ -792,7 +794,7 @@ internal fun CallFoldRow(
 @Composable
 internal fun CallExpandIcon(expanded: Boolean) {
     Icon(
-        MikaIcons.Chevron, null, Modifier.size(16.dp).rotate(if (expanded) -90f else 90f), tint = MikaTheme.colors.ink3,
+        MikaIcons.Chevron, null, Modifier.size(MikaSize.SmallIcon).rotate(if (expanded) -90f else 90f), tint = MikaTheme.colors.ink3,
     )
 }
 
@@ -842,7 +844,7 @@ private fun CallRulesDialog(
         title = { Text(stringResource(R.string.calls_rules)) },
         text = {
             Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 RadioRow(stringResource(R.string.calls_only_list), !all, { all = false }, first = true, enabled = !busy)
                 RadioRow(stringResource(R.string.calls_all_incoming), all, { all = true },
                     subtitle = stringResource(R.string.calls_all_note), enabled = !busy)
@@ -899,14 +901,14 @@ private fun CallCredentialsDialog(runtime: CallRuntime, onDismiss: () -> Unit, o
         title = { Text(stringResource(R.string.calls_credentials)) },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 Text(stringResource(R.string.calls_credentials_note))
                 Row(
                     Modifier.fillMaxWidth()
                         .toggleable(legacy, enabled = !busy, role = Role.Checkbox) { legacy = it; key = ""; appId = ""; error = false }
                         .heightIn(min = 48.dp),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
                 ) {
                     Checkbox(legacy, onCheckedChange = null, enabled = !busy)
                     Text(stringResource(R.string.calls_legacy_credentials))
@@ -963,13 +965,13 @@ private fun CallProfileDialog(config: CallConfig, onDismiss: () -> Unit, onSave:
         title = { Text(stringResource(R.string.calls_profile)) },
         text = {
             Column(Modifier.heightIn(max = 440.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(stringResource(R.string.calls_greeting), style = MaterialTheme.typography.titleSmall)
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
+                Text(stringResource(R.string.calls_greeting), style = MikaType.BodyStrong)
                 OutlinedTextField(greeting, { greeting = it }, modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.calls_greeting)) }, maxLines = 3, enabled = !busy,
                     supportingText = { Text(stringResource(R.string.calls_greeting_hint)) })
                 HorizontalDivider()
-                Text(stringResource(R.string.calls_profile), style = MaterialTheme.typography.titleSmall)
+                Text(stringResource(R.string.calls_profile), style = MikaType.BodyStrong)
                 OutlinedTextField(prompt, { prompt = it }, modifier = Modifier.fillMaxWidth(),
                     label = { Text(stringResource(R.string.calls_instructions)) }, maxLines = 5, enabled = !busy)
                 OutlinedTextField(seconds, { seconds = it.filter(Char::isDigit).take(3) }, modifier = Modifier.fillMaxWidth(),
@@ -1027,7 +1029,7 @@ private fun CallBypassDialog(existing: Set<String>, onDismiss: () -> Unit, onSav
         title = { Text(stringResource(R.string.calls_bypass_title)) },
         text = {
             Column(Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 Text(stringResource(R.string.calls_bypass_note))
                 OutlinedTextField(
                     numbers, { numbers = it; error = false },

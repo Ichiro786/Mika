@@ -15,6 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /**
  * 空状态:一个小图标、一句话、一句提示,加一个能立刻做的动作(没有合适的动作就不给 [actionLabel])。
@@ -31,16 +33,16 @@ fun EmptyStateCard(
 ) {
     val c = MikaTheme.colors
     Column(
-        modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 24.dp),
+        modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S24),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        if (icon != null) Icon(icon, null, Modifier.size(22.dp), tint = c.ink3)
+        if (icon != null) Icon(icon, null, Modifier.size(MikaSize.Icon), tint = c.ink3)
         Text(title, style = MikaType.Body, color = c.ink2, textAlign = TextAlign.Center)
         if (!hint.isNullOrEmpty()) Text(hint, style = MikaType.Hint, color = c.ink3, textAlign = TextAlign.Center)
         if (actionLabel != null && onAction != null) {
             MikaButton(
-                actionLabel, onAction, Modifier.padding(top = 8.dp),
+                actionLabel, onAction, Modifier.padding(top = MikaSpace.S8),
                 kind = ButtonKind.Tonal, size = ButtonSize.Small,
             )
         }

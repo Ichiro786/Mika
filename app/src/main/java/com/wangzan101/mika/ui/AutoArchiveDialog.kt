@@ -13,6 +13,7 @@ import com.wangzan101.mika.R
 import com.wangzan101.mika.chat.AutoArchive
 import com.wangzan101.mika.ui.components.MikaDialog
 import com.wangzan101.mika.ui.components.RadioRow
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 自动归档的天数:关闭,或几天没新消息就收进归档。选中即生效,归档后在归档视图里可以恢复。 */
 @Composable
@@ -22,7 +23,7 @@ internal fun AutoArchiveDialog(current: Int, onPick: (Int) -> Unit, onDismiss: (
         title = { Text(stringResource(R.string.settings_auto_archive)) },
         text = {
             Column {
-                Text(stringResource(R.string.settings_auto_archive_hint), Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.settings_auto_archive_hint), Modifier.padding(bottom = MikaSpace.S8))
                 AutoArchive.DAYS.forEachIndexed { index, days ->
                     RadioRow(
                         title = if (days <= 0) stringResource(R.string.state_off)

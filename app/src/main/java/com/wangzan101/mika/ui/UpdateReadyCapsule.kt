@@ -2,9 +2,6 @@ package com.wangzan101.mika.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
@@ -55,6 +52,10 @@ import com.wangzan101.mika.ui.components.GlassBackdrop
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
 
 @Composable
 internal fun BoxScope.UpdateReadyCapsule(
@@ -81,12 +82,10 @@ internal fun BoxScope.UpdateReadyCapsule(
     val held = hovered || pressed || focused || confirmDisable
     LaunchedEffect(reveal, held, resumed, reduceMotion) {
         if (!resumed) return@LaunchedEffect
-        if (reduceMotion) reveal.snapTo(1f)
-        else reveal.animateTo(1f, tween(280, easing = FastOutSlowInEasing))
+        reveal.animateTo(1f, MikaMotion.specs(reduceMotion).spatialDefault())
         if (!held) {
             delay(5000)
-            if (reduceMotion) reveal.snapTo(0f)
-            else reveal.animateTo(0f, tween(230, easing = FastOutLinearInEasing))
+            reveal.animateTo(0f, MikaMotion.specs(reduceMotion).spatialFast())
             dismiss()
         }
     }
@@ -107,8 +106,8 @@ internal fun BoxScope.UpdateReadyCapsule(
             Row(
                 Modifier.weight(1f).fillMaxSize()
                     .clickable(interactionSource = interaction, indication = null, role = Role.Button, onClick = onInstall)
-                    .padding(start = 8.dp, end = 2.dp),
-                horizontalArrangement = Arrangement.spacedBy(7.dp),
+                    .padding(start = MikaSpace.S8, end = 2.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box(Modifier.size(31.dp).background(success.copy(alpha = 0.16f), CircleShape), contentAlignment = Alignment.Center) {
@@ -116,9 +115,9 @@ internal fun BoxScope.UpdateReadyCapsule(
                 }
                 Column(Modifier.weight(1f)) {
                     Text(stringResource(R.string.about_auto_update_ready, release.version), color = UpdateGlassInk,
-                        fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        style = MikaType.HintStrong, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Text(stringResource(R.string.about_update_install), color = UpdateGlassSecondaryInk,
-                        fontSize = 10.sp, lineHeight = 14.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        style = MikaType.Micro.copy(fontWeight = FontWeight.Normal), maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
             }
             UpdateGlassClose(
@@ -141,13 +140,12 @@ internal fun BoxScope.UpdateReadyCapsule(
             UpdateGlassSurface(dialog, backdrop,
                 Modifier.size(dialog.width.dp, dialog.height.dp).semantics { paneTitle = title },
             ) {
-                Column(Modifier.fillMaxSize().padding(start = 14.dp, end = 14.dp, top = 15.dp, bottom = 12.dp)) {
-                    Text(title, Modifier.padding(end = 21.dp), color = UpdateGlassInk, fontSize = 17.sp, lineHeight = 22.sp,
-                        fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                Column(Modifier.fillMaxSize().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S12)) {
+                    Text(title, Modifier.padding(end = MikaSpace.S24), color = UpdateGlassInk, style = MikaType.Title, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text(stringResource(R.string.about_auto_update_confirm_detail, release.version),
-                        Modifier.weight(1f).padding(top = 7.dp), color = UpdateGlassSecondaryInk,
-                        fontSize = 11.sp, lineHeight = 16.sp, overflow = TextOverflow.Ellipsis)
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        Modifier.weight(1f).padding(top = MikaSpace.S8), color = UpdateGlassSecondaryInk,
+                        style = MikaType.Micro.copy(fontWeight = FontWeight.Normal), overflow = TextOverflow.Ellipsis)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                         UpdateGlassAction(stringResource(R.string.about_auto_update_now), primary = true,
                             onClick = { close(); onInstall() }, modifier = Modifier.weight(1f))
                         UpdateGlassAction(stringResource(R.string.about_auto_update_disable), primary = false,
@@ -163,7 +161,7 @@ internal fun BoxScope.UpdateReadyCapsule(
 @Composable
 private fun UpdateGlassClose(label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Box(modifier.size(36.dp, 36.dp).clip(CircleShape)
-        .clickable(role = Role.Button, onClick = onClick).padding(top = 8.dp, end = 3.dp),
+        .clickable(role = Role.Button, onClick = onClick).padding(top = MikaSpace.S8, end = MikaSpace.S4),
         contentAlignment = Alignment.TopCenter,
     ) {
         Icon(MikaIcons.Close, label, Modifier.size(13.dp), tint = UpdateGlassSecondaryInk)
@@ -179,12 +177,12 @@ private fun UpdateGlassAction(label: String, primary: Boolean, onClick: () -> Un
         dark -> Color.White.copy(alpha = 0.13f)
         else -> Color.White.copy(alpha = 0.48f)
     }
-    Box(modifier.height(36.dp).clip(RoundedCornerShape(12.dp))
+    Box(modifier.height(36.dp).clip(RoundedCornerShape(MikaRadius.Md))
         .background(fill)
-        .clickable(role = Role.Button, onClick = onClick).padding(horizontal = 5.dp),
+        .clickable(role = Role.Button, onClick = onClick).padding(horizontal = MikaSpace.S4),
         contentAlignment = Alignment.Center,
     ) {
         Text(label, color = if (primary) (if (dark) Color(0xFF172E21) else Color.White) else UpdateGlassInk,
-            fontSize = 11.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            style = MikaType.Micro, maxLines = 2, overflow = TextOverflow.Ellipsis)
     }
 }

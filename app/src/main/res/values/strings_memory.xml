@@ -25,7 +25,7 @@
     <string name="memory_use_sub">When off, Orbit neither reads nor saves memory</string>
     <string name="memory_auto">Remember what I say</string>
     <string name="memory_auto_sub">Organized from your own words after each task</string>
-    <string name="memory_infer">Let Mika write its own conclusions to memory</string>
+    <string name="memory_infer">Let Orbit write its own conclusions to memory</string>
     <string name="memory_infer_sub">When you ask it to remember, its own conclusions are saved too, marked as not your words</string>
     <string name="memory_learn">Learn from past tasks (skills and app notes)</string>
     <string name="memory_learn_sub">What Orbit learns is used only after you accept it</string>
@@ -61,7 +61,7 @@
     <string name="date_pattern_md">MMM d</string>
     <string name="memory_said_via">You said on %1$s via %2$s: “%3$s”</string>
     <string name="memory_said">You said on %1$s: “%2$s”</string>
-    <string name="memory_inferred">Mika\'s conclusion on %1$s, at your request: “%2$s”</string>
+    <string name="memory_inferred">Orbit\'s conclusion on %1$s, at your request: “%2$s”</string>
     <string name="verify_returned">Sent back by the check</string>
     <string name="skills_drafts">New skill drafts — tried out after you accept</string>
     <string name="skills_accept_try">Accept and try</string>
@@ -94,4 +94,11 @@
     <string name="skills_imported">Imported</string>
     <string name="skill_builtin_name">A built-in skill already has this name. Rename it and try again.</string>
     <string name="skill_draft_pending">A draft with this name is already waiting for review. Handle that one first.</string>
+    <string name="skill_use_prompt">Use my skill “%1$s”.</string>
+    <string name="skill_add_to_home">Add to home screen</string>
+    <string name="skill_pin_unsupported">Your launcher can’t add shortcuts</string>
+    <string name="skill_widget_title">Orbit skills</string>
+    <string name="skill_widget_empty">Save a skill in Orbit to see it here</string>
+    <string name="skill_widget_use">Use %1$s</string>
+    <string name="skill_widget_description">Your top Orbit skills, one tap to start</string>
 </resources>

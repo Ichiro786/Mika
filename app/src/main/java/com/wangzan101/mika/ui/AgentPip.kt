@@ -3,18 +3,11 @@ package com.wangzan101.mika.ui
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -80,6 +73,18 @@ import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.VisibilityThreshold
+import com.wangzan101.mika.ui.plan.LivePlan
+import com.wangzan101.mika.ui.plan.LivePlanCard
+import com.wangzan101.mika.ui.plan.PlanRing
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /**
  * How a running task shows while Orbit works in the background. Nothing floats over the chat any more:
@@ -121,11 +126,13 @@ fun AgentPip(
     onStop: (() -> Unit)? = null,
     /** Take over the step Orbit is waiting on; shown only while it needs you. */
     onTakeControl: (() -> Unit)? = null,
+    /** The shared live plan: the pill shows its ring, the sheet its steps. Null keeps the plain status dot. */
+    plan: LivePlan? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val bottom = with(density) { bottomInset.toDp() }
-        val fade = tween<Float>(if (reduceMotion) 150 else 260)
+        val motion = MikaMotion.specs(reduceMotion)
         val needsYou = pip.mode == PipMode.NeedsYou
         val elapsed = rememberElapsed(startedAt)
         val meta = listOfNotNull(
@@ -136,15 +143,16 @@ fun AgentPip(
         // Closed for this task: only a small chip stays where the pill was (not during the last seconds of a finished task)
         AnimatedVisibility(
             pip.visible && pip.closed && pip.mode != PipMode.Done, Modifier.align(Alignment.BottomCenter),
-            enter = fadeIn(fade), exit = fadeOut(fade),
+            enter = motion.enter(TransformOrigin(0.5f, 1f)), exit = motion.exit(TransformOrigin(0.5f, 1f)),
         ) {
-            ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + 10.dp), onReopen, onAttention)
+            ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + MikaSpace.S12), onReopen, onAttention)
         }
 
-        val springIn = if (reduceMotion) fadeIn(fade) else
-            fadeIn(fade) + scaleIn(spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow), initialScale = 0.7f) +
-                slideInVertically(spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) { it }
-        val springOut = if (reduceMotion) fadeOut(fade) else fadeOut(fade) + scaleOut(tween(200), targetScale = 0.85f)
+        // The pill pops up from the bottom edge: a playful moment, so the one bouncy spring.
+        val springIn = if (reduceMotion) EnterTransition.None else
+            fadeIn(motion.effectsDefault()) + scaleIn(motion.bouncy(), initialScale = 0.7f, transformOrigin = TransformOrigin(0.5f, 1f)) +
+                slideInVertically(motion.offset()) { it / 2 }
+        val springOut = motion.exit(TransformOrigin(0.5f, 1f))
         AnimatedVisibility(
             pip.visible && !pip.closed && !pip.expanded, Modifier.align(Alignment.BottomCenter),
             enter = springIn, exit = springOut,
@@ -155,13 +163,14 @@ fun AgentPip(
                 title = if (needsYou) stringResource(R.string.pip_closed_needs_you) else label,
                 meta = if (needsYou) label else meta,
                 reduceMotion = reduceMotion,
-                modifier = Modifier.padding(bottom = bottom + 10.dp, start = 16.dp, end = 16.dp),
+                plan = plan,
+                modifier = Modifier.padding(bottom = bottom + MikaSpace.S12, start = MikaSpace.S16, end = MikaSpace.S16),
                 onClick = { if (needsYou) onAttention() else onExpand() },
             )
         }
 
         // Live view: dimmed scrim (tap to hide) and a frosted sheet from the bottom
-        AnimatedVisibility(pip.visible && !pip.closed && pip.expanded, enter = fadeIn(fade), exit = fadeOut(fade)) {
+        AnimatedVisibility(pip.visible && !pip.closed && pip.expanded, enter = motion.fadeEnter(), exit = motion.fadeExit()) {
             Box(
                 Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f))
                     .pointerInput(Unit) { detectTapGestures { onCollapse() } },
@@ -170,9 +179,10 @@ fun AgentPip(
         val sheetHeight = with(density) { (constraints.maxHeight * 0.78f).toDp() }
         AnimatedVisibility(
             pip.visible && !pip.closed && pip.expanded, Modifier.align(Alignment.BottomCenter),
-            enter = if (reduceMotion) fadeIn(fade) else
-                slideInVertically(spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { it } + fadeIn(fade),
-            exit = if (reduceMotion) fadeOut(fade) else slideOutVertically(tween(260)) { it } + fadeOut(fade),
+            enter = if (reduceMotion) EnterTransition.None else
+                slideInVertically(motion.offset()) { it } + fadeIn(motion.effectsDefault()),
+            exit = if (reduceMotion) ExitTransition.None else
+                slideOutVertically(motion.spatialFast(IntOffset.VisibilityThreshold)) { it } + fadeOut(motion.effectsFast()),
         ) {
             LiveSheet(
                 pip = pip,
@@ -188,6 +198,7 @@ fun AgentPip(
                 onUnmute = onUnmute,
                 onStop = onStop,
                 onTakeControl = if (needsYou) onTakeControl else null,
+                plan = plan,
             )
         }
     }
@@ -196,11 +207,7 @@ fun AgentPip(
 /** Gentle breathing (1 → [low] → 1) for the needs-you glow; constant 1 with reduced motion or when [on] is false. */
 @Composable
 private fun breath(on: Boolean, reduceMotion: Boolean, low: Float, label: String): Float =
-    if (on && !reduceMotion) {
-        rememberInfiniteTransition(label = label).animateFloat(
-            1f, low, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = label,
-        ).value
-    } else 1f
+    if (on && !reduceMotion) 1f - (1f - low) * rememberMikaPulse(still = 0f, label = label).value else 1f
 
 @Composable
 private fun AgentPill(
@@ -211,6 +218,7 @@ private fun AgentPill(
     reduceMotion: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
+    plan: LivePlan? = null,
 ) {
     val c = MikaTheme.colors
     val shape = RoundedCornerShape(50)
@@ -221,7 +229,7 @@ private fun AgentPill(
             PipMode.NeedsYou -> c.warnSolid
             PipMode.Done -> c.ink3
         },
-        tween(if (reduceMotion) 0 else 400), label = "pillTone",
+        MikaMotion.specs(reduceMotion).effectsSlow(), label = "pillTone",
     )
     val glow = breath(needsYou, reduceMotion, 0.35f, "pillBreath")
     val live = breath(mode == PipMode.Running, reduceMotion, 0.45f, "pillLive")
@@ -240,12 +248,12 @@ private fun AgentPill(
                 .clip(shape)
                 .clickable(role = Role.Button, onClick = onClick)
                 .alpha(if (mode == PipMode.Done) 0.85f else 1f)
-                .padding(start = 5.dp, end = 14.dp, top = 5.dp, bottom = 5.dp)
+                .padding(start = MikaSpace.S4, end = MikaSpace.S16, top = MikaSpace.S4, bottom = MikaSpace.S4)
                 .testTag("pip-pill"),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
-            val thumb = RoundedCornerShape(9.dp)
+            val thumb = RoundedCornerShape(MikaRadius.Sm)
             Box(
                 Modifier.size(28.dp).clip(thumb).background(c.surface).border(1.5.dp, tone.copy(alpha = 0.55f), thumb),
                 contentAlignment = Alignment.Center,
@@ -257,7 +265,9 @@ private fun AgentPill(
                     Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)
                 }
             }
-            Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
+            // The compact plan: its ring (spinning while working, amber when it needs you) beside the current step.
+            if (plan != null) PlanRing(plan, Modifier.size(MikaSize.SmallIcon))
+            else Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
             if (title.isNotBlank()) {
                 Text(
                     title, style = MikaType.Label, color = if (needsYou) c.warn else c.ink, maxLines = 1,
@@ -286,6 +296,7 @@ private fun LiveSheet(
     onUnmute: () -> Unit,
     onStop: (() -> Unit)?,
     onTakeControl: (() -> Unit)?,
+    plan: LivePlan? = null,
 ) {
     val c = MikaTheme.colors
     val density = LocalDensity.current
@@ -293,7 +304,7 @@ private fun LiveSheet(
     val drag = remember { Animatable(0f) }
     val hideAt = with(density) { 120.dp.toPx() }
     val dragState = rememberDraggableState { delta -> scope.launch { drag.snapTo((drag.value + delta).coerceAtLeast(0f)) } }
-    val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val shape = RoundedCornerShape(topStart = MikaRadius.Xxl, topEnd = MikaRadius.Xxl)
     val needsYou = pip.mode == PipMode.NeedsYou
     val tone = if (needsYou) c.warnSolid else c.ok
     val glow = breath(needsYou, reduceMotion, 0.5f, "sheetBreath")
@@ -310,10 +321,10 @@ private fun LiveSheet(
             .clip(shape)
             // Swallow taps so they don't reach the scrim behind
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .padding(start = 14.dp, end = 14.dp, top = 10.dp)
-            .padding(bottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() } + 12.dp)
+            .padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12)
+            .padding(bottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() } + MikaSpace.S12)
             .testTag("pip-sheet"),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         // Grab handle and header: drag down to hide
         Column(
@@ -322,16 +333,16 @@ private fun LiveSheet(
                     dragState, Orientation.Vertical,
                     onDragStopped = { v ->
                         if (drag.value > hideAt || v > 1800f) onCollapse()
-                        scope.launch { if (reduceMotion) drag.snapTo(0f) else drag.animateTo(0f, spring(dampingRatio = 0.7f)) }
+                        scope.launch { if (reduceMotion) drag.snapTo(0f) else drag.animateTo(0f, MikaMotion.specs(reduceMotion).spatialDefault()) }
                     },
                 )
                 .semantics { contentDescription = swipeHint },
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             Box(Modifier.align(Alignment.CenterHorizontally).size(width = 36.dp, height = 4.dp).background(c.ink3.copy(alpha = 0.6f), CircleShape))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(7.dp).alpha(glow).background(tone, CircleShape))
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(MikaSpace.S8))
                 Text(
                     title, style = MikaType.BodyStrong, color = if (needsYou) c.warn else c.ink, maxLines = 1,
                     overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
@@ -339,11 +350,13 @@ private fun LiveSheet(
                 if (meta.isNotBlank()) Text(meta, style = MikaType.Caption, color = c.ink2, maxLines = 1)
             }
         }
+        // Every step so far, the current one kept in view; Stop stays with the sheet's own buttons below.
+        if (plan != null && plan.steps.isNotEmpty()) LivePlanCard(plan, showHeader = false, maxStepsHeight = SheetStepsMax)
 
         // The live screen with a soft glow instead of a hard border
-        val liveShape = RoundedCornerShape(20.dp)
+        val liveShape = RoundedCornerShape(MikaRadius.Xl)
         Box(Modifier.fillMaxWidth().weight(1f)) {
-            Box(Modifier.matchParentSize().padding(6.dp).alpha(0.5f * glow).blur(18.dp).background(tone.copy(alpha = 0.35f), liveShape))
+            Box(Modifier.matchParentSize().padding(MikaSpace.S8).alpha(0.5f * glow).blur(18.dp).background(tone.copy(alpha = 0.35f), liveShape))
             BoxWithConstraints(
                 Modifier.matchParentSize().clip(liveShape).background(c.surface)
                     .border(1.dp, tone.copy(alpha = 0.3f + 0.2f * glow), liveShape)
@@ -362,7 +375,7 @@ private fun LiveSheet(
                 } else {
                     Icon(MikaIcons.Screens, stringResource(R.string.pip_screen), Modifier.size(28.dp), tint = c.ink3)
                 }
-                Row(Modifier.align(Alignment.TopStart).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(Modifier.align(Alignment.TopStart).padding(MikaSpace.S8), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                     if (operateInput != null) {
                         PipButton(MikaIcons.Back, stringResource(R.string.pip_back), { scope.launch { operateInput.back() } }, "pip-back")
                     }
@@ -372,7 +385,7 @@ private fun LiveSheet(
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             if (onTakeControl != null) SheetAction(stringResource(R.string.action_take_over), c.warnSoft, c.warn, "pip-take-control", onTakeControl)
             SheetAction(stringResource(R.string.hide), c.fill, c.ink, "pip-hide", onCollapse)
             if (onStop != null) SheetAction(stringResource(R.string.chat_stop), c.badSoft, c.bad, "pip-stop", onStop)
@@ -405,10 +418,10 @@ private fun ClosedPip(needsYou: Boolean, reduceMotion: Boolean, modifier: Modifi
             .border(if (needsYou) 1.5.dp else 0.5.dp, if (needsYou) c.warnSolid.copy(alpha = glow) else c.glassEdge, shape)
             .clip(shape)
             .clickable(onClickLabel = label, role = Role.Button) { if (needsYou) onAttention() else onReopen() }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8)
             .testTag("pip-closed"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         if (needsYou) Box(Modifier.size(7.dp).alpha(glow).background(c.warnSolid, CircleShape))
         else Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)
@@ -463,3 +476,6 @@ private fun operateInputModifier(input: PipInput, scope: CoroutineScope): Modifi
         }
     }
 }
+
+/** How tall the step list in the live sheet may grow before it scrolls; the screen keeps the rest. */
+private val SheetStepsMax = 136.dp

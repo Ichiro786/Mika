@@ -48,6 +48,31 @@ def capture(destination: Path, expected: str) -> None:
     raise RuntimeError(f"Expected {expected!r} on {destination.name}; saved capture for diagnosis")
 
 
+def tap_label(label: str) -> bool:
+    """Tap the first node whose text or description is [label]; False when there is none."""
+    for node in find_text(label):
+        coords = [int(n) for n in re.findall(r"\d+", node.get("bounds", ""))]
+        if len(coords) == 4:
+            adb("shell", "input", "tap", str((coords[0] + coords[2]) // 2), str((coords[1] + coords[3]) // 2))
+            time.sleep(3)
+            return True
+    return False
+
+
+def capture_settings(destination: Path) -> None:
+    """Best effort: back to Chat, open the sidebar, open Settings. Skips (with a note) rather than failing the run."""
+    try:
+        tap_tab("Chat")
+        if tap_label("Open sidebar") and tap_label("Settings"):
+            capture(destination, "Settings")
+            adb("shell", "input", "keyevent", "KEYCODE_BACK")
+            time.sleep(2)
+        else:
+            print(f"skipped {destination.name}: sidebar or Settings not found")
+    except RuntimeError as e:
+        print(f"skipped {destination.name}: {e}")
+
+
 def main() -> None:
     apk, output = Path(sys.argv[1]), Path(sys.argv[2])
     output.mkdir(parents=True, exist_ok=True)
@@ -62,11 +87,12 @@ def main() -> None:
         adb("shell", "am", "start", "-n", "com.wangzan101.mika/.ui.MainActivity",
             "--es", "open_conversation", "visual-capture")
         time.sleep(12)
-        capture(output / f"{theme}-chat.png", "RECOMMENDED TASKS")
+        capture(output / f"{theme}-chat.png", "HOME SUGGESTIONS")
         tap_tab("Tasks")
         capture(output / f"{theme}-tasks.png", "Your work.")
         tap_tab("Make")
         capture(output / f"{theme}-make.png", "Teach Orbit")
+        capture_settings(output / f"{theme}-settings.png")
 
 
 if __name__ == "__main__":

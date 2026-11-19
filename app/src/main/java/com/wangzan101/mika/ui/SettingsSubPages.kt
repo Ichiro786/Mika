@@ -81,6 +81,11 @@ import com.wangzan101.mika.ui.theme.MikaType
 import com.wangzan101.mika.core.cap.phone.OperatingPace
 import com.wangzan101.mika.core.usage.TokenBudgetLimits
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaSpace
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.semantics.Role
+import com.wangzan101.mika.ui.theme.MikaSize
 
 // ---------- 手机操作 ----------
 
@@ -352,7 +357,7 @@ private fun StepLimitDialog(
         title = { Text(stringResource(R.string.settings_step_limit)) },
         text = {
             Column {
-                Text(stringResource(R.string.settings_step_limit_sub), Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.settings_step_limit_sub), Modifier.padding(bottom = MikaSpace.S8))
                 RadioRow(stringResource(R.string.settings_step_limit_off), selected = current == null, onClick = { onPick(null) }, first = true)
                 STEP_LIMIT_PRESETS.forEach { n ->
                     RadioRow(trPlural(R.plurals.chat_steps_n, n), selected = current == n, onClick = { onPick(n) })
@@ -361,10 +366,10 @@ private fun StepLimitDialog(
                     value = custom, onValueChange = onCustom, singleLine = true,
                     label = { Text(stringResource(R.string.settings_step_limit_custom)) },
                     isError = custom.isNotEmpty() && customValue == null,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                 )
                 if (custom.isNotEmpty() && customValue == null) {
-                    Text(stringResource(R.string.settings_step_limit_invalid), Modifier.padding(top = 4.dp))
+                    Text(stringResource(R.string.settings_step_limit_invalid), Modifier.padding(top = MikaSpace.S4))
                 }
             }
         },
@@ -409,13 +414,15 @@ private fun ParallelRow(p: ParallelSetting, onMax: (Int) -> Unit) {
             return@ListRow
         }
         Text(
-            "−", Modifier.clickable(enabled = p.max > 1) { onMax(p.max - 1) }.padding(horizontal = 10.dp, vertical = 4.dp),
-            fontSize = 18.sp, color = if (p.max > 1) MikaTheme.colors.accent else MikaTheme.colors.ink3,
+            "−", Modifier.sizeIn(minWidth = MikaSize.TouchTarget, minHeight = MikaSize.TouchTarget)
+                .clickable(enabled = p.max > 1, role = Role.Button) { onMax(p.max - 1) }.wrapContentSize(),
+            style = MikaType.Title, color = if (p.max > 1) MikaTheme.colors.accent else MikaTheme.colors.ink3,
         )
         RowValue(trPlural(R.plurals.settings_count_tasks, p.max))
         Text(
-            "+", Modifier.clickable(enabled = p.max < 3) { onMax(p.max + 1) }.padding(horizontal = 10.dp, vertical = 4.dp),
-            fontSize = 18.sp, color = if (p.max < 3) MikaTheme.colors.accent else MikaTheme.colors.ink3,
+            "+", Modifier.sizeIn(minWidth = MikaSize.TouchTarget, minHeight = MikaSize.TouchTarget)
+                .clickable(enabled = p.max < 3, role = Role.Button) { onMax(p.max + 1) }.wrapContentSize(),
+            style = MikaType.Title, color = if (p.max < 3) MikaTheme.colors.accent else MikaTheme.colors.ink3,
         )
     }
 }
@@ -485,7 +492,7 @@ fun CapsuleScreen(
         }
         GroupLabel(CapsuleSettingsCopy.IDLE_OPACITY)
         GroupCard {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12)) {
                 ListRow(
                     MikaIcons.Photo, CapsuleSettingsCopy.IDLE_OPACITY, CapsuleSettingsCopy.IDLE_OPACITY_DETAIL,
                     first = true, titleColor = if (mode == CapsuleMode.Off) MikaTheme.colors.ink3 else androidx.compose.ui.graphics.Color.Unspecified,
@@ -505,7 +512,7 @@ fun CapsuleScreen(
         }
         GroupLabel(CapsuleSettingsCopy.CARD_SIZE)
         GroupCard {
-            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12)) {
                 ListRow(
                     MikaIcons.Photo, CapsuleSettingsCopy.CARD_SIZE, CapsuleSettingsCopy.CARD_SIZE_DETAIL,
                     first = true, titleColor = if (mode == CapsuleMode.Off) MikaTheme.colors.ink3 else androidx.compose.ui.graphics.Color.Unspecified,
@@ -579,7 +586,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
         }
         GroupLabel(stringResource(R.string.orbit_identity))
         GroupCard {
-            Box(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 8.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S16, bottom = MikaSpace.S8), contentAlignment = Alignment.Center) {
                 MikaPresenceAvatar(Modifier.size(68.dp), reduceMotion = true, framed = true)
             }
             RadioRow(stringResource(R.string.orbit_identity_original), identity == OrbitIdentityMode.Original,
@@ -591,8 +598,8 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
         GroupCard {
             val headerLabel = stringResource(R.string.orbit_presence_header)
             val hubLabel = stringResource(R.string.orbit_presence_hub)
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 Column(Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                     Box(Modifier.height(112.dp), contentAlignment = Alignment.Center) {
                         MikaPresenceAvatar(Modifier.size(presence.headerDp.dp), reduceMotion = true, framed = true)
@@ -606,7 +613,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                     Text(hubLabel, style = MikaType.Hint, color = MikaTheme.colors.ink2)
                 }
             }
-            Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8)) {
                 Text("$headerLabel · ${presence.headerDp} dp", style = MikaType.Body, color = MikaTheme.colors.ink)
                 Slider(value = presence.headerDp.toFloat(), onValueChange = { value ->
                     val next = value.roundToInt()
@@ -636,7 +643,7 @@ fun LanguageScreen(language: AppLanguage, onLanguage: (AppLanguage) -> Unit, onB
                     onClick = { if (a != themeAccent) flags.setThemeAccent(a) },
                 ) {
                     // 色块按此刻的深浅色画,和选上以后看到的一样
-                    Box(Modifier.size(18.dp).background(
+                    Box(Modifier.size(MikaSize.TileIcon).background(
                         (if (a == ThemeAccent.Dynamic) wallpaperAccent(dark)?.first else null) ?: accentTone(a, dark).first, CircleShape))
                 }
             }
@@ -708,7 +715,7 @@ fun RoutesScreen(count: Int?, onClear: () -> Unit, onBack: () -> Unit) {
                 if (count == null) stringResource(R.string.loading) else trPlural(R.plurals.routes_count, count), first = true,
             ) {
                 if (count != null && count > 0) Text(
-                    stringResource(R.string.routes_clear_all), Modifier.clickable { confirmClear = true }.padding(4.dp),
+                    stringResource(R.string.routes_clear_all), Modifier.clickable { confirmClear = true }.padding(MikaSpace.S4),
                     style = MikaType.Value, color = MikaTheme.colors.bad,
                 )
             }
@@ -760,7 +767,7 @@ private fun SkinControls(skin: SkinSpec, onChange: (SkinSpec) -> Unit, onClear: 
         value = skin.scrim.toFloat(),
         onValueChange = { v -> v.roundToInt().let { if (it != skin.scrim) onChange(skin.copy(scrim = it)) } },
         valueRange = SkinSpec.MIN_SCRIM.toFloat()..SkinSpec.MAX_SCRIM.toFloat(),
-        modifier = Modifier.padding(horizontal = 16.dp).semantics { contentDescription = scrimLabel }.testTag("skin-scrim"),
+        modifier = Modifier.padding(horizontal = MikaSpace.S16).semantics { contentDescription = scrimLabel }.testTag("skin-scrim"),
     )
     val positionLabel = stringResource(R.string.skin_position)
     ListRow(null, positionLabel)
@@ -768,14 +775,14 @@ private fun SkinControls(skin: SkinSpec, onChange: (SkinSpec) -> Unit, onClear: 
         value = skin.focus,
         onValueChange = { v -> ((v * 20).roundToInt() / 20f).let { if (it != skin.focus) onChange(skin.copy(focus = it)) } },
         valueRange = -1f..1f,
-        modifier = Modifier.padding(horizontal = 16.dp).semantics { contentDescription = positionLabel }.testTag("skin-position"),
+        modifier = Modifier.padding(horizontal = MikaSpace.S16).semantics { contentDescription = positionLabel }.testTag("skin-position"),
     )
     ListRow(null, stringResource(R.string.skin_blur))
     SegmentedControl(
         listOf(stringResource(R.string.skin_blur_off), stringResource(R.string.skin_blur_light), stringResource(R.string.skin_blur_strong)),
         selected = skin.blur.ordinal,
         onSelect = { onChange(skin.copy(blur = SkinBlur.entries[it])) },
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+        modifier = Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12),
     )
     ListRow(
         null, stringResource(R.string.skin_accent_follow), stringResource(R.string.skin_accent_follow_sub),

@@ -77,4 +77,10 @@
     <string name="tool_mika_login_site">Iniciar sesión en un sitio</string>
     <string name="tool_mika_confirm_login">Confirmar inicio de sesión</string>
     <string name="tool_mika_favorites">Sitios frecuentes</string>
+    <string name="tool_schedule">Programar una tarea</string>
+    <string name="tool_helper">Pedir ayuda a un asistente</string>
+    <string name="tool_profile">Actualizar tu perfil</string>
+    <string name="tool_history">Leer mensajes anteriores</string>
+    <string name="tool_user_screen">Mirar tu pantalla</string>
+    <string name="tool_update_plan">Actualizar el plan</string>
 </resources>

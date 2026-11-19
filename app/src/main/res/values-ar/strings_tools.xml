@@ -77,4 +77,10 @@
     <string name="tool_mika_login_site">تسجيل الدخول إلى موقع</string>
     <string name="tool_mika_confirm_login">تأكيد تسجيل الدخول</string>
     <string name="tool_mika_favorites">المواقع المتكررة</string>
+    <string name="tool_schedule">جدولة مهمة</string>
+    <string name="tool_helper">طلب مساعدة من مساعد</string>
+    <string name="tool_profile">تحديث ملفك الشخصي</string>
+    <string name="tool_history">قراءة الرسائل السابقة</string>
+    <string name="tool_user_screen">النظر إلى شاشتك</string>
+    <string name="tool_update_plan">تحديث الخطة</string>
 </resources>

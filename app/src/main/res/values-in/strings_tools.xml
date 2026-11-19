@@ -77,4 +77,10 @@
     <string name="tool_mika_login_site">Masuk ke situs</string>
     <string name="tool_mika_confirm_login">Konfirmasi login</string>
     <string name="tool_mika_favorites">Situs sering dipakai</string>
+    <string name="tool_schedule">Jadwalkan tugas</string>
+    <string name="tool_helper">Minta bantuan asisten</string>
+    <string name="tool_profile">Perbarui profil Anda</string>
+    <string name="tool_history">Baca pesan sebelumnya</string>
+    <string name="tool_user_screen">Lihat layar Anda</string>
+    <string name="tool_update_plan">Perbarui rencana</string>
 </resources>

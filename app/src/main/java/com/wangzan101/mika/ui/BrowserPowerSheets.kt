@@ -58,6 +58,9 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 起点页右上角的菜单:标签页、历史记录、清除浏览数据。 */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,9 +71,9 @@ fun BrowserMenuSheet(tabsCount: Int, onDismiss: () -> Unit, onTabs: () -> Unit, 
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-menu")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-menu")) {
             fun act(f: () -> Unit): () -> Unit = { onDismiss(); f() }
             ListRow(
                 MikaIcons.Apps, tr(R.string.browser_tabs), detail = tabsCount.takeIf { it > 0 }?.toString(),
@@ -97,23 +100,23 @@ fun TabsSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-tabs")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-tabs")) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
+                Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S12, top = MikaSpace.S4, bottom = MikaSpace.S8),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(tr(R.string.browser_tabs), Modifier.weight(1f), style = MikaType.Title, color = c.ink)
                 Text(
                     tr(R.string.browser_new_tab),
-                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onNew).padding(horizontal = 10.dp, vertical = 8.dp),
+                    Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onNew).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                     style = MikaType.BodyStrong, color = c.accent,
                 )
             }
             if (tabs.isEmpty()) {
                 Text(
-                    tr(R.string.browser_no_tabs), Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                    tr(R.string.browser_no_tabs), Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S16),
                     style = MikaType.Body, color = c.ink3,
                 )
             }
@@ -132,7 +135,7 @@ fun TabsSheet(
                             Box(
                                 Modifier.size(36.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = close) { onClose(t.id) },
                                 contentAlignment = Alignment.Center,
-                            ) { Icon(MikaIcons.Close, close, Modifier.size(16.dp), tint = c.ink3) }
+                            ) { Icon(MikaIcons.Close, close, Modifier.size(MikaSize.SmallIcon), tint = c.ink3) }
                         },
                     )
                 }
@@ -159,25 +162,25 @@ fun HistorySheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-history")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-history")) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
+                Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S12, top = MikaSpace.S4, bottom = MikaSpace.S8),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(tr(R.string.browser_history), Modifier.weight(1f), style = MikaType.Title, color = c.ink)
                 if (pages.isNotEmpty()) {
                     Text(
                         if (editing) tr(R.string.done) else tr(R.string.browser_edit),
-                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = !editing }.padding(horizontal = 10.dp, vertical = 8.dp),
+                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = !editing }.padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                         style = MikaType.BodyStrong, color = c.accent,
                     )
                 }
             }
             if (pages.isEmpty()) {
                 Text(
-                    tr(R.string.browser_no_recent), Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                    tr(R.string.browser_no_recent), Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S16),
                     style = MikaType.Body, color = c.ink3,
                 )
             }
@@ -195,7 +198,7 @@ fun HistorySheet(
                                 Box(
                                     Modifier.size(36.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = remove) { onRemove(r) },
                                     contentAlignment = Alignment.Center,
-                                ) { Icon(MikaIcons.Close, remove, Modifier.size(16.dp), tint = c.ink3) }
+                                ) { Icon(MikaIcons.Close, remove, Modifier.size(MikaSize.SmallIcon), tint = c.ink3) }
                             }
                         },
                     )
@@ -203,7 +206,7 @@ fun HistorySheet(
             }
             if (pages.isNotEmpty()) {
                 TextButton(
-                    onClick = { clearing = true }, modifier = Modifier.padding(start = 12.dp, top = 4.dp),
+                    onClick = { clearing = true }, modifier = Modifier.padding(start = MikaSpace.S12, top = MikaSpace.S4),
                 ) { Text(tr(R.string.browser_clear_history), color = c.bad) }
             }
         }
@@ -232,11 +235,11 @@ fun ClearDataSheet(onDismiss: () -> Unit, onClear: (history: Boolean, siteData: 
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-clear-data")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-clear-data")) {
             Text(
-                tr(R.string.browser_clear_data), Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 8.dp),
+                tr(R.string.browser_clear_data), Modifier.padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S4, bottom = MikaSpace.S8),
                 style = MikaType.Title, color = c.ink,
             )
             ListRow(MikaIcons.Clock, tr(R.string.browser_history), first = true, trailing = { MikaSwitch(history, { history = it }) })
@@ -245,7 +248,7 @@ fun ClearDataSheet(onDismiss: () -> Unit, onClear: (history: Boolean, siteData: 
                 trailing = { MikaSwitch(siteData, { siteData = it }) },
             )
             ListRow(MikaIcons.Refresh, tr(R.string.browser_clear_cache), trailing = { MikaSwitch(cache, { cache = it }) })
-            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 TextButton(onClick = onDismiss, modifier = Modifier.weight(1f)) { Text(tr(R.string.cancel)) }
                 TextButton(
                     onClick = { onClear(history, siteData, cache) },
@@ -269,18 +272,18 @@ fun BrowserFindBar(find: FindState, onQuery: (String) -> Unit, onPrev: () -> Uni
         onQuery(text)
     }
     Row(
-        Modifier.fillMaxWidth().background(c.surface).padding(horizontal = 8.dp, vertical = 6.dp),
+        Modifier.fillMaxWidth().background(c.surface).padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
     ) {
         Row(
-            Modifier.weight(1f).height(40.dp).background(c.fill, MikaShapes.Pill).padding(horizontal = 12.dp),
+            Modifier.weight(1f).height(40.dp).background(c.fill, MikaShapes.Pill).padding(horizontal = MikaSpace.S12),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(MikaIcons.Search, null, Modifier.size(16.dp), tint = c.ink3)
+            Icon(MikaIcons.Search, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
             BasicTextField(
                 text, { text = it },
-                Modifier.weight(1f).padding(horizontal = 8.dp).focusRequester(focus).testTag("browser-find-input"),
+                Modifier.weight(1f).padding(horizontal = MikaSpace.S8).focusRequester(focus).testTag("browser-find-input"),
                 singleLine = true,
                 textStyle = MikaType.Body.copy(color = c.ink, textDirection = androidx.compose.ui.text.style.TextDirection.Content),
                 cursorBrush = SolidColor(c.accent),

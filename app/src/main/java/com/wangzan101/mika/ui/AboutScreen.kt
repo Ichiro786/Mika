@@ -70,6 +70,9 @@ import com.wangzan101.mika.ui.components.ValueTone
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 关于页上点开的底部面板。 */
 private enum class AboutSheet { Update, Changelog, Feedback, Group, Diagnostics }
@@ -133,14 +136,14 @@ fun AboutScreen(
         }
 
         Row(
-            Modifier.fillMaxWidth().padding(top = 2.dp).background(c.okSoft, RoundedCornerShape(14.dp)).padding(horizontal = 14.dp, vertical = 12.dp),
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            Modifier.fillMaxWidth().padding(top = 2.dp).background(c.okSoft, RoundedCornerShape(MikaRadius.Lg)).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
-            Icon(MikaIcons.Shield, null, Modifier.padding(top = 1.dp).size(18.dp), tint = c.ok)
+            Icon(MikaIcons.Shield, null, Modifier.padding(top = 1.dp).size(MikaSize.TileIcon), tint = c.ok)
             Text(AboutCopy.DATA_NOTE, style = MikaType.Caption, color = c.ink2)
         }
 
-        Column(Modifier.fillMaxWidth().padding(top = 20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+        Column(Modifier.fillMaxWidth().padding(top = MikaSpace.S24), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 buildAnnotatedString {
                     val (before, after) = stringResource(R.string.about_released_under).split("%1\$s").let { it[0] to it.getOrElse(1) { "" } }
@@ -148,7 +151,7 @@ fun AboutScreen(
                     withStyle(SpanStyle(color = c.accent)) { append(AboutCopy.LICENSE_LINK) }
                     append(after)
                 },
-                Modifier.clip(RoundedCornerShape(6.dp)).clickable(onClick = onOpenLicense).padding(horizontal = 6.dp, vertical = 2.dp)
+                Modifier.clip(RoundedCornerShape(MikaRadius.Xs)).clickable(onClick = onOpenLicense).padding(horizontal = MikaSpace.S8, vertical = 2.dp)
                     .testTag("about-license"),
                 style = MikaType.Hint, color = c.ink3, textAlign = TextAlign.Center,
             )
@@ -177,17 +180,17 @@ fun AboutScreen(
 private fun Hero(versionName: String, build: String, beta: Boolean) {
     val c = MikaTheme.colors
     Column(
-        Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 18.dp),
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S16, bottom = MikaSpace.S16),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         MikaLogo(72.dp, corner = 20.dp)
-        Text(stringResource(R.string.app_name), Modifier.padding(top = 12.dp), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
-        Text(AboutCopy.TAGLINE, Modifier.padding(top = 4.dp), style = MikaType.Caption, color = c.ink2, textAlign = TextAlign.Center)
-        Row(Modifier.padding(top = 10.dp).testTag("about-version"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(stringResource(R.string.app_name), Modifier.padding(top = MikaSpace.S12), style = MikaType.Title, fontWeight = FontWeight.Bold, color = c.ink)
+        Text(AboutCopy.TAGLINE, Modifier.padding(top = MikaSpace.S4), style = MikaType.Caption, color = c.ink2, textAlign = TextAlign.Center)
+        Row(Modifier.padding(top = MikaSpace.S12).testTag("about-version"), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             Text(AboutCopy.version(versionName), style = MikaType.Hint, color = c.ink3)
             if (beta) {
                 Text(
-                    AboutCopy.BETA, Modifier.background(c.accentSoft, RoundedCornerShape(7.dp)).padding(horizontal = 7.dp, vertical = 1.dp),
+                    AboutCopy.BETA, Modifier.background(c.accentSoft, RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8, vertical = 1.dp),
                     style = MikaType.Hint, fontWeight = FontWeight.SemiBold, color = c.accent,
                 )
             }
@@ -200,7 +203,7 @@ private fun Hero(versionName: String, build: String, beta: Boolean) {
 @Composable
 internal fun TrailingValue(v: AboutCopy.CheckValue) {
     if (v.spinner) {
-        CircularProgressIndicator(Modifier.size(16.dp).testTag("update-spinner"), color = MikaTheme.colors.accent, strokeWidth = 2.dp)
+        CircularProgressIndicator(Modifier.size(MikaSize.SmallIcon).testTag("update-spinner"), color = MikaTheme.colors.accent, strokeWidth = 2.dp)
         return
     }
     if (v.dot) UpdateDot()
@@ -228,12 +231,12 @@ private fun AboutSheetFrame(title: String, sub: String?, tag: String, onDismiss:
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
         // 面板内容太高(矮屏、大字号)时整体能滚,底下的按钮总够得着
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).navigationBarsPadding()
-                .padding(start = 16.dp, end = 16.dp, bottom = 16.dp).testTag(tag),
+                .padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16).testTag(tag),
         ) {
             Text(title, style = MikaType.Title, color = c.ink)
             sub?.let { Text(it, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3) }
@@ -247,8 +250,8 @@ private fun AboutSheetFrame(title: String, sub: String?, tag: String, onDismiss:
 private fun NotesBox(notes: String) {
     val c = MikaTheme.colors
     Box(
-        Modifier.padding(top = 12.dp).fillMaxWidth().heightIn(max = 280.dp)
-            .background(c.fill, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState()).padding(12.dp),
+        Modifier.padding(top = MikaSpace.S12).fillMaxWidth().heightIn(max = 280.dp)
+            .background(c.fill, RoundedCornerShape(MikaRadius.Md)).verticalScroll(rememberScrollState()).padding(MikaSpace.S12),
     ) {
         MarkdownText(notes, MikaType.Caption.copy(color = c.ink2))
     }
@@ -259,10 +262,10 @@ internal fun UpdateSheet(r: ReleaseInfo, current: String, beta: Boolean, onOpenU
     AboutSheetFrame(AboutCopy.updateTitle(r.version), AboutCopy.updateSub(current, beta, r.date), "update-sheet", onDismiss) {
         if (r.notes.isNotBlank()) NotesBox(r.notes)
         if (r.apkUrl != null) UpdateDownloadControls(r)
-        else MikaButton(AboutCopy.UPDATE_DOWNLOAD, { onOpenUrl(r.pageUrl) }, Modifier.fillMaxWidth().padding(top = 14.dp))
+        else MikaButton(AboutCopy.UPDATE_DOWNLOAD, { onOpenUrl(r.pageUrl) }, Modifier.fillMaxWidth().padding(top = MikaSpace.S16))
         Text(
             AboutCopy.UPDATE_LATER,
-            Modifier.fillMaxWidth().padding(top = 8.dp).clip(RoundedCornerShape(10.dp)).clickable(onClick = onDismiss).padding(vertical = 10.dp),
+            Modifier.fillMaxWidth().padding(top = MikaSpace.S8).clip(RoundedCornerShape(MikaRadius.Sm)).clickable(onClick = onDismiss).padding(vertical = MikaSpace.S12),
             style = MikaType.Caption, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
         )
     }
@@ -273,22 +276,22 @@ private fun ChangelogSheet(latest: ReleaseInfo?, onOpenAll: () -> Unit, onDismis
     val c = MikaTheme.colors
     AboutSheetFrame(AboutCopy.CHANGELOG, null, "changelog-sheet", onDismiss) {
         if (latest == null) {
-            Text(AboutCopy.CHANGELOG_EMPTY, Modifier.padding(top = 10.dp), style = MikaType.Caption, color = c.ink3)
+            Text(AboutCopy.CHANGELOG_EMPTY, Modifier.padding(top = MikaSpace.S12), style = MikaType.Caption, color = c.ink3)
         } else {
             Text(
-                latest.version + (latest.date?.let { " · $it" } ?: ""), Modifier.padding(top = 10.dp),
+                latest.version + (latest.date?.let { " · $it" } ?: ""), Modifier.padding(top = MikaSpace.S12),
                 style = MikaType.Label, color = c.ink,
             )
             if (latest.notes.isNotBlank()) NotesBox(latest.notes)
         }
-        MikaButton(AboutCopy.CHANGELOG_ALL, onOpenAll, Modifier.fillMaxWidth().padding(top = 14.dp), kind = ButtonKind.Tonal)
+        MikaButton(AboutCopy.CHANGELOG_ALL, onOpenAll, Modifier.fillMaxWidth().padding(top = MikaSpace.S16), kind = ButtonKind.Tonal)
     }
 }
 
 @Composable
 private fun FeedbackSheet(onGitHub: () -> Unit, onDiagnostics: () -> Unit, onDismiss: () -> Unit) {
     AboutSheetFrame(AboutCopy.FEEDBACK, AboutCopy.FEEDBACK_SHEET_SUB, "feedback-sheet", onDismiss) {
-        Column(Modifier.padding(top = 6.dp)) {
+        Column(Modifier.padding(top = MikaSpace.S8)) {
             FeedbackOption(MikaIcons.Code, AboutCopy.FEEDBACK_GITHUB, AboutCopy.FEEDBACK_GITHUB_SUB, first = true, onGitHub)
             FeedbackOption(MikaIcons.Copy, AboutCopy.DIAGNOSTICS, AboutCopy.DIAGNOSTICS_SUB, first = false, onDiagnostics)
         }
@@ -313,13 +316,13 @@ internal fun GroupSheet(onSave: () -> Unit, onDismiss: () -> Unit) {
     AboutSheetFrame(AboutCopy.GROUP_SHEET_TITLE, AboutCopy.GROUP_SHEET_SUB, "group-sheet", onDismiss) {
         Image(
             qr, contentDescription = AboutCopy.GROUP_SHEET_TITLE,
-            Modifier.padding(top = 12.dp, bottom = 6.dp).align(Alignment.CenterHorizontally)
+            Modifier.padding(top = MikaSpace.S12, bottom = MikaSpace.S8).align(Alignment.CenterHorizontally)
                 .height(qrHeight).aspectRatio(qr.intrinsicSize.width / qr.intrinsicSize.height)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(MikaRadius.Md))
                 .pointerInput(Unit) { detectTapGestures(onLongPress = { onSave() }) }
                 .testTag("wechat-qr"),
         )
         Text(AboutCopy.GROUP_HINT, Modifier.fillMaxWidth(), style = MikaType.Hint, color = c.ink3, textAlign = TextAlign.Center)
-        MikaButton(AboutCopy.SAVE_QR, onSave, Modifier.fillMaxWidth().padding(top = 14.dp), kind = ButtonKind.Tonal)
+        MikaButton(AboutCopy.SAVE_QR, onSave, Modifier.fillMaxWidth().padding(top = MikaSpace.S16), kind = ButtonKind.Tonal)
     }
 }

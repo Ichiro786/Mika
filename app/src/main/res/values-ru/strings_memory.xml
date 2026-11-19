@@ -25,8 +25,8 @@
     <string name="memory_use_sub">Когда выключено, Orbit не читает память и ничего в неё не сохраняет</string>
     <string name="memory_auto">Запоминать то, что я говорю</string>
     <string name="memory_auto_sub">Составляется из ваших слов после каждой задачи</string>
-    <string name="memory_infer">Разрешить Mika запоминать собственные выводы</string>
-    <string name="memory_infer_sub">Когда вы просите запомнить, сохраняются и собственные выводы Mika — с пометкой, что это не ваши слова</string>
+    <string name="memory_infer">Разрешить Orbit запоминать собственные выводы</string>
+    <string name="memory_infer_sub">Когда вы просите запомнить, сохраняются и собственные выводы Orbit — с пометкой, что это не ваши слова</string>
     <string name="memory_learn">Учиться на прошлых задачах (навыки и заметки о приложениях)</string>
     <string name="memory_learn_sub">Чему Orbit научилась, используется только после вашего одобрения</string>
     <string name="memory_tasks">Помнить прошлые задачи</string>
@@ -61,7 +61,7 @@
     <string name="date_pattern_md">d MMM</string>
     <string name="memory_said_via">Вы сказали %1$s через «%2$s»: «%3$s»</string>
     <string name="memory_said">Вы сказали %1$s: «%2$s»</string>
-    <string name="memory_inferred">Вывод Mika от %1$s по вашей просьбе: «%2$s»</string>
+    <string name="memory_inferred">Вывод Orbit от %1$s по вашей просьбе: «%2$s»</string>
     <string name="verify_returned">Возвращено проверкой</string>
     <string name="skills_drafts">Черновики новых навыков: проверяются в деле после вашего одобрения</string>
     <string name="skills_accept_try">Принять и попробовать</string>
@@ -94,4 +94,11 @@
     <string name="skills_imported">Импортирован</string>
     <string name="skill_builtin_name">Встроенный навык с таким названием уже есть. Переименуйте и попробуйте снова.</string>
     <string name="skill_draft_pending">Черновик с таким названием уже ждёт проверки. Сначала разберитесь с ним.</string>
+    <string name="skill_use_prompt">Используй мой навык «%1$s».</string>
+    <string name="skill_add_to_home">Добавить на главный экран</string>
+    <string name="skill_pin_unsupported">Ваш лаунчер не умеет добавлять ярлыки</string>
+    <string name="skill_widget_title">Навыки Orbit</string>
+    <string name="skill_widget_empty">Сохраните навык в Orbit, и он появится здесь</string>
+    <string name="skill_widget_use">Использовать %1$s</string>
+    <string name="skill_widget_description">Главные навыки Orbit — в одно касание</string>
 </resources>

@@ -90,14 +90,16 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import java.io.ByteArrayInputStream
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 // ---------- Sidebar pieces: tiles, rows, section headers ----------
 
-internal val DrawerCardShape = RoundedCornerShape(20.dp)
-private val TileShape = RoundedCornerShape(9.dp)
-private val RowTitle = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
-private val RowSub = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
-private val HeaderText = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold)
+internal val DrawerCardShape = RoundedCornerShape(MikaRadius.Xl)
+private val TileShape = RoundedCornerShape(MikaRadius.Sm)
+private val RowTitle = MikaType.Body.copy(fontWeight = FontWeight.Medium)
+private val RowSub = MikaType.Hint
+private val HeaderText = MikaType.LabelStrong
 
 /** Channel and space colors: a fixed set, picked by name so each keeps its color. */
 private val TileColors = listOf(
@@ -112,7 +114,7 @@ internal fun tileColor(key: String, shift: Int = 0): Color =
 @Composable
 internal fun ChannelTile(name: String, size: Dp = 30.dp) {
     Box(Modifier.size(size).background(tileColor(name), TileShape), contentAlignment = Alignment.Center) {
-        Text("#", style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Bold), color = Color.White)
+        Text("#", style = MikaType.BodyStrong, color = Color.White)
     }
 }
 
@@ -130,8 +132,8 @@ internal fun SpaceTile(space: Space, size: Dp = 30.dp) {
 /** A plain icon on a rounded square, for Everything and Main chat. */
 @Composable
 internal fun IconTile(icon: ImageVector, tint: Color, background: Color) {
-    Box(Modifier.size(32.dp).background(background, RoundedCornerShape(10.dp)), contentAlignment = Alignment.Center) {
-        Icon(icon, null, Modifier.size(18.dp), tint = tint)
+    Box(Modifier.size(32.dp).background(background, RoundedCornerShape(MikaRadius.Sm)), contentAlignment = Alignment.Center) {
+        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = tint)
     }
 }
 
@@ -149,9 +151,9 @@ internal fun DrawerLink(
     Row(
         Modifier.fillMaxWidth().heightIn(min = 56.dp).clip(DrawerCardShape)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp).testTagged(tag),
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12).testTagged(tag),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
     ) {
         tile()
         Column(Modifier.weight(1f)) {
@@ -173,7 +175,7 @@ internal fun CardHairline() {
 internal fun SectionHeader(text: String, addLabel: String? = null, addTag: String = "", enabled: Boolean = true, onAdd: () -> Unit = {}) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().padding(start = 24.dp, end = 14.dp, top = 16.dp, bottom = 4.dp),
+        Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text, Modifier.weight(1f).semantics { heading() }, style = HeaderText, color = c.ink2)
@@ -195,9 +197,9 @@ internal fun SectionHeader(text: String, addLabel: String? = null, addTag: Strin
 @Composable
 internal fun AddRow(text: String, tag: String, dashed: Boolean = false, enabled: Boolean = true, onClick: () -> Unit) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(16.dp)
+    val shape = RoundedCornerShape(MikaRadius.Lg)
     Row(
-        Modifier.padding(horizontal = 12.dp, vertical = 2.dp).fillMaxWidth().heightIn(min = 48.dp).clip(shape)
+        Modifier.padding(horizontal = MikaSpace.S12, vertical = 2.dp).fillMaxWidth().heightIn(min = 48.dp).clip(shape)
             .then(
                 if (dashed) Modifier.drawBehind {
                     val r = 16.dp.toPx()
@@ -208,12 +210,12 @@ internal fun AddRow(text: String, tag: String, dashed: Boolean = false, enabled:
                 } else Modifier,
             )
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp).testTagged(tag),
+            .padding(horizontal = MikaSpace.S12).testTagged(tag),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
     ) {
-        Box(Modifier.size(30.dp), contentAlignment = Alignment.Center) {
-            Icon(MikaIcons.Plus, null, Modifier.size(16.dp), tint = if (enabled) c.ink2 else c.ink3)
+        Box(Modifier.size(MikaSize.Tile), contentAlignment = Alignment.Center) {
+            Icon(MikaIcons.Plus, null, Modifier.size(MikaSize.SmallIcon), tint = if (enabled) c.ink2 else c.ink3)
         }
         Text(text, style = RowTitle.copy(fontWeight = FontWeight.Normal), color = if (enabled) c.ink2 else c.ink3)
     }
@@ -225,11 +227,11 @@ internal fun BackHeader(text: String, tag: String, onBack: () -> Unit) {
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().heightIn(min = 48.dp).clickable(role = Role.Button, onClick = onBack)
-            .padding(horizontal = 24.dp).testTagged(tag),
+            .padding(horizontal = MikaSpace.S24).testTagged(tag),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        DirectionalIcon(MikaIcons.Back, stringResource(R.string.back), Modifier.size(16.dp), tint = c.ink2)
+        DirectionalIcon(MikaIcons.Back, stringResource(R.string.back), Modifier.size(MikaSize.SmallIcon), tint = c.ink2)
         Text(text, Modifier.semantics { heading() }, style = HeaderText, color = c.ink2)
     }
 }
@@ -239,7 +241,7 @@ internal fun BackHeader(text: String, tag: String, onBack: () -> Unit) {
 internal fun NestedRow(content: @Composable () -> Unit) {
     val c = MikaTheme.colors
     Box(
-        Modifier.padding(start = 34.dp).drawBehind {
+        Modifier.padding(start = MikaSpace.S32).drawBehind {
             drawLine(c.edge, Offset(0f, 0f), Offset(0f, size.height), 1.5.dp.toPx())
         }.padding(start = 2.dp),
     ) { content() }
@@ -272,7 +274,7 @@ internal fun FooterButton(icon: ImageVector, label: String, tag: String, dot: Bo
     ) {
         HeaderPill(44.dp)
         Icon(icon, label, Modifier.size(20.dp), tint = c.ink2)
-        if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = 6.dp, end = 6.dp).size(8.dp).background(c.bad, CircleShape))
+        if (dot) Box(Modifier.align(Alignment.TopEnd).padding(top = MikaSpace.S8, end = MikaSpace.S8).size(8.dp).background(c.bad, CircleShape))
     }
 }
 
@@ -294,7 +296,7 @@ internal fun SpaceEntry(space: Space, now: Long, onOpen: (Space) -> Unit, onActi
     val haptic = LocalHapticFeedback.current
     val bounds = remember { mutableStateOf(Rect.Zero) }
     Row(
-        Modifier.padding(horizontal = 12.dp).fillMaxWidth()
+        Modifier.padding(horizontal = MikaSpace.S12).fillMaxWidth()
             .onGloballyPositioned { bounds.value = Rect(it.positionInWindow(), it.size.toSize()) }
             .clip(NavShape)
             .combinedClickable(
@@ -302,9 +304,9 @@ internal fun SpaceEntry(space: Space, now: Long, onOpen: (Space) -> Unit, onActi
                 onLongClick = { haptic.performHapticFeedback(HapticFeedbackType.LongPress); onActions(space, bounds.value) },
                 onClick = { onOpen(space) },
             )
-            .heightIn(min = 52.dp).padding(horizontal = 12.dp, vertical = 8.dp).testTagged("space-row"),
+            .heightIn(min = 52.dp).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8).testTagged("space-row"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         SpaceRowContent(space, now)
     }
@@ -315,11 +317,11 @@ private fun RowScope.SpaceRowContent(space: Space, now: Long) {
     val c = MikaTheme.colors
     SpaceTile(space)
     Column(Modifier.weight(1f)) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             if (space.pinnedAt != null) Icon(MikaIcons.Pin, stringResource(R.string.drawer_pinned_mark), Modifier.size(13.dp), tint = c.ink3)
             Text(space.name, Modifier.weight(1f, fill = false), style = RowTitle, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
             Box(Modifier.size(6.dp).background(c.ok, CircleShape))
             Text(spaceUpdated(space, now), style = RowSub, color = c.ink3, maxLines = 1)
         }
@@ -352,9 +354,9 @@ internal fun SpaceMenu(
     ) {
         Row(
             Modifier.floatShadow(c, NavShape).background(c.surface, NavShape).clip(NavShape)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
+                .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) { SpaceRowContent(space, now) }
     }
 }
@@ -371,7 +373,7 @@ internal fun CreateSpaceDialog(onCreate: (description: String, name: String) -> 
         title = { Text(stringResource(R.string.space_create)) },
         text = {
             KeyboardDismissArea {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                     Text(stringResource(R.string.space_create_body), style = MikaType.Caption, color = MikaTheme.colors.ink2)
                     OutlinedTextField(
                         description, { if (it.length <= 600) description = it },
@@ -467,9 +469,9 @@ internal fun SpaceScreen(
         if (choosingAuto) AutoRefreshDialog(autoRefreshMs, onPick = { choosingAuto = false; onAutoRefresh(it) }, onDismiss = { choosingAuto = false })
         Column(Modifier.fillMaxSize().background(c.bg).statusBarsPadding().navigationBarsPadding()) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
+                Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
             ) {
                 BarIconButton(MikaIcons.Back, stringResource(R.string.back), onClose, pill = true)
                 SpaceTile(space, 28.dp)
@@ -484,16 +486,16 @@ internal fun SpaceScreen(
                     badge = autoRefreshMs != null, pill = true)
                 BarIconButton(MikaIcons.Refresh, stringResource(R.string.space_refresh), onRefresh, enabled = !working, pill = true)
             }
-            Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = 12.dp).clip(RoundedCornerShape(22.dp)).background(Color.Black)) {
+            Box(Modifier.weight(1f).fillMaxWidth().padding(horizontal = MikaSpace.S12).clip(RoundedCornerShape(MikaRadius.Xl)).background(Color.Black)) {
                 val html = page
                 if (html == null) {
                     Column(
-                        Modifier.fillMaxSize().padding(32.dp),
+                        Modifier.fillMaxSize().padding(MikaSpace.S32),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         SpaceTile(space, 56.dp)
-                        Spacer(Modifier.height(16.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                         Text(
                             stringResource(if (loaded && !working) R.string.space_empty else R.string.space_building),
                             style = MikaType.Body, color = Color.White.copy(alpha = 0.8f),
@@ -503,12 +505,12 @@ internal fun SpaceScreen(
                     SpacePage(html)
                 }
             }
-            Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.Center) {
+            Row(Modifier.fillMaxWidth().padding(MikaSpace.S16), horizontalArrangement = Arrangement.Center) {
                 Box(
                     Modifier.clip(CircleShape).cardSurface(c, CircleShape).clickable(role = Role.Button, onClick = onChange)
-                        .padding(horizontal = 22.dp, vertical = 13.dp).testTagged("space-change"),
+                        .padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S12).testTagged("space-change"),
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                         Icon(MikaIcons.Message, null, Modifier.size(17.dp), tint = c.accent)
                         Text(stringResource(R.string.space_change), style = MikaType.Label, color = c.ink)
                     }
@@ -530,7 +532,7 @@ private fun AutoRefreshDialog(current: Long?, onPick: (Long?) -> Unit, onDismiss
                 SpaceSchedule.INTERVALS.forEach { ms ->
                     RadioRow(stringResource(R.string.space_auto_refresh_every, (ms / DateUtils.HOUR_IN_MILLIS).toInt()), current == ms, { onPick(ms) })
                 }
-                Text(stringResource(R.string.space_auto_refresh_note), Modifier.padding(top = 12.dp), style = MikaType.Caption, color = MikaTheme.colors.ink3)
+                Text(stringResource(R.string.space_auto_refresh_note), Modifier.padding(top = MikaSpace.S12), style = MikaType.Caption, color = MikaTheme.colors.ink3)
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },

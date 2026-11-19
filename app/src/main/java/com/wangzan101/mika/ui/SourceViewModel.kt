@@ -48,7 +48,7 @@ class SourceViewModel(
 }
 
 private fun evidencePlace(place: String, appLabel: (String) -> String): String = when {
-    place.startsWith("网站 ") -> place.removePrefix("网站 ")
+    RecordPlace.isSite(place) -> RecordPlace.site(place).orEmpty()
     place.startsWith("http://") || place.startsWith("https://") -> runCatching { java.net.URI(place).host }.getOrNull() ?: place
     com.wangzan101.mika.core.tool.PACKAGE_NAME_RE.matches(place) -> appLabel(place)
     else -> place

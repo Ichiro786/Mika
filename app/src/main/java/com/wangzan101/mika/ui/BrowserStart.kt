@@ -3,11 +3,8 @@ package com.wangzan101.mika.ui
 import com.wangzan101.mika.R
 import com.wangzan101.mika.i18n.tr
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -84,6 +81,10 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaSpace
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.loop
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 val BROWSER_SEARCH_HINT: String get() = tr(R.string.browser_search_hint)
 val BROWSER_LOGIN_LEGEND: String get() = tr(R.string.browser_login_legend)
@@ -138,7 +139,7 @@ fun BrowserStart(
         if (editing) {
             TopBar(tr(R.string.browser_edit_favorites), right = {
                 Text(
-                    tr(R.string.done), Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = false }.padding(horizontal = 12.dp, vertical = 8.dp),
+                    tr(R.string.done), Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = false }.padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                     style = MikaType.BodyStrong, color = c.accent,
                 )
             })
@@ -211,9 +212,9 @@ private fun BigSearchField(value: String, onChange: (String) -> Unit, onGo: () -
     Row(
         Modifier.fillMaxWidth().height(52.dp).keepsKeyboard().cardSurface(c, MikaShapes.Pill)
             .then(if (focused) Modifier.border(1.5.dp, c.accent, MikaShapes.Pill) else Modifier)
-            .padding(start = 18.dp, end = 8.dp),
+            .padding(start = MikaSpace.S16, end = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         Icon(MikaIcons.Search, null, Modifier.size(20.dp), tint = c.ink3)
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
@@ -232,7 +233,7 @@ private fun BigSearchField(value: String, onChange: (String) -> Unit, onGo: () -
             Box(
                 Modifier.size(36.dp).clip(CircleShape).clickable(onClickLabel = tr(R.string.browser_clear_input), role = Role.Button) { onChange("") },
                 contentAlignment = Alignment.Center,
-            ) { Icon(MikaIcons.Close, tr(R.string.browser_clear_input), Modifier.size(16.dp), tint = c.ink3) }
+            ) { Icon(MikaIcons.Close, tr(R.string.browser_clear_input), Modifier.size(MikaSize.SmallIcon), tint = c.ink3) }
         }
     }
 }
@@ -242,7 +243,7 @@ private val BigText = MikaType.Body.copy(fontSize = 16.sp)
 @Composable
 private fun Caption(text: String) {
     Text(
-        text, Modifier.fillMaxWidth().padding(top = 8.dp), style = MikaType.Hint, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
+        text, Modifier.fillMaxWidth().padding(top = MikaSpace.S8), style = MikaType.Hint, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
     )
 }
 
@@ -254,7 +255,7 @@ private fun EngineNote(engine: SearchEngineSpec, onClick: () -> Unit) {
         tr(R.string.browser_engine_note, engine.displayName),
         Modifier.fillMaxWidth().clip(MikaShapes.Pill)
             .clickable(role = Role.Button, onClickLabel = tr(R.string.browser_engine_choose), onClick = onClick)
-            .padding(top = 8.dp, bottom = 2.dp).testTag("browser-engine"),
+            .padding(top = MikaSpace.S8, bottom = 2.dp).testTag("browser-engine"),
         style = MikaType.Hint, color = c.ink3, textAlign = TextAlign.Center,
     )
 }
@@ -287,7 +288,7 @@ private fun EnginePicker(
                                         .clickable(role = Role.Button, onClickLabel = remove) { onRemove(e) }
                                         .testTag("browser-engine-remove"),
                                     contentAlignment = Alignment.Center,
-                                ) { Icon(MikaIcons.Close, remove, Modifier.size(16.dp), tint = c.ink3) }
+                                ) { Icon(MikaIcons.Close, remove, Modifier.size(MikaSize.SmallIcon), tint = c.ink3) }
                             }
                         },
                     )
@@ -312,7 +313,7 @@ private fun CustomEngineDialog(onSave: (CustomSearchEngine) -> Unit, onDismiss: 
         onDismissRequest = onDismiss,
         title = { Text(tr(R.string.browser_engine_custom_add)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 TextField(
                     name, { name = it; invalid = false }, Modifier.fillMaxWidth().testTag("browser-engine-name"),
                     singleLine = true, placeholder = { Text(tr(R.string.browser_engine_custom_name)) },
@@ -343,11 +344,11 @@ private fun CustomEngineDialog(onSave: (CustomSearchEngine) -> Unit, onDismiss: 
 @Composable
 private fun SectionHeader(title: String, action: String? = null, onAction: () -> Unit = {}) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(top = 18.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16, bottom = MikaSpace.S8), verticalAlignment = Alignment.CenterVertically) {
         Text(title, Modifier.weight(1f), style = MikaType.Label, color = c.ink3)
         if (action != null) {
             Text(
-                action, Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onAction).padding(horizontal = 6.dp, vertical = 2.dp),
+                action, Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onAction).padding(horizontal = MikaSpace.S8, vertical = 2.dp),
                 style = MikaType.Label, color = c.accent,
             )
         }
@@ -357,7 +358,7 @@ private fun SectionHeader(title: String, action: String? = null, onAction: () ->
 @Composable
 private fun Legend(text: String, dot: Boolean) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(top = 14.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         if (dot) Box(Modifier.size(9.dp).background(c.ok, CircleShape))
         Text(text, style = MikaType.Hint, color = c.ink3)
     }
@@ -375,7 +376,7 @@ private fun SiteGrid(
     onAdd: (() -> Unit)?,
 ) {
     val cells: List<FavoriteSite?> = sites + if (onAdd != null) listOf(null) else emptyList()
-    Column(Modifier.fillMaxWidth().testTag("browser-sites"), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(Modifier.fillMaxWidth().testTag("browser-sites"), verticalArrangement = Arrangement.spacedBy(MikaSpace.S16)) {
         cells.chunked(COLUMNS).forEachIndexed { row, chunk ->
             Row(Modifier.fillMaxWidth()) {
                 chunk.forEachIndexed { col, site ->
@@ -405,33 +406,33 @@ private fun SiteCell(
     val reduce = MikaTheme.reduceMotion
     val angle = if (editing && !reduce) {
         rememberInfiniteTransition(label = "wiggle").animateFloat(
-            -WIGGLE_DEG, WIGGLE_DEG, infiniteRepeatable(tween(WIGGLE_MS), RepeatMode.Reverse), label = "wiggle-angle",
+            -WIGGLE_DEG, WIGGLE_DEG, MikaMotion.loop(beats = WIGGLE_BEATS, reverse = true), label = "wiggle-angle",
         ).value
     } else 0f
     Column(
         Modifier.graphicsLayer { rotationZ = if (even) angle else -angle }
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(MikaRadius.Md))
             .combinedClickable(
                 onClickLabel = if (editing) null else tr(R.string.browser_open_site, face.name),
                 onLongClickLabel = if (editing) null else tr(R.string.browser_edit_favorites),
                 onClick = { if (!editing) onOpen() },
                 onLongClick = { if (!editing) onEdit() },
             )
-            .padding(horizontal = 2.dp, vertical = 4.dp),
+            .padding(horizontal = 2.dp, vertical = MikaSpace.S4),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(7.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Box {
             SiteTile(face, 54.dp, TileShape, InitialLarge)
             if (site.loggedIn) {
                 Box(
                     Modifier.align(Alignment.BottomEnd).offset(3.dp, 3.dp).size(15.dp)
-                        .background(c.bg, CircleShape).padding(2.5.dp).background(c.ok, CircleShape).testTag("browser-site-logged-in"),
+                        .background(c.bg, CircleShape).padding(MikaSpace.S4).background(c.ok, CircleShape).testTag("browser-site-logged-in"),
                 )
             }
             if (editing) {
                 Box(
-                    Modifier.align(Alignment.TopStart).offset((-6).dp, (-6).dp).size(22.dp).clip(CircleShape)
+                    Modifier.align(Alignment.TopStart).offset((-6).dp, (-6).dp).size(MikaSize.Icon).clip(CircleShape)
                         .background(c.ink2).clickable(onClickLabel = tr(R.string.browser_remove_site, face.name), role = Role.Button, onClick = onRemove)
                         .testTag("browser-site-remove"),
                     contentAlignment = Alignment.Center,
@@ -446,10 +447,10 @@ private fun SiteCell(
 private fun AddCell(onAdd: () -> Unit) {
     val c = MikaTheme.colors
     Column(
-        Modifier.clip(RoundedCornerShape(12.dp)).clickable(onClickLabel = tr(R.string.browser_add_favorite), role = Role.Button, onClick = onAdd)
-            .padding(horizontal = 2.dp, vertical = 4.dp),
+        Modifier.clip(RoundedCornerShape(MikaRadius.Md)).clickable(onClickLabel = tr(R.string.browser_add_favorite), role = Role.Button, onClick = onAdd)
+            .padding(horizontal = 2.dp, vertical = MikaSpace.S4),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(7.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Box(Modifier.size(54.dp).cardSurface(c, TileShape), contentAlignment = Alignment.Center) {
             Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = c.ink3)
@@ -463,7 +464,7 @@ private fun RecentCard(recent: List<RecentItem>, face: (String) -> SiteFace, now
     val c = MikaTheme.colors
     GroupCard {
         if (recent.isEmpty()) {
-            Text(tr(R.string.browser_no_recent), Modifier.fillMaxWidth().padding(16.dp), style = MikaType.Body, color = c.ink3)
+            Text(tr(R.string.browser_no_recent), Modifier.fillMaxWidth().padding(MikaSpace.S16), style = MikaType.Body, color = c.ink3)
         }
         recent.forEachIndexed { i, r ->
             if (i > 0) Hairline(start = 56.dp)
@@ -482,7 +483,7 @@ private fun BookmarkCard(bookmarks: List<PageBookmark>, face: (String) -> SiteFa
     val c = MikaTheme.colors
     GroupCard {
         if (bookmarks.isEmpty()) {
-            Text(tr(R.string.browser_bookmark_empty), Modifier.fillMaxWidth().padding(16.dp), style = MikaType.Body, color = c.ink3)
+            Text(tr(R.string.browser_bookmark_empty), Modifier.fillMaxWidth().padding(MikaSpace.S16), style = MikaType.Body, color = c.ink3)
         }
         bookmarks.take(MAX_BOOKMARKS).forEachIndexed { i, b ->
             if (i > 0) Hairline(start = 56.dp)
@@ -499,7 +500,7 @@ private fun BookmarkCard(bookmarks: List<PageBookmark>, face: (String) -> SiteFa
 @Composable
 private fun SuggestionCard(list: List<Suggestion>, face: (String) -> SiteFace, onPick: (Suggestion) -> Unit) {
     if (list.isEmpty()) return
-    GroupCard(Modifier.padding(top = 8.dp).testTag("browser-suggestions")) {
+    GroupCard(Modifier.padding(top = MikaSpace.S8).testTag("browser-suggestions")) {
         list.forEachIndexed { i, s ->
             if (i > 0) Hairline(start = 56.dp)
             SmallRow(
@@ -527,12 +528,12 @@ internal fun SmallRow(
 ) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(horizontal = 16.dp),
+        Modifier.fillMaxWidth().clickable(onClick = onClick).heightIn(min = 56.dp).padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         lead()
-        Column(Modifier.weight(1f).padding(vertical = 9.dp)) {
+        Column(Modifier.weight(1f).padding(vertical = MikaSpace.S8)) {
             Text(title, style = MikaType.Body, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (subtitle.isNotEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3, maxLines = 1)
         }
@@ -544,11 +545,12 @@ internal fun SmallRow(
 private fun SearchMini(icon: ImageVector = MikaIcons.Search) {
     val c = MikaTheme.colors
     Box(Modifier.size(28.dp).background(c.neutralSoft, MiniShape), contentAlignment = Alignment.Center) {
-        Icon(icon, null, Modifier.size(16.dp), tint = c.ink2)
+        Icon(icon, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink2)
     }
 }
 
-private val TileShape = RoundedCornerShape(16.dp)
+private val TileShape = RoundedCornerShape(MikaRadius.Lg)
 private val InitialLarge = MikaType.Title.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold)
 private const val WIGGLE_DEG = 1.5f
-private const val WIGGLE_MS = 250
+/** Edit-mode wiggle: a quarter beat of the shared loop each way. */
+private const val WIGGLE_BEATS = 0.25f

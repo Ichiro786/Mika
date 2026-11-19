@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.sp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
 
 /** One soft glow in a card's wash: a colour centred at a point given as a fraction of the card. */
 internal data class Glow(val color: Color, val x: Float, val y: Float, val radius: Float)
@@ -57,7 +60,7 @@ internal object HubCardPalette {
     )
 }
 
-private val CardShape = RoundedCornerShape(30.dp)
+private val CardShape = RoundedCornerShape(MikaRadius.Xxl)
 private val Mono = FontFamily.Monospace
 private val Day = DateTimeFormatter.ofPattern("dd/MM/yy")
 
@@ -94,13 +97,13 @@ internal fun HubGlowCard(
             .clickable(role = Role.Button, onClick = onOpen)
             .testTag(tag),
     ) {
-        Column(Modifier.fillMaxSize().padding(start = 18.dp, end = 16.dp, top = 18.dp, bottom = 16.dp)) {
+        Column(Modifier.fillMaxSize().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S16)) {
             Text(
                 title.uppercase(), color = ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
-                style = TextStyle(fontSize = 24.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold, letterSpacing = 0.2.sp),
+                style = MikaType.Headline,
             )
             Text(
-                subtitle.uppercase(), Modifier.padding(top = 6.dp), color = ink.copy(alpha = 0.92f), maxLines = 2,
+                subtitle.uppercase(), Modifier.padding(top = MikaSpace.S8), color = ink.copy(alpha = 0.92f), maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 style = TextStyle(fontFamily = Mono, fontSize = 13.sp, lineHeight = 17.sp, letterSpacing = 0.6.sp),
             )
@@ -123,7 +126,7 @@ internal fun HubGlowPair(
     skillsTitle: String, skillsSub: String, skillsAt: Long?,
     onOpen: () -> Unit,
 ) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
         HubGlowCard(memoryTitle, memorySub, memoryAt, com.wangzan101.mika.ui.theme.MikaIcons.Thought, HubCardPalette.Memory,
             Modifier.weight(1f), "hub-card-memory", onOpen)
         HubGlowCard(skillsTitle, skillsSub, skillsAt, com.wangzan101.mika.ui.theme.MikaIcons.Spark, HubCardPalette.Skills,

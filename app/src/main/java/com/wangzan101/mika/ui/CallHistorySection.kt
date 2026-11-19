@@ -32,6 +32,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
 import java.text.DateFormat
 import java.util.Date
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
 
 private enum class HistoryFilter(@StringRes val label: Int) {
     ALL(R.string.calls_history_all), OPEN(R.string.calls_history_open), DONE(R.string.calls_history_done),
@@ -148,7 +150,7 @@ internal fun CallHistorySection(
             leadingIcon = { Icon(MikaIcons.Search, contentDescription = null) },
             modifier = Modifier.fillMaxWidth().testTag("call-history-search"),
         )
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             HistoryFilter.entries.forEach { choice ->
                 FilterChip(
                     selected = filter == choice, onClick = { filter = choice; showAll = false },
@@ -216,8 +218,8 @@ internal fun CallHistorySection(
             val formatter = remember(locale) { DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT, locale) }
             val whenCalled = remember(toDelete.startedAtMs, formatter) { formatter.format(Date(toDelete.startedAtMs)) }
             val number = toDelete.number?.let { "\u2066$it\u2069" } ?: stringResource(R.string.calls_unknown_number)
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("$number · $whenCalled", style = MaterialTheme.typography.bodyMedium)
+            Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
+                Text("$number · $whenCalled", style = MikaType.Caption)
                 Text(stringResource(R.string.calls_history_delete_confirm))
             }
         },
@@ -256,24 +258,24 @@ private fun CallHistoryItem(
             first = first, detail = "$status · ${record.result}",
             onClick = onExpand) { CallExpandIcon(expanded) }
         if (expanded) {
-            Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 14.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16),
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 HorizontalDivider()
                 Text(stringResource(R.string.calls_history_period, start, end),
-                    style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+                    style = MikaType.Hint, color = MikaTheme.colors.ink3)
                 record.summary?.let { summary ->
                     summary.purpose?.let { Text("${stringResource(R.string.calls_summary_purpose)}：$it") }
                     if (summary.highlights.isNotEmpty()) {
-                        Text(stringResource(R.string.calls_summary_highlights), style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.calls_summary_highlights), style = MikaType.Label)
                         summary.highlights.forEach { Text("• $it") }
                     }
                     summary.conclusion?.let { Text("${stringResource(R.string.calls_summary_conclusion)}：$it") }
                     if (summary.uncertainties.isNotEmpty()) {
-                        Text(stringResource(R.string.calls_summary_uncertainties), style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.calls_summary_uncertainties), style = MikaType.Label)
                         summary.uncertainties.forEach { Text("• $it") }
                     }
                     if (summary.actions.isNotEmpty()) {
-                        Text(stringResource(R.string.calls_summary_actions), style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.calls_summary_actions), style = MikaType.Label)
                         summary.actions.forEach { item ->
                             val state = when (item.status) {
                                 com.wangzan101.mika.calls.CallFollowUp.Status.PENDING -> R.string.calls_summary_pending
@@ -294,7 +296,7 @@ private fun CallHistoryItem(
                 }
                 record.task?.let { task ->
                     Text(stringResource(R.string.calls_record_result_unconfirmed),
-                        style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+                        style = MikaType.Hint, color = MikaTheme.colors.ink3)
                     TextButton(onClick = { showTask = !showTask }, modifier = Modifier.fillMaxWidth().testTag("call-record-task-toggle")) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                             Text(stringResource(R.string.calls_record_brief))
@@ -302,19 +304,19 @@ private fun CallHistoryItem(
                         }
                     }
                     if (showTask) SelectionContainer {
-                        Column(Modifier.fillMaxWidth().padding(horizontal = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.calls_record_goal), style = MaterialTheme.typography.labelLarge)
+                        Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S8), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
+                            Text(stringResource(R.string.calls_record_goal), style = MikaType.Label)
                             Text(task.goal)
                             if (task.questions.isNotEmpty()) {
-                                Text(stringResource(R.string.calls_record_questions), style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(R.string.calls_record_questions), style = MikaType.Label)
                                 task.questions.forEachIndexed { index, question -> Text("${index + 1}. $question") }
                             }
                             if (task.context.isNotBlank()) {
-                                Text(stringResource(R.string.calls_record_context), style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(R.string.calls_record_context), style = MikaType.Label)
                                 Text(task.context)
                             }
                             if (task.constraints.isNotBlank()) {
-                                Text(stringResource(R.string.calls_record_constraints), style = MaterialTheme.typography.labelLarge)
+                                Text(stringResource(R.string.calls_record_constraints), style = MikaType.Label)
                                 Text(task.constraints)
                             }
                         }
@@ -331,9 +333,9 @@ private fun CallHistoryItem(
                 }
                 if (showTranscript) {
                     if (record.transcript.isEmpty()) {
-                        Text(stringResource(R.string.calls_no_transcript), style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+                        Text(stringResource(R.string.calls_no_transcript), style = MikaType.Hint, color = MikaTheme.colors.ink3)
                     } else SelectionContainer {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                             record.transcript.forEach { CallTranscriptText(it) }
                         }
                     }
@@ -349,7 +351,7 @@ private fun CallHistoryItem(
                         }
                     }, modifier = Modifier.testTag("call-record-diagnostics-copy")) { Text(label) }
                 }
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                     TextButton(onClick = onMark, enabled = !busy, modifier = Modifier.weight(1f).testTag("call-history-mark")) {
                         Text(stringResource(if (record.handled) R.string.calls_history_reopen else R.string.calls_history_mark_done))
                     }
@@ -367,7 +369,7 @@ private fun CallHistoryItem(
 internal fun CallTranscriptText(line: CallTranscriptLine) {
     Column {
         Text(stringResource(if (line.role == "assistant") R.string.app_name else R.string.calls_caller),
-            style = MaterialTheme.typography.labelMedium, color = MikaTheme.colors.ink3)
-        Text(line.text, style = MaterialTheme.typography.bodyMedium)
+            style = MikaType.Hint, color = MikaTheme.colors.ink3)
+        Text(line.text, style = MikaType.Caption)
     }
 }

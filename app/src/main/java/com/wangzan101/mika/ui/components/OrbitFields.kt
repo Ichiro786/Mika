@@ -28,9 +28,12 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** Rounded tonal shape shared by Orbit's form fields and note cards. */
-val OrbitFieldShape = RoundedCornerShape(16.dp)
+val OrbitFieldShape = RoundedCornerShape(MikaRadius.Lg)
 
 /**
  * Orbit's text field: a small label above a rounded tonal box (no Material outline).
@@ -49,15 +52,15 @@ fun OrbitTextField(
 ) {
     val c = MikaTheme.colors
     Column(Modifier.fillMaxWidth()) {
-        Text(label, Modifier.padding(start = 4.dp, bottom = 6.dp), style = MikaType.Caption, color = c.ink2)
+        Text(label, Modifier.padding(start = MikaSpace.S4, bottom = MikaSpace.S8), style = MikaType.Caption, color = c.ink2)
         Row(
             Modifier.fillMaxWidth().heightIn(min = 50.dp)
                 .background(c.fill, OrbitFieldShape).border(1.dp, c.hair, OrbitFieldShape)
                 .keepsKeyboard()
-                .padding(start = 16.dp, end = if (trailing == null) 16.dp else 6.dp, top = 4.dp, bottom = 4.dp),
+                .padding(start = MikaSpace.S16, end = if (trailing == null) MikaSpace.S16 else MikaSpace.S8, top = MikaSpace.S4, bottom = MikaSpace.S4),
             verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
         ) {
-            Box(Modifier.weight(1f).padding(vertical = 10.dp)) {
+            Box(Modifier.weight(1f).padding(vertical = MikaSpace.S12)) {
                 if (value.isEmpty() && placeholder != null) {
                     Text(placeholder, style = MikaType.Body, color = c.ink3, maxLines = if (singleLine) 1 else 3)
                 }
@@ -82,10 +85,10 @@ fun OrbitTextField(
 fun OrbitNote(icon: ImageVector, text: String, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
     Row(
-        modifier.fillMaxWidth().background(c.fill, OrbitFieldShape).padding(horizontal = 16.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        modifier.fillMaxWidth().background(c.fill, OrbitFieldShape).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Icon(icon, null, Modifier.padding(top = 1.dp).size(18.dp), tint = c.ink3)
+        Icon(icon, null, Modifier.padding(top = 1.dp).size(MikaSize.TileIcon), tint = c.ink3)
         Text(text, Modifier.weight(1f), style = MikaType.Caption, color = c.ink2)
     }
 }

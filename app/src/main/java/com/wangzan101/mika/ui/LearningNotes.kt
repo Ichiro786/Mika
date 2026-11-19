@@ -15,13 +15,14 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 结果卡片下的小字:记住了什么、学会或停用了哪项技能,各带按钮。 */
 internal fun LazyListScope.learningNotes(index: Int, ex: Exchange, vm: ChatViewModel) {
     val runId = ex.runId ?: return
     if (ex.memoryNotes.isEmpty() && ex.skillNotes.isEmpty()) return
     item("m$index") {
-        Column(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, bottom = 8.dp).testTag("learning-notes")) {
+        Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S4, end = MikaSpace.S4, bottom = MikaSpace.S8).testTag("learning-notes")) {
             ex.memoryNotes.forEach { n ->
                 NoteLine(vm.noteText(n)) {
                     if (n.pendingId != null) {

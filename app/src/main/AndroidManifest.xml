@@ -248,6 +248,19 @@
 
         <receiver android:name=".calls.CallNotificationAction" android:exported="false" />
 
+        <!-- Saved skills on the home screen: opens Orbit with the skill typed in; nothing runs until you send. -->
+        <receiver
+            android:name=".skills.SkillsWidget"
+            android:exported="false"
+            android:label="@string/skill_widget_title">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_skills_info" />
+        </receiver>
+
         <!-- Keeps the WhatsApp linked-device connection open after the user links and switches it on; tasks still run in TaskService. -->
         <service
             android:name=".whatsapp.WhatsappService"

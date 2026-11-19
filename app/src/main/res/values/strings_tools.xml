@@ -77,4 +77,10 @@
     <string name="tool_mika_login_site">Sign in to a site</string>
     <string name="tool_mika_confirm_login">Confirm sign-in</string>
     <string name="tool_mika_favorites">Frequently used sites</string>
+    <string name="tool_schedule">Schedule a task</string>
+    <string name="tool_helper">Ask a helper</string>
+    <string name="tool_profile">Update your profile</string>
+    <string name="tool_history">Read earlier messages</string>
+    <string name="tool_user_screen">Look at your screen</string>
+    <string name="tool_update_plan">Update the plan</string>
 </resources>

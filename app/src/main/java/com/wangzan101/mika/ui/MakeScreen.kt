@@ -2,7 +2,6 @@ package com.wangzan101.mika.ui
 
 import android.text.format.DateUtils
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -71,6 +70,8 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** One file the agent produced in a conversation (the newest copy when the same file was shared again). */
 @Immutable
@@ -148,13 +149,13 @@ internal fun MakeScreen(
             barHeight = orbitHeaderBarHeight())
         LazyColumn(
             Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = bottomInset + 26.dp),
+            contentPadding = PaddingValues(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S24, bottom = bottomInset + MikaSpace.S24),
         ) {
             item("title") {
-                Column(Modifier.padding(bottom = 22.dp)) {
+                Column(Modifier.padding(bottom = MikaSpace.S24)) {
                     Text(stringResource(R.string.nav_make), style = MikaType.LargeTitle, color = c.ink,
                         modifier = Modifier.semantics { heading() })
-                    Text(stringResource(R.string.orbit_make_subtitle), Modifier.padding(top = 8.dp),
+                    Text(stringResource(R.string.orbit_make_subtitle), Modifier.padding(top = MikaSpace.S8),
                         style = MikaType.Body, color = c.ink2)
                 }
             }
@@ -162,7 +163,7 @@ internal fun MakeScreen(
             val list = artifacts?.filter { it.isMedia() == media }
             when {
                 list == null -> item("loading") {
-                    Text(stringResource(R.string.file_library_loading), Modifier.padding(vertical = 12.dp),
+                    Text(stringResource(R.string.file_library_loading), Modifier.padding(vertical = MikaSpace.S12),
                         style = MikaType.Body, color = c.ink3)
                 }
                 list.isEmpty() -> item("empty") { MakeEmpty(media) }
@@ -197,12 +198,12 @@ internal fun MakeScreen(
 @Composable
 private fun MakeEmpty(media: Boolean) {
     val c = MikaTheme.colors
-    Column(Modifier.fillMaxWidth().testTag("make-empty").padding(top = 36.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(Modifier.fillMaxWidth().testTag("make-empty").padding(top = MikaSpace.S32), horizontalAlignment = Alignment.CenterHorizontally) {
         Box(Modifier.size(56.dp).background(c.answer, MikaShapes.Tile), contentAlignment = Alignment.Center) {
             Icon(if (media) MikaIcons.Photo else MikaIcons.Spark, null, Modifier.size(26.dp), tint = c.ink2)
         }
         Text(stringResource(if (media) R.string.orbit_make_empty_media else R.string.orbit_make_empty),
-            Modifier.padding(top = 16.dp, start = 24.dp, end = 24.dp),
+            Modifier.padding(top = MikaSpace.S16, start = MikaSpace.S24, end = MikaSpace.S24),
             style = MikaType.Body, color = c.ink3, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
     }
 }
@@ -211,10 +212,10 @@ private fun MakeEmpty(media: Boolean) {
 @Composable
 private fun MadeKindToggle(media: Boolean, onPick: (Boolean) -> Unit) {
     val c = MikaTheme.colors
-    val shift by animateFloatAsState(if (media) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 520f), label = "make-kind")
+    val shift by animateFloatAsState(if (media) 1f else 0f, MikaTheme.motion.spatialDefault(), label = "make-kind")
     BoxWithConstraints(
-        Modifier.fillMaxWidth().padding(bottom = 18.dp).height(52.dp).clip(MikaShapes.Pill)
-            .background(c.fill, MikaShapes.Pill).border(0.5.dp, c.hair, MikaShapes.Pill).padding(4.dp)
+        Modifier.fillMaxWidth().padding(bottom = MikaSpace.S16).height(52.dp).clip(MikaShapes.Pill)
+            .background(c.fill, MikaShapes.Pill).border(0.5.dp, c.hair, MikaShapes.Pill).padding(MikaSpace.S4)
             .selectableGroup().testTag("make-kind"),
     ) {
         val half = maxWidth / 2
@@ -247,8 +248,8 @@ private fun ArtifactRow(artifact: MadeArtifact, onOpen: () -> Unit, onShowInChat
     Row(
         Modifier.fillMaxWidth().testTag("make-artifact").clip(MikaShapes.Card)
             .clickable(role = Role.Button, onClickLabel = preview, onClick = onOpen)
-            .heightIn(min = 68.dp).padding(start = 16.dp, end = 6.dp, top = 12.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically,
+            .heightIn(min = 68.dp).padding(start = MikaSpace.S16, end = MikaSpace.S8, top = MikaSpace.S12, bottom = MikaSpace.S12),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16), verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.size(38.dp).background(c.answer, MikaShapes.Tile), contentAlignment = Alignment.Center) {
             Icon(if (!artifact.isMedia()) MikaIcons.Doc else if (artifact.mediaKind() == "image") MikaIcons.Photo else if (artifact.mediaKind() == "audio") MikaIcons.Sound else MikaIcons.Camera,

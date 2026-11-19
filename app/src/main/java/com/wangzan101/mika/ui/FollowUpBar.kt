@@ -34,6 +34,8 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 任务进行中补充消息的去向说明;按当前任务状态换一句,让人知道引导什么时候生效。 */
 fun followUpHint(mode: FollowUpMode, status: ExchangeStatus?): String = when {
@@ -49,12 +51,12 @@ fun followUpHint(mode: FollowUpMode, status: ExchangeStatus?): String = when {
 @Composable
 fun FollowUpModeBar(mode: FollowUpMode, onMode: (FollowUpMode) -> Unit, status: ExchangeStatus?) {
     val c = MikaTheme.colors
-    Column(Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
-        Row(Modifier.testTag("follow-up-mode"), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8)) {
+        Row(Modifier.testTag("follow-up-mode"), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             ModePill(FollowUpMode.Steer, mode, onMode, tr(R.string.follow_up_steer))
             ModePill(FollowUpMode.Queue, mode, onMode, tr(R.string.follow_up_queue))
         }
-        Text(followUpHint(mode, status), Modifier.padding(start = 4.dp, top = 3.dp), style = MikaType.Hint, color = c.ink3)
+        Text(followUpHint(mode, status), Modifier.padding(start = MikaSpace.S4, top = MikaSpace.S4), style = MikaType.Hint, color = c.ink3)
     }
 }
 
@@ -68,7 +70,7 @@ private fun ModePill(value: FollowUpMode, selected: FollowUpMode, onMode: (Follo
             .background(if (on) c.accent else c.fill)
             .clickable(role = Role.Tab, onClickLabel = label) { onMode(value) }
             .semantics { this.selected = on; contentDescription = label }
-            .padding(horizontal = 12.dp),
+            .padding(horizontal = MikaSpace.S12),
         contentAlignment = Alignment.Center,
     ) {
         Text(label, style = MikaType.Hint, color = if (on) c.onAccent else c.ink2, maxLines = 1)
@@ -92,10 +94,10 @@ fun FollowUpTray(
     val c = MikaTheme.colors
     Column(
         Modifier.fillMaxWidth().testTag("follow-up-tray").heightIn(max = 180.dp)
-            .verticalScroll(rememberScrollState()).padding(bottom = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+            .verticalScroll(rememberScrollState()).padding(bottom = MikaSpace.S8),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S4),
     ) {
-        Row(Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().padding(start = MikaSpace.S4, end = MikaSpace.S4), verticalAlignment = Alignment.CenterVertically) {
             Text(
                 tr(R.string.follow_up_count, items.size) + " · " + (if (active) tr(R.string.follow_up_queue_hint) else tr(R.string.follow_up_idle_hint)),
                 Modifier.weight(1f), style = MikaType.Hint, color = c.ink3, maxLines = 1, overflow = TextOverflow.Ellipsis,
@@ -103,17 +105,17 @@ fun FollowUpTray(
             if (!active) {
                 Text(
                     tr(R.string.follow_up_start_now), Modifier.clip(MikaShapes.Pill)
-                        .clickable(role = Role.Button, onClick = onStartNow).padding(horizontal = 8.dp, vertical = 4.dp),
+                        .clickable(role = Role.Button, onClick = onStartNow).padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4),
                     style = MikaType.Hint, color = c.accent,
                 )
             }
         }
         items.forEach { item ->
             Row(
-                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(c.fill)
-                    .padding(start = 10.dp, end = 4.dp, top = 5.dp, bottom = 5.dp),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(MikaRadius.Md)).background(c.fill)
+                    .padding(start = MikaSpace.S12, end = MikaSpace.S4, top = MikaSpace.S4, bottom = MikaSpace.S4),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
             ) {
                 Icon(MikaIcons.Clock, null, Modifier.size(15.dp), tint = c.ink3)
                 Text(
@@ -133,7 +135,7 @@ private fun TrayAction(text: String, enabled: Boolean, tag: String, onClick: () 
     Text(
         text, Modifier.testTag(tag).clip(MikaShapes.Pill)
             .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4),
         style = MikaType.Hint, color = if (enabled) c.ink2 else c.ink3.copy(alpha = 0.5f), maxLines = 1,
     )
 }

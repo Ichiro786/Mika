@@ -12,6 +12,7 @@ import com.wangzan101.mika.ui.answerParts
 import com.wangzan101.mika.task.SteerNote
 import com.wangzan101.mika.ui.steerLabel
 import com.wangzan101.mika.ui.steersAroundDraft
+import com.wangzan101.mika.ui.RecordPlace
 
 /**
  * 对话卡片里的一条。[key] 在同一个对话里不变(有运行记录编号时按它,没有时按这一轮在对话里的位置):
@@ -172,12 +173,9 @@ object CapsuleThreads {
         acts.mapNotNull { a ->
             val t = a.target?.trim().orEmpty()
             when {
-                t.startsWith(SITE_PREFIX) -> t.removePrefix(SITE_PREFIX).trim().ifEmpty { null }
+                RecordPlace.isSite(t) -> RecordPlace.site(t)
                 PACKAGE_NAME_RE.matches(t) -> appLabel(t)
                 else -> null
             }
         }.distinct()
-
-    /** 运行记录里网页那一屏的对象写成「网站 <域名>」。 */
-    private const val SITE_PREFIX = "网站 "
 }

@@ -28,6 +28,7 @@ import com.wangzan101.mika.ui.components.RowChevron
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** Keeps the in-flight request and its receipt for this run across activity recreation. */
 internal class TraceSendState : ViewModel() {
@@ -68,7 +69,7 @@ internal fun TraceSendRow(archive: TraceArchive) {
         is OtlpReceipt.HttpError -> stringResource(R.string.trace_http_error, r.code)
         null -> if (sender.failed) stringResource(R.string.trace_send_failed) else null
     }
-    if (message != null) Text(message, Modifier.padding(horizontal = 16.dp, vertical = 6.dp), style = MikaType.Hint)
+    if (message != null) Text(message, Modifier.padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8), style = MikaType.Hint)
     if (dialog) {
         // Credentials live only in this dialog and the single user-initiated request.
         var address by remember { mutableStateOf("") }

@@ -48,18 +48,19 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaSize
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 分组小标题:13 / 500,辅助文字色。 */
 @Composable
 fun GroupLabel(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier.padding(top = 8.dp, bottom = 8.dp), style = MikaType.Label, color = MikaTheme.colors.ink3)
+    Text(text, modifier.padding(top = MikaSpace.S8, bottom = MikaSpace.S8), style = MikaType.Label, color = MikaTheme.colors.ink3)
 }
 
 /** 分组下面的说明,和卡片里的文字对齐。 */
 @Composable
 fun FooterNote(text: String, modifier: Modifier = Modifier, color: Color = Color.Unspecified) {
     Text(
-        text, modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+        text, modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12),
         style = MikaType.Hint, color = color.takeOrElse { MikaTheme.colors.ink3 },
     )
 }
@@ -143,14 +144,14 @@ fun ListRow(
             .topHairline(first, if (icon != null) TextStartWithIcon else TextStartPlain, c.hair)
             .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
             .heightIn(min = MikaSize.RowMin)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
     ) {
         if (icon != null) IconTile(icon, tone, tint)
         TextAndTrailing(
             text = {
-                Column(Modifier.padding(vertical = 11.dp)) {
+                Column(Modifier.padding(vertical = MikaSpace.S12)) {
                     Text(title, style = MikaType.Body, color = titleColor.takeOrElse { c.ink }, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
                     if (!detail.isNullOrEmpty()) Text(detail, Modifier.padding(top = 2.dp), style = MikaType.Hint, color = detailColor.takeOrElse { c.ink3 })
@@ -171,7 +172,7 @@ private fun RowScope.TextAndTrailing(text: @Composable () -> Unit, trailing: @Co
     Layout(
         content = {
             Box { text() }
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) { trailing() }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) { trailing() }
         },
         modifier = Modifier.weight(1f),
     ) { measurables, constraints ->
@@ -244,17 +245,17 @@ fun RadioRow(
             .topHairline(first, 50.dp, c.hair)
             .selectable(selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
             .heightIn(min = 56.dp)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         RadioMark(selected, enabled)
         TextAndTrailing(
             text = {
-                Column(Modifier.padding(vertical = 9.dp)) {
+                Column(Modifier.padding(vertical = MikaSpace.S8)) {
                     Text(title, style = titleStyle, color = if (enabled) c.ink else c.ink3)
                     if (!subtitle.isNullOrEmpty()) Text(subtitle, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
-                    if (below != null) Box(Modifier.padding(top = 4.dp)) { below() }
+                    if (below != null) Box(Modifier.padding(top = MikaSpace.S4)) { below() }
                 }
             },
             trailing = trailing,
@@ -266,11 +267,11 @@ fun RadioRow(
 private fun RadioMark(selected: Boolean, enabled: Boolean = true) {
     val c = MikaTheme.colors
     if (selected && enabled) {
-        Box(Modifier.size(22.dp).background(c.accent, CircleShape), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(MikaSize.Icon).background(c.accent, CircleShape), contentAlignment = Alignment.Center) {
             Box(Modifier.size(10.dp).background(c.onAccent, CircleShape))
         }
     } else {
-        Box(Modifier.size(22.dp).border(1.6.dp, c.hair, CircleShape))
+        Box(Modifier.size(MikaSize.Icon).border(1.6.dp, c.hair, CircleShape))
     }
 }
 
@@ -294,7 +295,7 @@ fun InputRow(
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().topHairline(first, TextStartPlain, c.hair).keepsKeyboard()
-            .heightIn(min = MikaSize.RowMin).padding(horizontal = 16.dp, vertical = 12.dp),
+            .heightIn(min = MikaSize.RowMin).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(label, Modifier.width(labelWidth), style = MikaType.Body, color = c.ink)
@@ -308,7 +309,7 @@ fun InputRow(
                 visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
             )
         }
-        if (trailing != null) Box(Modifier.padding(start = 8.dp)) { trailing() }
+        if (trailing != null) Box(Modifier.padding(start = MikaSpace.S8)) { trailing() }
     }
 }
 

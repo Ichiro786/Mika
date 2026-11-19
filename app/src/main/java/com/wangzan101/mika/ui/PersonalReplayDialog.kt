@@ -25,6 +25,7 @@ import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 @Composable
 internal fun PersonalReplayDialog(
@@ -87,7 +88,7 @@ internal fun PersonalPreviewPlayer(
     }
     val image = if (showLive) latestFrame else recordedFrame ?: latestFrame
     ActivitySizedDialog(onDismiss) { safeArea ->
-        Column(Modifier.fillMaxSize().background(c.bg).then(safeArea).padding(12.dp)
+        Column(Modifier.fillMaxSize().background(c.bg).then(safeArea).padding(MikaSpace.S12)
             .testTag("personal-replay-dialog")) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.personal_replay_title), style = MikaType.Title, color = c.ink)
@@ -113,7 +114,7 @@ internal fun PersonalPreviewPlayer(
             )
             Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 if (isLive && seekPosition == null) {
-                    Text(stringResource(R.string.personal_replay_live), Modifier.padding(horizontal = 12.dp), style = MikaType.Hint, color = c.accent)
+                    Text(stringResource(R.string.personal_replay_live), Modifier.padding(horizontal = MikaSpace.S12), style = MikaType.Hint, color = c.accent)
                 } else {
                     TextButton(enabled = duration > 0, onClick = {
                         if (position >= duration) seekPosition = 0
