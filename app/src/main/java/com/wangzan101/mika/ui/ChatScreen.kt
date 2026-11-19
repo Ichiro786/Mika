@@ -196,6 +196,7 @@ import com.wangzan101.mika.ui.theme.shimmerBase
 import com.wangzan101.mika.ui.theme.shimmerShine
 import com.wangzan101.mika.ui.theme.attentionInk
 import com.wangzan101.mika.ui.theme.errorInk
+import com.wangzan101.mika.ui.components.HoldToAllowButton
 
 /**
  * 对话页:顶栏(左边打开侧栏、中间对话标题和此刻在做什么、右边新对话),对话在顶栏和玻璃输入栏之间滚动。
@@ -1532,15 +1533,17 @@ internal fun ApprovalCard(
                     Column(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                         ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
                             Modifier.fillMaxWidth().testTag("confirmation-decline"), enabled = !submission.pending)
-                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.fillMaxWidth().testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
+                        // Paying or anything else that can't be undone: hold until the ring fills, never a single tap.
+                        HoldToAllowButton(stringResource(R.string.chat_hold_to_allow), { submission.send(onApprove) },
+                            Modifier.fillMaxWidth().testTag("confirmation-approve"), enabled = !submission.pending)
                     }
                 } else {
                     Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                         ApprovalAction(stringResource(R.string.chat_refuse), { submission.send(onDecline) },
                             Modifier.weight(1f).testTag("confirmation-decline"), enabled = !submission.pending)
-                        ApprovalAction(stringResource(R.string.chat_allow_once), { submission.send(onApprove) },
-                            Modifier.weight(1f).testTag("confirmation-approve"), primary = true, enabled = !submission.pending)
+                        // Paying or anything else that can't be undone: hold until the ring fills, never a single tap.
+                        HoldToAllowButton(stringResource(R.string.chat_hold_to_allow), { submission.send(onApprove) },
+                            Modifier.weight(1f).testTag("confirmation-approve"), enabled = !submission.pending)
                     }
                 }
             }

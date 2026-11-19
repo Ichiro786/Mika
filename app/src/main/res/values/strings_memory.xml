@@ -94,4 +94,11 @@
     <string name="skills_imported">Imported</string>
     <string name="skill_builtin_name">A built-in skill already has this name. Rename it and try again.</string>
     <string name="skill_draft_pending">A draft with this name is already waiting for review. Handle that one first.</string>
+    <string name="skill_use_prompt">Use my skill “%1$s”.</string>
+    <string name="skill_add_to_home">Add to home screen</string>
+    <string name="skill_pin_unsupported">Your launcher can’t add shortcuts</string>
+    <string name="skill_widget_title">Orbit skills</string>
+    <string name="skill_widget_empty">Save a skill in Orbit to see it here</string>
+    <string name="skill_widget_use">Use %1$s</string>
+    <string name="skill_widget_description">Your top Orbit skills, one tap to start</string>
 </resources>

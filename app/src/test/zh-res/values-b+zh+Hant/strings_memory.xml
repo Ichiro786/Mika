@@ -94,4 +94,11 @@
     <string name="skills_imported">匯入的</string>
     <string name="skill_builtin_name">和內建技能重名了，改個名字再試。</string>
     <string name="skill_draft_pending">已經有一份同名草稿在等你確認，先處理那份。</string>
+    <string name="skill_use_prompt">用我的技能「%1$s」。</string>
+    <string name="skill_add_to_home">加入主畫面</string>
+    <string name="skill_pin_unsupported">你的桌面不支援加入捷徑</string>
+    <string name="skill_widget_title">Orbit 技能</string>
+    <string name="skill_widget_empty">在 Orbit 裡儲存技能後會顯示在這裡</string>
+    <string name="skill_widget_use">使用 %1$s</string>
+    <string name="skill_widget_description">常用的 Orbit 技能,一點即用</string>
 </resources>

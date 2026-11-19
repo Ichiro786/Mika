@@ -94,4 +94,11 @@
     <string name="skills_imported">وارد شد</string>
     <string name="skill_builtin_name">یک مهارت داخلی از قبل این نام را دارد. نام را تغییر دهید و دوباره تلاش کنید.</string>
     <string name="skill_draft_pending">پیش‌نویسی با این نام از قبل در انتظار بررسی است. ابتدا به آن رسیدگی کنید.</string>
+    <string name="skill_use_prompt">از مهارت من «%1$s» استفاده کن.</string>
+    <string name="skill_add_to_home">افزودن به صفحه اصلی</string>
+    <string name="skill_pin_unsupported">لانچر شما نمی‌تواند میان‌بر اضافه کند</string>
+    <string name="skill_widget_title">مهارت‌های Orbit</string>
+    <string name="skill_widget_empty">یک مهارت در Orbit ذخیره کنید تا اینجا دیده شود</string>
+    <string name="skill_widget_use">استفاده از %1$s</string>
+    <string name="skill_widget_description">مهارت‌های اصلی Orbit با یک لمس</string>
 </resources>

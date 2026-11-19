@@ -322,4 +322,7 @@
     <string name="skill_section_caution">Fácil de equivocarse</string>
     <string name="skill_section_done">Cómo saber que funcionó</string>
     <string name="skill_section_handoff">Cuándo pasártelo</string>
+    <string name="chat_hold_to_allow">Mantén para permitir una vez</string>
+    <string name="hold_to_allow_hint">Mantén pulsado hasta que se llene el anillo</string>
+    <string name="hold_to_allow_holding">Sigue manteniendo</string>
 </resources>

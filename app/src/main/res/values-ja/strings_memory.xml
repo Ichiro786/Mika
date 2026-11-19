@@ -94,4 +94,11 @@
     <string name="skills_imported">インポート済み</string>
     <string name="skill_builtin_name">同じ名前の組み込みスキルがあります。名前を変えてもう一度試してください。</string>
     <string name="skill_draft_pending">同じ名前の下書きが確認待ちです。先にそちらを処理してください。</string>
+    <string name="skill_use_prompt">スキル「%1$s」を使って。</string>
+    <string name="skill_add_to_home">ホーム画面に追加</string>
+    <string name="skill_pin_unsupported">このランチャーはショートカットを追加できません</string>
+    <string name="skill_widget_title">Orbit のスキル</string>
+    <string name="skill_widget_empty">Orbit でスキルを保存するとここに表示されます</string>
+    <string name="skill_widget_use">%1$s を使う</string>
+    <string name="skill_widget_description">よく使う Orbit のスキルをワンタップで</string>
 </resources>

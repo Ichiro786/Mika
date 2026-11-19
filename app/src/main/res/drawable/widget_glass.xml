@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Frosted card for the skills widget: near-black glass with a hairline edge, like Orbit's floating surfaces. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#E6121214" />
+    <stroke android:width="0.5dp" android:color="#33FFFFFF" />
+    <corners android:radius="28dp" />
+</shape>

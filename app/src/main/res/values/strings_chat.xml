@@ -69,7 +69,7 @@
     <string name="chat_view_process">See how it went</string>
     <string name="chat_unlock_body">Your phone is locked. Orbit will continue once you unlock it.</string>
     <string name="chat_input_body">%1$s\nTap an option or type below. %2$s</string>
-    <string name="chat_refuse">Refuse</string>
+    <string name="chat_refuse">Don’t allow</string>
     <string name="chat_allow_once">Allow this once</string>
     <string name="chat_continue">Continue</string>
     <string name="chat_not_done">Not finished</string>
@@ -308,4 +308,7 @@
     <string name="skill_section_caution">Easy to get wrong</string>
     <string name="skill_section_done">How to tell it worked</string>
     <string name="skill_section_handoff">When to hand it to you</string>
+    <string name="chat_hold_to_allow">Hold to allow once</string>
+    <string name="hold_to_allow_hint">Hold until the ring fills</string>
+    <string name="hold_to_allow_holding">Keep holding</string>
 </resources>

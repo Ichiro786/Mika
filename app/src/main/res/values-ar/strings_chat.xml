@@ -364,4 +364,7 @@
     <string name="skill_section_caution">أخطاء شائعة</string>
     <string name="skill_section_done">كيف تعرف أنها نجحت</string>
     <string name="skill_section_handoff">متى تُسلَّم إليك</string>
+    <string name="chat_hold_to_allow">اضغط مطولًا للسماح مرة واحدة</string>
+    <string name="hold_to_allow_hint">اضغط حتى تمتلئ الحلقة</string>
+    <string name="hold_to_allow_holding">واصل الضغط</string>
 </resources>

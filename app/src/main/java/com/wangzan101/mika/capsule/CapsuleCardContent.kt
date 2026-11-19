@@ -126,6 +126,7 @@ import com.wangzan101.mika.ui.theme.MikaType
 import com.wangzan101.mika.ui.theme.mediaScrim
 import com.wangzan101.mika.ui.theme.onMedia
 import com.wangzan101.mika.ui.theme.MikaSize
+import com.wangzan101.mika.ui.components.HoldToAllowButton
 
 private val CardShape = RoundedCornerShape(MikaRadius.Xl)
 private val ScreenShape = RoundedCornerShape(MikaRadius.Lg)
@@ -745,7 +746,9 @@ internal fun Pinned(content: CardContent?, key: String, actions: CardActions) {
             }
             is CardContent.Confirm -> {
                 Spacer(Modifier.height(0.dp))
-                Action(CardCopy.APPROVE_ONCE_ONLY, ButtonKind.Primary) { actions.approve(key, content.key) }
+                // Same hold-to-allow as chat: the existing keyed approve runs only once the ring fills.
+                HoldToAllowButton(tr(R.string.chat_hold_to_allow), { actions.approve(key, content.key) },
+                    Modifier.fillMaxWidth().testTag("capsule-approve"))
                 Action(CardCopy.DECLINE, ButtonKind.Tonal) { actions.decline(key, content.key) }
             }
             is CardContent.Question -> if (content.options.isNotEmpty()) {

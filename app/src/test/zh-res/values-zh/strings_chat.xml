@@ -278,4 +278,7 @@
     <string name="skill_section_caution">容易出错的地方</string>
     <string name="skill_section_done">怎样算办成</string>
     <string name="skill_section_handoff">什么时候停下交给用户</string>
+    <string name="chat_hold_to_allow">长按允许这一次</string>
+    <string name="hold_to_allow_hint">按住直到圆环填满</string>
+    <string name="hold_to_allow_holding">继续按住</string>
 </resources>

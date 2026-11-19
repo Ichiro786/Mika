@@ -94,4 +94,11 @@
     <string name="skills_imported">مستوردة</string>
     <string name="skill_builtin_name">توجد مهارة مدمجة بهذا الاسم بالفعل. غيّر الاسم وحاول مجددًا.</string>
     <string name="skill_draft_pending">توجد مسودة بهذا الاسم بانتظار المراجعة بالفعل. تعامل معها أولًا.</string>
+    <string name="skill_use_prompt">استخدم مهارتي «%1$s».</string>
+    <string name="skill_add_to_home">إضافة إلى الشاشة الرئيسية</string>
+    <string name="skill_pin_unsupported">لا يمكن للمشغّل إضافة اختصارات</string>
+    <string name="skill_widget_title">مهارات Orbit</string>
+    <string name="skill_widget_empty">احفظ مهارة في Orbit لتظهر هنا</string>
+    <string name="skill_widget_use">استخدام %1$s</string>
+    <string name="skill_widget_description">أهم مهاراتك في Orbit بنقرة واحدة</string>
 </resources>

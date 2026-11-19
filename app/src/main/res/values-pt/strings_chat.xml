@@ -322,4 +322,7 @@
     <string name="skill_section_caution">Fácil de errar</string>
     <string name="skill_section_done">Como saber que deu certo</string>
     <string name="skill_section_handoff">Quando passar para você</string>
+    <string name="chat_hold_to_allow">Segure para permitir uma vez</string>
+    <string name="hold_to_allow_hint">Segure até o anel encher</string>
+    <string name="hold_to_allow_holding">Continue segurando</string>
 </resources>

@@ -294,4 +294,7 @@
     <string name="skill_section_caution">Yang mudah keliru</string>
     <string name="skill_section_done">Cara tahu berhasil</string>
     <string name="skill_section_handoff">Kapan diserahkan ke Anda</string>
+    <string name="chat_hold_to_allow">Tahan untuk izinkan sekali</string>
+    <string name="hold_to_allow_hint">Tahan sampai cincin penuh</string>
+    <string name="hold_to_allow_holding">Terus tahan</string>
 </resources>

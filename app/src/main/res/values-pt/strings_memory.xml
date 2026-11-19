@@ -94,4 +94,11 @@
     <string name="skills_imported">Importada</string>
     <string name="skill_builtin_name">Já existe uma habilidade integrada com esse nome. Mude o nome e tente de novo.</string>
     <string name="skill_draft_pending">Já há um rascunho com esse nome esperando revisão. Resolva esse primeiro.</string>
+    <string name="skill_use_prompt">Use minha habilidade “%1$s”.</string>
+    <string name="skill_add_to_home">Adicionar à tela inicial</string>
+    <string name="skill_pin_unsupported">Seu launcher não pode adicionar atalhos</string>
+    <string name="skill_widget_title">Habilidades do Orbit</string>
+    <string name="skill_widget_empty">Salve uma habilidade no Orbit para vê-la aqui</string>
+    <string name="skill_widget_use">Usar %1$s</string>
+    <string name="skill_widget_description">Suas principais habilidades do Orbit, a um toque</string>
 </resources>

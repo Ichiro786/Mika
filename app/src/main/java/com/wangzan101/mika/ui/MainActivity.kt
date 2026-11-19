@@ -103,6 +103,7 @@ import com.wangzan101.mika.ui.theme.animationsOff
 import com.wangzan101.mika.ui.theme.appearanceDark
 import com.wangzan101.mika.ui.theme.systemBarsFor
 import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.skills.SkillLauncher
 
 class MainActivity : ComponentActivity() {
     private lateinit var monitor: SystemStatusMonitor
@@ -207,6 +208,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun receiveShare(intent: Intent, inCurrentConversation: Boolean) {
+        // A skill shortcut or the skills widget: the skill's request goes into the message bar like a shared text,
+        // so the user still presses send.
+        if (intent.action == SkillLauncher.ACTION_USE_SKILL) {
+            val title = intent.getStringExtra(SkillLauncher.EXTRA_SKILL_TITLE)?.takeIf { it.isNotBlank() }
+                ?: intent.getStringExtra(SkillLauncher.EXTRA_SKILL_NAME)?.takeIf { it.isNotBlank() } ?: return
+            requestedSharedDraft = SharedDraftRequest(SharedDraft("", SkillLauncher.prompt(this, title)), ++shareSerial, inCurrentConversation)
+            return
+        }
         if (intent.action != Intent.ACTION_SEND) return
         shareJob?.cancel()
         val type = intent.type.orEmpty()

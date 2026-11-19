@@ -336,4 +336,7 @@
     <string name="skill_section_caution">Где легко ошибиться</string>
     <string name="skill_section_done">Как понять, что получилось</string>
     <string name="skill_section_handoff">Когда передать вам</string>
+    <string name="chat_hold_to_allow">Удерживайте, чтобы разрешить</string>
+    <string name="hold_to_allow_hint">Удерживайте, пока кольцо не заполнится</string>
+    <string name="hold_to_allow_holding">Продолжайте удерживать</string>
 </resources>

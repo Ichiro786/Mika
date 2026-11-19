@@ -294,4 +294,7 @@
     <string name="skill_section_caution">실수하기 쉬운 부분</string>
     <string name="skill_section_done">성공 확인 방법</string>
     <string name="skill_section_handoff">직접 넘겨드릴 때</string>
+    <string name="chat_hold_to_allow">길게 눌러 한 번 허용</string>
+    <string name="hold_to_allow_hint">링이 찰 때까지 누르세요</string>
+    <string name="hold_to_allow_holding">계속 누르고 있어요</string>
 </resources>

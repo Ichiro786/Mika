@@ -13,6 +13,11 @@ import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.performSemanticsAction
+import androidx.compose.ui.semantics.SemanticsActions
+import androidx.compose.ui.test.assertIsEnabled
+import com.wangzan101.mika.ui.components.HOLD_MS
 
 @RunWith(AndroidJUnit4::class)
 class ApprovalCardTest {
@@ -33,12 +38,36 @@ class ApprovalCardTest {
         var declines = 0
         show({ approvals++ }, { declines++ })
         compose.onNodeWithText("Actual request details").assertIsDisplayed()
-        compose.onNodeWithTag("confirmation-approve").performClick().assertIsNotEnabled()
+        // Holding past the full ring approves exactly once, then both choices lock while it's sent.
+        compose.onNodeWithTag("confirmation-approve").performTouchInput { down(center) }
+        compose.mainClock.advanceTimeBy(HOLD_MS + 200L)
+        compose.onNodeWithTag("confirmation-approve").performTouchInput { up() }
+        compose.onNodeWithTag("confirmation-approve").assertIsNotEnabled()
         compose.onNodeWithTag("confirmation-decline").assertIsNotEnabled()
         compose.runOnIdle {
             assertEquals(1, approvals)
             assertEquals(0, declines)
         }
+    }
+
+    @Test fun aTapOrAnEarlyReleaseNeverApproves() {
+        var approvals = 0
+        show({ approvals++ }, {})
+        compose.onNodeWithTag("confirmation-approve").performClick()
+        compose.onNodeWithTag("confirmation-approve").performTouchInput { down(center) }
+        compose.mainClock.advanceTimeBy(HOLD_MS / 2L)
+        compose.onNodeWithTag("confirmation-approve").performTouchInput { up() }
+        compose.waitForIdle()
+        compose.runOnIdle { assertEquals(0, approvals) }
+        compose.onNodeWithTag("confirmation-approve").assertIsEnabled()
+    }
+
+    /** TalkBack and switch access can't hold: their deliberate double tap is the button's click action. */
+    @Test fun accessibilityClickApprovesOnce() {
+        var approvals = 0
+        show({ approvals++ }, {})
+        compose.onNodeWithTag("confirmation-approve").performSemanticsAction(SemanticsActions.OnClick)
+        compose.runOnIdle { assertEquals(1, approvals) }
     }
 
     @Test fun decliningDoesNotApproveTheRequest() {

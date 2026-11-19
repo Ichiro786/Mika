@@ -372,3 +372,19 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - **"Mika" in strings.** 220 strings that used "Mika" for the assistant now say "Orbit" across all languages, most of them Korean. Korean particles were adjusted for the final consonant (이/을/과/으로/은).
   - Kept as Mika on purpose: upstream release and update strings, the `mika` CLI prompt, the OpenRouter key name, and the real `Download/Mika` export folder.
 - **Known stale tests.** The capsule device tests assert Chinese UI text that the app's resources no longer contain. This was pre-existing and was not changed here.
+
+## Orbit UI/UX program, Stage 5a: hold-to-allow and skills on the home screen, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. The hold tests are added to the CI emulator suite.
+
+- **Hold to allow.** HoldToAllowButton replaces the "Allow this once" tap on the chat approval card and on the capsule's confirm card.
+  - Holding for 800ms fills a ring and gives a haptic tick, then the existing keyed approve runs once. Releasing early cancels and the ring springs back.
+  - The hold is measured in real frame time, not with an animation spec, so "Remove animations" can never make it a one-tap approval.
+  - TalkBack and switch access get the button's click action, a deliberate double tap.
+  - "Don't allow" stays a plain button (the English label changed from "Refuse").
+  - ApprovalCardTest covers three cases: a full hold approves once, a tap or early release never approves, and the accessibility click approves once.
+- **Skills on the home screen.** A skill's action sheet gains "Add to home screen", which pins a launcher shortcut through the platform ShortcutManager (no new dependency). A small glass widget lists the three most-used enabled skills.
+  - Both open Orbit with "Use my skill “…”." in the message bar, through the share-draft path. Nothing runs until you send.
+  - The widget refreshes when the skills list changes.
+  - New strings in 9 languages. SkillLauncherTest covers which skills the widget shows.
+- **Not yet verified:** the haptic feel on device, pinning on different launchers, and how the widget renders on various launchers.

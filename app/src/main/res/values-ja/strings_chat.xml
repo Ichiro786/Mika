@@ -294,4 +294,7 @@
     <string name="skill_section_caution">間違えやすいところ</string>
     <string name="skill_section_done">うまくいったかの確認</string>
     <string name="skill_section_handoff">あなたに任せるとき</string>
+    <string name="chat_hold_to_allow">長押しで今回だけ許可</string>
+    <string name="hold_to_allow_hint">リングが満ちるまで長押し</string>
+    <string name="hold_to_allow_holding">そのまま押し続けて</string>
 </resources>

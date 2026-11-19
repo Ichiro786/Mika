@@ -94,4 +94,11 @@
     <string name="skills_imported">Diimpor</string>
     <string name="skill_builtin_name">Sudah ada keterampilan bawaan dengan nama ini. Ganti namanya lalu coba lagi.</string>
     <string name="skill_draft_pending">Draf dengan nama ini masih menunggu ditinjau. Selesaikan yang itu dulu.</string>
+    <string name="skill_use_prompt">Gunakan skill saya “%1$s”.</string>
+    <string name="skill_add_to_home">Tambahkan ke layar utama</string>
+    <string name="skill_pin_unsupported">Launcher Anda tidak bisa menambahkan pintasan</string>
+    <string name="skill_widget_title">Skill Orbit</string>
+    <string name="skill_widget_empty">Simpan skill di Orbit agar muncul di sini</string>
+    <string name="skill_widget_use">Gunakan %1$s</string>
+    <string name="skill_widget_description">Skill Orbit teratas Anda, sekali ketuk</string>
 </resources>

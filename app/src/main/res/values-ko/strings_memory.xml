@@ -94,4 +94,11 @@
     <string name="skills_imported">가져옴</string>
     <string name="skill_builtin_name">같은 이름의 기본 스킬이 있습니다. 이름을 바꿔 다시 시도하세요.</string>
     <string name="skill_draft_pending">같은 이름의 초안이 이미 검토를 기다리고 있습니다. 그것부터 처리하세요.</string>
+    <string name="skill_use_prompt">내 스킬 “%1$s” 사용해 줘.</string>
+    <string name="skill_add_to_home">홈 화면에 추가</string>
+    <string name="skill_pin_unsupported">런처가 바로가기를 추가할 수 없어요</string>
+    <string name="skill_widget_title">Orbit 스킬</string>
+    <string name="skill_widget_empty">Orbit에 스킬을 저장하면 여기에 보여요</string>
+    <string name="skill_widget_use">%1$s 사용</string>
+    <string name="skill_widget_description">자주 쓰는 Orbit 스킬을 한 번에</string>
 </resources>

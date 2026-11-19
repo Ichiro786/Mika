@@ -94,4 +94,11 @@
     <string name="skills_imported">Импортирован</string>
     <string name="skill_builtin_name">Встроенный навык с таким названием уже есть. Переименуйте и попробуйте снова.</string>
     <string name="skill_draft_pending">Черновик с таким названием уже ждёт проверки. Сначала разберитесь с ним.</string>
+    <string name="skill_use_prompt">Используй мой навык «%1$s».</string>
+    <string name="skill_add_to_home">Добавить на главный экран</string>
+    <string name="skill_pin_unsupported">Ваш лаунчер не умеет добавлять ярлыки</string>
+    <string name="skill_widget_title">Навыки Orbit</string>
+    <string name="skill_widget_empty">Сохраните навык в Orbit, и он появится здесь</string>
+    <string name="skill_widget_use">Использовать %1$s</string>
+    <string name="skill_widget_description">Главные навыки Orbit — в одно касание</string>
 </resources>

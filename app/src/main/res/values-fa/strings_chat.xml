@@ -308,4 +308,7 @@
     <string name="skill_section_caution">جاهایی که راحت اشتباه می‌شود</string>
     <string name="skill_section_done">از کجا بفهمیم انجام شد</string>
     <string name="skill_section_handoff">کی به شما سپرده شود</string>
+    <string name="chat_hold_to_allow">برای یک‌بار اجازه، نگه دارید</string>
+    <string name="hold_to_allow_hint">تا پر شدن حلقه نگه دارید</string>
+    <string name="hold_to_allow_holding">همچنان نگه دارید</string>
 </resources>

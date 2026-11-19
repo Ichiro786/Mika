@@ -41,6 +41,11 @@ import com.wangzan101.mika.ui.components.SheetAction
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.skills.SkillLauncher
+import android.widget.Toast
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * 技能相关的两块内容。[pending] 为假是「技能」段:已收下的个人技能(开关即启用/停用)和在用的 App 知识;
@@ -55,6 +60,8 @@ internal fun SkillsSection(vm: MemoryViewModel, ui: SkillsUi, pending: Boolean) 
     var importing by remember { mutableStateOf(false) }
     val context = LocalContext.current
     fun toggle(id: String) { viewing = if (viewing == id) null else id }
+    // Keep the home-screen widget's top skills in step with what's saved here.
+    LaunchedEffect(ui.installed) { if (!pending) withContext(Dispatchers.IO) { SkillLauncher.refreshWidgets(context) } }
 
     if (pending) {
         if (ui.drafts.isNotEmpty()) {
@@ -122,6 +129,10 @@ internal fun SkillsSection(vm: MemoryViewModel, ui: SkillsUi, pending: Boolean) 
                     val send = Intent(Intent.ACTION_SEND).setType("text/plain")
                         .putExtra(Intent.EXTRA_SUBJECT, s.display).putExtra(Intent.EXTRA_TEXT, SkillImport.shareable(s.markdown))
                     context.startActivity(Intent.createChooser(send, null))
+                },
+                // Pin a launcher shortcut that opens Orbit with this skill typed in (nothing runs until you send).
+                SheetAction(stringResource(R.string.skill_add_to_home)) {
+                    if (!SkillLauncher.pin(context, s)) Toast.makeText(context, context.getString(R.string.skill_pin_unsupported), Toast.LENGTH_SHORT).show()
                 },
                 if (s.canRestore) SheetAction(stringResource(R.string.skills_restore_prev)) { vm.restorePreviousSkill(s.name) } else null,
                 SheetAction(stringResource(R.string.confirm_delete), destructive = true) { vm.deleteSkill(s.name) },
