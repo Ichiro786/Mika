@@ -7,11 +7,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.spring
 import com.wangzan101.mika.ui.theme.MikaMotion
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -151,7 +148,7 @@ class MainActivity : ComponentActivity() {
             // 外观按设置来,改了当场换;系统栏图标的深浅跟着界面
             val dark = appearanceDark()
             LaunchedEffect(dark) { systemBarsFor(dark) }
-            MikaTheme(dark = dark, reduceMotion = animationsOff(this)) {
+            MikaTheme(dark = dark) {
                 // 在输入框外面点一下或拖动就收起键盘,全 App 统一
                 KeyboardDismissArea(Modifier.fillMaxSize()) {
                     MikaRoot(
@@ -765,9 +762,8 @@ private fun MikaRoot(
                         // Keep the presence synchronized with the panel in both directions.
                         val expansion by transition.animateFloat(
                             transitionSpec = {
-                                if (still) snap()
-                                else if (targetState == EnterExitState.Visible) spring(dampingRatio = 0.86f, stiffness = 380f)
-                                else tween(200, easing = MikaMotion.Decelerate)
+                                val motion = MikaMotion.specs(still)
+                                if (targetState == EnterExitState.Visible) motion.spatialDefault() else motion.spatialFast()
                             },
                             label = "orbit-hub-presence",
                         ) { if (it == EnterExitState.Visible) 1f else 0f }

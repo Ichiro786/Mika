@@ -11,8 +11,6 @@ import com.wangzan101.mika.i18n.tr
 import android.graphics.Bitmap
 import android.graphics.Rect
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -288,11 +286,11 @@ fun OverlayMotion(
                 // 刚出来那一帧要排版、窗口换大小,最慢:等它画完再起步,动画的头几帧不被它吃掉
                 if (shown.value == 0f) repeat(SETTLE_FRAMES) { withFrameNanos { } }
                 opened()
-                shown.animateTo(1f, tween(CARD_IN_MS, easing = MikaMotion.Decelerate))
+                shown.animateTo(1f, MikaMotion.specs(reduceMotion = false).spatialDefault())
             }
         } else {
             runOverlayClose(still) {
-                shown.animateTo(0f, tween(CARD_OUT_MS, easing = FastOutLinearInEasing))
+                shown.animateTo(0f, MikaMotion.specs(reduceMotion = false).spatialFast())
                 // 让完全看不见的那一帧先画出来,再换内容、挪窗口,不留一帧半透明的卡片
                 withFrameNanos { }
             }
@@ -322,11 +320,11 @@ internal suspend fun runOverlayClose(reduceMotion: Boolean, animate: suspend () 
     if (reduceMotion) return
     val scale = currentCoroutineContext()[MotionDurationScale]?.scaleFactor
         ?.takeIf { it.isFinite() && it > 0f }?.coerceAtMost(10f) ?: 1f
-    withTimeoutOrNull((CARD_OUT_MS * scale).toLong() + CLOSE_GRACE_MS) { animate() }
+    withTimeoutOrNull((CLOSE_BUDGET_MS * scale).toLong() + CLOSE_GRACE_MS) { animate() }
 }
 
-private const val CARD_IN_MS = 240
-private const val CARD_OUT_MS = 180
+/** The close spring settles well inside this; the timeout only guards an overlay that stops getting frames. */
+private const val CLOSE_BUDGET_MS = MikaMotion.Duration.MEDIUM
 private const val CLOSE_GRACE_MS = 500L
 private const val CARD_FROM_SCALE = 0.6f
 private const val SETTLE_FRAMES = 2

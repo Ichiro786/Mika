@@ -96,7 +96,6 @@ import com.wangzan101.mika.settings.Prerequisites
 import com.wangzan101.mika.ui.components.GlassBlurSupported
 import com.wangzan101.mika.ui.components.KeyboardDismissArea
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.BlurEffect
@@ -1167,8 +1166,6 @@ internal fun DeleteManyConversationsDialog(
     )
 }
 
-internal const val MENU_IN_MS = 200
-internal const val MENU_OUT_MS = 140
 private val DrawerWidth = 320.dp
 private val DrawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
 internal val NavShape = RoundedCornerShape(12.dp)
@@ -1324,14 +1321,14 @@ fun ChatWithDrawer(
     val lift = remember { Animatable(0f) }
     LaunchedEffect(acting) {
         if (acting != null) {
-            if (reduceMotion) lift.snapTo(1f) else lift.animateTo(1f, tween(MENU_IN_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(1f, MikaMotion.specs(reduceMotion).spatialDefault())
         }
     }
     /** 收起菜单:倒着放一遍出现的动画,放完再清掉;[then] 当场做(改名、删除的弹窗不用等菜单收完)。 */
     fun closeMenu(then: () -> Unit = {}) {
         then()
         scope.launch {
-            if (reduceMotion) lift.snapTo(0f) else lift.animateTo(0f, tween(MENU_OUT_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(0f, MikaMotion.specs(reduceMotion).spatialFast())
             acting = null
         }
     }
@@ -1343,13 +1340,13 @@ fun ChatWithDrawer(
     var spaceActing by remember { mutableStateOf<Pair<Space, Rect>?>(null) }
     LaunchedEffect(spaceActing) {
         if (spaceActing != null) {
-            if (reduceMotion) lift.snapTo(1f) else lift.animateTo(1f, tween(MENU_IN_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(1f, MikaMotion.specs(reduceMotion).spatialDefault())
         }
     }
     fun closeSpaceMenu(then: () -> Unit = {}) {
         then()
         scope.launch {
-            if (reduceMotion) lift.snapTo(0f) else lift.animateTo(0f, tween(MENU_OUT_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(0f, MikaMotion.specs(reduceMotion).spatialFast())
             spaceActing = null
         }
     }

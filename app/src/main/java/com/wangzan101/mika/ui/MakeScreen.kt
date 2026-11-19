@@ -2,7 +2,6 @@ package com.wangzan101.mika.ui
 
 import android.text.format.DateUtils
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -71,6 +70,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.motion
 
 /** One file the agent produced in a conversation (the newest copy when the same file was shared again). */
 @Immutable
@@ -211,7 +211,7 @@ private fun MakeEmpty(media: Boolean) {
 @Composable
 private fun MadeKindToggle(media: Boolean, onPick: (Boolean) -> Unit) {
     val c = MikaTheme.colors
-    val shift by animateFloatAsState(if (media) 1f else 0f, spring(dampingRatio = 0.78f, stiffness = 520f), label = "make-kind")
+    val shift by animateFloatAsState(if (media) 1f else 0f, MikaTheme.motion.spatialDefault(), label = "make-kind")
     BoxWithConstraints(
         Modifier.fillMaxWidth().padding(bottom = 18.dp).height(52.dp).clip(MikaShapes.Pill)
             .background(c.fill, MikaShapes.Pill).border(0.5.dp, c.hair, MikaShapes.Pill).padding(4.dp)

@@ -5,8 +5,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.SystemClock
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -68,6 +66,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.motion
 
 /**
  * 悬浮胶囊长按说话:松开时手指落在哪([CapsuleVoice.drop])、发出后胶囊上闪的那句([CapsuleVoice.sent]),
@@ -342,7 +341,7 @@ internal fun CapsuleVoicePanel(talk: CapsuleTalk, anchorTop: Int, anchorBottom: 
     val c = MikaTheme.colors
     val state by talk.hold.state.collectAsState()
     val view = LocalView.current
-    val dim by animateFloatAsState(DIM, if (MikaTheme.reduceMotion) snap() else tween(200), label = "voice-dim")
+    val dim by animateFloatAsState(DIM, MikaTheme.motion.effectsDefault(), label = "voice-dim")
     var below by remember { mutableStateOf(false) }
     // 圆在屏幕上的位置:窗口内坐标加上窗口在屏幕上的位置
     fun Rect.onScreen(): Rect {
@@ -407,7 +406,7 @@ private fun Targets(talk: CapsuleTalk, show: Boolean, onPlaced: (Rect, Rect) -> 
 @Composable
 private fun Target(icon: ImageVector, label: String, hot: Boolean, bad: Boolean, onPlaced: (Rect) -> Unit) {
     val c = MikaTheme.colors
-    val scale by animateFloatAsState(if (hot) 1.18f else 1f, if (MikaTheme.reduceMotion) snap() else tween(150), label = "target")
+    val scale by animateFloatAsState(if (hot) 1.18f else 1f, MikaTheme.motion.spatialFast(), label = "target")
     val fill = when {
         !hot -> c.surface.copy(alpha = 0.95f)
         bad -> c.bad

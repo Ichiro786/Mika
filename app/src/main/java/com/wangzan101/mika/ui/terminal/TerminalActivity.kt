@@ -33,7 +33,7 @@ class TerminalActivity : ComponentActivity() {
         setContent {
             val dark = appearanceDark()
             LaunchedEffect(dark) { systemBarsFor(dark) }
-            MikaTheme(dark = dark, reduceMotion = animationsOff(this)) {
+            MikaTheme(dark = dark) {
                 TerminalRoute(app, conversationId, title, onDone = ::finish)
             }
         }

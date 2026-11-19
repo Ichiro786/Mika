@@ -10,17 +10,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -110,6 +100,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import androidx.compose.ui.graphics.TransformOrigin
 
 /**
  * 对话输入栏的按住说话:输入框上的手势([holdToTalk])、按住时整条变蓝的输入栏([VoiceBarCover])、
@@ -578,14 +571,14 @@ internal fun VoiceFloat(vh: VoiceHold, state: HoldToTalk.State, title: String, b
     ) {
         Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             val armed = listening?.cancelArmed == true
-            AnimatedVisibility(vh.holding && listening != null, enter = fadeIn(tween(if (reduceMotion) 0 else 200)), exit = fadeOut(tween(if (reduceMotion) 0 else 150))) {
+            val motion = MikaMotion.specs(reduceMotion)
+            AnimatedVisibility(vh.holding && listening != null, enter = motion.fadeEnter(), exit = motion.fadeExit()) {
                 CancelHint(armed, Modifier.padding(bottom = 14.dp))
             }
             AnimatedVisibility(
                 listening != null,
-                enter = if (reduceMotion) fadeIn(snap()) else
-                    fadeIn(tween(200)) + slideInVertically(tween(200)) { it / 12 } + scaleIn(tween(200), initialScale = 0.98f),
-                exit = fadeOut(tween(if (reduceMotion) 0 else 150)),
+                enter = motion.enter(TransformOrigin(0.5f, 1f)),
+                exit = motion.exit(TransformOrigin(0.5f, 1f)),
             ) {
                 last[0]?.let { ListenCard(it, title, vh.engine, backdrop) { at -> vh.cardAt = at } }
             }
@@ -669,9 +662,7 @@ private fun RecDot(s: HoldToTalk.State.Listening) {
     val c = MikaTheme.colors
     val reduce = MikaTheme.reduceMotion
     val armed = s.cancelArmed || s.sendArmed
-    val halo = if (armed || reduce) 0f else rememberInfiniteTransition(label = "rec").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(600), RepeatMode.Reverse), label = "rec-halo",
-    ).value
+    val halo = if (armed || reduce) 0f else rememberMikaPulse(still = 0f, label = "rec-halo").value
     val dot = aimTone(s, c.accent)
     val soft = c.accentSoft
     Box(
@@ -726,7 +717,7 @@ internal fun VoicePlaceholder(mode: ComposerMode, followUp: FollowUpMode = Follo
 /** 按着说话时对话内容虚化变淡,注意力在卡片上;安卓 12 以下只变淡。 */
 @Composable
 internal fun Modifier.voiceDim(on: Boolean, reduceMotion: Boolean): Modifier {
-    val p by animateFloatAsState(if (on) 1f else 0f, if (reduceMotion) snap() else tween(250), label = "voice-dim")
+    val p by animateFloatAsState(if (on) 1f else 0f, MikaMotion.specs(reduceMotion).effectsDefault(), label = "voice-dim")
     if (p == 0f) return this
     return graphicsLayer {
         alpha = 1f - 0.55f * p

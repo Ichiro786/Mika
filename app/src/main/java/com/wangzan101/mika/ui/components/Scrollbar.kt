@@ -1,7 +1,6 @@
 package com.wangzan101.mika.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.motion
 
 /**
  * 给竖向的懒加载列表画一条细滚动条:贴在右边,长短反映看得见的部分占整个列表的多少,位置反映滚到哪。
@@ -43,7 +43,7 @@ fun Modifier.lazyListScrollbar(
             shown = false
         }
     }
-    val alpha by animateFloatAsState(if (shown) THUMB_ALPHA else 0f, tween(if (shown) 120 else 400), label = "scrollbar")
+    val alpha by animateFloatAsState(if (shown) THUMB_ALPHA else 0f, if (shown) MikaTheme.motion.effectsFast() else MikaTheme.motion.effectsSlow(), label = "scrollbar")
     return drawWithContent {
         drawContent()
         if (alpha <= 0f) return@drawWithContent

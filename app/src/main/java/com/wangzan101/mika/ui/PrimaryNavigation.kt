@@ -2,8 +2,6 @@ package com.wangzan101.mika.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +32,7 @@ import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.motion
 
 @Composable
 internal fun PrimaryNavigation(
@@ -61,7 +60,7 @@ internal fun PrimaryNavigation(
                 val selectedColor = if (c.isDark) androidx.compose.ui.graphics.Color.White.copy(alpha = 0.12f) else c.answer
                 val background by animateColorAsState(
                     if (active) selectedColor else androidx.compose.ui.graphics.Color.Transparent,
-                    animationSpec = if (MikaTheme.reduceMotion) snap() else tween(MikaMotion.SWITCH_MS, easing = MikaMotion.Decelerate),
+                    animationSpec = MikaTheme.motion.effectsDefault(),
                     label = "primary-navigation-selection",
                 )
                 Column(

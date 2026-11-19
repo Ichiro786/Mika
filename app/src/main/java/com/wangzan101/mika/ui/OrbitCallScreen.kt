@@ -10,15 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -82,6 +74,8 @@ import com.wangzan101.mika.settings.PromptFiles
 import com.wangzan101.mika.settings.VoiceEngine
 import com.wangzan101.mika.settings.VoiceEngineSettings
 import kotlinx.coroutines.flow.map
+import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
 
 /**
  * A hands-free call with Orbit over the open chat: a big orb that follows your voice, what was heard and
@@ -188,7 +182,9 @@ private fun RealtimeLiveCall(vm: ChatViewModel, check: Prerequisites.Check, engi
 @Composable
 private fun CallBody(phase: CallPhase, note: String?) {
     val level = (phase as? CallPhase.Listening)?.level ?: 0f
-    val pulse by animateFloatAsState(if (MikaTheme.reduceMotion) 1f else 1f + level.coerceIn(0f, 1f) * 0.18f, label = "voice")
+    val pulse by animateFloatAsState(
+        if (MikaTheme.reduceMotion) 1f else 1f + level.coerceIn(0f, 1f) * 0.18f, MikaTheme.motion.spatialFast(), label = "voice",
+    )
     val presence = when (phase) {
         is CallPhase.Listening -> PresenceState.Listening
         is CallPhase.Thinking -> PresenceState.Thinking
@@ -224,7 +220,8 @@ private fun CallBody(phase: CallPhase, note: String?) {
             is CallPhase.NeedsScreen -> p.what
             else -> ""
         }
-        AnimatedContent(words, transitionSpec = { fadeIn() togetherWith fadeOut() }, label = "words") { text ->
+        val motion = MikaTheme.motion
+        AnimatedContent(words, transitionSpec = { motion.fadeEnter() togetherWith motion.fadeExit() }, label = "words") { text ->
             Text(
                 text, Modifier.fillMaxWidth(), style = MikaType.Body, color = Color.White.copy(alpha = 0.86f),
                 textAlign = TextAlign.Center, maxLines = 6, overflow = TextOverflow.Ellipsis,
@@ -247,11 +244,9 @@ private fun CallGlow(presence: PresenceState, level: Float) {
         PresenceState.Error -> Color(0xFFFF6B5E)
         else -> Color(0xFFCFD6E6)
     }
-    val color by animateColorAsState(tint, tween(600), label = "glowTint")
+    val color by animateColorAsState(tint, MikaTheme.motion.effectsSlow(), label = "glowTint")
     val still = MikaTheme.reduceMotion
-    val breath = if (still) 0.5f else rememberInfiniteTransition(label = "glow").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(2600, easing = FastOutSlowInEasing), RepeatMode.Reverse), label = "glowBreath",
-    ).value
+    val breath = rememberMikaPulse(still = 0.5f, label = "glowBreath").value
     val strength = 0.26f + 0.10f * breath + 0.22f * level.coerceIn(0f, 1f)
     Box(
         Modifier.size(380.dp).drawBehind {

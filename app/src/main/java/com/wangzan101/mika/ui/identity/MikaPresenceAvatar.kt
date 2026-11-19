@@ -1,12 +1,8 @@
 package com.wangzan101.mika.ui.identity
 
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -41,16 +37,19 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.loop
 
 enum class PresenceState { Idle, Listening, Thinking, Working, NeedsUser, Success, Error }
 
 /** Loop length of each living state; success and error settle instead of looping. */
-private fun loopMs(state: PresenceState): Int? = when (state) {
-    PresenceState.Idle -> 3600
-    PresenceState.Listening -> 1800
-    PresenceState.Thinking -> 1500
-    PresenceState.Working -> 1700
-    PresenceState.NeedsUser -> 2000
+/** Loop length of each state in beats of the shared [MikaMotion.LOOP_MS] rhythm. */
+private fun loopBeats(state: PresenceState): Float? = when (state) {
+    PresenceState.Idle -> 3f
+    PresenceState.Listening -> 1.5f
+    PresenceState.Thinking -> 1f
+    PresenceState.Working -> 1.5f
+    PresenceState.NeedsUser -> 2f
     PresenceState.Success, PresenceState.Error -> null
 }
 
@@ -88,11 +87,11 @@ fun MikaPresenceAvatar(
         onDispose { lifecycle.removeObserver(observer) }
     }
     val animate = started && !reduceMotion
-    val loop = if (animate) loopMs(state) else null
+    val loop = if (animate) loopBeats(state) else null
     val phase: State<Float>? = if (loop != null) key(loop) {
         rememberInfiniteTransition(label = "presence").animateFloat(
             initialValue = 0f, targetValue = 1f,
-            animationSpec = infiniteRepeatable(tween(loop, easing = LinearEasing)),
+            animationSpec = MikaMotion.loop(loop),
             label = "presence-phase",
         )
     } else null
@@ -101,7 +100,8 @@ fun MikaPresenceAvatar(
     LaunchedEffect(state, animate) {
         if (animate) {
             arrive.snapTo(0f)
-            arrive.animateTo(1f, tween(if (state == PresenceState.Success) 700 else 420, easing = FastOutSlowInEasing))
+            val motion = MikaMotion.specs(reduceMotion = false)
+            arrive.animateTo(1f, if (state == PresenceState.Success) motion.spatialSlow() else motion.spatialDefault())
         } else arrive.snapTo(1f)
     }
     val glow = orbitIdentityPalette(MikaTheme.identity, dark).glow

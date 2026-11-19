@@ -57,6 +57,10 @@ import com.wangzan101.mika.ui.theme.MikaSize
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import androidx.compose.runtime.getValue
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.runtime.remember
+import com.wangzan101.mika.ui.theme.pressScale
 
 // ---------- 开关 ----------
 
@@ -73,8 +77,8 @@ fun MikaSwitch(
 ) {
     val c = MikaTheme.colors
     val reduce = MikaTheme.reduceMotion
-    val position by animateFloatAsState(if (checked) 1f else 0f, MikaMotion.switch(reduce), label = "switch")
-    val track by animateColorAsState(if (checked) c.accent else c.greySoft, MikaMotion.switch(reduce), label = "switch-track")
+    val position by animateFloatAsState(if (checked) 1f else 0f, MikaMotion.specs(reduce).spatialFast(), label = "switch")
+    val track by animateColorAsState(if (checked) c.accent else c.greySoft, MikaMotion.specs(reduce).effectsDefault(), label = "switch-track")
     val thumb = c.thumb
     val ring = c.floatShadow.copy(alpha = 0.12f)
     Box(
@@ -150,11 +154,13 @@ fun MikaButton(
         ButtonKind.Tonal -> c.fill to c.ink
         ButtonKind.Text -> Color.Transparent to c.accent
     }
+    val press = remember { MutableInteractionSource() }
     Box(
         modifier
+            .pressScale(press)
             .then(if (kind == ButtonKind.Secondary) Modifier.cardSurface(c, shape) else Modifier.background(bg, shape))
             .clip(shape)
-            .clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+            .clickable(press, LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.45f)
             .height(size.height)
             .padding(horizontal = size.padding),
@@ -228,10 +234,12 @@ fun BarIconButton(
 ) {
     val c = MikaTheme.colors
     // A full 48dp touch target around the 40dp visual, so neighbouring header buttons are easy to hit.
+    val press = remember { MutableInteractionSource() }
     Box(
         Modifier.size(MikaSize.TouchTarget)
+            .pressScale(press)
             .clip(CircleShape)
-            .clickable(enabled = enabled, onClickLabel = label, role = Role.Button, onClick = onClick),
+            .clickable(press, LocalIndication.current, enabled = enabled, onClickLabel = label, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
         if (pill) HeaderPill()
@@ -323,8 +331,10 @@ fun HeaderPill(size: Dp = 44.dp) {
 fun SelectChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier, small: Boolean = false) {
     val c = MikaTheme.colors
     val shape = if (small) SmallChipShape else MikaShapes.Pill
+    val press = remember { MutableInteractionSource() }
     Box(
         modifier
+            .pressScale(press)
             .then(
                 when {
                     selected -> Modifier.background(c.ink, shape)
@@ -333,7 +343,7 @@ fun SelectChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: M
                 },
             )
             .clip(shape)
-            .selectable(selected, role = Role.RadioButton, onClick = onClick)
+            .selectable(selected, press, LocalIndication.current, role = Role.RadioButton, onClick = onClick)
             .height(if (small) 28.dp else 34.dp)
             .padding(horizontal = if (small) 10.dp else 14.dp),
         contentAlignment = Alignment.Center,

@@ -4,8 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -102,6 +100,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
+import com.wangzan101.mika.ui.theme.motion
 
 @Composable
 internal fun orbitHeaderSize(): Dp = MikaTheme.presence.headerForWidth(LocalConfiguration.current.screenWidthDp).dp
@@ -219,7 +218,7 @@ internal fun OrbitHub(
             }
             item(key = "content") {
                 val contentModifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
-                Column(if (MikaTheme.reduceMotion) contentModifier else contentModifier.animateContentSize()) {
+                Column(if (MikaTheme.reduceMotion) contentModifier else contentModifier.animateContentSize(MikaTheme.motion.size())) {
                     val section = hubSections[selected]
                     Text(stringResource(section.label), style = MikaType.Title, color = c.ink,
                         modifier = Modifier.padding(bottom = 14.dp))
@@ -249,7 +248,7 @@ internal fun OrbitHub(
             .background(if (collapsed) c.bg else c.bg.copy(alpha = 0f)).padding(horizontal = 12.dp),
             verticalAlignment = Alignment.CenterVertically) {
             HubIconButton(MikaIcons.Close, stringResource(R.string.personal_close), onClose)
-            Crossfade(collapsed, Modifier.weight(1f), animationSpec = if (MikaTheme.reduceMotion) snap() else tween(MikaMotion.SWITCH_MS, easing = MikaMotion.Decelerate), label = "hub-header") { compact ->
+            Crossfade(collapsed, Modifier.weight(1f), animationSpec = MikaTheme.motion.effectsDefault(), label = "hub-header") { compact ->
                 if (compact) {
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         MikaPresenceAvatar(Modifier.size(32.dp), state = state, framed = true)
@@ -277,7 +276,7 @@ internal fun OrbitHubTabs(selected: Int, onSelect: (Int) -> Unit) {
         val slot = maxWidth / count
         val offset by animateDpAsState(
             slot * selected.coerceIn(0, count - 1),
-            animationSpec = MikaMotion.spatial(MikaTheme.reduceMotion), label = "hub-tab-indicator",
+            animationSpec = MikaTheme.motion.spatialDefault(), label = "hub-tab-indicator",
         )
         Box(Modifier.matchParentSize()) {
             Box(Modifier.offset(x = offset).width(slot).fillMaxHeight().clip(MikaShapes.Pill).background(c.answer))

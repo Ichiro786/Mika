@@ -2,9 +2,6 @@ package com.wangzan101.mika.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.FastOutLinearInEasing
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusGroup
@@ -55,6 +52,7 @@ import com.wangzan101.mika.ui.components.GlassBackdrop
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaMotion
 
 @Composable
 internal fun BoxScope.UpdateReadyCapsule(
@@ -81,12 +79,10 @@ internal fun BoxScope.UpdateReadyCapsule(
     val held = hovered || pressed || focused || confirmDisable
     LaunchedEffect(reveal, held, resumed, reduceMotion) {
         if (!resumed) return@LaunchedEffect
-        if (reduceMotion) reveal.snapTo(1f)
-        else reveal.animateTo(1f, tween(280, easing = FastOutSlowInEasing))
+        reveal.animateTo(1f, MikaMotion.specs(reduceMotion).spatialDefault())
         if (!held) {
             delay(5000)
-            if (reduceMotion) reveal.snapTo(0f)
-            else reveal.animateTo(0f, tween(230, easing = FastOutLinearInEasing))
+            reveal.animateTo(0f, MikaMotion.specs(reduceMotion).spatialFast())
             dismiss()
         }
     }

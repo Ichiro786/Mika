@@ -17,15 +17,8 @@ import androidx.activity.compose.BackHandler
 import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -186,6 +179,9 @@ import kotlinx.coroutines.withTimeoutOrNull
 import java.time.LocalTime
 import kotlin.math.PI
 import kotlin.math.sin
+import com.wangzan101.mika.ui.theme.rememberMikaPhase
+import com.wangzan101.mika.ui.theme.motion
+import androidx.compose.animation.core.VisibilityThreshold
 
 /**
  * 对话页:顶栏(左边打开侧栏、中间对话标题和此刻在做什么、右边新对话),对话在顶栏和玻璃输入栏之间滚动。
@@ -390,7 +386,7 @@ fun ChatScreen(
     val lift = remember { Animatable(0f) }
     LaunchedEffect(menu) {
         if (menu != null) {
-            if (reduceMotion) lift.snapTo(1f) else lift.animateTo(1f, tween(MENU_IN_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(1f, MikaMotion.specs(reduceMotion).spatialDefault())
         }
     }
     LaunchedEffect(ui.pendingSharedDraft, ui.sharedDraft) {
@@ -406,7 +402,7 @@ fun ChatScreen(
     fun closeMenu(then: () -> Unit = {}) {
         then()
         scope.launch {
-            if (reduceMotion) lift.snapTo(0f) else lift.animateTo(0f, tween(MENU_OUT_MS, easing = MikaMotion.Decelerate))
+            lift.animateTo(0f, MikaMotion.specs(reduceMotion).spatialFast())
             menu = null
         }
     }
@@ -857,11 +853,21 @@ private fun SuggestionCard(title: String, actionLabel: String, onClick: () -> Un
 @Composable
 private fun JumpHighlight(active: Boolean, reduceMotion: Boolean, content: @Composable () -> Unit) {
     val c = MikaTheme.colors
-    val alpha by animateFloatAsState(if (active) 1f else 0f, if (reduceMotion) snap() else tween(260), label = "jump-highlight")
+    val alpha by animateFloatAsState(if (active) 1f else 0f, MikaMotion.specs(reduceMotion).effectsSlow(), label = "jump-highlight")
     Box(
         Modifier.fillMaxWidth()
             .background(c.accent.copy(alpha = 0.12f * alpha), RoundedCornerShape(16.dp)),
     ) { content() }
+}
+
+/**
+ * A chat row that fades in on the effects spring when it is added (a new step, the draft, the reply). Keys stay
+ * the stable per-exchange keys; there is no placement animation, so rows under a growing bubble never lag or
+ * jump while a reply streams, and nothing animates when animations are removed.
+ */
+private fun LazyListScope.chatItem(reduceMotion: Boolean, key: String, content: @Composable () -> Unit) = item(key) {
+    if (reduceMotion) content()
+    else Box(Modifier.animateItem(fadeInSpec = MikaMotion.specs(false).effectsDefault(), placementSpec = null, fadeOutSpec = null)) { content() }
 }
 
 private fun LazyListScope.exchange(
@@ -875,7 +881,7 @@ private fun LazyListScope.exchange(
     /** 终态后的两个新运行入口:true 从摘要断点继续,false 按原目标重新开始。 */
     recover: (Boolean) -> Unit = {},
 ) {
-    if (ex.goal.isNotEmpty()) item("u$index") {
+    if (ex.goal.isNotEmpty()) chatItem(reduceMotion, "u$index") {
         JumpHighlight(highlightKey == "u$index", reduceMotion) {
             Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
                 UserBubble(ex.goal, conversationId, key = "u$index")
@@ -894,25 +900,25 @@ private fun LazyListScope.exchange(
     if (active) {
         // Only thinking so far: the plain "Thinking" line below says it, so no second indicator above it.
         val onlyThinking = ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isEmpty() && !backgroundNote
-        if (!answering && !onlyThinking) item("s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
+        if (!answering && !onlyThinking) chatItem(reduceMotion, "s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
     } else if (ex.steps.isNotEmpty() || ex.runId != null) {
-        item("s$index") { DoneLine(ex, reduceMotion, openRun, tokens) }
+        chatItem(reduceMotion, "s$index") { DoneLine(ex, reduceMotion, openRun, tokens) }
     }
     // 任务进行中插的话:用户的原话,下面一行小字说它的去向。
     // 插话之前已经说完的回复照常显示;插话打断的那段留在原处(淡色、标「被你的新消息打断」);接着才是插话。
     // 还没交给模型的插话排在正在长出来的回答后面:那段回答是它到之前就在写的,不是对它的回复。
     fun steer(n: SteerNote) {
         n.finished?.takeIf(String::isNotBlank)?.let { done ->
-            item("a$index-${n.id}") {
+            chatItem(reduceMotion, "a$index-${n.id}") {
                 JumpHighlight(highlightKey == "a$index-${n.id}", reduceMotion) { FinishedReply(done, "a$index-${n.id}") }
             }
         }
         n.interrupted?.takeIf(String::isNotBlank)?.let { cut ->
-            item("i$index-${n.id}") {
+            chatItem(reduceMotion, "i$index-${n.id}") {
                 JumpHighlight(highlightKey == "i$index-${n.id}", reduceMotion) { InterruptedReply(cut) }
             }
         }
-        item("m$index-${n.id}") {
+        chatItem(reduceMotion, "m$index-${n.id}") {
             JumpHighlight(highlightKey == "m$index-${n.id}", reduceMotion) {
                 UserBubble(n.text, conversationId, steerLabel(n.state, paused), "m$index-${n.id}")
             }
@@ -922,14 +928,14 @@ private fun LazyListScope.exchange(
     joined.forEach(::steer)
     val draftText = ex.draft?.takeIf(String::isNotBlank)
     if (draftText != null) {
-        item("d$index") { DraftText(draftText, ex.waitingForModel, reduceMotion) }
+        chatItem(reduceMotion, "d$index") { DraftText(draftText, ex.waitingForModel, reduceMotion) }
         // While the answer is still streaming in, three dots under it say more is coming.
-        if (active && ex.waitingForModel) item("t$index") { TypingBubble(reduceMotion) }
+        if (active && ex.waitingForModel) chatItem(reduceMotion, "t$index") { TypingBubble(reduceMotion) }
     }
     // While the model is thinking and nothing has streamed yet, a shimmering "Thinking" line holds the answer's place.
-    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) item("k$index") { ThinkingLine(reduceMotion) }
+    else if (active && ex.status == ExchangeStatus.Working && ex.waitingForModel) chatItem(reduceMotion, "k$index") { ThinkingLine(reduceMotion) }
     waiting.forEach(::steer)
-    item("r$index") {
+    chatItem(reduceMotion, "r$index") {
         JumpHighlight(highlightKey == "r$index", reduceMotion) {
             val done = ex.status is ExchangeStatus.Done
             Column(Modifier.fillMaxWidth()) {
@@ -946,7 +952,7 @@ private fun LazyListScope.exchange(
     }
     // 这一轮结束后留在后台运行的那一页:还开着是绿色一行(能关),关了是一句原因
     keptPageRow(index, ex, kept, vm::closeKeptPage)
-    if (ex.files.isNotEmpty()) item("f$index") {
+    if (ex.files.isNotEmpty()) chatItem(reduceMotion, "f$index") {
         JumpHighlight(highlightKey == "f$index", reduceMotion) { FileCards(ex.files) }
     }
     learningNotes(index, ex, vm)
@@ -1039,9 +1045,7 @@ internal fun TypingBubble(reduceMotion: Boolean) {
     val c = MikaTheme.colors
     val label = stringResource(R.string.chat_working)
     // One phase for all three dots, read only in their layers, so the wave never recomposes.
-    val phase = if (reduceMotion) null else rememberInfiniteTransition(label = "typing").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(1200, easing = LinearEasing), RepeatMode.Restart), label = "typing-phase",
-    )
+    val phase = if (reduceMotion) null else rememberMikaPhase(label = "typing")
     val dot = if (c.isDark) Color(0xFFB4B6BA) else c.ink3
     Row(
         Modifier.padding(top = 2.dp, bottom = 12.dp)
@@ -1072,9 +1076,7 @@ internal fun TypingBubble(reduceMotion: Boolean) {
 internal fun ThinkingLine(reduceMotion: Boolean) {
     val c = MikaTheme.colors
     val label = stringResource(R.string.orbit_call_thinking)
-    val t = if (reduceMotion) null else rememberInfiniteTransition(label = "thinking").animateFloat(
-        0f, 1f, infiniteRepeatable(tween(1600, easing = LinearEasing), RepeatMode.Restart), label = "thinking-phase",
-    )
+    val t = if (reduceMotion) null else rememberMikaPhase(label = "thinking")
     val base = if (c.isDark) Color(0xFF8E9197) else c.ink3
     val shine = if (c.isDark) Color(0xFFF2F3F5) else c.ink
     Row(
@@ -1132,7 +1134,7 @@ private fun DraftText(text: String, generating: Boolean, reduceMotion: Boolean =
         }
     }
     val visible = if (smooth) text.take(shown.coerceAtMost(text.length)) else text
-    val appear by animateFloatAsState(if (visible.isEmpty()) 0f else 1f, tween(if (reduceMotion) 0 else 220), label = "draft-in")
+    val appear by animateFloatAsState(if (visible.isEmpty()) 0f else 1f, MikaMotion.specs(reduceMotion).effectsDefault(), label = "draft-in")
     MarkdownText(
         visible, AnswerText.copy(color = MikaTheme.colors.ink),
         Modifier.fillMaxWidth().padding(bottom = 12.dp).answerSurface().graphicsLayer { alpha = appear }, streaming = generating,
@@ -1416,11 +1418,9 @@ private fun PipFeed(
 @Composable
 internal fun Spinner(modifier: Modifier, spinning: Boolean, track: Color, head: Color) {
     // Read only in the layer, so a spinning ring redraws without recomposing every frame.
-    val turn = if (!spinning) null else rememberInfiniteTransition(label = "spin").animateFloat(
-        0f, 360f, infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart), label = "spin",
-    )
+    val turn = if (!spinning) null else rememberMikaPhase(label = "spin")
     Box(
-        modifier.graphicsLayer { rotationZ = turn?.value ?: 0f }
+        modifier.graphicsLayer { rotationZ = (turn?.value ?: 0f) * 360f }
             .border(2.dp, track, CircleShape)
             .border(
                 2.dp,
@@ -1472,7 +1472,12 @@ private fun Reveal(visible: Boolean, reduceMotion: Boolean, content: @Composable
     if (reduceMotion) {
         if (visible) content()
     } else {
-        AnimatedVisibility(visible, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) { content() }
+        val motion = MikaTheme.motion
+        AnimatedVisibility(
+            visible,
+            enter = expandVertically(motion.size()) + fadeIn(motion.effectsDefault()),
+            exit = shrinkVertically(motion.spatialFast(androidx.compose.ui.unit.IntSize.VisibilityThreshold)) + fadeOut(motion.effectsFast()),
+        ) { content() }
     }
 }
 
@@ -1870,7 +1875,7 @@ internal fun Composer(
     val shownValue = if (fieldValue.text == text) fieldValue else TextFieldValue(text, TextRange(text.length))
     val turn by animateFloatAsState(
         if (attachOpen) 45f else 0f,
-        if (reduceMotion) snap() else spring(dampingRatio = 0.6f, stiffness = 600f),
+        MikaMotion.specs(reduceMotion).bouncy(),
         label = "plus",
     )
     Box(

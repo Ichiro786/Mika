@@ -3,11 +3,8 @@ package com.wangzan101.mika.ui
 import com.wangzan101.mika.R
 import com.wangzan101.mika.i18n.tr
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -84,6 +81,8 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaSpace
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.loop
 
 val BROWSER_SEARCH_HINT: String get() = tr(R.string.browser_search_hint)
 val BROWSER_LOGIN_LEGEND: String get() = tr(R.string.browser_login_legend)
@@ -405,7 +404,7 @@ private fun SiteCell(
     val reduce = MikaTheme.reduceMotion
     val angle = if (editing && !reduce) {
         rememberInfiniteTransition(label = "wiggle").animateFloat(
-            -WIGGLE_DEG, WIGGLE_DEG, infiniteRepeatable(tween(WIGGLE_MS), RepeatMode.Reverse), label = "wiggle-angle",
+            -WIGGLE_DEG, WIGGLE_DEG, MikaMotion.loop(beats = WIGGLE_BEATS, reverse = true), label = "wiggle-angle",
         ).value
     } else 0f
     Column(
@@ -551,4 +550,5 @@ private fun SearchMini(icon: ImageVector = MikaIcons.Search) {
 private val TileShape = RoundedCornerShape(16.dp)
 private val InitialLarge = MikaType.Title.copy(fontSize = 20.sp, fontWeight = FontWeight.Bold)
 private const val WIGGLE_DEG = 1.5f
-private const val WIGGLE_MS = 250
+/** Edit-mode wiggle: a quarter beat of the shared loop each way. */
+private const val WIGGLE_BEATS = 0.25f

@@ -279,3 +279,28 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - Debug and perf builds take their versionCode from the commit time, so each new APK counts up.
 - The WhatsApp library is now linked for 16 KB memory pages (NDK r28 and max-page-size=16384). The sandbox programs were already aligned.
 - CI runs tools/ci/check_16kb.py and zipalign -P 16 on the built APKs and fails if any 64-bit native library is not 16 KB aligned.
+
+## Orbit UI/UX program, Stage 1: motion system, 2026-11-19
+
+**Branch:** `orbit-uiux-motion-plan` (from `main` @ c1c962b). **Status:** implemented. Builds and unit tests pass locally. Device frame checks still need doing.
+
+- New `ui/theme/Motion.kt` holds the only motion tokens in the app.
+  - Spatial springs: fast 0.9/1400, default 0.9/700, slow 0.9/300.
+  - Bouncy spring: 0.6/500.
+  - Effects springs, damping 1: fast 3800, default 1600, slow 800.
+  - Durations: 100, 200, 300 and 450 ms.
+  - Standard and emphasized easing curves.
+  - Enter is fade + scale from 0.94 + a 6% rise. Exit uses the faster springs.
+  - Press feedback scales to 0.96. List stagger is 30 ms, up to 6 items.
+  - Loading loops (pulse and phase) share one 1200 ms loop.
+- Material 3 `MotionScheme.expressive()` is not available in material3 1.3.x (Compose BOM 2024.12.01). We did not upgrade any dependency. The tokens use the same values, so they can map directly onto it later.
+- "Remove animations" now has a single source. `MikaTheme` reads `rememberAnimationsOff()`, which watches `ANIMATOR_DURATION_SCALE` live. `MotionSpecs.Reduced` then turns every spec into `snap()`. Activities and overlay windows no longer pass the flag themselves.
+- Animation sites moved onto the tokens:
+  - Chat, drawer, VoiceHold, capsule (pill, morph, card, voice), AgentPip, page/tab transitions, OrbitHub, presence avatar, call screen, update capsule, attachments, message swipe, switches, scrollbar, recommendations, Make toggle and browser wiggle.
+  - Overlay window snapping is a View `ValueAnimator`. It now uses the 200 ms token and an emphasized-decelerate `PathInterpolator`.
+- Chat rows keep their stable keys and now fade in with `animateItem`. They have no placement animation, so rows below a streaming reply never lag behind it.
+- `MikaButton`, `BarIconButton` and `SelectChip` now use the shared press-scale feedback.
+- Guard tests:
+  - `MotionGuardTest` fails the build if any source outside `Motion.kt` creates a `tween`, `spring`, `keyframes` or `infiniteRepeatable`, or uses an untokened default enter/exit.
+  - `MotionSpecsTest` checks the token values and that reduce-motion snaps every spec.
+- **Not yet verified:** on-device frame pacing during streaming, TalkBack, and 200% font. No emulator is available in the container (no KVM). Screenshots come from the CI emulator capture.

@@ -1,7 +1,6 @@
 package com.wangzan101.mika.ui
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -64,6 +63,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.motion
+import androidx.compose.animation.core.snap
 
 /** 设置里的推荐任务:和首页是同一份列表,标题用来辨认,提示词留到点按后填进输入框。 */
 @Composable
@@ -170,7 +171,7 @@ fun RecommendedTasksScreen(store: RecommendedTaskStore, onBack: () -> Unit) {
                             val moving = draggedId == task.id
                             val animatedOffset by animateFloatAsState(
                                 targetValue = if (moving) dragDistance + scroll.value - startScroll else (newTop - oldTop).toFloat(),
-                                animationSpec = tween(if (moving) 0 else 180), label = "recommendation position",
+                                animationSpec = if (moving) snap() else MikaTheme.motion.spatialDefault(), label = "recommendation position",
                             )
                             val moveUp = stringResource(R.string.recommendations_move_up)
                             val moveDown = stringResource(R.string.recommendations_move_down)

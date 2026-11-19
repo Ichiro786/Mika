@@ -6,8 +6,6 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalDensity
@@ -73,6 +71,7 @@ import com.wangzan101.mika.ui.components.cardSurface
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.motion
 
 /**
  * 对话页里长按的一条消息:[key] 认是哪一条(「选择文字」记的就是它),[from] 是谁说的,[text] 是复制、引用用的纯文字
@@ -157,6 +156,7 @@ internal fun MessageArea(
     val replyNow by rememberUpdatedState(reply)
     val swipe = remember { Animatable(0f) }
     val swipeScope = rememberCoroutineScope()
+    val swipeBack = MikaTheme.motion.spatialDefault<Float>()
     val density = LocalDensity.current
     val trigger = with(density) { SwipeTrigger.toPx() }
     val limit = with(density) { SwipeLimit.toPx() }
@@ -171,9 +171,9 @@ internal fun MessageArea(
                         if (pulled >= trigger) replyNow?.invoke(target())
                         armed = false
                         pulled = 0f
-                        swipeScope.launch { swipe.animateTo(0f, spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) }
+                        swipeScope.launch { swipe.animateTo(0f, swipeBack) }
                     },
-                    onDragCancel = { armed = false; pulled = 0f; swipeScope.launch { swipe.animateTo(0f) } },
+                    onDragCancel = { armed = false; pulled = 0f; swipeScope.launch { swipe.animateTo(0f, swipeBack) } },
                 ) { change, dx ->
                     val toward = if (rtl) -dx else dx
                     val next = (pulled + toward * (if (pulled > trigger) 0.35f else 1f)).coerceIn(0f, limit)

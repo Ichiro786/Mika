@@ -3,18 +3,11 @@ package com.wangzan101.mika.ui
 import android.graphics.Bitmap
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
@@ -80,6 +73,12 @@ import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.VisibilityThreshold
 
 /**
  * How a running task shows while Orbit works in the background. Nothing floats over the chat any more:
@@ -125,7 +124,7 @@ fun AgentPip(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val bottom = with(density) { bottomInset.toDp() }
-        val fade = tween<Float>(if (reduceMotion) 150 else 260)
+        val motion = MikaMotion.specs(reduceMotion)
         val needsYou = pip.mode == PipMode.NeedsYou
         val elapsed = rememberElapsed(startedAt)
         val meta = listOfNotNull(
@@ -136,15 +135,16 @@ fun AgentPip(
         // Closed for this task: only a small chip stays where the pill was (not during the last seconds of a finished task)
         AnimatedVisibility(
             pip.visible && pip.closed && pip.mode != PipMode.Done, Modifier.align(Alignment.BottomCenter),
-            enter = fadeIn(fade), exit = fadeOut(fade),
+            enter = motion.enter(TransformOrigin(0.5f, 1f)), exit = motion.exit(TransformOrigin(0.5f, 1f)),
         ) {
             ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + 10.dp), onReopen, onAttention)
         }
 
-        val springIn = if (reduceMotion) fadeIn(fade) else
-            fadeIn(fade) + scaleIn(spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow), initialScale = 0.7f) +
-                slideInVertically(spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMediumLow)) { it }
-        val springOut = if (reduceMotion) fadeOut(fade) else fadeOut(fade) + scaleOut(tween(200), targetScale = 0.85f)
+        // The pill pops up from the bottom edge: a playful moment, so the one bouncy spring.
+        val springIn = if (reduceMotion) EnterTransition.None else
+            fadeIn(motion.effectsDefault()) + scaleIn(motion.bouncy(), initialScale = 0.7f, transformOrigin = TransformOrigin(0.5f, 1f)) +
+                slideInVertically(motion.offset()) { it / 2 }
+        val springOut = motion.exit(TransformOrigin(0.5f, 1f))
         AnimatedVisibility(
             pip.visible && !pip.closed && !pip.expanded, Modifier.align(Alignment.BottomCenter),
             enter = springIn, exit = springOut,
@@ -161,7 +161,7 @@ fun AgentPip(
         }
 
         // Live view: dimmed scrim (tap to hide) and a frosted sheet from the bottom
-        AnimatedVisibility(pip.visible && !pip.closed && pip.expanded, enter = fadeIn(fade), exit = fadeOut(fade)) {
+        AnimatedVisibility(pip.visible && !pip.closed && pip.expanded, enter = motion.fadeEnter(), exit = motion.fadeExit()) {
             Box(
                 Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.55f))
                     .pointerInput(Unit) { detectTapGestures { onCollapse() } },
@@ -170,9 +170,10 @@ fun AgentPip(
         val sheetHeight = with(density) { (constraints.maxHeight * 0.78f).toDp() }
         AnimatedVisibility(
             pip.visible && !pip.closed && pip.expanded, Modifier.align(Alignment.BottomCenter),
-            enter = if (reduceMotion) fadeIn(fade) else
-                slideInVertically(spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMediumLow)) { it } + fadeIn(fade),
-            exit = if (reduceMotion) fadeOut(fade) else slideOutVertically(tween(260)) { it } + fadeOut(fade),
+            enter = if (reduceMotion) EnterTransition.None else
+                slideInVertically(motion.offset()) { it } + fadeIn(motion.effectsDefault()),
+            exit = if (reduceMotion) ExitTransition.None else
+                slideOutVertically(motion.spatialFast(IntOffset.VisibilityThreshold)) { it } + fadeOut(motion.effectsFast()),
         ) {
             LiveSheet(
                 pip = pip,
@@ -196,11 +197,7 @@ fun AgentPip(
 /** Gentle breathing (1 → [low] → 1) for the needs-you glow; constant 1 with reduced motion or when [on] is false. */
 @Composable
 private fun breath(on: Boolean, reduceMotion: Boolean, low: Float, label: String): Float =
-    if (on && !reduceMotion) {
-        rememberInfiniteTransition(label = label).animateFloat(
-            1f, low, infiniteRepeatable(tween(1400), RepeatMode.Reverse), label = label,
-        ).value
-    } else 1f
+    if (on && !reduceMotion) 1f - (1f - low) * rememberMikaPulse(still = 0f, label = label).value else 1f
 
 @Composable
 private fun AgentPill(
@@ -221,7 +218,7 @@ private fun AgentPill(
             PipMode.NeedsYou -> c.warnSolid
             PipMode.Done -> c.ink3
         },
-        tween(if (reduceMotion) 0 else 400), label = "pillTone",
+        MikaMotion.specs(reduceMotion).effectsSlow(), label = "pillTone",
     )
     val glow = breath(needsYou, reduceMotion, 0.35f, "pillBreath")
     val live = breath(mode == PipMode.Running, reduceMotion, 0.45f, "pillLive")
@@ -322,7 +319,7 @@ private fun LiveSheet(
                     dragState, Orientation.Vertical,
                     onDragStopped = { v ->
                         if (drag.value > hideAt || v > 1800f) onCollapse()
-                        scope.launch { if (reduceMotion) drag.snapTo(0f) else drag.animateTo(0f, spring(dampingRatio = 0.7f)) }
+                        scope.launch { if (reduceMotion) drag.snapTo(0f) else drag.animateTo(0f, MikaMotion.specs(reduceMotion).spatialDefault()) }
                     },
                 )
                 .semantics { contentDescription = swipeHint },

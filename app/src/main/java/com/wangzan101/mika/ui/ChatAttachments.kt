@@ -13,13 +13,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.snap
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -81,6 +74,7 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaMotion
 
 /** 对话页附件的说法。 */
 object AttachCopy {
@@ -191,10 +185,8 @@ internal fun AttachMenuOverlay(
         AnimatedVisibility(
             visible = open,
             modifier = Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = bottom),
-            enter = if (reduceMotion) fadeIn(snap()) else
-                fadeIn(tween(120)) + scaleIn(spring(dampingRatio = 0.72f, stiffness = 520f), initialScale = 0.82f, transformOrigin = MenuOrigin),
-            exit = if (reduceMotion) fadeOut(snap()) else
-                fadeOut(tween(110)) + scaleOut(tween(140, easing = com.wangzan101.mika.ui.theme.MikaMotion.Decelerate), targetScale = 0.9f, transformOrigin = MenuOrigin),
+            enter = MikaMotion.specs(reduceMotion).enter(MenuOrigin),
+            exit = MikaMotion.specs(reduceMotion).exit(MenuOrigin),
         ) {
             AttachPanel(
                 onCamera = { onDismiss(); actions.camera() },
