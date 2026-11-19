@@ -307,7 +307,7 @@ class PageChat(private val context: Context, private val browser: UserBrowser, p
             val row = rows.getOrNull(i) ?: return@mapIndexed null
             val target = ex.activities.lastOrNull { it.step == row.step }?.target?.trim().orEmpty()
             when {
-                target.startsWith(SITE_PREFIX) -> PageAskCopy.WEB
+                RecordPlace.isSite(target) -> PageAskCopy.WEB
                 PACKAGE_NAME_RE.matches(target) -> PageAskCopy.APP
                 else -> null
             }
@@ -390,8 +390,6 @@ class PageChat(private val context: Context, private val browser: UserBrowser, p
 
     private companion object {
         const val TAG = "MikaPageChat"
-        /** 运行记录里网页那一屏的对象写成「网站 <域名>」。 */
-        const val SITE_PREFIX = "网站 "
     }
 }
 

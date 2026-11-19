@@ -303,4 +303,9 @@
     <string name="plan_step_stopped">متوقف شد</string>
     <string name="plan_step_of">مرحله %1$d از %2$d</string>
     <string name="chat_jump_latest">رفتن به جدیدترین</string>
+    <string name="skill_section_entry">از کجا شروع کنیم</string>
+    <string name="skill_section_steps">مراحل</string>
+    <string name="skill_section_caution">جاهایی که راحت اشتباه می‌شود</string>
+    <string name="skill_section_done">از کجا بفهمیم انجام شد</string>
+    <string name="skill_section_handoff">کی به شما سپرده شود</string>
 </resources>

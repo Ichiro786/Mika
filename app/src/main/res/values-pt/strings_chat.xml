@@ -317,4 +317,9 @@
     <string name="plan_step_stopped">Parado</string>
     <string name="plan_step_of">Etapa %1$d de %2$d</string>
     <string name="chat_jump_latest">Ir para o mais recente</string>
+    <string name="skill_section_entry">Por onde começar</string>
+    <string name="skill_section_steps">Etapas</string>
+    <string name="skill_section_caution">Fácil de errar</string>
+    <string name="skill_section_done">Como saber que deu certo</string>
+    <string name="skill_section_handoff">Quando passar para você</string>
 </resources>

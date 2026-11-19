@@ -77,4 +77,9 @@
     <string name="tool_mika_login_site">사이트 로그인</string>
     <string name="tool_mika_confirm_login">로그인 확인</string>
     <string name="tool_mika_favorites">자주 쓰는 사이트</string>
+    <string name="tool_schedule">작업 예약</string>
+    <string name="tool_helper">도우미에게 요청</string>
+    <string name="tool_profile">프로필 업데이트</string>
+    <string name="tool_history">이전 메시지 읽기</string>
+    <string name="tool_user_screen">화면 보기</string>
 </resources>

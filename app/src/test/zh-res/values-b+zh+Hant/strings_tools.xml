@@ -77,4 +77,9 @@
     <string name="tool_mika_login_site">請你登入網站</string>
     <string name="tool_mika_confirm_login">核對登入</string>
     <string name="tool_mika_favorites">常用網站</string>
+    <string name="tool_schedule">安排任務</string>
+    <string name="tool_helper">交給助手</string>
+    <string name="tool_profile">修改個人資料</string>
+    <string name="tool_history">讀取之前的訊息</string>
+    <string name="tool_user_screen">看你的螢幕</string>
 </resources>

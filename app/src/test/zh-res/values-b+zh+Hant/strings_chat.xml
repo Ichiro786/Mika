@@ -273,4 +273,9 @@
     <plurals name="drawer_archive_many_skipped">
         <item quantity="other">%1$d 個未歸檔</item>
     </plurals>
+    <string name="skill_section_entry">入口</string>
+    <string name="skill_section_steps">步驟</string>
+    <string name="skill_section_caution">容易出錯的地方</string>
+    <string name="skill_section_done">怎樣算辦成</string>
+    <string name="skill_section_handoff">什麼時候停下交給用戶</string>
 </resources>

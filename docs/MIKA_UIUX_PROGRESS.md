@@ -352,3 +352,23 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - **200% font.** The shared button, chip, segmented control and search field use minimum heights instead of fixed ones. The settings stepper −/+ now has 48dp targets and a button role.
 - **Guard.** `TokenRatchetTest` with `app/src/test/resources/token-ratchet.txt` holds each file to its raw dp/sp/hex count, which may only go down. Files not listed must have none. Regenerate with `tools/ui/token_baseline.py`.
 - **Not yet verified:** every screen at 200% font and in TalkBack, and how the snapped spacing looks on a device. There is no emulator in the container.
+
+## Orbit UI/UX program, Stage 4: clean-up of leftovers, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally (`:app` and `:core`).
+
+- **Tool names.** ToolLabels now maps every one of the agent's 112 tools by its stable English name. Before, 112 tools went through a map keyed on their Chinese declared labels, and the gaps fell back to showing that Chinese label.
+  - The old label map stays only for run records that stored a label.
+  - An unknown or new tool reads as its name made readable ("phone_brand_new_thing" → "Brand new thing"). It can never show Chinese.
+  - 5 new strings for the tools that had none, in all 9 languages.
+  - ToolLabelsTest now checks three things: every tool is mapped, the name map agrees with the label map, and English never shows CJK.
+- **Site marker.** `网站 ` is the run-record format the core writes, so it is unchanged in records. RecordPlace is now the single place the app reads it and always strips it before display. It replaces 4 duplicate constants plus SourceViewModel's inline copy.
+- **File viewer.** The internal error messages ("打不开") are now English. They were log-only; the screen already shows a translated message.
+- **Clipboard.** The clip label is now the app name (Orbit) in the message menu, the MCP screen and self-operation copy. The shell service's own label was left alone (protected service).
+- **Skill sections.** Skills now recognise the five learned-skill sections from Chinese or English headings, show the right icon, and display a translated title. The stored skill keeps its own headings. 5 new strings.
+- **Licenses screen.** Rewritten in English. Orbit comes first and Mika is credited as upstream (wangzan101, Apache-2.0, link).
+  - The four Chinese component headings in `licenses/THIRD_PARTY_NOTICES.md` are now English to match.
+  - LicensesTest is updated and gains an English-throughout check.
+- **"Mika" in strings.** 220 strings that used "Mika" for the assistant now say "Orbit" across all languages, most of them Korean. Korean particles were adjusted for the final consonant (이/을/과/으로/은).
+  - Kept as Mika on purpose: upstream release and update strings, the `mika` CLI prompt, the OpenRouter key name, and the real `Download/Mika` export folder.
+- **Known stale tests.** The capsule device tests assert Chinese UI text that the app's resources no longer contain. This was pre-existing and was not changed here.

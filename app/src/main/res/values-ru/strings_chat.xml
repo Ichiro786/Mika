@@ -331,4 +331,9 @@
     <string name="plan_step_stopped">Остановлено</string>
     <string name="plan_step_of">Шаг %1$d из %2$d</string>
     <string name="chat_jump_latest">К последним</string>
+    <string name="skill_section_entry">С чего начать</string>
+    <string name="skill_section_steps">Шаги</string>
+    <string name="skill_section_caution">Где легко ошибиться</string>
+    <string name="skill_section_done">Как понять, что получилось</string>
+    <string name="skill_section_handoff">Когда передать вам</string>
 </resources>

@@ -50,7 +50,7 @@
     <string name="browser_permission_block">الحظر</string>
     <string name="browser_no_download">لا يمكن للمتصفح تنزيل الملفات بعد.</string>
     <string name="browser_crashed">واجهت الصفحة مشكلة وأُغلقت. يمكنك فتحها مجددًا.</string>
-    <string name="browser_logged_in">تم تسجيل الدخول — يمكن لـMika استخدامه للمهام أيضًا.</string>
+    <string name="browser_logged_in">تم تسجيل الدخول — يمكن لـOrbit استخدامه للمهام أيضًا.</string>
     <string name="browser_desktop">سطح المكتب</string>
     <string name="browser_login_done">تم تسجيل الدخول</string>
     <string name="browser_close_page">إغلاق الصفحة</string>
@@ -61,7 +61,7 @@
     <string name="share">مشاركة</string>
     <string name="more">المزيد</string>
     <string name="browser_login_for_mika">تسجيل الدخول إلى Orbit</string>
-    <string name="browser_login_for_mika_sub">" · يفتح إصدار %1$s الذي يستخدمه Orbit للمهام؛ وبعد تسجيل الدخول، يمكن لـMika استخدامه أيضًا"</string>
+    <string name="browser_login_for_mika_sub">" · يفتح إصدار %1$s الذي يستخدمه Orbit للمهام؛ وبعد تسجيل الدخول، يمكن لـOrbit استخدامه أيضًا"</string>
     <string name="browser_mobile">الهاتف</string>
     <string name="browser_copy_link">نسخ الرابط</string>
     <string name="browser_open_outside">الفتح في متصفح آخر</string>
@@ -86,7 +86,7 @@
     <string name="browser_search_hint">ابحث أو أدخل عنوان URL</string>
     <string name="browser_engine_note">البحث باستخدام %1$s</string>
     <string name="browser_typing_note">تُفتح عناوين URL مباشرةً؛ أما أي نص آخر فيُبحث عنه باستخدام %1$s</string>
-    <string name="browser_login_legend">تم تسجيل الدخول — يمكن لـMika استخدامه مباشرةً للمهام</string>
+    <string name="browser_login_legend">تم تسجيل الدخول — يمكن لـOrbit استخدامه مباشرةً للمهام</string>
     <string name="browser_add_hint">افتح موقعًا، ثم انقر على «إضافة إلى المفضلة» ضمن «المزيد»</string>
     <string name="browser_edit_favorites">تعديل المفضلة</string>
     <string name="browser_tap_x">انقر على × في أعلى اليسار للإزالة</string>

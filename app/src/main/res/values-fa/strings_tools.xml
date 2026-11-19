@@ -77,4 +77,9 @@
     <string name="tool_mika_login_site">ورود به یک سایت</string>
     <string name="tool_mika_confirm_login">تأیید ورود</string>
     <string name="tool_mika_favorites">سایت‌های پرکاربرد</string>
+    <string name="tool_schedule">زمان‌بندی کار</string>
+    <string name="tool_helper">کمک گرفتن از دستیار</string>
+    <string name="tool_profile">به‌روزرسانی نمایه</string>
+    <string name="tool_history">خواندن پیام‌های قبلی</string>
+    <string name="tool_user_screen">نگاه به صفحه شما</string>
 </resources>

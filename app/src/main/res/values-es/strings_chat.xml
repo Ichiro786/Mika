@@ -317,4 +317,9 @@
     <string name="plan_step_stopped">Detenido</string>
     <string name="plan_step_of">Paso %1$d de %2$d</string>
     <string name="chat_jump_latest">Ir a lo más reciente</string>
+    <string name="skill_section_entry">Por dónde empezar</string>
+    <string name="skill_section_steps">Pasos</string>
+    <string name="skill_section_caution">Fácil de equivocarse</string>
+    <string name="skill_section_done">Cómo saber que funcionó</string>
+    <string name="skill_section_handoff">Cuándo pasártelo</string>
 </resources>

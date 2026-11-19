@@ -144,7 +144,7 @@ class AndroidSelfPort(
     override suspend fun copy(text: String): Boolean = withContext(Dispatchers.Main) {
         val cm = app.getSystemService(ClipboardManager::class.java) ?: return@withContext false
         runCatching {
-            cm.setPrimaryClip(ClipData.newPlainText("Mika", text))
+            cm.setPrimaryClip(ClipData.newPlainText(app.getString(R.string.app_name), text))
             true
         }.getOrDefault(false)
     }

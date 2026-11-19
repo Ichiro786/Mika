@@ -180,7 +180,7 @@ private fun load(context: Context, uri: Uri, kind: ViewerKind): Loaded = when (k
 }
 
 private fun open(context: Context, uri: Uri) =
-    context.contentResolver.openInputStream(uri) ?: error("打不开 $uri")
+    context.contentResolver.openInputStream(uri) ?: error("Can't open $uri")
 
 // ---------- 各类内容 ----------
 
@@ -287,7 +287,7 @@ private fun PdfView(uri: Uri, openElsewhere: () -> Unit) {
     val context = LocalContext.current
     val doc by produceState<Result<PdfDoc>?>(null, uri) {
         val opened = withContext(Dispatchers.IO) {
-            runCatching { PdfDoc(context.contentResolver.openFileDescriptor(uri, "r") ?: error("打不开 $uri")) }
+            runCatching { PdfDoc(context.contentResolver.openFileDescriptor(uri, "r") ?: error("Can't open $uri")) }
         }
         value = opened
         try { awaitCancellation() } finally { opened.getOrNull()?.close() }

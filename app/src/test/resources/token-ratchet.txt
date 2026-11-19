@@ -26,7 +26,6 @@ ui/DiagnosticsSheet.kt 2 0 0
 ui/DrawerSpaces.kt 23 0 8
 ui/FileLibraryScreen.kt 27 2 0
 ui/FollowUpBar.kt 3 0 0
-ui/LicensesScreen.kt 0 2 0
 ui/LiveSpeechSetup.kt 4 0 0
 ui/MainActivity.kt 4 0 0
 ui/MakeScreen.kt 7 0 0
@@ -52,7 +51,7 @@ ui/ScreensScreen.kt 1 0 0
 ui/SelfCheckScreen.kt 2 0 0
 ui/SettingsScreen.kt 2 0 0
 ui/SettingsSubPages.kt 3 0 0
-ui/SkillReadingView.kt 2 2 0
+ui/SkillReadingView.kt 2 0 0
 ui/SkillsSection.kt 2 0 0
 ui/SpeechModelScreen.kt 3 0 0
 ui/TasksScreen.kt 8 2 0

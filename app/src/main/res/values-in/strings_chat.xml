@@ -289,4 +289,9 @@
     <string name="plan_step_stopped">Dihentikan</string>
     <string name="plan_step_of">Langkah %1$d dari %2$d</string>
     <string name="chat_jump_latest">Lompat ke terbaru</string>
+    <string name="skill_section_entry">Mulai dari mana</string>
+    <string name="skill_section_steps">Langkah</string>
+    <string name="skill_section_caution">Yang mudah keliru</string>
+    <string name="skill_section_done">Cara tahu berhasil</string>
+    <string name="skill_section_handoff">Kapan diserahkan ke Anda</string>
 </resources>

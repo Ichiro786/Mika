@@ -181,7 +181,7 @@
     <string name="step_declined_not_said">Not written: not your own words</string>
     <string name="step_declined_sensitive">Not written: sensitive information</string>
     <string name="step_declined_not_asked">Not changed: you did not ask for it</string>
-    <string name="step_declined_not_requested">Not written: this message did not ask Mika to remember</string>
+    <string name="step_declined_not_requested">Not written: this message did not ask Orbit to remember</string>
     <string name="step_number">Step %1$d</string>
     <string name="source_label">Source</string>
     <plurals name="screenshots">
@@ -303,4 +303,9 @@
     <string name="plan_step_stopped">Stopped</string>
     <string name="plan_step_of">Step %1$d of %2$d</string>
     <string name="chat_jump_latest">Jump to latest</string>
+    <string name="skill_section_entry">Where to start</string>
+    <string name="skill_section_steps">Steps</string>
+    <string name="skill_section_caution">Easy to get wrong</string>
+    <string name="skill_section_done">How to tell it worked</string>
+    <string name="skill_section_handoff">When to hand it to you</string>
 </resources>
