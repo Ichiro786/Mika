@@ -39,9 +39,11 @@ class ApprovalCardTest {
         show({ approvals++ }, { declines++ })
         compose.onNodeWithText("Actual request details").assertIsDisplayed()
         // Holding past the full ring approves exactly once, then both choices lock while it's sent.
+        compose.mainClock.autoAdvance = false
         compose.onNodeWithTag("confirmation-approve").performTouchInput { down(center) }
         compose.mainClock.advanceTimeBy(HOLD_MS + 200L)
         compose.onNodeWithTag("confirmation-approve").performTouchInput { up() }
+        compose.mainClock.autoAdvance = true
         compose.onNodeWithTag("confirmation-approve").assertIsNotEnabled()
         compose.onNodeWithTag("confirmation-decline").assertIsNotEnabled()
         compose.runOnIdle {
@@ -53,11 +55,16 @@ class ApprovalCardTest {
     @Test fun aTapOrAnEarlyReleaseNeverApproves() {
         var approvals = 0
         show({ approvals++ }, {})
+        // Drive the clock by hand: with auto-advance the test framework would fast-forward the running hold
+        // to completion while it waits for idle, which no real finger can do.
+        compose.mainClock.autoAdvance = false
         compose.onNodeWithTag("confirmation-approve").performClick()
+        compose.mainClock.advanceTimeBy(HOLD_MS * 2L)
         compose.onNodeWithTag("confirmation-approve").performTouchInput { down(center) }
         compose.mainClock.advanceTimeBy(HOLD_MS / 2L)
         compose.onNodeWithTag("confirmation-approve").performTouchInput { up() }
-        compose.waitForIdle()
+        compose.mainClock.advanceTimeBy(HOLD_MS * 2L)
+        compose.mainClock.autoAdvance = true
         compose.runOnIdle { assertEquals(0, approvals) }
         compose.onNodeWithTag("confirmation-approve").assertIsEnabled()
     }
