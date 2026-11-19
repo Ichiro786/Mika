@@ -89,6 +89,7 @@ import com.wangzan101.mika.ui.components.TopBar
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 配置模型:用途(主模型、看图模型、轻量模型)和服务商两块。首次上手时 [onboarding] 为真
@@ -279,11 +280,11 @@ fun ModelSetupContent(ui: ModelSetupUi, onboarding: Boolean, actions: ModelSetup
     PageBackground {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars).windowInsetsPadding(WindowInsets.ime)) {
             TopBar(if (onboarding) ModelSetupCopy.TITLE else ModelsCopy.TITLE, MikaIcons.Back, onBack, stringResource(R.string.back))
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(horizontal = MikaSpace.S16)) {
                 if (onboarding) {
                     Text(
-                        ModelSetupCopy.LEAD, Modifier.padding(top = 4.dp, bottom = 12.dp),
-                        fontSize = 14.5.sp, lineHeight = 23.sp, color = c.ink2,
+                        ModelSetupCopy.LEAD, Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S12),
+                        style = MikaType.Callout, color = c.ink2,
                     )
                 }
                 // 上手时先连服务商再选模型;设置里先看用途
@@ -301,12 +302,12 @@ fun ModelSetupContent(ui: ModelSetupUi, onboarding: Boolean, actions: ModelSetup
                         }
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(MikaSpace.S16))
             }
             // 看键盘实际占的高度;isImeVisible 在系统第一次报告前默认是 true,会把按钮误藏
             if (onboarding && WindowInsets.ime.getBottom(LocalDensity.current) == 0) {
-                Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 12.dp)) {
-                    ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Model), Modifier.padding(bottom = 14.dp))
+                Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S8, bottom = MikaSpace.S12)) {
+                    ProgressDots(Onboarding.DOTS, Onboarding.dot(OnboardingStep.Model), Modifier.padding(bottom = MikaSpace.S16))
                     MikaButton(ModelSetupCopy.NEXT, actions.next, Modifier.fillMaxWidth().testTag("setup-next"), enabled = ui.canNext)
                 }
             }
@@ -342,8 +343,8 @@ private fun ProvidersSection(ui: ModelSetupUi, actions: ModelSetupActions) {
     if (ui.pickToProbe != null && ui.roles.main == null) {
         Text(
             ModelSetupCopy.PICK_MAIN,
-            Modifier.padding(start = 16.dp, bottom = 12.dp).clickable { actions.pickRole(ModelRole.Main) }.testTag("setup-pick-main").padding(vertical = 4.dp),
-            fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.accent,
+            Modifier.padding(start = MikaSpace.S16, bottom = MikaSpace.S12).clickable { actions.pickRole(ModelRole.Main) }.testTag("setup-pick-main").padding(vertical = MikaSpace.S4),
+            style = MikaType.Label, color = c.accent,
         )
     }
     if (ui.showForm) AddProviderForm(ui, actions)
@@ -363,16 +364,16 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
         GroupLabel(ModelsCopy.ADD_PROVIDER, Modifier.weight(1f))
         if (ui.providers.isNotEmpty()) {
             Text(
-                ModelSetupCopy.CANCEL, Modifier.clickable(onClick = actions.closeForm).padding(horizontal = 4.dp, vertical = 6.dp),
-                fontSize = 13.sp, color = c.accent,
+                ModelSetupCopy.CANCEL, Modifier.clickable(onClick = actions.closeForm).padding(horizontal = MikaSpace.S4, vertical = MikaSpace.S8),
+                style = MikaType.Caption, color = c.accent,
             )
         }
     }
     AccountSignInGroup(ui, actions.openSignIn, actions.openProvider)
     GroupLabel(ModelsCopy.KEY_GROUP)
     FlowRow(
-        Modifier.fillMaxWidth().padding(bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.fillMaxWidth().padding(bottom = MikaSpace.S12),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         ProviderPresets.all.forEach { p ->
             // 「自定义」按界面语言显示;服务商的名字原样
@@ -382,12 +383,12 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
     GroupCard {
         if (f.isCustom) {
             Row(
-                Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
+                Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(ModelSetupCopy.KIND, Modifier.padding(end = 12.dp), style = MikaType.Body, color = c.ink)
+                Text(ModelSetupCopy.KIND, Modifier.padding(end = MikaSpace.S12), style = MikaType.Body, color = c.ink)
                 // 四种接口一行放不下时折到下一行
-                FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                     ProviderConfig.Kind.withApiKey.forEach { k -> SelectChip(ModelsCopy.kindLabel(k), f.kind == k, { actions.setKind(k) }, small = true) }
                 }
             }
@@ -411,7 +412,7 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
             if (f.keyRequired) ModelSetupCopy.KEY_HINT else ModelSetupCopy.KEY_OPTIONAL, first = !f.urlEditable,
             keyboard = KeyboardType.Password, secret = !showKey, modifier = Modifier.testTag("setup-api-key"),
         ) {
-            Text(if (showKey) stringResource(R.string.hide) else stringResource(R.string.show), Modifier.clickable { showKey = !showKey }, fontSize = 13.sp, color = c.accent)
+            Text(if (showKey) stringResource(R.string.hide) else stringResource(R.string.show), Modifier.clickable { showKey = !showKey }, style = MikaType.Caption, color = c.accent)
         }
         if (f.showModel) {
             InputRow(
@@ -424,8 +425,8 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
     if (!f.noList) {
         Text(
             if (f.manual) ModelSetupCopy.MANUAL_OFF else ModelSetupCopy.MANUAL_ON,
-            Modifier.padding(start = 16.dp, top = 8.dp).clickable { actions.setManual(!f.manual) }.padding(vertical = 4.dp).testTag("setup-manual-model"),
-            fontSize = 13.sp, color = c.accent,
+            Modifier.padding(start = MikaSpace.S16, top = MikaSpace.S8).clickable { actions.setManual(!f.manual) }.padding(vertical = MikaSpace.S4).testTag("setup-manual-model"),
+            style = MikaType.Caption, color = c.accent,
         )
     }
     if (f.manual && !f.noList) FooterNote(ModelSetupCopy.MANUAL_NOTE, Modifier.testTag("setup-manual-note"))
@@ -441,25 +442,25 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
     )
     (f.test as? ListState.Failed)?.let { failed ->
         Text(
-            ModelSetupCopy.failed(failed.message), Modifier.padding(start = 16.dp, end = 16.dp, top = 10.dp).testTag("setup-test-failed"),
-            fontSize = 13.sp, lineHeight = 18.sp, color = c.bad,
+            ModelSetupCopy.failed(failed.message), Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12).testTag("setup-test-failed"),
+            style = MikaType.Caption, color = c.bad,
         )
         // 服务端/网络层的原话默认折叠:先给人话,排查的人点开看
         failed.details?.let { raw ->
             TextButton(
                 { showDetails = !showDetails },
-                Modifier.padding(start = 8.dp).testTag("setup-test-details-toggle"),
+                Modifier.padding(start = MikaSpace.S8).testTag("setup-test-details-toggle"),
             ) { Text(if (showDetails) stringResource(R.string.model_details_hide) else stringResource(R.string.model_details_show)) }
             if (showDetails) Text(
-                raw, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 6.dp).testTag("setup-test-details"),
-                fontSize = 12.sp, lineHeight = 16.sp, fontFamily = FontFamily.Monospace, color = c.ink3,
+                raw, Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S8).testTag("setup-test-details"),
+                style = MikaType.Hint, fontFamily = FontFamily.Monospace, color = c.ink3,
             )
         }
     }
     // 试不成又想先存下的:做成按钮,不要藏成一行小字——它是个真实的动作,不是说明
     MikaButton(
         ModelSetupCopy.SAVE_UNTESTED, { confirmUntested = true },
-        Modifier.fillMaxWidth().padding(top = 6.dp).testTag("setup-save-untested"),
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).testTag("setup-save-untested"),
         kind = ButtonKind.Tonal, size = ButtonSize.Small, enabled = f.canSaveUntested,
     )
     if (confirmUntested) MikaDialog(
@@ -476,7 +477,7 @@ private fun AddProviderForm(ui: ModelSetupUi, actions: ModelSetupActions) {
             TextButton({ confirmUntested = false }) { Text(stringResource(R.string.cancel)) }
         },
     )
-    FooterNote(ModelSetupCopy.TEST_NOTE, Modifier.padding(top = 6.dp))
+    FooterNote(ModelSetupCopy.TEST_NOTE, Modifier.padding(top = MikaSpace.S8))
 }
 
 /** 自定义填的是某家的官方地址:建议改用那家的预设(不拦着),接口类型对不上时一并说;点一下就换过去,Key 留着。 */
@@ -486,8 +487,8 @@ private fun PresetSuggestion(f: AddForm, label: String, onUse: () -> Unit) {
     FooterNote(ModelSetupCopy.presetSuggestion(f), Modifier.padding(top = 2.dp).testTag("setup-preset-hint"), color = c.warn)
     Text(
         ModelSetupCopy.usePreset(label),
-        Modifier.padding(start = 16.dp, bottom = 12.dp).clickable(onClick = onUse).testTag("setup-use-preset").padding(vertical = 4.dp),
-        fontSize = 13.sp, fontWeight = FontWeight.Medium, color = c.accent,
+        Modifier.padding(start = MikaSpace.S16, bottom = MikaSpace.S12).clickable(onClick = onUse).testTag("setup-use-preset").padding(vertical = MikaSpace.S4),
+        style = MikaType.Label, color = c.accent,
     )
 }
 
@@ -560,7 +561,7 @@ private fun RolesSection(ui: ModelSetupUi, onPick: (ModelRole) -> Unit, onReason
                 val reasoning = hasReasoningAction(ui, role)
                 val context = onContext != null && hasModelContextControl(ui, role)
                 if (reasoning || context) {
-                    Column(Modifier.padding(start = 70.dp, end = 16.dp)) {
+                    Column(Modifier.padding(start = 70.dp, end = MikaSpace.S16)) {
                         Hairline(start = 0.dp)
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             if (reasoning) ReasoningControl(ui, role, Modifier.weight(1f)) { onReasoning(role, it) }
@@ -609,7 +610,7 @@ private fun ModelContextControl(ui: ModelSetupUi, role: ModelRole,
         modifier = Modifier.imePadding(),
         title = { Text(stringResource(R.string.model_context_title)) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 Text(cfg.model)
                 Text(stringResource(R.string.model_context_note))
                 OutlinedTextField(window, { window = it; saveFailed = false },
@@ -652,7 +653,7 @@ private fun ModelContextControl(ui: ModelSetupUi, role: ModelRole,
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun Tags(o: ModelOption, forVision: Boolean = false, accent: Boolean = true) {
-    FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4), verticalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         ModelSetupCopy.tags(o, forVision).forEach { (text, strong) -> CapabilityTag(text, if (strong && accent) TagTone.Accent else TagTone.Neutral) }
     }
 }

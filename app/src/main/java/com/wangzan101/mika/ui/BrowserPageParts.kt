@@ -92,12 +92,14 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 val BROWSER_DESKTOP_TAG: String get() = tr(R.string.browser_desktop)
 val BROWSER_LOGIN_DONE: String get() = tr(R.string.browser_login_done)
 
-internal val MiniShape = RoundedCornerShape(8.dp)
-internal val InitialSmall = TextStyle(fontSize = 13.sp, lineHeight = 16.sp, fontWeight = FontWeight.Bold)
+internal val MiniShape = RoundedCornerShape(MikaRadius.Sm)
+internal val InitialSmall = MikaType.LabelStrong
 
 /**
  * 网站的方块:有存下的网站图标就画在白底上;没有时是按主机名定的底色加名字的第一个字。
@@ -153,19 +155,19 @@ fun BrowserPageBar(
     var editing by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxWidth().background(c.bg).windowInsetsPadding(WindowInsets.statusBars)) {
         Row(
-            Modifier.fillMaxWidth().height(MikaSize.TopBar).padding(horizontal = 8.dp),
+            Modifier.fillMaxWidth().height(MikaSize.TopBar).padding(horizontal = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
         ) {
             if (editing) {
-                AddressEditor(page.url, Modifier.weight(1f).padding(start = 8.dp)) { input ->
+                AddressEditor(page.url, Modifier.weight(1f).padding(start = MikaSpace.S8)) { input ->
                     editing = false
                     focus.clearFocus()
                     onSubmit(input)
                 }
                 Text(
                     tr(R.string.cancel), Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = false; focus.clearFocus() }
-                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                        .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                     style = MikaType.Body, color = c.accent,
                 )
             } else {
@@ -192,9 +194,9 @@ private fun AddressPill(page: BrowserPage, face: SiteFace?, engines: List<Search
     Row(
         modifier.height(40.dp).clip(MikaShapes.Pill).background(c.fill)
             .clickable(onClickLabel = tr(R.string.browser_edit_url), role = Role.Button, onClick = onClick)
-            .padding(horizontal = 14.dp).testTag("browser-address-pill"),
+            .padding(horizontal = MikaSpace.S16).testTag("browser-address-pill"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, Alignment.CenterHorizontally),
     ) {
         when {
             query != null -> Icon(MikaIcons.Search, null, Modifier.size(14.dp), tint = c.ink3)
@@ -203,14 +205,14 @@ private fun AddressPill(page: BrowserPage, face: SiteFace?, engines: List<Search
         Text(shown, Modifier.weight(1f, fill = false), style = MikaType.Body, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
         if (page.desktop) {
             Text(
-                BROWSER_DESKTOP_TAG, Modifier.background(c.warnSoft, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp),
+                BROWSER_DESKTOP_TAG, Modifier.background(c.warnSoft, RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8, vertical = 1.dp),
                 style = TagText, color = c.warn, maxLines = 1,
             )
         }
     }
 }
 
-private val TagText = TextStyle(fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold)
+private val TagText = MikaType.Micro
 
 /** 展开的地址栏:完整网址全选着,键盘上是「前往」。 */
 @Composable
@@ -220,9 +222,9 @@ private fun AddressEditor(url: String, modifier: Modifier, onGo: (String) -> Uni
     var text by remember { mutableStateOf(TextFieldValue(url, TextRange(0, url.length))) }
     LaunchedEffect(Unit) { focus.requestFocus() }
     Row(
-        modifier.height(40.dp).background(c.surface, MikaShapes.Pill).border(1.5.dp, c.accent, MikaShapes.Pill).padding(horizontal = 14.dp),
+        modifier.height(40.dp).background(c.surface, MikaShapes.Pill).border(1.5.dp, c.accent, MikaShapes.Pill).padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Icon(MikaIcons.Lock, null, Modifier.size(14.dp), tint = c.ink3)
         BasicTextField(
@@ -251,7 +253,7 @@ fun BrowserToolbar(
     Column(Modifier.fillMaxWidth().background(c.bg).windowInsetsPadding(WindowInsets.navigationBars)) {
         Box(Modifier.fillMaxWidth().height(0.5.dp).background(c.hair))
         Row(
-            Modifier.fillMaxWidth().height(52.dp).padding(horizontal = 8.dp),
+            Modifier.fillMaxWidth().height(52.dp).padding(horizontal = MikaSpace.S8),
             horizontalArrangement = Arrangement.SpaceAround,
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -273,11 +275,11 @@ fun LoginBanner(desktop: Boolean, onDone: () -> Unit) {
         append(tr(R.string.browser_login_for_mika_sub, if (desktop) tr(R.string.browser_desktop) else tr(R.string.browser_mobile)))
     }
     Row(
-        Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 4.dp, bottom = 8.dp)
-            .background(c.accentSoft, RoundedCornerShape(14.dp)).padding(horizontal = 12.dp, vertical = 10.dp)
+        Modifier.fillMaxWidth().padding(start = MikaSpace.S12, end = MikaSpace.S12, top = MikaSpace.S4, bottom = MikaSpace.S8)
+            .background(c.accentSoft, RoundedCornerShape(MikaRadius.Lg)).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12)
             .testTag("browser-login-banner"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         Text(text, Modifier.weight(1f), style = MikaType.Caption, color = c.ink)
         MikaButton(BROWSER_LOGIN_DONE, onDone, size = ButtonSize.Small)
@@ -311,13 +313,13 @@ fun BrowserMoreSheet(
     onClearData: () -> Unit = {},
 ) {
     val c = MikaTheme.colors
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.surface, shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-more")) {
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.surface, shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-more")) {
             if (face != null && host != null) {
                 Row(
-                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 10.dp),
+                    Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S4, bottom = MikaSpace.S12),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
                 ) {
                     SiteTile(face, 28.dp, MiniShape, InitialSmall)
                     Column(Modifier.weight(1f)) {
@@ -354,7 +356,7 @@ fun BrowserMoreSheet(
                 }
                 ListRow(MikaIcons.Trash, tr(R.string.browser_clear_data), onClick = act(onClearData))
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(MikaSpace.S4))
         }
     }
 }
@@ -379,25 +381,25 @@ fun BookmarksSheet(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-bookmarks")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-bookmarks")) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 20.dp, end = 12.dp, top = 4.dp, bottom = 8.dp),
+                Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S12, top = MikaSpace.S4, bottom = MikaSpace.S8),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(tr(R.string.browser_bookmarks), Modifier.weight(1f), style = MikaType.Title, color = c.ink)
                 if (bookmarks.isNotEmpty()) {
                     Text(
                         if (editing) tr(R.string.done) else tr(R.string.browser_edit),
-                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = !editing }.padding(horizontal = 10.dp, vertical = 8.dp),
+                        Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { editing = !editing }.padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                         style = MikaType.BodyStrong, color = c.accent,
                     )
                 }
             }
             if (bookmarks.isEmpty()) {
                 Text(
-                    tr(R.string.browser_bookmark_empty), Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                    tr(R.string.browser_bookmark_empty), Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S16),
                     style = MikaType.Body, color = c.ink3,
                 )
             }
@@ -421,7 +423,7 @@ fun BookmarksSheet(
                                 Box(
                                     Modifier.size(36.dp).clip(CircleShape).clickable(role = Role.Button, onClickLabel = remove) { onRemove(b) },
                                     contentAlignment = Alignment.Center,
-                                ) { Icon(MikaIcons.Close, remove, Modifier.size(16.dp), tint = c.ink3) }
+                                ) { Icon(MikaIcons.Close, remove, Modifier.size(MikaSize.SmallIcon), tint = c.ink3) }
                             }
                         },
                     )

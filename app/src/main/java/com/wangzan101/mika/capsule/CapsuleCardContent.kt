@@ -120,17 +120,23 @@ import com.wangzan101.mika.ui.plan.LivePlanCard
 import com.wangzan101.mika.ui.plan.PlanStep
 import com.wangzan101.mika.ui.plan.PlanStepStatus
 import com.wangzan101.mika.ui.plan.PlanPhase
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.mediaScrim
+import com.wangzan101.mika.ui.theme.onMedia
+import com.wangzan101.mika.ui.theme.MikaSize
 
-private val CardShape = RoundedCornerShape(22.dp)
-private val ScreenShape = RoundedCornerShape(14.dp)
-private val BubbleShape = RoundedCornerShape(16.dp, 16.dp, 5.dp, 16.dp)
+private val CardShape = RoundedCornerShape(MikaRadius.Xl)
+private val ScreenShape = RoundedCornerShape(MikaRadius.Lg)
+private val BubbleShape = RoundedCornerShape(MikaRadius.Lg, MikaRadius.Lg, MikaRadius.Xs, MikaRadius.Lg)
 private val ScreenWidth = 104.dp
 private val ZoomWidth = 300.dp
-private val Title = TextStyle(fontSize = 14.5.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold)
-private val Sub = TextStyle(fontSize = 12.sp, lineHeight = 16.sp)
-private val Body = TextStyle(fontSize = 13.5.sp, lineHeight = 20.sp)
+private val Title = MikaType.CalloutStrong
+private val Sub = MikaType.Hint
+private val Body = MikaType.Callout
 private val Strong = Body.copy(fontWeight = FontWeight.SemiBold)
-private val Step = TextStyle(fontSize = 13.sp, lineHeight = 18.sp)
+private val Step = MikaType.Caption
 
 /** 卡片上的固定说法(按钮、链接、读屏描述)。 */
 object CardCopy {
@@ -342,10 +348,10 @@ private fun InputRow(field: CardInput, ui: CardInputUi, actions: CardActions, st
     // 选了「排队」时输入框的灰字换成「下一件事」,别还写着补充当前任务
     val shown = if (field.kind == CardInputKind.Steer && ui.followUpMode == FollowUpMode.Queue)
         field.copy(hint = tr(R.string.chat_placeholder_queue)) else field
-    Column(Modifier.padding(top = 10.dp).fillMaxWidth()) {
+    Column(Modifier.padding(top = MikaSpace.S12).fillMaxWidth()) {
         // 只有「补充/改要求」才需要选交给当前任务还是排下一件;回答、接着说、开始新任务不显示
         if (field.kind == CardInputKind.Steer) CapsuleFollowUpMode(ui.followUpMode, actions::setFollowUpMode)
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             CameraKey(actions::captureScreen)
             Box(Modifier.weight(1f)) { InputField(shown, ui, actions, stop) }
         }
@@ -362,7 +368,7 @@ private fun CameraKey(onClick: () -> Unit) {
             .semantics { contentDescription = ScreenCopy.CAMERA },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(MikaIcons.Camera, null, Modifier.size(18.dp), tint = c.ink2)
+        Icon(MikaIcons.Camera, null, Modifier.size(MikaSize.TileIcon), tint = c.ink2)
     }
 }
 
@@ -372,14 +378,14 @@ private fun ScreenChip(p: PendingScreen, onRemove: () -> Unit) {
     val c = MikaTheme.colors
     val s = p.shot.screen
     Row(
-        Modifier.testTag("capsule-attachment").padding(top = 8.dp).fillMaxWidth().clip(RoundedCornerShape(12.dp))
-            .background(c.ink.copy(alpha = 0.05f)).padding(6.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+        Modifier.testTag("capsule-attachment").padding(top = MikaSpace.S8).fillMaxWidth().clip(RoundedCornerShape(MikaRadius.Md))
+            .background(c.ink.copy(alpha = 0.05f)).padding(MikaSpace.S8),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        if (s.blocked) Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Icon(MikaIcons.Lock, null, Modifier.size(16.dp), tint = c.ink2) }
+        if (s.blocked) Box(Modifier.size(34.dp), contentAlignment = Alignment.Center) { Icon(MikaIcons.Lock, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink2) }
         else ScreenThumb(p.thumb, 34.dp)
         Column(Modifier.weight(1f)) {
-            Text(if (s.blocked) ScreenCopy.BLOCKED else ScreenCopy.TAG, style = Strong.copy(fontSize = 12.5.sp), color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(if (s.blocked) ScreenCopy.BLOCKED else ScreenCopy.TAG, style = MikaType.HintStrong, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             Text(ScreenCopy.detail(s), style = Sub, color = c.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
         }
         Box(
@@ -404,25 +410,25 @@ private fun SendKey(enabled: Boolean, onSend: () -> Unit, start: Dp = 0.dp) {
             .semantics { contentDescription = CardCopy.SEND },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(MikaIcons.Up, null, Modifier.size(17.dp), tint = Color.White)
+        Icon(MikaIcons.Up, null, Modifier.size(17.dp), tint = c.onMedia)
     }
 }
 
 @Composable
 private fun InputField(field: CardInput, ui: CardInputUi, actions: CardActions, stop: (() -> Unit)?) {
     val c = MikaTheme.colors
-    val shape = RoundedCornerShape(14.dp)
+    val shape = RoundedCornerShape(MikaRadius.Lg)
     val focus = remember { FocusRequester() }
     val keyboard = LocalSoftwareKeyboardController.current
     if (!ui.open) {
         Row(
             Modifier.fillMaxWidth().heightIn(min = 42.dp).clip(shape).background(c.ink.copy(alpha = 0.05f))
-                .padding(end = if (stop != null || ui.screen != null) 4.dp else 0.dp),
+                .padding(end = if (stop != null || ui.screen != null) MikaSpace.S4 else 0.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(
                 Modifier.testTag("capsule-input").weight(1f).heightIn(min = 42.dp)
-                    .clickable(role = Role.Button, onClickLabel = field.hint, onClick = actions::openInput).padding(horizontal = 12.dp),
+                    .clickable(role = Role.Button, onClickLabel = field.hint, onClick = actions::openInput).padding(horizontal = MikaSpace.S12),
                 contentAlignment = Alignment.CenterStart,
             ) {
                 Text(ui.draft.ifEmpty { field.hint }, style = Body, color = if (ui.draft.isEmpty()) c.ink3 else c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -442,10 +448,10 @@ private fun InputField(field: CardInput, ui: CardInputUi, actions: CardActions, 
     val shownValue = if (fieldValue.text == ui.draft) fieldValue else TextFieldValue(ui.draft, TextRange(ui.draft.length))
     Row(
         Modifier.fillMaxWidth().heightIn(min = 42.dp).clip(shape).background(c.ink.copy(alpha = 0.05f))
-            .border(1.dp, c.accent.copy(alpha = 0.5f), shape).padding(start = 12.dp, end = 4.dp),
+            .border(1.dp, c.accent.copy(alpha = 0.5f), shape).padding(start = MikaSpace.S12, end = MikaSpace.S4),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.weight(1f).padding(vertical = 10.dp)) {
+        Box(Modifier.weight(1f).padding(vertical = MikaSpace.S12)) {
             if (ui.draft.isEmpty()) Text(field.hint, style = Body, color = c.ink3, maxLines = 1)
             BasicTextField(
                 shownValue, { v -> fieldValue = v; if (v.text != ui.draft) actions.draft(v.text) },
@@ -464,7 +470,7 @@ private fun InputField(field: CardInput, ui: CardInputUi, actions: CardActions, 
 @Composable
 private fun CapsuleFollowUpMode(mode: FollowUpMode, onMode: (FollowUpMode) -> Unit) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(bottom = 4.dp).testTag("capsule-follow-up-mode"), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+    Row(Modifier.fillMaxWidth().padding(bottom = MikaSpace.S4).testTag("capsule-follow-up-mode"), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
         CapsuleModePill(FollowUpMode.Steer, mode, onMode, tr(R.string.follow_up_steer), "capsule-follow-up-steer")
         CapsuleModePill(FollowUpMode.Queue, mode, onMode, tr(R.string.follow_up_queue), "capsule-follow-up-queue")
     }
@@ -478,7 +484,7 @@ private fun CapsuleModePill(value: FollowUpMode, selected: FollowUpMode, onMode:
         Modifier.testTag(tag).heightIn(min = 26.dp).clip(MikaShapes.Pill)
             .background(if (on) c.accent else c.fill)
             .clickable(role = Role.Tab, onClickLabel = label) { onMode(value) }
-            .padding(horizontal = 10.dp),
+            .padding(horizontal = MikaSpace.S12),
         contentAlignment = Alignment.Center,
     ) {
         Text(label, style = Sub, color = if (on) c.onAccent else c.ink2, maxLines = 1)
@@ -491,11 +497,11 @@ private fun QueuedLine(count: Int, onClick: (() -> Unit)?) {
     if (count <= 0) return
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().padding(top = 6.dp).clip(MikaShapes.Pill).background(c.fill)
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).clip(MikaShapes.Pill).background(c.fill)
             .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
-            .padding(horizontal = 10.dp, vertical = 5.dp).testTag("capsule-queued"),
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4).testTag("capsule-queued"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Icon(MikaIcons.Clock, null, Modifier.size(14.dp), tint = c.ink3)
         Text(
@@ -538,7 +544,7 @@ private fun CardFrame(height: Dp, fixed: Boolean = true, content: @Composable Co
     val c = MikaTheme.colors
     Column(
         Modifier.testTag("capsule-card").width(cardWidth()).then(if (fixed) Modifier.height(height) else Modifier.heightIn(max = height))
-            .glass(c, CardShape, need = false).padding(12.dp),
+            .glass(c, CardShape, need = false).padding(MikaSpace.S12),
         content = content,
     )
 }
@@ -547,7 +553,7 @@ private fun CardFrame(height: Dp, fixed: Boolean = true, content: @Composable Co
 @Composable
 private fun Header(title: String, sub: String, actions: CardActions, handle: Modifier) {
     val c = MikaTheme.colors
-    Row(handle.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(handle.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
         MikaLogo(28.dp, corner = 14.dp)
         Column(Modifier.weight(1f).semantics(mergeDescendants = true) {}) {
             Text(title, style = Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -563,7 +569,7 @@ private fun Header(title: String, sub: String, actions: CardActions, handle: Mod
 private fun IdleHeader(card: CardView.Chat, actions: CardActions, handle: Modifier) {
     val c = MikaTheme.colors
     val continuing = !card.fresh && card.conversationId != null
-    Row(handle.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+    Row(handle.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
         MikaLogo(28.dp, corner = 14.dp)
         Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
             Text(
@@ -587,7 +593,7 @@ private fun IconButton(icon: ImageVector, label: String, onClick: () -> Unit) {
             .semantics { contentDescription = label },
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, null, Modifier.size(18.dp), tint = MikaTheme.colors.ink3)
+        Icon(icon, null, Modifier.size(MikaSize.TileIcon), tint = MikaTheme.colors.ink3)
     }
 }
 
@@ -601,13 +607,13 @@ internal fun QuitCard(actions: CardActions, height: Dp = Dp.Unspecified) {
     val c = MikaTheme.colors
     val quitLabel = tr(R.string.quit_title)
     CardFrame(height, fixed = false) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
             MikaLogo(28.dp, corner = 14.dp)
             Text(tr(R.string.quit_title), Modifier.weight(1f), style = Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             IconButton(MikaIcons.Close, CardCopy.COLLAPSE, actions::collapse)
         }
-        Text(tr(R.string.quit_confirm_body), Modifier.padding(top = 10.dp), style = Body, color = c.ink2)
-        Row(Modifier.padding(top = 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(tr(R.string.quit_confirm_body), Modifier.padding(top = MikaSpace.S12), style = Body, color = c.ink2)
+        Row(Modifier.padding(top = MikaSpace.S12).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             Box(
                 Modifier.weight(1f).height(40.dp).testTag("capsule-quit-cancel").clip(MikaShapes.Pill).background(c.fill)
                     .clickable(role = Role.Button, onClickLabel = tr(R.string.cancel)) { actions.cancelQuit() },
@@ -638,7 +644,7 @@ private fun Detail(
         // 步骤那段的高度上限 = 小画面的高;还没有画面时按主屏的宽高比算同样的高,画面来了不跳
         val config = LocalConfiguration.current
         val stepsMax = ScreenWidth / (screen?.let(::ratio) ?: ratio(config.screenWidthDp, config.screenHeightDp))
-        Row(Modifier.padding(top = 10.dp).weight(1f, fill = false).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.padding(top = MikaSpace.S12).weight(1f, fill = false).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
             if (screen != null) MiniScreen(screen) { actions.zoom(true) }
             Column(Modifier.weight(1f)) {
                 val content = card.content
@@ -647,7 +653,7 @@ private fun Detail(
                     // 文字放不下就在这一段里滚;要你点的按钮放在下面,不跟着滚走
                     Column(
                         Modifier.testTag("capsule-scroll").weight(1f, fill = false).verticalScroll(rememberScrollState()),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                     ) {
                         when (content) {
                             // 干活中在上面单独排
@@ -694,12 +700,12 @@ private fun KeptCard(card: CardView.Kept, preview: Bitmap?, actions: CardActions
     }
     CardFrame(height, fixed = false) {
         Header(tr(R.string.kept_card_title), tr(R.string.kept_card_left, KeptPageCopy.duration(p.closesAt - now)), actions, handle)
-        Column(Modifier.padding(top = 10.dp).weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(top = MikaSpace.S12).weight(1f, fill = false).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             if (preview != null) {
                 val image = remember(preview) { preview.asImageBitmap() }
                 Box(
                     Modifier.testTag("kept-live").fillMaxWidth().aspectRatio(ratio(preview)).clip(ScreenShape)
-                        .border(1.dp, c.glassEdge, ScreenShape).background(Color.Black)
+                        .border(1.dp, c.glassEdge, ScreenShape).background(c.mediaScrim)
                         .clickable(role = Role.Image, onClickLabel = CardCopy.SCREEN) { actions.zoom(true) }
                         .semantics { contentDescription = tr(R.string.kept_card_live) },
                 ) {
@@ -713,7 +719,7 @@ private fun KeptCard(card: CardView.Kept, preview: Bitmap?, actions: CardActions
                 style = Sub, color = c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis,
             )
         }
-        Row(Modifier.padding(top = 12.dp).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.padding(top = MikaSpace.S12).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             Box(Modifier.weight(1f).testTag("kept-open")) { Action(tr(R.string.kept_open_chat), ButtonKind.Tonal) { actions.openMika(p.conversationId) } }
             // 关闭是红字的淡红按钮,和别的按钮分开
             Box(
@@ -730,7 +736,7 @@ private const val KEPT_TICK_MS = 30_000L
 /** 要你点的按钮(接管、同意、选项、继续),固定在卡片中间那段的下面,不跟着滚。 */
 @Composable
 internal fun Pinned(content: CardContent?, key: String, actions: CardActions) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         when (content) {
             is CardContent.Takeover -> {
                 Spacer(Modifier.height(0.dp))
@@ -772,7 +778,7 @@ private fun ChatCard(
             listOfNotNull(CapsuleCards.status(r.kind), elapsed(r.startedAt)).joinToString(" · "),
             actions, handle,
         )
-        Box(Modifier.padding(top = 8.dp).weight(1f).fillMaxWidth()) {
+        Box(Modifier.padding(top = MikaSpace.S8).weight(1f).fillMaxWidth()) {
             // 换了对话(空闲卡片切到新对话)时从那个对话的最新一问重新读起
             if (thread != null) key(card.target) { ThreadList(thread, card.conversationId, actions) }
         }
@@ -809,7 +815,7 @@ private fun TeachShelf(onTeach: () -> Unit) {
         ) {
             Icon(
                 MikaIcons.Chevron, null,
-                Modifier.size(16.dp).graphicsLayer { rotationZ = if (open) 90f else -90f },
+                Modifier.size(MikaSize.SmallIcon).graphicsLayer { rotationZ = if (open) 90f else -90f },
                 tint = MikaTheme.colors.ink3,
             )
         }
@@ -823,7 +829,7 @@ private fun TeachShelf(onTeach: () -> Unit) {
 @Composable
 private fun FooterLinks(actions: CardActions, primary: Pair<String, () -> Unit>?) {
     Row(
-        Modifier.fillMaxWidth().padding(top = 6.dp),
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
         horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
     ) {
         primary?.let { (text, onClick) ->
@@ -876,28 +882,28 @@ internal fun ThreadList(thread: ChatThread, conversationId: String?, actions: Ca
         items(thread.items, key = { it.key }) { item ->
             when (item) {
                 // 带着屏幕的那句:缩略图和「你此刻的屏幕 · App · 时刻」,附言另起一个气泡
-                is ThreadItem.User -> BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 6.dp, bottom = 8.dp), contentAlignment = Alignment.CenterEnd) {
+                is ThreadItem.User -> BoxWithConstraints(Modifier.fillMaxWidth().padding(top = MikaSpace.S8, bottom = MikaSpace.S8), contentAlignment = Alignment.CenterEnd) {
                     val maxWidth = maxWidth
                     Column(horizontalAlignment = Alignment.End) {
                         UserMessage(conversationId, item.text, ThreadThumbWidth) { text ->
                             Text(
                                 text,
-                                Modifier.widthIn(max = maxWidth * 0.8f).background(c.accent, BubbleShape).padding(horizontal = 11.dp, vertical = 7.dp),
+                                Modifier.widthIn(max = maxWidth * 0.8f).background(c.accent, BubbleShape).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
                                 style = Body, color = c.onAccent,
                             )
                         }
                         // 插的话的去向(已收到、已加入、下一件事)
-                        item.note?.let { Text(it, Modifier.padding(top = 2.dp, end = 4.dp), style = Sub, color = c.ink3) }
+                        item.note?.let { Text(it, Modifier.padding(top = 2.dp, end = MikaSpace.S4), style = Sub, color = c.ink3) }
                     }
                 }
                 is ThreadItem.Note -> Text(
-                    item.text, Modifier.padding(bottom = 4.dp), style = Sub,
+                    item.text, Modifier.padding(bottom = MikaSpace.S4), style = Sub,
                     color = if (item.kind.needsYou) c.warn else c.ink3, maxLines = 2, overflow = TextOverflow.Ellipsis,
                 )
                 // 表格、代码块在自己那块里左右滑,不撑宽卡片;链接另开任务打开,浮层里也能点
                 is ThreadItem.Answer -> if (!item.cut) {
-                    MarkdownText(item.text, Body.copy(color = c.ink), Modifier.fillMaxWidth().padding(bottom = 8.dp), streaming = item.streaming)
-                } else Column(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
+                    MarkdownText(item.text, Body.copy(color = c.ink), Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8), streaming = item.streaming)
+                } else Column(Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8)) {
                     // 被插话打断的那段:淡色,下面一行小字(和对话页同一句话)
                     MarkdownText(item.text, Body.copy(color = c.ink2), Modifier.fillMaxWidth(), streaming = false)
                     Text(tr(R.string.steer_interrupted_reply), Modifier.padding(top = 2.dp), style = Sub, color = c.ink3)
@@ -942,8 +948,8 @@ private fun Action(text: String, kind: ButtonKind, onClick: () -> Unit) {
 @Composable
 private fun TextLink(text: String, color: Color = MikaTheme.colors.accent, onClick: () -> Unit) {
     Text(
-        text, Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onClick).padding(horizontal = 6.dp, vertical = 8.dp),
-        style = Sub.copy(fontSize = 13.sp), color = color,
+        text, Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onClick).padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S8),
+        style = MikaType.Caption, color = color,
     )
 }
 
@@ -960,9 +966,9 @@ private fun MiniScreen(frame: Bitmap, onZoom: () -> Unit) {
     ) {
         Image(image, null, Modifier.matchParentSize(), contentScale = ContentScale.Fit)
         Text(
-            CardCopy.SCREEN_LABEL, Modifier.align(Alignment.BottomStart).padding(6.dp)
-                .background(Color.Black.copy(alpha = 0.55f), RoundedCornerShape(6.dp)).padding(horizontal = 6.dp, vertical = 1.dp),
-            style = TextStyle(fontSize = 10.sp, lineHeight = 14.sp), color = Color.White,
+            CardCopy.SCREEN_LABEL, Modifier.align(Alignment.BottomStart).padding(MikaSpace.S8)
+                .background(c.mediaScrim.copy(alpha = 0.55f), RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8, vertical = 1.dp),
+            style = MikaType.Micro.copy(fontWeight = FontWeight.Normal), color = c.onMedia,
         )
     }
 }
@@ -970,6 +976,7 @@ private fun MiniScreen(frame: Bitmap, onZoom: () -> Unit) {
 /** 放大的画面:点一下回到卡片。 */
 @Composable
 private fun Zoomed(frame: Bitmap, actions: CardActions) {
+    val c = MikaTheme.colors
     val image = remember(frame) { frame.asImageBitmap() }
     val width = minOf(ZoomWidth, (LocalConfiguration.current.screenWidthDp * 0.72f).dp)
     Box(
@@ -979,9 +986,9 @@ private fun Zoomed(frame: Bitmap, actions: CardActions) {
     ) {
         Image(image, null, Modifier.matchParentSize(), contentScale = ContentScale.Fit)
         Text(
-            CardCopy.ZOOM_HINT, Modifier.align(Alignment.BottomCenter).padding(10.dp)
-                .background(Color.Black.copy(alpha = 0.6f), RoundedCornerShape(10.dp)).padding(horizontal = 10.dp, vertical = 4.dp),
-            style = Sub, color = Color.White,
+            CardCopy.ZOOM_HINT, Modifier.align(Alignment.BottomCenter).padding(MikaSpace.S12)
+                .background(c.mediaScrim.copy(alpha = 0.6f), RoundedCornerShape(MikaRadius.Sm)).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4),
+            style = Sub, color = c.onMedia,
         )
     }
 }

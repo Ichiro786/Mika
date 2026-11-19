@@ -65,6 +65,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.wangzan101.mika.ui.theme.motion
 import androidx.compose.animation.core.snap
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 设置里的推荐任务:和首页是同一份列表,标题用来辨认,提示词留到点按后填进输入框。 */
 @Composable
@@ -147,7 +148,7 @@ fun RecommendedTasksScreen(store: RecommendedTaskStore, onBack: () -> Unit) {
             MikaButton(
                 stringResource(R.string.recommendations_reset),
                 { resetting = true },
-                modifier = Modifier.padding(top = 4.dp),
+                modifier = Modifier.padding(top = MikaSpace.S4),
                 kind = ButtonKind.Secondary,
                 size = ButtonSize.Medium,
             )
@@ -250,7 +251,7 @@ fun RecommendedTasksScreen(store: RecommendedTaskStore, onBack: () -> Unit) {
             text = {
                 Column {
                     Text(stringResource(R.string.recommendations_delete_body))
-                    deleteError?.let { Text(recommendationError(it), Modifier.padding(top = 8.dp), color = c.bad) }
+                    deleteError?.let { Text(recommendationError(it), Modifier.padding(top = MikaSpace.S8), color = c.bad) }
                 }
             },
             confirmButton = {
@@ -323,10 +324,10 @@ private fun RecommendedTaskDialog(store: RecommendedTaskStore, initial: Recommen
                     minLines = 4,
                     maxLines = 8,
                     enabled = !saving,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                 )
                 error?.let {
-                    Text(recommendationError(it), Modifier.padding(top = 8.dp), color = MikaTheme.colors.bad)
+                    Text(recommendationError(it), Modifier.padding(top = MikaSpace.S8), color = MikaTheme.colors.bad)
                 }
             }
         },

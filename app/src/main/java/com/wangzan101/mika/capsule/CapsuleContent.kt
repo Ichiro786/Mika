@@ -75,6 +75,10 @@ import com.wangzan101.mika.ui.theme.motion
 import com.wangzan101.mika.ui.theme.rememberMikaPulse
 import com.wangzan101.mika.ui.theme.rememberMikaPhase
 import com.wangzan101.mika.ui.plan.RingSpinner
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.onMedia
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 胶囊外面留给阴影的边:浮层窗口按内容大小,阴影画在窗口里面;留得越少,窗口挡住下面 App 的透明边越窄。 */
 internal val CapsuleShadowRoom = 8.dp
@@ -86,9 +90,9 @@ private const val FLASH_ALPHA = 0.8f
 /** 长按说话时放大多少、外圈多粗。 */
 private const val HOLD_SCALE = 0.06f
 private val HoldRing = 3.dp
-private val CapsuleText = TextStyle(fontSize = 13.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
-private val BarDetail = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
-private val CountText = TextStyle(fontSize = 10.sp, lineHeight = 12.sp, fontWeight = FontWeight.SemiBold)
+private val CapsuleText = MikaType.Label
+private val BarDetail = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
+private val CountText = MikaType.Micro
 
 /** 胶囊上的固定说法。 */
 object CapsuleCopy {
@@ -194,7 +198,7 @@ private fun Capsule(view: CapsuleView.Shown, end: Boolean, onTap: () -> Unit, ta
         ) {
             if (view.pill) PillRow(view, end, need)
             else Box(Modifier.size(CapsuleHeight), contentAlignment = Alignment.Center) { CapsuleLogo() }
-            if (glow.value > 0f) Box(Modifier.matchParentSize().background(androidx.compose.ui.graphics.Color.White.copy(alpha = glow.value)))
+            if (glow.value > 0f) Box(Modifier.matchParentSize().background(c.onMedia.copy(alpha = glow.value)))
         }
         // 外圈和角标不随底淡下去;缩回时贴着图标那一边,不跟着还没收完的宽度走
         if (!view.pill) Box(Modifier.align(if (end) Alignment.CenterEnd else Alignment.CenterStart).size(CapsuleHeight)) {
@@ -216,9 +220,9 @@ private fun PillRow(view: CapsuleView.Shown, end: Boolean, need: Boolean) {
         Modifier.widthIn(min = minWidth.coerceAtMost(maxWidth), max = maxWidth)
             .onSizeChanged { if (it.width > widest) widest = it.width }
             .height(CapsuleHeight)
-            .padding(start = if (end) 13.dp else 5.dp, end = if (end) 5.dp else 13.dp),
+            .padding(start = if (end) MikaSpace.S12 else MikaSpace.S4, end = if (end) MikaSpace.S4 else MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, if (end) Alignment.End else Alignment.Start),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, if (end) Alignment.End else Alignment.Start),
     ) {
         if (!end) CapsuleLogo()
         Leading(view.kind)
@@ -236,9 +240,9 @@ private fun Leading(kind: CapsuleKind) {
     val c = MikaTheme.colors
     when {
         kind.needsYou -> BreathingDot(c)
-        kind == CapsuleKind.Done -> Icon(MikaIcons.Check, null, Modifier.size(16.dp), tint = c.ok)
-        kind == CapsuleKind.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(16.dp), tint = c.ink3)
-        kind == CapsuleKind.Cancelled -> Icon(MikaIcons.Stop, null, Modifier.size(16.dp), tint = c.ink3)
+        kind == CapsuleKind.Done -> Icon(MikaIcons.Check, null, Modifier.size(MikaSize.SmallIcon), tint = c.ok)
+        kind == CapsuleKind.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
+        kind == CapsuleKind.Cancelled -> Icon(MikaIcons.Stop, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
         kind == CapsuleKind.KeptPage -> LiveDot(c)
         // Working: the live plan's compact ring beside the current step (the pill's text); tap opens the card.
         kind == CapsuleKind.Running -> RingSpinner(Modifier.size(14.dp).testTag("capsule-plan-ring"), c.accent, c.accentSoft, spinning = true)
@@ -307,7 +311,7 @@ private fun Badge(view: CapsuleView.Shown, need: Boolean, modifier: Modifier) {
         }
         Box(
             modifier.testTag("capsule-count").background(c.surface, MikaShapes.Pill).padding(1.5.dp)
-                .sizeIn(minWidth = 15.dp, minHeight = 15.dp).background(fill, MikaShapes.Pill).padding(horizontal = 3.dp),
+                .sizeIn(minWidth = 15.dp, minHeight = 15.dp).background(fill, MikaShapes.Pill).padding(horizontal = MikaSpace.S4),
             contentAlignment = Alignment.Center,
         ) {
             Text("${view.count}", style = CountText, color = c.onAccent, maxLines = 1)
@@ -321,7 +325,7 @@ private fun Badge(view: CapsuleView.Shown, need: Boolean, modifier: Modifier) {
         else -> return
     }
     Box(
-        modifier.testTag("capsule-badge").size(16.dp).background(c.surface, MikaShapes.Pill).padding(1.5.dp)
+        modifier.testTag("capsule-badge").size(MikaSize.SmallIcon).background(c.surface, MikaShapes.Pill).padding(1.5.dp)
             .background(tint, MikaShapes.Pill),
         contentAlignment = Alignment.Center,
     ) {
@@ -408,9 +412,9 @@ private fun TakeoverBar(view: CapsuleView.Shown, onStop: () -> Unit, onHandBack:
             .glass(c, MikaShapes.Pill, need = false)
             .widthIn(max = maxWidth)
             .height(BarHeight)
-            .padding(horizontal = 6.dp),
+            .padding(horizontal = MikaSpace.S8),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         CapsuleLogo()
         Column(Modifier.weight(1f, fill = false).semantics(mergeDescendants = true) {}) {
@@ -419,7 +423,7 @@ private fun TakeoverBar(view: CapsuleView.Shown, onStop: () -> Unit, onHandBack:
         }
         Box(
             Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button, onClick = onStop)
-                .heightIn(min = 36.dp).padding(horizontal = 10.dp),
+                .heightIn(min = 36.dp).padding(horizontal = MikaSpace.S12),
             contentAlignment = Alignment.Center,
         ) {
             Text(CapsuleCopy.STOP, style = CapsuleText.copy(fontWeight = FontWeight.Normal), color = c.ink2, maxLines = 1)

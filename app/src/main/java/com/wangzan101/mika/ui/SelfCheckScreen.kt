@@ -62,6 +62,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
 
 /** 兼容性自检页的文字(纯函数,便于测试):每项的名字、状态、下面那一句大白话。 */
 object SelfCheckCopy {
@@ -202,10 +205,10 @@ fun SelfCheckContent(
                 stringResource(if (state.ended) R.string.selfcheck_again else R.string.selfcheck_start), onStart,
                 Modifier.fillMaxWidth().testTag("selfcheck-start"), enabled = !taskBusy,
             )
-            if (taskBusy) FooterNote(stringResource(R.string.selfcheck_task_running), Modifier.padding(top = 8.dp), color = MikaTheme.colors.warn)
+            if (taskBusy) FooterNote(stringResource(R.string.selfcheck_task_running), Modifier.padding(top = MikaSpace.S8), color = MikaTheme.colors.warn)
         }
 
-        GroupLabel(stringResource(R.string.selfcheck_checks), Modifier.padding(top = 12.dp))
+        GroupLabel(stringResource(R.string.selfcheck_checks), Modifier.padding(top = MikaSpace.S12))
         GroupCard {
             state.results.forEachIndexed { i, r ->
                 val (icon, tone) = look(r.status)
@@ -221,12 +224,12 @@ fun SelfCheckContent(
             val c = MikaTheme.colors
             Box(
                 Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 360.dp).testTag("selfcheck-report")
-                    .background(c.fill, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
-                    .horizontalScroll(rememberScrollState()).padding(12.dp),
+                    .background(c.fill, RoundedCornerShape(MikaRadius.Md)).verticalScroll(rememberScrollState())
+                    .horizontalScroll(rememberScrollState()).padding(MikaSpace.S12),
             ) {
-                Text(text, fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 17.sp, color = c.ink2)
+                Text(text, fontFamily = FontFamily.Monospace, style = MikaType.Hint, color = c.ink2)
             }
-            Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16, bottom = MikaSpace.S8), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 MikaButton(stringResource(R.string.selfcheck_copy), onCopy, Modifier.weight(1f).testTag("selfcheck-copy"))
                 MikaButton(stringResource(R.string.selfcheck_github), onGithub, Modifier.weight(1f).testTag("selfcheck-github"), kind = ButtonKind.Tonal)
             }

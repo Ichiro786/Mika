@@ -39,6 +39,7 @@ import com.wangzan101.mika.voice.BailianProtocol
 import com.wangzan101.mika.voice.BailianRegion
 import com.wangzan101.mika.voice.FunAsrProtocol
 import com.wangzan101.mika.voice.SpeechChoice
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 设置页试连的状态:[testing] 时按钮转圈不可点,[error] 是没通的原因。 */
 data class LiveProbeUi(val testing: Boolean = false, val error: String? = null)
@@ -60,7 +61,7 @@ internal fun LiveServiceRow(
         trailing = {
             if (configured) {
                 Row(
-                    Modifier.clip(MikaShapes.Pill).clickable(onClick = onOpen).padding(start = 8.dp, top = 6.dp, bottom = 6.dp).testTag(tag),
+                    Modifier.clip(MikaShapes.Pill).clickable(onClick = onOpen).padding(start = MikaSpace.S8, top = MikaSpace.S8, bottom = MikaSpace.S8).testTag(tag),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(tr(R.string.speech_doubao_edit), style = MikaType.Value, color = c.ink2)
@@ -126,8 +127,8 @@ private fun LanguagePicker(selected: AsrLanguage, onSelect: (AsrLanguage) -> Uni
     GroupLabel(tr(R.string.speech_asr_language))
     androidx.compose.foundation.layout.FlowRow(
         Modifier.fillMaxWidth().testTag("speech-asr-language"),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
-        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(6.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(MikaSpace.S8),
+        verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(MikaSpace.S8),
     ) {
         AsrLanguage.entries.forEach { l -> SelectChip(asrLanguageName(l), l == selected, { onSelect(l) }) }
     }
@@ -152,7 +153,7 @@ fun FunAsrSetupPage(
         SegmentedControl(
             FunAsrTab.entries.map(::funAsrTabName), tab.ordinal,
             onSelect = { tab = FunAsrTab.entries[it]; onTab() },
-            Modifier.padding(top = 4.dp, bottom = 8.dp).testTag("speech-funasr-tabs"),
+            Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S8).testTag("speech-funasr-tabs"),
         )
         when (val region = tab.region) {
             null -> LocalFunAsr(saved.url, saved.localLanguage, probe, onSaveLocal)
@@ -174,7 +175,7 @@ private fun LocalFunAsr(savedUrl: String?, savedLanguage: AsrLanguage, probe: Li
     var address by remember { mutableStateOf(savedUrl.orEmpty()) }
     var language by remember { mutableStateOf(savedLanguage) }
     val url = FunAsrProtocol.normalize(address)
-    Text(tr(R.string.speech_funasr_setup_hint), Modifier.padding(top = 4.dp, bottom = 4.dp), fontSize = 14.5.sp, lineHeight = 22.sp, color = c.ink2)
+    Text(tr(R.string.speech_funasr_setup_hint), Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S4), style = MikaType.Callout, color = c.ink2)
     GroupLabel(tr(R.string.speech_funasr_server))
     GroupCard {
         InputRow(
@@ -182,17 +183,17 @@ private fun LocalFunAsr(savedUrl: String?, savedLanguage: AsrLanguage, probe: Li
             first = true, keyboard = KeyboardType.Uri, labelWidth = 84.dp, modifier = Modifier.testTag("speech-funasr-address"),
         )
     }
-    if (address.isNotBlank() && url == null) FooterNote(tr(R.string.speech_funasr_invalid), Modifier.padding(top = 8.dp), color = c.bad)
-    else if (url != null && url != address.trim()) FooterNote(url, Modifier.padding(top = 8.dp))
+    if (address.isNotBlank() && url == null) FooterNote(tr(R.string.speech_funasr_invalid), Modifier.padding(top = MikaSpace.S8), color = c.bad)
+    else if (url != null && url != address.trim()) FooterNote(url, Modifier.padding(top = MikaSpace.S8))
     LanguagePicker(language) { language = it }
-    FooterNote(tr(R.string.speech_funasr_privacy), Modifier.padding(top = 8.dp))
+    FooterNote(tr(R.string.speech_funasr_privacy), Modifier.padding(top = MikaSpace.S8))
     MikaButton(
         tr(if (probe.testing) R.string.speech_live_testing else R.string.speech_live_save),
         onClick = { url?.let { onSave(it, language) } },
-        Modifier.fillMaxWidth().padding(top = 8.dp).testTag("speech-funasr-save"),
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).testTag("speech-funasr-save"),
         enabled = url != null && !probe.testing,
     )
-    probe.error?.let { FooterNote(it, Modifier.padding(top = 8.dp).testTag("speech-live-failed"), color = c.bad) }
+    probe.error?.let { FooterNote(it, Modifier.padding(top = MikaSpace.S8).testTag("speech-live-failed"), color = c.bad) }
 }
 
 @Composable
@@ -207,7 +208,7 @@ private fun BailianFunAsr(
     var language by remember { mutableStateOf(savedLanguage) }
     val workspace = BailianProtocol.workspace(workspaceText)
     val modelOk = BailianProtocol.validModel(model)
-    Text(tr(R.string.speech_bailian_setup_hint), Modifier.padding(top = 4.dp, bottom = 4.dp), fontSize = 14.5.sp, lineHeight = 22.sp, color = c.ink2)
+    Text(tr(R.string.speech_bailian_setup_hint), Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S4), style = MikaType.Callout, color = c.ink2)
     GroupLabel(tr(R.string.speech_doubao_credentials))
     GroupCard {
         InputRow(
@@ -221,10 +222,10 @@ private fun BailianFunAsr(
         )
     }
     when {
-        workspace == null -> FooterNote(tr(R.string.speech_bailian_workspace_invalid), Modifier.padding(top = 8.dp), color = c.bad)
+        workspace == null -> FooterNote(tr(R.string.speech_bailian_workspace_invalid), Modifier.padding(top = MikaSpace.S8), color = c.bad)
         else -> FooterNote(
             if (workspace.isEmpty()) tr(R.string.speech_bailian_workspace_note) else region.endpoint(workspace).removeSuffix("/api-ws/v1/inference"),
-            Modifier.padding(top = 8.dp),
+            Modifier.padding(top = MikaSpace.S8),
         )
     }
     GroupLabel(tr(R.string.speech_bailian_model_label))
@@ -239,19 +240,19 @@ private fun BailianFunAsr(
         )
     }
     LanguagePicker(language) { language = it }
-    FooterNote(tr(R.string.speech_bailian_privacy), Modifier.padding(top = 8.dp))
+    FooterNote(tr(R.string.speech_bailian_privacy), Modifier.padding(top = MikaSpace.S8))
     MikaButton(
         tr(if (probe.testing) R.string.speech_live_testing else R.string.speech_live_save),
         onClick = { workspace?.let { onSave(BailianInput(key.trim(), model.trim(), region, it, language)) }; key = "" },
-        Modifier.fillMaxWidth().padding(top = 8.dp).testTag("speech-bailian-save"),
+        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).testTag("speech-bailian-save"),
         enabled = !probe.testing && modelOk && workspace != null && (key.isNotBlank() || configured),
     )
-    probe.error?.let { FooterNote(it, Modifier.padding(top = 8.dp).testTag("speech-live-failed"), color = c.bad) }
+    probe.error?.let { FooterNote(it, Modifier.padding(top = MikaSpace.S8).testTag("speech-live-failed"), color = c.bad) }
     if (configured) {
-        Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S8), contentAlignment = Alignment.Center) {
             Text(
                 tr(R.string.speech_bailian_remove),
-                Modifier.clip(MikaShapes.Pill).clickable(onClick = { onClear(region) }).padding(horizontal = 16.dp, vertical = 12.dp)
+                Modifier.clip(MikaShapes.Pill).clickable(onClick = { onClear(region) }).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12)
                     .testTag("speech-bailian-remove"),
                 style = MikaType.Body, color = c.bad,
             )

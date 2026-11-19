@@ -76,6 +76,9 @@ import com.wangzan101.mika.settings.VoiceEngineSettings
 import kotlinx.coroutines.flow.map
 import com.wangzan101.mika.ui.theme.motion
 import com.wangzan101.mika.ui.theme.rememberMikaPulse
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
+import com.wangzan101.mika.ui.theme.hangUp
 
 /**
  * A hands-free call with Orbit over the open chat: a big orb that follows your voice, what was heard and
@@ -194,17 +197,17 @@ private fun CallBody(phase: CallPhase, note: String?) {
         else -> PresenceState.Idle
     }
     Column(
-        Modifier.fillMaxSize().padding(horizontal = 28.dp).padding(top = 72.dp, bottom = 196.dp),
+        Modifier.fillMaxSize().padding(horizontal = MikaSpace.S32).padding(top = 72.dp, bottom = 196.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(stringResource(R.string.orbit_call_orbit_title), style = MikaType.Title, color = Color.White)
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(MikaSpace.S8))
         Text(
             stringResource(phaseLabel(phase)), style = MikaType.Caption, color = Color.White.copy(alpha = 0.62f),
             modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
         )
         if (note != null) {
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(MikaSpace.S12))
             Text(note, style = MikaType.Caption, color = Color.White.copy(alpha = 0.72f), textAlign = TextAlign.Center)
         }
         Spacer(Modifier.weight(1f))
@@ -276,15 +279,15 @@ private fun phaseLabel(phase: CallPhase): Int = when (phase) {
 @Composable
 private fun CallNotice(text: String, action: String, onAction: () -> Unit) {
     Column(
-        Modifier.fillMaxSize().padding(32.dp),
+        Modifier.fillMaxSize().padding(MikaSpace.S32),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text, style = MikaType.Body, color = Color.White, textAlign = TextAlign.Center)
-        Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(MikaSpace.S24))
         Box(
             Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.14f))
-                .clickable(role = Role.Button, onClick = onAction).padding(horizontal = 22.dp, vertical = 13.dp),
+                .clickable(role = Role.Button, onClick = onAction).padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S12),
         ) { Text(action, style = MikaType.Label, color = Color.White) }
     }
 }
@@ -293,11 +296,11 @@ private fun CallNotice(text: String, action: String, onAction: () -> Unit) {
 private fun HangUp(modifier: Modifier, onEnd: () -> Unit) {
     val label = stringResource(R.string.orbit_call_hang_up)
     Box(
-        modifier.size(72.dp).clip(CircleShape).background(Color(0xFFFF3B30))
+        modifier.size(72.dp).clip(CircleShape).background(MikaTheme.colors.hangUp)
             .clickable(role = Role.Button, onClickLabel = label, onClick = onEnd),
         contentAlignment = Alignment.Center,
     ) {
         // The handset turned down, the usual sign for ending a call.
-        Icon(MikaIcons.Call, label, Modifier.size(30.dp).rotate(135f), tint = Color.White)
+        Icon(MikaIcons.Call, label, Modifier.size(MikaSize.Tile).rotate(135f), tint = Color.White)
     }
 }

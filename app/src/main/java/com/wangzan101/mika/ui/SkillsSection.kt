@@ -40,6 +40,7 @@ import com.wangzan101.mika.ui.components.RowChevron
 import com.wangzan101.mika.ui.components.SheetAction
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 技能相关的两块内容。[pending] 为假是「技能」段:已收下的个人技能(开关即启用/停用)和在用的 App 知识;
@@ -139,8 +140,8 @@ internal fun SkillsSection(vm: MemoryViewModel, ui: SkillsUi, pending: Boolean) 
                 KeyboardDismissArea {
                     Column {
                         Text(stringResource(R.string.skills_import_hint), style = MikaType.Hint, color = MikaTheme.colors.ink3)
-                        OutlinedTextField(text, { text = it; problem = null }, Modifier.fillMaxWidth().padding(top = 8.dp).heightIn(min = 240.dp).keepsKeyboard().testTag("skill-import"))
-                        problem?.let { Text(it, Modifier.padding(top = 6.dp), style = MikaType.Hint, color = MikaTheme.colors.bad) }
+                        OutlinedTextField(text, { text = it; problem = null }, Modifier.fillMaxWidth().padding(top = MikaSpace.S8).heightIn(min = 240.dp).keepsKeyboard().testTag("skill-import"))
+                        problem?.let { Text(it, Modifier.padding(top = MikaSpace.S8), style = MikaType.Hint, color = MikaTheme.colors.bad) }
                     }
                 }
             },
@@ -177,7 +178,7 @@ private fun AppKnowledgeItem(vm: MemoryViewModel, row: AppKnowledgeRow, first: B
     Column {
         ListRow(null, row.name, stage, first = first, onClick = onToggle)
         ChangesAndText(row.changedLines, expanded) {
-            Text(row.markdown, Modifier.padding(top = 6.dp), style = MikaType.Hint, color = MikaTheme.colors.ink2)
+            Text(row.markdown, Modifier.padding(top = MikaSpace.S8), style = MikaType.Hint, color = MikaTheme.colors.ink2)
         }
         RowActions {
             MikaButton(if (expanded) stringResource(R.string.skills_hide_full) else stringResource(R.string.skills_view_full), onToggle, kind = ButtonKind.Tonal, size = ButtonSize.Small)
@@ -205,7 +206,7 @@ internal fun skillPreviewBody(markdown: String): String {
 private fun ChangesAndText(changed: List<String>, expanded: Boolean, content: @Composable () -> Unit) {
     val c = MikaTheme.colors
     if (changed.isEmpty() && !expanded) return
-    Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp)) {
+    Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12)) {
         if (changed.isNotEmpty()) {
             Text(stringResource(R.string.skills_changed_lines), style = MikaType.Hint, color = c.ink3)
             changed.forEach { Text(it, style = MikaType.Hint, color = if (it.startsWith("+")) c.ok else c.bad) }

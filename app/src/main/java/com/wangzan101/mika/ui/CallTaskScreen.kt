@@ -28,6 +28,8 @@ import com.wangzan101.mika.calls.CallTaskBrief
 import com.wangzan101.mika.ui.components.*
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
 
 /** A private draft in the workspace, never a saved call profile or background request. */
 @Stable
@@ -105,7 +107,7 @@ internal fun CallTaskScreen(
     }
 
     feedback?.let { CallFeedback(it) }
-    Column(Modifier.fillMaxWidth().testTag("call-task-fields"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.fillMaxWidth().testTag("call-task-fields"), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         OutlinedTextField(
             draft.number, { draft.number = it }, enabled = editable,
             label = { Text(stringResource(R.string.calls_number)) },
@@ -138,7 +140,7 @@ internal fun CallTaskScreen(
             }) else null,
         )
     }
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(MikaSpace.S8))
     GroupCard {
         val simSummary = when {
             sim != null && draft.simOverride == null && sim.id == config.defaultOutgoingSimId ->
@@ -187,7 +189,7 @@ internal fun CallTaskScreen(
         },
         Modifier.testTag("call-task-review"),
     )
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(MikaSpace.S8))
     FooterNote(stringResource(R.string.calls_task_one_off))
 
     if (showSims) CallTaskSimDialog(
@@ -215,7 +217,7 @@ private fun CallTaskLongField(
 ) {
     OutlinedTextField(
         value, onValue, enabled = editable, label = { Text(label) },
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp).testTag(tag),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16).padding(bottom = MikaSpace.S8).testTag(tag),
         minLines = 2, maxLines = 5, isError = length > max,
         supportingText = if (length > max) ({
             Text(stringResource(R.string.calls_task_limit, length, max))
@@ -261,7 +263,7 @@ private fun CallTaskReviewDialog(submission: CallTaskSubmission, canDial: Boolea
         modifier = Modifier.testTag("call-task-review-dialog"),
         text = {
             Column(Modifier.heightIn(max = 400.dp).verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(9.dp)) {
+                verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 TaskReviewField(stringResource(R.string.calls_number), "\u2066${submission.number}\u2069")
                 TaskReviewField(stringResource(R.string.calls_sim), submission.simLabel)
                 TaskReviewField(stringResource(R.string.calls_task_goal), submission.brief.goal)
@@ -277,7 +279,7 @@ private fun CallTaskReviewDialog(submission: CallTaskSubmission, canDial: Boolea
                             .testTag(if (mode) "call-mode-lock" else "call-mode-now")
                             .selectable(selected = locked == mode, role = Role.RadioButton) { locked = mode },
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                             RadioButton(selected = locked == mode, onClick = null)
                             Text(stringResource(if (mode) R.string.calls_task_dial_locked else R.string.calls_task_dial_now))
                         }
@@ -288,7 +290,7 @@ private fun CallTaskReviewDialog(submission: CallTaskSubmission, canDial: Boolea
                     locked -> R.string.calls_task_dial_locked_note
                     else -> R.string.calls_task_confirm_note
                 }),
-                    style = MaterialTheme.typography.bodySmall, color = MikaTheme.colors.ink3)
+                    style = MikaType.Hint, color = MikaTheme.colors.ink3)
             }
         },
         confirmButton = {
@@ -308,7 +310,7 @@ private fun CallTaskReviewDialog(submission: CallTaskSubmission, canDial: Boolea
 @Composable
 private fun TaskReviewField(label: String, value: String) {
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(label, style = MaterialTheme.typography.labelMedium, color = MikaTheme.colors.ink3)
-        Text(value, style = MaterialTheme.typography.bodyMedium)
+        Text(label, style = MikaType.Hint, color = MikaTheme.colors.ink3)
+        Text(value, style = MikaType.Caption)
     }
 }

@@ -47,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 import kotlin.math.roundToLong
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 运行小结和运行统计的说法。token 数用 Token 用量页同一种写法([UsageCopy.tokens])。 */
 object RunMetricsCopy {
@@ -137,7 +138,7 @@ fun RunMetricsSummary(m: RunMetrics) {
     var open by rememberSaveable { mutableStateOf(false) }
     Column(
         Modifier.fillMaxWidth().clickable(role = Role.Button) { open = !open }.testTag("run-metrics-summary")
-            .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 10.dp),
+            .padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12, bottom = MikaSpace.S12),
     ) {
         Text(RunMetricsCopy.summaryLine(m), style = MikaType.Caption, color = c.ink2)
         Text(if (open) tr(R.string.collapse) else tr(R.string.metrics_where_time), Modifier.padding(top = 2.dp), style = MikaType.Hint, color = c.accent)

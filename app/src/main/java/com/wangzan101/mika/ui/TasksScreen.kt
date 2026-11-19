@@ -102,6 +102,11 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
+import com.wangzan101.mika.ui.theme.errorInk
+import com.wangzan101.mika.ui.theme.attentionInk
 
 
 private data class LiveTask(val run: TaskRun, val state: TaskState, val recordId: String?)
@@ -131,7 +136,7 @@ internal fun TasksScreen(
 ) {
     val context = LocalContext.current
     val c = MikaTheme.colors
-    val errorInk = if (c.isDark) c.bad else Color(0xFFAB3028)
+    val errorInk = c.errorInk
     val personal by runtime.state.collectAsState()
     val error by runtime.error.collectAsState()
     val runs by taskState.runs.collectAsState()
@@ -223,7 +228,7 @@ internal fun TasksScreen(
         Box(Modifier.weight(1f).fillMaxWidth()) {
             LazyColumn(
                 state = list, modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 26.dp, bottom = bottomInset + 88.dp),
+                contentPadding = PaddingValues(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S24, bottom = bottomInset + 88.dp),
             ) {
                 item("heading") {
                     val title = stringResource(R.string.tasks_title)
@@ -237,11 +242,11 @@ internal fun TasksScreen(
                     }
                     OneLineTitle(styled, color = c.ink, modifier = Modifier.semantics { heading() })
                     Text(stringResource(R.string.tasks_subtitle), style = MikaType.Body, color = c.ink2,
-                        modifier = Modifier.padding(top = 6.dp, bottom = 24.dp))
+                        modifier = Modifier.padding(top = MikaSpace.S8, bottom = MikaSpace.S24))
                     TaskTabs(tab) { tab = it }
                 }
                 historyError?.let { message -> item("history-error") {
-                    Text(message.displayText(context), Modifier.padding(top = 20.dp), style = MikaType.Body, color = errorInk)
+                    Text(message.displayText(context), Modifier.padding(top = MikaSpace.S24), style = MikaType.Body, color = errorInk)
                 } }
                 visibleSections.filter { it != TaskSection.Resolved }.forEach { section ->
                     val entries = visibleTasks.filter { it.section == section }
@@ -257,14 +262,14 @@ internal fun TasksScreen(
                     }
                 }
                 if (schedules == null || history == null) item("schedules-loading") {
-                    Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                    Row(Modifier.padding(top = MikaSpace.S24), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
+                        CircularProgressIndicator(Modifier.size(MikaSize.TileIcon), strokeWidth = 2.dp)
                         Text(stringResource(R.string.loading), style = MikaType.Caption, color = c.ink2)
                     }
                 }
                 if (schedules?.isFailure == true || history?.isFailure == true) item("schedules-error") {
-                    Row(Modifier.fillMaxWidth().padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S24), verticalAlignment = Alignment.CenterVertically) {
                         Text(stringResource(R.string.op_failed), Modifier.weight(1f), style = MikaType.Body, color = errorInk)
                         TextButton(onClick = { refresh++ }) { Text(stringResource(R.string.retry)) }
                     }
@@ -272,7 +277,7 @@ internal fun TasksScreen(
                 if (!exact && (tab == 1 || plans.isNotEmpty())) item("exact-alarm") {
                     StateCard(
                         MikaIcons.Alarm, ExactAlarmGuide.TITLE, stringResource(R.string.plans_alarm_body),
-                        tone = TileTone.Warn, modifier = Modifier.padding(top = 20.dp),
+                        tone = TileTone.Warn, modifier = Modifier.padding(top = MikaSpace.S24),
                     ) {
                         MikaButton(stringResource(R.string.turn_on_go), {
                             runCatching { context.startActivity(TriggerRuntime.exactAlarmSettings(context)) }
@@ -304,7 +309,7 @@ internal fun TasksScreen(
                     item("empty") {
                         EmptyStateCard(
                             stringResource(if (tab == 0) R.string.personal_no_tasks else R.string.tasks_empty_up_next),
-                            Modifier.padding(top = 30.dp).testTag("tasks-empty"),
+                            Modifier.padding(top = MikaSpace.S32).testTag("tasks-empty"),
                             hint = stringResource(R.string.tasks_empty_hint),
                             icon = MikaIcons.Clock,
                             actionLabel = stringResource(R.string.plans_add),
@@ -314,8 +319,8 @@ internal fun TasksScreen(
                 }
             }
             Box(
-                Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = bottomInset + 20.dp).size(56.dp)
-                    .clip(RoundedCornerShape(20.dp)).background(c.accent)
+                Modifier.align(Alignment.BottomEnd).padding(end = MikaSpace.S24, bottom = bottomInset + MikaSpace.S24).size(56.dp)
+                    .clip(RoundedCornerShape(MikaRadius.Xl)).background(c.accent)
                     .clickable(onClickLabel = stringResource(R.string.plans_add), role = Role.Button, onClick = startPlan),
                 contentAlignment = Alignment.Center,
             ) { Icon(MikaIcons.Plus, null, Modifier.size(24.dp), tint = c.onAccent) }
@@ -357,13 +362,13 @@ internal fun TasksScreen(
 internal fun TaskTabs(selected: Int, onSelect: (Int) -> Unit) {
     val c = MikaTheme.colors
     Column {
-        Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(28.dp)) {
+        Row(Modifier.fillMaxWidth().selectableGroup(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S32)) {
             listOf(R.string.tasks_active, R.string.tasks_up_next).forEachIndexed { index, label ->
                 Column(Modifier.weight(1f, fill = false).widthIn(min = 48.dp).heightIn(min = 48.dp).testTag("tasks-tab-$index")
                     .selectable(selected == index, role = Role.Tab, onClick = { onSelect(index) }),
                     verticalArrangement = Arrangement.SpaceBetween) {
                     Text(stringResource(label), style = MikaType.BodyStrong, color = if (selected == index) c.ink else c.ink3,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 12.dp), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        modifier = Modifier.padding(top = MikaSpace.S8, bottom = MikaSpace.S12), maxLines = 1, overflow = TextOverflow.Ellipsis)
                     Box(Modifier.fillMaxWidth().height(2.dp).background(if (selected == index) c.ink else c.bg))
                 }
             }
@@ -386,7 +391,7 @@ private fun sectionLabel(section: TaskSection): String = stringResource(when (se
 private fun TaskSectionTitle(label: String, count: Int) {
     val locale = LocalConfiguration.current.locales[0]
     val latin = locale.language in setOf("en", "es", "in", "pt")
-    Text("${label.uppercase(locale)} · $count", Modifier.padding(top = 28.dp, bottom = 8.dp).semantics { heading() },
+    Text("${label.uppercase(locale)} · $count", Modifier.padding(top = MikaSpace.S32, bottom = MikaSpace.S8).semantics { heading() },
         style = MikaType.Hint.copy(letterSpacing = if (latin) 0.8.sp else 0.sp),
         fontWeight = FontWeight.SemiBold, color = MikaTheme.colors.ink3)
 }
@@ -410,7 +415,7 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
         ?: task?.displayDetail(context)?.takeIf { it.isNotBlank() }
         ?: item.stored?.reply?.takeIf { it.isNotBlank() }
     val progress = state?.let(::taskProgress)
-    val attention = if (c.isDark) c.warn else Color(0xFF8C5000)
+    val attention = c.attentionInk
     val status = when {
         state == TaskState.Cancelled -> stringResource(R.string.personal_status_cancelled)
         state is TaskState.Failed -> stringResource(R.string.personal_status_incomplete)
@@ -422,19 +427,19 @@ private fun TaskRow(item: TaskItem, onClick: () -> Unit) {
     }
     Row(Modifier.fillMaxWidth().clip(MikaShapes.Card)
         .clickable(onClickLabel = stringResource(R.string.personal_task_details), role = Role.Button, onClick = onClick)
-        .padding(vertical = 16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-        Box(Modifier.padding(top = 3.dp).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(6.dp)))
+        .padding(vertical = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.Top) {
+        Box(Modifier.padding(top = MikaSpace.S4).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(MikaRadius.Xs)))
         Column(Modifier.weight(1f)) {
             Text(title, style = MikaType.BodyStrong, color = c.ink, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            Text(status, Modifier.padding(top = 4.dp), style = MikaType.Caption,
+            Text(status, Modifier.padding(top = MikaSpace.S4), style = MikaType.Caption,
                 color = if (item.section == TaskSection.Review || item.section == TaskSection.NeedsYou) attention else c.ink2)
             if (!detail.isNullOrBlank() && detail != title && detail != status) Text(detail,
-                Modifier.padding(top = 3.dp), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
-            if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = 10.dp).height(4.dp),
+                Modifier.padding(top = MikaSpace.S4), style = MikaType.Caption, color = c.ink2, maxLines = 3, overflow = TextOverflow.Ellipsis)
+            if (progress != null) LinearProgressIndicator(progress = progress, modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S12).height(4.dp),
                 color = c.accent, trackColor = c.fill)
         }
         if (item.section == TaskSection.Review) Text(stringResource(R.string.teach_review), style = MikaType.Caption, color = attention)
-        Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
+        Icon(MikaIcons.Chevron, null, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
     }
     HorizontalDivider(color = c.hair)
 }
@@ -445,15 +450,15 @@ private fun ScheduleRow(plan: TriggerDefinition, stopped: Boolean = false, onCli
     val locale = LocalConfiguration.current.locales[0]
     val format = remember(locale) { DateTimeFormatter.ofLocalizedDateTime(FormatStyle.MEDIUM, FormatStyle.SHORT).withLocale(locale) }
     val time = remember(plan.nextAtMs, format) { format.format(Instant.ofEpochMilli(plan.nextAtMs).atZone(ZoneId.systemDefault())) }
-    Row(Modifier.fillMaxWidth().clip(MikaShapes.Card).clickable(role = Role.Button, onClick = onClick).padding(vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
-        Box(Modifier.padding(top = 3.dp).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(6.dp)))
+    Row(Modifier.fillMaxWidth().clip(MikaShapes.Card).clickable(role = Role.Button, onClick = onClick).padding(vertical = MikaSpace.S16),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12), verticalAlignment = Alignment.Top) {
+        Box(Modifier.padding(top = MikaSpace.S4).size(19.dp).border(1.dp, c.hair, RoundedCornerShape(MikaRadius.Xs)))
         Column(Modifier.weight(1f)) {
             Text(plan.reminderText ?: plan.goal, style = MikaType.BodyStrong, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(if (stopped) stringResource(R.string.chat_paused) else time, Modifier.padding(top = 4.dp), style = MikaType.Caption,
+            Text(if (stopped) stringResource(R.string.chat_paused) else time, Modifier.padding(top = MikaSpace.S4), style = MikaType.Caption,
                 color = if (stopped) c.ink3 else c.ink2)
         }
-        Icon(MikaIcons.Chevron, null, Modifier.size(18.dp), tint = c.ink3)
+        Icon(MikaIcons.Chevron, null, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
     }
     HorizontalDivider(color = c.hair)
 }

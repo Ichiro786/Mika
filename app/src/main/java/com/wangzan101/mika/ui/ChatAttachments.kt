@@ -75,6 +75,9 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.launch
 import com.wangzan101.mika.ui.theme.MikaMotion
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 对话页附件的说法。 */
 object AttachCopy {
@@ -184,7 +187,7 @@ internal fun AttachMenuOverlay(
         }
         AnimatedVisibility(
             visible = open,
-            modifier = Modifier.align(Alignment.BottomStart).padding(start = 12.dp, bottom = bottom),
+            modifier = Modifier.align(Alignment.BottomStart).padding(start = MikaSpace.S12, bottom = bottom),
             enter = MikaMotion.specs(reduceMotion).enter(MenuOrigin),
             exit = MikaMotion.specs(reduceMotion).exit(MenuOrigin),
         ) {
@@ -222,11 +225,11 @@ private fun MenuRow(icon: ImageVector, label: String, onClick: () -> Unit, modif
     val c = MikaTheme.colors
     Row(
         modifier.fillMaxWidth().heightIn(min = 52.dp).clickable(role = Role.Button, onClick = onClick)
-            .padding(start = 10.dp, end = 20.dp, top = 4.dp, bottom = 4.dp),
+            .padding(start = MikaSpace.S12, end = MikaSpace.S24, top = MikaSpace.S4, bottom = MikaSpace.S4),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
     ) {
-        Box(Modifier.size(40.dp).background(c.ink.copy(alpha = if (c.isDark) 0.09f else 0.06f), CircleShape), contentAlignment = Alignment.Center) {
+        Box(Modifier.size(MikaSize.IconButton).background(c.ink.copy(alpha = if (c.isDark) 0.09f else 0.06f), CircleShape), contentAlignment = Alignment.Center) {
             Icon(icon, null, Modifier.size(20.dp), tint = c.ink)
         }
         Text(label, style = MenuText, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -244,8 +247,8 @@ internal fun PendingTray(items: List<PendingAttachment>, onRemove: (String) -> U
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     Row(
-        modifier.fillMaxWidth().testTag("attach-tray").horizontalScroll(rememberScrollState()).padding(start = 4.dp, end = 10.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier.fillMaxWidth().testTag("attach-tray").horizontalScroll(rememberScrollState()).padding(start = MikaSpace.S4, end = MikaSpace.S12, top = MikaSpace.S8, bottom = MikaSpace.S8),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         for (a in items) {
             val conversationId = a.workspaceConversationId
@@ -272,9 +275,9 @@ internal fun PendingTray(items: List<PendingAttachment>, onRemove: (String) -> U
                 } else {
                     Row(
                         Modifier.testTag("tray-file").height(58.dp).widthIn(max = 200.dp).cardSurface(c, ChipShape)
-                            .clip(ChipShape).then(openModifier).padding(horizontal = 10.dp),
+                            .clip(ChipShape).then(openModifier).padding(horizontal = MikaSpace.S12),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                     ) {
                         TypeBadge(a.name, Modifier.size(28.dp, 34.dp), small = true)
                         Column(Modifier.widthIn(max = 130.dp)) {
@@ -305,7 +308,7 @@ internal fun PendingTray(items: List<PendingAttachment>, onRemove: (String) -> U
  */
 @Composable
 internal fun SentAttachments(parsed: AttachmentMessage.Parsed, conversationId: String?, maxWidth: Dp, onOpen: (AttachmentMessage.Item) -> Unit) {
-    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         if (parsed.photos.isNotEmpty()) SentPhotos(parsed.photos, conversationId, maxWidth, onOpen)
         for (f in parsed.files) SentFileCard(f, maxWidth) { onOpen(f) }
     }
@@ -353,9 +356,9 @@ private fun SentFileCard(f: AttachmentMessage.Item, maxWidth: Dp, onClick: () ->
     Row(
         Modifier.testTag("sent-file").widthIn(min = minOf(220.dp, maxWidth), max = maxWidth).cardSurface(c, FileCardShape).clip(FileCardShape)
             .clickable(onClickLabel = stringResource(R.string.chat_open), role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         TypeBadge(f.name, Modifier.size(38.dp, 44.dp), small = false)
         Column(Modifier.weight(1f, fill = false)) {
@@ -368,7 +371,7 @@ private fun SentFileCard(f: AttachmentMessage.Item, maxWidth: Dp, onClick: () ->
 /** 文件类型角标:按扩展名配色,上面写扩展名。 */
 @Composable
 private fun TypeBadge(name: String, modifier: Modifier, small: Boolean) {
-    val shape = RoundedCornerShape(if (small) 5.dp else 7.dp)
+    val shape = RoundedCornerShape(if (small) MikaRadius.Xs else MikaRadius.Xs)
     Box(modifier.background(badgeColor(FileBadge.kind(name), MikaTheme.colors), shape), contentAlignment = Alignment.Center) {
         Text(FileBadge.text(name), style = if (small) BadgeSmall else BadgeLarge, color = Color.White, maxLines = 1)
     }
@@ -388,13 +391,13 @@ private const val SINGLE_PX = 640
 
 private val SingleWidth = 200.dp
 private val NeutralBadge = Color(0xFF8E8E93)
-private val PanelShape = RoundedCornerShape(26.dp)
-private val ChipShape = RoundedCornerShape(12.dp)
-private val GridPhotoShape = RoundedCornerShape(14.dp)
-private val FileCardShape = RoundedCornerShape(14.dp)
-private val MenuText = TextStyle(fontSize = 16.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)
-private val BadgeSmall = TextStyle(fontSize = 8.5.sp, lineHeight = 10.sp, fontWeight = FontWeight.Bold)
-private val BadgeLarge = TextStyle(fontSize = 10.5.sp, lineHeight = 12.sp, fontWeight = FontWeight.Bold)
-private val ChipName = TextStyle(fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
-private val ChipMeta = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
-private val FileCardName = TextStyle(fontSize = 14.sp, lineHeight = 19.sp, fontWeight = FontWeight.Medium)
+private val PanelShape = RoundedCornerShape(MikaRadius.Xxl)
+private val ChipShape = RoundedCornerShape(MikaRadius.Md)
+private val GridPhotoShape = RoundedCornerShape(MikaRadius.Lg)
+private val FileCardShape = RoundedCornerShape(MikaRadius.Lg)
+private val MenuText = MikaType.Button
+private val BadgeSmall = MikaType.Micro
+private val BadgeLarge = MikaType.Micro
+private val ChipName = MikaType.HintStrong
+private val ChipMeta = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
+private val FileCardName = MikaType.Callout.copy(fontWeight = FontWeight.Medium)

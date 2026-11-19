@@ -34,6 +34,7 @@ import com.wangzan101.mika.ui.components.RowChevron
 import com.wangzan101.mika.ui.components.SelectChip
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 每个用途自己的档位;跟随主模型时说明继承,显式选同一个模型仍能独立设置。 */
 @OptIn(ExperimentalLayoutApi::class)
@@ -57,11 +58,11 @@ internal fun ReasoningControl(ui: ModelSetupUi, role: ModelRole, modifier: Modif
         onDismissRequest = { open = false },
         title = { Text(stringResource(R.string.model_reasoning_title, ModelsCopy.roleName(role))) },
         text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 Text(stringResource(R.string.model_reasoning_note))
                 if (!options.fromProvider) Text(stringResource(R.string.model_reasoning_unknown))
                 if (selected != null && selected !in options.levels) Text(stringResource(R.string.model_reasoning_unavailable))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                     (listOf<String?>(null) + options.levels).forEach { effort ->
                         SelectChip(reasoningLabel(effort), selected == effort, {
                             onSelect(effort)
@@ -79,7 +80,7 @@ internal fun ReasoningControl(ui: ModelSetupUi, role: ModelRole, modifier: Modif
 @Composable
 internal fun ModelOptionButton(text: String, tag: String, modifier: Modifier = Modifier, onClick: () -> Unit) {
     Row(
-        modifier.height(44.dp).clickable(onClick = onClick).testTag(tag).padding(horizontal = 4.dp),
+        modifier.height(44.dp).clickable(onClick = onClick).testTag(tag).padding(horizontal = MikaSpace.S4),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {

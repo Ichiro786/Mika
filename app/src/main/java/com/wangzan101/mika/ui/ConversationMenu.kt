@@ -54,6 +54,7 @@ import com.wangzan101.mika.ui.theme.MikaType
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 长按菜单摆在哪:抬起的那一行的顶边(可能为了放下菜单挪过)、菜单的顶边、菜单是不是在那一行上面。 */
 internal data class MenuPlacement(val rowTop: Float, val menuTop: Float, val above: Boolean)
@@ -212,7 +213,7 @@ private fun LiftedRow(item: DrawerConversation) {
             .floatShadow(c, NavShape)
             .background(c.surface, NavShape)
             .clip(NavShape)
-            .padding(horizontal = 12.dp, vertical = 9.dp),
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
     ) {
         ConversationRowContent(item)
     }
@@ -235,11 +236,11 @@ private fun MenuItem(text: String, icon: ImageVector, tag: String, color: Color,
         Modifier.fillMaxWidth().heightIn(min = 48.dp)
             .clickable(role = Role.Button, onClick = onClick)
             .testTag(tag)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = MikaSpace.S16),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(text, Modifier.weight(1f), style = MikaType.Body, color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        Icon(icon, null, Modifier.padding(start = 12.dp).size(MikaSize.Icon), tint = color)
+        Icon(icon, null, Modifier.padding(start = MikaSpace.S12).size(MikaSize.Icon), tint = color)
     }
 }
 

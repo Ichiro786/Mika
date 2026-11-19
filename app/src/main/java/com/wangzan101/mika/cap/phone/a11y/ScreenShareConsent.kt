@@ -15,6 +15,7 @@ import com.wangzan101.mika.settings.AppAccessStore
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 用户主动分享的授权浮层;不会先读取应用内容。 */
 internal suspend fun requestScreenShare(service: ScreenAccessibility, store: AppAccessStore, pkg: String, label: String): Boolean =
@@ -30,7 +31,7 @@ internal suspend fun requestScreenShare(service: ScreenAccessibility, store: App
         }
         window = service.overlays().open(OverlayPlacement(Gravity.CENTER), onOutside = { finish(0) }) {
             MikaTheme {
-                Surface { Column(Modifier.widthIn(max = 340.dp).padding(20.dp)) {
+                Surface { Column(Modifier.widthIn(max = 340.dp).padding(MikaSpace.S24)) {
                     Text(stringResource(R.string.appaccess_share_title, label))
                     Text(stringResource(R.string.appaccess_share_body))
                     TextButton({ finish(1) }) { Text(stringResource(R.string.appaccess_share_allow)) }

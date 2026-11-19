@@ -316,4 +316,5 @@
     <string name="plan_step_needs_approval">Precisa da sua aprovação</string>
     <string name="plan_step_stopped">Parado</string>
     <string name="plan_step_of">Etapa %1$d de %2$d</string>
+    <string name="chat_jump_latest">Ir para o mais recente</string>
 </resources>

@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 设置 › 文件与计算环境 的文案(纯函数,便于测试)。运行环境对用户是看不见的实现细节(产品决定):
@@ -203,7 +204,7 @@ fun AdvancedSection(
 
 @Composable
 private fun Note(text: String, color: Color) {
-    Text(text, Modifier.fillMaxWidth().padding(start = 60.dp, end = 16.dp, bottom = 10.dp), style = MikaType.Hint, color = color)
+    Text(text, Modifier.fillMaxWidth().padding(start = 60.dp, end = MikaSpace.S16, bottom = MikaSpace.S12), style = MikaType.Hint, color = color)
 }
 
 /**
@@ -225,7 +226,7 @@ private fun UsageGroup(
         }
     }
     if (u.workspaces.isNotEmpty()) {
-        GroupCard(Modifier.padding(top = 8.dp)) {
+        GroupCard(Modifier.padding(top = MikaSpace.S8)) {
             u.workspaces.forEachIndexed { i, w ->
                 ListRow(
                     null, SandboxCopy.workspaceTitle(w), if (w.busy) tr(R.string.sandbox_usage_busy) else null, first = i == 0,
@@ -236,7 +237,7 @@ private fun UsageGroup(
                             tr(R.string.terminal_open_action),
                             Modifier
                                 .clickable { onOpenTerminal(w) }
-                                .padding(end = 12.dp)
+                                .padding(end = MikaSpace.S12)
                                 .testTag("sandbox-workspace-terminal"),
                             style = MikaType.Caption,
                             color = c.accent,
@@ -250,5 +251,5 @@ private fun UsageGroup(
             }
         }
     }
-    Text(SandboxCopy.USAGE_NOTE, Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 8.dp), style = MikaType.Hint, color = c.ink3)
+    Text(SandboxCopy.USAGE_NOTE, Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S8), style = MikaType.Hint, color = c.ink3)
 }

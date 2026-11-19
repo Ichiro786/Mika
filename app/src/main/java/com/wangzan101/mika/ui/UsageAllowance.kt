@@ -41,6 +41,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 private val allowanceClient by lazy { ProviderAllowanceClient(ProviderStore.modelHttp) }
 
@@ -51,8 +52,8 @@ internal fun UsageAllowanceCard(providers: List<Provider>, store: ProviderStore,
     val revisions by store.providerKeyRevisions.collectAsState()
     var refresh by remember { mutableIntStateOf(0) }
     GroupCard {
-        Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(tr(R.string.usage_allowance_title), Modifier.weight(1f).padding(vertical = 12.dp),
+        Row(Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S8, top = MikaSpace.S4), verticalAlignment = Alignment.CenterVertically) {
+            Text(tr(R.string.usage_allowance_title), Modifier.weight(1f).padding(vertical = MikaSpace.S12),
                 style = MikaType.Body, color = MikaTheme.colors.ink)
             if (routes.any { (_, route) -> route.source != null }) {
                 TextButton(onClick = { refresh++ }) { Text(tr(R.string.refresh)) }

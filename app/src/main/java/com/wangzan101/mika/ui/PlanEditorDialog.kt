@@ -88,6 +88,8 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.TextStyle
 import java.util.UUID
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /** 新建和编辑共用一份草稿；预览不另猜时间，直接显示将要保存的计划。 */
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
@@ -129,7 +131,7 @@ fun PlanEditorDialog(
         KeyboardDismissArea {
             Column(Modifier.fillMaxWidth()) {
                 Row(
-                    Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, bottom = 8.dp),
+                    Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S8, bottom = MikaSpace.S8),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
@@ -141,7 +143,7 @@ fun PlanEditorDialog(
                 }
                 Column(
                     Modifier.weight(1f, fill = false).verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = MikaSpace.S24),
                 ) {
                     SegmentedControl(
                         listOf(tr(R.string.plans_task_mode), tr(R.string.plans_reminder_mode)),
@@ -155,7 +157,7 @@ fun PlanEditorDialog(
                         },
                         tags = listOf("plan-editor-task", "plan-editor-reminder"),
                     )
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(MikaSpace.S16))
                     PlanField(
                         draft.content,
                         { draft = draft.copy(content = it) },
@@ -163,7 +165,7 @@ fun PlanEditorDialog(
                         "plan-editor-content",
                         singleLine = false,
                     )
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(MikaSpace.S16))
                     SegmentedControl(
                         listOf(
                             tr(R.string.plans_once), tr(R.string.plans_repeat_interval),
@@ -182,21 +184,21 @@ fun PlanEditorDialog(
                         },
                         tags = listOf("plan-editor-once", "plan-editor-interval", "plan-editor-daily", "plan-editor-weekly"),
                     )
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(MikaSpace.S16))
                     if (draft.repeat in setOf(PlanRepeat.Once, PlanRepeat.Interval)) {
                         PlanField(
                             draft.firstAt, { draft = draft.copy(firstAt = it) },
                             tr(R.string.plans_edit_label), "plan-editor-first-at",
                             trailing = { PickButton(tr(R.string.orbit_plan_pick_time)) { pickingDate = true } },
                         )
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                     }
                     if (draft.repeat == PlanRepeat.Interval) {
                         PlanField(
                             draft.intervalMinutes, { draft = draft.copy(intervalMinutes = it) },
                             tr(R.string.plans_interval_minutes), "plan-editor-interval-minutes", KeyboardType.Number,
                         )
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                     }
                     if (draft.repeat in setOf(PlanRepeat.Daily, PlanRepeat.Weekly)) {
                         PlanField(
@@ -205,10 +207,10 @@ fun PlanEditorDialog(
                             placeholder = "08:00, 12:30, 20:00",
                             trailing = { PickButton(tr(R.string.orbit_plan_add_time)) { addingClock = true } },
                         )
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                     }
                     if (draft.repeat == PlanRepeat.Weekly) {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        FlowRow(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                             (1..7).forEach { day ->
                                 MikaButton(
                                     DayOfWeek.of(day).getDisplayName(TextStyle.SHORT, uiLocale()),
@@ -223,17 +225,17 @@ fun PlanEditorDialog(
                                 )
                             }
                         }
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                     }
                     ZoneRow(draft.zone) { draft = draft.copy(zone = it) }
                     if (!draft.reminder) {
-                        Spacer(Modifier.height(14.dp))
+                        Spacer(Modifier.height(MikaSpace.S16))
                         PlanField(
                             draft.condition, { draft = draft.copy(condition = it) },
                             tr(R.string.plans_condition_optional), "plan-editor-condition", singleLine = false,
                         )
                         if (draft.condition.isNotBlank()) {
-                            Spacer(Modifier.height(14.dp))
+                            Spacer(Modifier.height(MikaSpace.S16))
                             SegmentedControl(
                                 listOf(tr(R.string.plans_notify_change), tr(R.string.plans_notify_each)),
                                 if (draft.notifyWhen == ConditionNotify.BecomesMet) 0 else 1,
@@ -242,7 +244,7 @@ fun PlanEditorDialog(
                                 },
                                 tags = listOf("plan-editor-notify-change", "plan-editor-notify-each"),
                             )
-                            Spacer(Modifier.height(14.dp))
+                            Spacer(Modifier.height(MikaSpace.S16))
                             PlanField(
                                 draft.cooldownMinutes, { draft = draft.copy(cooldownMinutes = it) },
                                 tr(R.string.plans_cooldown_minutes), "plan-editor-cooldown", KeyboardType.Number,
@@ -253,7 +255,7 @@ fun PlanEditorDialog(
                     PlanSwitch(tr(R.string.plans_enabled), draft.enabled, { draft = draft.copy(enabled = it) }, "plan-editor-enabled")
 
                     preview?.let { plan ->
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(MikaSpace.S8))
                         Text(tr(R.string.plans_preview), style = MikaType.Caption, color = MikaTheme.colors.ink3)
                         val zone = plan.calendarZone ?: draft.zone
                         upcoming(plan, System.currentTimeMillis(), 3).forEachIndexed { index, at ->
@@ -267,7 +269,7 @@ fun PlanEditorDialog(
                     }
                     if (attempted && preview == null) {
                         val reason = (candidate.exceptionOrNull() as? PlanValidationException)?.reason
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(MikaSpace.S8))
                         Text(
                             reason?.let { planValidationText(it) } ?: tr(R.string.op_failed),
                             Modifier.testTag("plan-editor-error"),
@@ -285,7 +287,7 @@ fun PlanEditorDialog(
                         if (saved.isFailure) attempted = true
                         else onSave(saved.getOrThrow())
                     },
-                    modifier = Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S12, bottom = MikaSpace.S16)
                         .testTag("plan-editor-save"),
                 )
             }
@@ -345,11 +347,11 @@ private fun TimeDialog(hour: Int, minute: Int, is24Hour: Boolean, onDismiss: () 
 private fun PickButton(label: String, onClick: () -> Unit) {
     val c = MikaTheme.colors
     Box(
-        Modifier.size(40.dp).clip(CircleShape).background(c.surface)
+        Modifier.size(MikaSize.IconButton).clip(CircleShape).background(c.surface)
             .semantics { contentDescription = label }
             .clickable(onClickLabel = label, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
-    ) { Icon(MikaIcons.Clock, null, Modifier.size(18.dp), tint = c.ink2) }
+    ) { Icon(MikaIcons.Clock, null, Modifier.size(MikaSize.TileIcon), tint = c.ink2) }
 }
 
 /** The time zone stays out of the way: one line with the current zone, opened into a field on request. */
@@ -362,11 +364,11 @@ private fun ZoneRow(zone: String, onChange: (String) -> Unit) {
     } else {
         Row(
             Modifier.fillMaxWidth().clip(OrbitFieldShape).clickable(role = Role.Button) { editing = true }
-                .heightIn(min = 48.dp).padding(horizontal = 4.dp),
+                .heightIn(min = 48.dp).padding(horizontal = MikaSpace.S4),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
-            Icon(MikaIcons.Globe, null, Modifier.size(18.dp), tint = c.ink3)
+            Icon(MikaIcons.Globe, null, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
             Text(zone, Modifier.weight(1f).testTag("plan-editor-zone-value"), style = MikaType.Body, color = c.ink2, maxLines = 1)
             Text(tr(R.string.orbit_plan_zone_change), style = MikaType.Label, color = c.accent)
         }

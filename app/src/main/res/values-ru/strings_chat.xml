@@ -330,4 +330,5 @@
     <string name="plan_step_needs_approval">Нужно ваше одобрение</string>
     <string name="plan_step_stopped">Остановлено</string>
     <string name="plan_step_of">Шаг %1$d из %2$d</string>
+    <string name="chat_jump_latest">К последним</string>
 </resources>

@@ -39,6 +39,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.loop
+import com.wangzan101.mika.ui.theme.MikaSize
 
 enum class PresenceState { Idle, Listening, Thinking, Working, NeedsUser, Success, Error }
 
@@ -109,7 +110,7 @@ fun MikaPresenceAvatar(
     val surface = MikaTheme.colors.surface
     val edge = MikaTheme.colors.hair
     val markScale = if (framed) 0.84f else 1f
-    Box(modifier.size(40.dp), contentAlignment = Alignment.Center) {
+    Box(modifier.size(MikaSize.IconButton), contentAlignment = Alignment.Center) {
         Canvas(Modifier.matchParentSize()) {
             val p = phase?.value ?: 0f
             val a = arrive.value

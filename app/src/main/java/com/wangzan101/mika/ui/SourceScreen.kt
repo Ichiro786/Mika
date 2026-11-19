@@ -49,6 +49,8 @@ import com.wangzan101.mika.ui.components.TopBar
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 一次答复的来源:每条是「第几步 · 在哪 · 标题」,下面是当时的画面;没有画面的(后台读的网页正文、文件、命令输出)是摘录原文。 */
 @Composable
@@ -63,22 +65,22 @@ fun SourceScreen(vm: SourceViewModel, onBack: () -> Unit) {
             ui?.let { source ->
                 LazyColumn(
                     Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottom + 16.dp),
+                    contentPadding = PaddingValues(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S8, bottom = bottom + MikaSpace.S16),
                 ) {
                     source.legacyText?.takeIf(String::isNotBlank)?.let { legacy ->
-                        item("legacy") { GroupCard { Text(legacy, Modifier.padding(16.dp), style = MikaType.Body, color = c.ink) } }
+                        item("legacy") { GroupCard { Text(legacy, Modifier.padding(MikaSpace.S16), style = MikaType.Body, color = c.ink) } }
                     }
                     source.entries.forEachIndexed { index, entry ->
                         item("source-$index") {
                             GroupCard {
-                                Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp)) {
+                                Column(Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16)) {
                                     Text(
                                         listOfNotNull(stringResource(R.string.step_number, entry.step), entry.place, entry.title).joinToString(" · "),
                                         style = MikaType.BodyStrong, color = c.ink,
                                     )
                                     // 有画面就只给画面:识别出的文字和画面重复;没有画面时摘录就是唯一的依据
                                     if (entry.screenshots.isEmpty()) {
-                                        entry.text?.let { Text(it, Modifier.padding(top = 6.dp), style = MikaType.Caption, color = c.ink2) }
+                                        entry.text?.let { Text(it, Modifier.padding(top = MikaSpace.S8), style = MikaType.Caption, color = c.ink2) }
                                     }
                                     entry.screenshots.forEach { id -> SourceShot(vm, id) }
                                 }
@@ -101,7 +103,7 @@ private fun SourceShot(vm: SourceViewModel, id: Int) {
     }
     var zoomed by remember { mutableStateOf(false) }
     image?.let {
-        Image(it, stringResource(R.string.source_image), Modifier.fillMaxWidth().padding(top = 10.dp).clip(RoundedCornerShape(12.dp))
+        Image(it, stringResource(R.string.source_image), Modifier.fillMaxWidth().padding(top = MikaSpace.S12).clip(RoundedCornerShape(MikaRadius.Md))
             .clickable(onClickLabel = stringResource(R.string.zoom_in)) { zoomed = true },
             contentScale = ContentScale.FillWidth)
         if (zoomed) ZoomedShot(it) { zoomed = false }

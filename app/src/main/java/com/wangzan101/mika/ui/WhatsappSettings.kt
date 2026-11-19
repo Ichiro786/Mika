@@ -53,6 +53,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** The status pill on the Settings home row. */
 @Composable
@@ -120,7 +121,7 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
         GroupLabel(stringResource(R.string.whatsapp_how))
         GroupCard {
             Text(
-                stringResource(R.string.whatsapp_how_body), Modifier.padding(16.dp),
+                stringResource(R.string.whatsapp_how_body), Modifier.padding(MikaSpace.S16),
                 style = MikaType.Body, color = MikaTheme.colors.ink2,
             )
         }
@@ -129,19 +130,19 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
             GroupLabel(stringResource(R.string.whatsapp_risk_title))
             GroupCard {
                 Text(
-                    stringResource(R.string.whatsapp_risk_body), Modifier.padding(16.dp).testTag("whatsapp-risk"),
+                    stringResource(R.string.whatsapp_risk_body), Modifier.padding(MikaSpace.S16).testTag("whatsapp-risk"),
                     style = MikaType.Body, color = MikaTheme.colors.ink2,
                 )
             }
         }
 
         when {
-            linking?.code != null -> MikaCard(Modifier.padding(bottom = 12.dp).testTag("whatsapp-code")) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            linking?.code != null -> MikaCard(Modifier.padding(bottom = MikaSpace.S12).testTag("whatsapp-code")) {
+                Column(Modifier.fillMaxWidth().padding(MikaSpace.S24), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(stringResource(R.string.whatsapp_code_title), style = MikaType.BodyStrong, color = MikaTheme.colors.ink)
                     SelectionContainer {
                         Text(
-                            linking.code.chunked(4).joinToString("-"), Modifier.padding(vertical = 16.dp),
+                            linking.code.chunked(4).joinToString("-"), Modifier.padding(vertical = MikaSpace.S16),
                             style = MikaType.Title.copy(fontFamily = FontFamily.Monospace, fontSize = 32.sp, lineHeight = 40.sp, letterSpacing = 3.sp),
                             color = MikaTheme.colors.ink,
                         )
@@ -151,18 +152,18 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
                         color = MikaTheme.colors.ink2, textAlign = TextAlign.Center,
                     )
                     MikaButton(stringResource(R.string.cancel), runtime::cancelLink,
-                        Modifier.fillMaxWidth().padding(top = 8.dp), kind = ButtonKind.Text)
+                        Modifier.fillMaxWidth().padding(top = MikaSpace.S8), kind = ButtonKind.Text)
                 }
             }
-            linking?.qr != null -> MikaCard(Modifier.padding(bottom = 12.dp).testTag("whatsapp-qr")) {
-                Column(Modifier.fillMaxWidth().padding(20.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                    QrCodeImage(linking.qr, stringResource(R.string.whatsapp_qr_help), Modifier.padding(vertical = 8.dp).size(240.dp))
+            linking?.qr != null -> MikaCard(Modifier.padding(bottom = MikaSpace.S12).testTag("whatsapp-qr")) {
+                Column(Modifier.fillMaxWidth().padding(MikaSpace.S24), horizontalAlignment = Alignment.CenterHorizontally) {
+                    QrCodeImage(linking.qr, stringResource(R.string.whatsapp_qr_help), Modifier.padding(vertical = MikaSpace.S8).size(240.dp))
                     Text(
                         stringResource(R.string.whatsapp_qr_help), style = MikaType.Caption,
                         color = MikaTheme.colors.ink2, textAlign = TextAlign.Center,
                     )
                     MikaButton(stringResource(R.string.cancel), runtime::cancelLink,
-                        Modifier.fillMaxWidth().padding(top = 8.dp), kind = ButtonKind.Text)
+                        Modifier.fillMaxWidth().padding(top = MikaSpace.S8), kind = ButtonKind.Text)
                 }
             }
             !linked -> {
@@ -174,7 +175,7 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
                 MikaButton(
                     stringResource(R.string.whatsapp_get_code),
                     { act(linkFailed) { runtime.linkWithPhone(phone) } },
-                    Modifier.fillMaxWidth().padding(top = 12.dp).testTag("whatsapp-get-code"),
+                    Modifier.fillMaxWidth().padding(top = MikaSpace.S12).testTag("whatsapp-get-code"),
                     enabled = !busy && phone.count { it.isDigit() } >= 7,
                 )
                 MikaButton(
@@ -190,7 +191,7 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
             GroupCard {
                 if (allowed.isEmpty()) {
                     Text(
-                        stringResource(R.string.whatsapp_chats_none), Modifier.padding(16.dp),
+                        stringResource(R.string.whatsapp_chats_none), Modifier.padding(MikaSpace.S16),
                         style = MikaType.Body, color = MikaTheme.colors.ink2,
                     )
                 } else allowed.forEachIndexed { i, chat ->
@@ -200,7 +201,7 @@ fun WhatsappSettingsScreen(runtime: WhatsappRuntime, onBack: () -> Unit) {
             }
             MikaButton(
                 stringResource(R.string.whatsapp_chats_pick), { picking = true },
-                Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("whatsapp-pick"), kind = ButtonKind.Secondary,
+                Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8).testTag("whatsapp-pick"), kind = ButtonKind.Secondary,
                 enabled = status == WhatsappStatus.Connected,
             )
 
@@ -274,11 +275,11 @@ private fun WhatsappChatPicker(runtime: WhatsappRuntime, allowed: List<WhatsappC
     PageScaffold(stringResource(R.string.whatsapp_chats_pick), ::finish) {
         OrbitTextField(query, { query = it }, stringResource(R.string.whatsapp_chats_search), Modifier.testTag("whatsapp-search"))
         val list = all
-        GroupCard(Modifier.padding(top = 12.dp)) {
+        GroupCard(Modifier.padding(top = MikaSpace.S12)) {
             when {
-                list == null -> Text("…", Modifier.padding(16.dp), color = MikaTheme.colors.ink2)
+                list == null -> Text("…", Modifier.padding(MikaSpace.S16), color = MikaTheme.colors.ink2)
                 list.isEmpty() -> Text(
-                    stringResource(R.string.whatsapp_chats_empty), Modifier.padding(16.dp),
+                    stringResource(R.string.whatsapp_chats_empty), Modifier.padding(MikaSpace.S16),
                     style = MikaType.Body, color = MikaTheme.colors.ink2,
                 )
                 else -> {
@@ -297,7 +298,7 @@ private fun WhatsappChatPicker(runtime: WhatsappRuntime, allowed: List<WhatsappC
                 }
             }
         }
-        MikaButton(stringResource(R.string.whatsapp_chats_done), ::finish, Modifier.fillMaxWidth().padding(top = 12.dp))
+        MikaButton(stringResource(R.string.whatsapp_chats_done), ::finish, Modifier.fillMaxWidth().padding(top = MikaSpace.S12))
     }
 }
 

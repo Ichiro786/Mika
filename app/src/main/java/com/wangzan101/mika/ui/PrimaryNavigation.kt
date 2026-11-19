@@ -33,6 +33,7 @@ import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 @Composable
 internal fun PrimaryNavigation(
@@ -50,7 +51,7 @@ internal fun PrimaryNavigation(
     val selected = if (current == Route.Personal) Route.Chat else current
     GlassBar(
         // Floats: inset from both sides and lifted clear of the gesture bar, with the glass shadow under it.
-        modifier.fillMaxWidth().padding(start = 28.dp, end = 28.dp, top = 6.dp, bottom = 16.dp),
+        modifier.fillMaxWidth().padding(start = MikaSpace.S32, end = MikaSpace.S32, top = MikaSpace.S8, bottom = MikaSpace.S16),
         backdrop = backdrop,
         frosted = true,
     ) {
@@ -67,7 +68,7 @@ internal fun PrimaryNavigation(
                     Modifier.weight(1f).heightIn(min = 50.dp).testTag("primary-nav-${route.name}").clip(MikaShapes.Pill)
                         .background(background)
                         .selectable(selected = active, role = Role.Tab, onClick = { onSelect(route) })
-                        .padding(horizontal = 4.dp, vertical = 6.dp),
+                        .padding(horizontal = MikaSpace.S4, vertical = MikaSpace.S8),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {

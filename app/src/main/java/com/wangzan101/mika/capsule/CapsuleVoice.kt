@@ -67,6 +67,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.wangzan101.mika.ui.theme.motion
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
 
 /**
  * 悬浮胶囊长按说话:松开时手指落在哪([CapsuleVoice.drop])、发出后胶囊上闪的那句([CapsuleVoice.sent]),
@@ -317,11 +320,11 @@ internal class CapsuleTalk(
 private val PanelGap = 16.dp
 private val TargetsGap = 18.dp
 private val TargetSize = 62.dp
-private val PanelShape = RoundedCornerShape(24.dp)
-private val HeadText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
+private val PanelShape = RoundedCornerShape(MikaRadius.Xxl)
+private val HeadText = MikaType.Hint
 private val TimeText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, fontFeatureSettings = "tnum")
-private val ChipText = TextStyle(fontSize = 11.5.sp, lineHeight = 15.sp)
-private val SaidText = TextStyle(fontSize = 17.5.sp, lineHeight = 26.sp)
+private val ChipText = MikaType.Micro.copy(fontWeight = FontWeight.Normal)
+private val SaidText = MikaType.Title.copy(fontWeight = FontWeight.Normal)
 private val FootText = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, textAlign = TextAlign.Center)
 private val TargetText = TextStyle(
     fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium,
@@ -412,7 +415,7 @@ private fun Target(icon: ImageVector, label: String, hot: Boolean, bad: Boolean,
         bad -> c.bad
         else -> c.accent
     }
-    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
         Box(
             Modifier.size(TargetSize)
                 .onGloballyPositioned { onPlaced(it.boundsInWindow()) }
@@ -438,13 +441,13 @@ private fun Panel(talk: CapsuleTalk, state: HoldToTalk.State, below: Boolean) {
     val cancel = aim == CapsuleVoice.Drop.Cancel
     val edit = aim == CapsuleVoice.Drop.Edit
     Column(
-        Modifier.padding(horizontal = 14.dp).widthIn(max = 520.dp).fillMaxWidth()
+        Modifier.padding(horizontal = MikaSpace.S16).widthIn(max = 520.dp).fillMaxWidth()
             .glass(c, PanelShape, need = false)
             .then(if (cancel) Modifier.border(1.5.dp, c.bad, PanelShape) else Modifier)
-            .padding(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 14.dp)
+            .padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S16, bottom = MikaSpace.S16)
             .testTag("capsule-voice-panel"),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             val dot = when {
                 cancel -> c.bad
                 edit || converting -> c.ink2
@@ -454,7 +457,7 @@ private fun Panel(talk: CapsuleTalk, state: HoldToTalk.State, below: Boolean) {
             Text(talk.title, Modifier.weight(1f, fill = false), style = HeadText, color = c.ink2, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (talk.engine.isNotEmpty()) {
                 Text(
-                    talk.engine, Modifier.background(c.fill, RoundedCornerShape(7.dp)).padding(horizontal = 8.dp, vertical = 2.dp),
+                    talk.engine, Modifier.background(c.fill, RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8, vertical = 2.dp),
                     style = ChipText, color = c.ink2, maxLines = 1,
                 )
             }
@@ -469,21 +472,21 @@ private fun Panel(talk: CapsuleTalk, state: HoldToTalk.State, below: Boolean) {
         }
         if (converting && heard.isEmpty()) {
             Row(
-                Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 52.dp).testTag("capsule-voice-converting"),
-                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                Modifier.fillMaxWidth().padding(top = MikaSpace.S12).heightIn(min = 52.dp).testTag("capsule-voice-converting"),
+                verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, Alignment.CenterHorizontally),
             ) {
                 Spinner(Modifier.size(15.dp), spinning = !MikaTheme.reduceMotion, track = c.accentSoft, head = c.accent)
                 Text(stringResource(R.string.voice_converting), style = SaidText, color = c.ink2, maxLines = 1)
             }
         } else {
             val style = if (cancel) SaidText.copy(textDecoration = TextDecoration.LineThrough) else SaidText
-            val modifier = Modifier.fillMaxWidth().padding(top = 10.dp).heightIn(min = 52.dp).alpha(if (cancel) 0.4f else 1f)
+            val modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S12).heightIn(min = 52.dp).alpha(if (cancel) 0.4f else 1f)
             if (heard.isEmpty()) Text(ghost, modifier, style = style, color = c.ink3, maxLines = 5, overflow = TextOverflow.Ellipsis)
             // 字太多时去掉前面说完的整句,最新的字一直看得见(和输入框同一套)
             else com.wangzan101.mika.ui.HeardText(listening?.stable.orEmpty(), listening?.tail.orEmpty(), style, maxLines = 5, modifier)
         }
         if (!converting) {
-            Box(Modifier.fillMaxWidth().padding(top = 8.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S8), contentAlignment = Alignment.Center) {
                 VoiceWave(listening?.level ?: 0f, flat = cancel, reduceMotion = MikaTheme.reduceMotion, color = if (cancel || edit) c.ink3 else c.accent)
             }
         }
@@ -496,6 +499,6 @@ private fun Panel(talk: CapsuleTalk, state: HoldToTalk.State, below: Boolean) {
             listening?.live == true -> stringResource(if (below) R.string.capsule_voice_foot_send_down else R.string.capsule_voice_foot_send_up)
             else -> stringResource(if (below) R.string.capsule_voice_foot_convert_down else R.string.capsule_voice_foot_convert_up)
         }
-        Text(foot, Modifier.fillMaxWidth().padding(top = 8.dp), style = FootText, color = c.ink3, maxLines = 2)
+        Text(foot, Modifier.fillMaxWidth().padding(top = MikaSpace.S8), style = FootText, color = c.ink3, maxLines = 2)
     }
 }

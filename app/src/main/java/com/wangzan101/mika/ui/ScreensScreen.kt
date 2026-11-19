@@ -61,6 +61,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaType
 
 /**
  * 这一页列的一个任务和它的虚拟屏:[displayId] 为 -1 是还没建屏(排队中,或者纯对话、还没打开过 App)。
@@ -148,7 +151,7 @@ fun ScreensContent(
 private fun ScreenCard(row: ScreenRow, frames: StateFlow<Bitmap?>?, onOpenConversation: (String) -> Unit) {
     val c = MikaTheme.colors
     var open by rememberSaveable(row.key) { mutableStateOf(false) }
-    GroupCard(Modifier.padding(top = 8.dp)) {
+    GroupCard(Modifier.padding(top = MikaSpace.S8)) {
         ListRow(
             MikaIcons.Screens, row.goal.oneLine(), ScreensCopy.place(row),
             first = true, onClick = { onOpenConversation(row.conversationId) },
@@ -156,9 +159,9 @@ private fun ScreenCard(row: ScreenRow, frames: StateFlow<Bitmap?>?, onOpenConver
         if (row.displayId >= 0 || row.web) {
             Text(
                 if (open) ScreensCopy.HIDE_PREVIEW else ScreensCopy.PREVIEW,
-                Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
+                Modifier.padding(start = MikaSpace.S16, top = MikaSpace.S8, bottom = MikaSpace.S8)
                     .clickable { open = !open }.testTag("screens-preview-${row.key}"),
-                fontSize = 13.sp, color = c.accent,
+                style = MikaType.Caption, color = c.accent,
             )
             if (open && frames != null) LiveFrame(frames)
         }
@@ -177,8 +180,8 @@ private fun LiveFrame(source: StateFlow<Bitmap?>) {
     var zoom by remember { mutableStateOf(false) }
     Image(
         bmp.asImageBitmap(), stringResource(R.string.screens_zoom),
-        Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
-            .height(260.dp).clip(RoundedCornerShape(10.dp))
+        Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12)
+            .height(260.dp).clip(RoundedCornerShape(MikaRadius.Sm))
             .clickable { zoom = true }.testTag("screens-zoom"),
         contentScale = ContentScale.Fit,
     )
@@ -194,7 +197,7 @@ private fun FrameZoom(frame: Bitmap, onDismiss: () -> Unit) {
                 .testTag("screens-zoom-dialog"),
             contentAlignment = Alignment.Center,
         ) {
-            ZoomableFrame(frame, null, Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(8.dp))
+            ZoomableFrame(frame, null, Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing).padding(MikaSpace.S8))
         }
     }
 }

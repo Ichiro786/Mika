@@ -28,6 +28,8 @@ import com.wangzan101.mika.core.teach.TeachPhase
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /**
  * 采集和暂停时贴在屏幕上方的一条。用的是无障碍浮层，和悬浮胶囊同一类窗口，不申请通知权限，也不申请「显示在其他应用上层」。
@@ -84,9 +86,9 @@ private fun TeachChipBar(
     MikaTheme {
         val c = MikaTheme.colors
         Row(
-            Modifier.testTag("teach-chip").clip(RoundedCornerShape(20.dp)).background(c.ink).padding(horizontal = 12.dp, vertical = 8.dp),
+            Modifier.testTag("teach-chip").clip(RoundedCornerShape(MikaRadius.Xl)).background(c.ink).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             Text(
                 stringResource(if (recording) R.string.teach_learning else R.string.teach_paused),
@@ -105,7 +107,7 @@ private fun TeachChipBar(
 private fun ChipAction(label: String, onClick: () -> Unit) {
     Text(
         label,
-        Modifier.clickable(role = Role.Button, onClick = onClick).padding(vertical = 4.dp),
+        Modifier.clickable(role = Role.Button, onClick = onClick).padding(vertical = MikaSpace.S4),
         style = MikaType.Body,
         color = MikaTheme.colors.bg,
     )

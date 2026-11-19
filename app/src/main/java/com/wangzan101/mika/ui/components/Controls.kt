@@ -61,6 +61,9 @@ import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.runtime.remember
 import com.wangzan101.mika.ui.theme.pressScale
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import androidx.compose.foundation.layout.heightIn
 
 // ---------- 开关 ----------
 
@@ -117,12 +120,12 @@ fun StatusPill(text: String, tone: PillTone = PillTone.Neutral, modifier: Modifi
         PillTone.Neutral -> c.greySoft to c.ink2
     }
     Text(
-        text, modifier.background(bg, MikaShapes.Pill).padding(horizontal = 9.dp, vertical = 3.dp),
+        text, modifier.background(bg, MikaShapes.Pill).padding(horizontal = MikaSpace.S8, vertical = MikaSpace.S4),
         style = PillText, color = fg, maxLines = 1,
     )
 }
 
-private val PillText = TextStyle(fontSize = 12.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold)
+private val PillText = MikaType.HintStrong
 
 // ---------- 按钮 ----------
 
@@ -131,9 +134,9 @@ enum class ButtonKind { Primary, Secondary, Tonal, Text }
 
 /** 大:页面底部 52;中:卡片里并排 42;小:行内 32 的胶囊。 */
 enum class ButtonSize(val height: Dp, val shape: RoundedCornerShape, val text: TextStyle, val padding: Dp) {
-    Large(MikaSize.Button, MikaShapes.Button, TextStyle(fontSize = 16.sp, lineHeight = 20.sp, fontWeight = FontWeight.SemiBold), 20.dp),
-    Medium(42.dp, RoundedCornerShape(12.dp), TextStyle(fontSize = 14.5.sp, lineHeight = 19.sp, fontWeight = FontWeight.SemiBold), 14.dp),
-    Small(32.dp, RoundedCornerShape(16.dp), TextStyle(fontSize = 13.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.SemiBold), 14.dp),
+    Large(MikaSize.Button, MikaShapes.Button, MikaType.Button, MikaSpace.S24),
+    Medium(42.dp, RoundedCornerShape(MikaRadius.Md), MikaType.CalloutStrong, MikaSpace.S16),
+    Small(32.dp, RoundedCornerShape(MikaRadius.Lg), MikaType.LabelStrong, MikaSpace.S16),
 }
 
 /** 按钮。宽度由 [modifier] 定(铺满、按权重分或包住文字)。 */
@@ -162,7 +165,7 @@ fun MikaButton(
             .clip(shape)
             .clickable(press, LocalIndication.current, enabled = enabled, role = Role.Button, onClick = onClick)
             .alpha(if (enabled) 1f else 0.45f)
-            .height(size.height)
+            .heightIn(min = size.height)
             .padding(horizontal = size.padding),
         contentAlignment = Alignment.Center,
     ) {
@@ -186,7 +189,7 @@ fun SegmentedControl(
         options.forEachIndexed { i, label ->
             val on = i == selected
             Box(
-                Modifier.weight(1f).height(32.dp)
+                Modifier.weight(1f).heightIn(min = 32.dp)
                     .then(
                         if (on) Modifier.shadow(1.dp, SegmentInner, clip = false, ambientColor = c.cardShadow, spotColor = c.cardShadow)
                             .background(c.surface, SegmentInner)
@@ -203,9 +206,9 @@ fun SegmentedControl(
     }
 }
 
-private val SegmentOuter = RoundedCornerShape(10.dp)
-private val SegmentInner = RoundedCornerShape(8.dp)
-private val SegmentText = TextStyle(fontSize = 13.5.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
+private val SegmentOuter = RoundedCornerShape(MikaRadius.Sm)
+private val SegmentInner = RoundedCornerShape(MikaRadius.Sm)
+private val SegmentText = MikaType.Label
 
 /** Mirrors horizontal navigation symbols in RTL while leaving non-directional artwork unchanged. */
 @Composable
@@ -247,7 +250,7 @@ fun BarIconButton(
         DirectionalIcon(icon, label, Modifier.size(MikaSize.Icon).alpha(if (enabled) 1f else 0.35f), tint = c.ink)
         if (badge) {
             Box(
-                Modifier.align(Alignment.TopEnd).padding(top = 12.dp, end = 11.dp).size(8.dp)
+                Modifier.align(Alignment.TopEnd).padding(top = MikaSpace.S12, end = MikaSpace.S12).size(8.dp)
                     .background(c.bg, CircleShape).padding(1.dp).background(c.accent, CircleShape),
             )
         }
@@ -277,11 +280,11 @@ fun TopBar(
     val c = MikaTheme.colors
     Box(Modifier.fillMaxWidth().pageBackground(background).windowInsetsPadding(WindowInsets.statusBars)) {
         val titleContent: @Composable () -> Unit = {
-            Column(Modifier.padding(horizontal = 4.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(Modifier.padding(horizontal = MikaSpace.S4), horizontalAlignment = Alignment.CenterHorizontally) {
                 if (titleIcon == null) {
                     Text(title, style = MikaType.Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 } else {
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
                         titleIcon()
                         if (title.isNotEmpty()) Text(title, style = MikaType.Title, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
@@ -295,9 +298,9 @@ fun TopBar(
             }
         }
         Row(
-            Modifier.fillMaxWidth().height(barHeight).padding(horizontal = 8.dp),
+            Modifier.fillMaxWidth().height(barHeight).padding(horizontal = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
         ) {
             if (left != null) BarIconButton(left, leftLabel, onLeft, badge = leftBadge, pill = left == MikaIcons.Menu)
             else Spacer(Modifier.size(MikaSize.TouchTarget))
@@ -344,8 +347,8 @@ fun SelectChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: M
             )
             .clip(shape)
             .selectable(selected, press, LocalIndication.current, role = Role.RadioButton, onClick = onClick)
-            .height(if (small) 28.dp else 34.dp)
-            .padding(horizontal = if (small) 10.dp else 14.dp),
+            .heightIn(min = if (small) 28.dp else 34.dp)
+            .padding(horizontal = if (small) MikaSpace.S12 else MikaSpace.S16),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -355,9 +358,9 @@ fun SelectChip(text: String, selected: Boolean, onClick: () -> Unit, modifier: M
     }
 }
 
-private val SmallChipShape = RoundedCornerShape(8.dp)
-private val ChipText = TextStyle(fontSize = 14.sp, lineHeight = 18.sp, fontWeight = FontWeight.Medium)
-private val SmallChipText = TextStyle(fontSize = 12.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+private val SmallChipShape = RoundedCornerShape(MikaRadius.Sm)
+private val ChipText = MikaType.Callout.copy(fontWeight = FontWeight.Medium)
+private val SmallChipText = MikaType.HintStrong
 
 // ---------- 小标签 ----------
 
@@ -368,11 +371,11 @@ enum class TagTone { Neutral, Accent }
 fun CapabilityTag(text: String, tone: TagTone = TagTone.Neutral) {
     val c = MikaTheme.colors
     val (bg, fg) = if (tone == TagTone.Accent) c.accentSoft to c.accent else c.greySoft to c.ink2
-    Text(text, Modifier.background(bg, TagShape).padding(horizontal = 7.dp, vertical = 2.dp), style = TagText, color = fg, maxLines = 1)
+    Text(text, Modifier.background(bg, TagShape).padding(horizontal = MikaSpace.S8, vertical = 2.dp), style = TagText, color = fg, maxLines = 1)
 }
 
-private val TagShape = RoundedCornerShape(7.dp)
-private val TagText = TextStyle(fontSize = 11.sp, lineHeight = 15.sp, fontWeight = FontWeight.SemiBold)
+private val TagShape = RoundedCornerShape(MikaRadius.Xs)
+private val TagText = MikaType.Micro
 
 // ---------- 分页点 ----------
 
@@ -380,7 +383,7 @@ private val TagText = TextStyle(fontSize = 11.sp, lineHeight = 15.sp, fontWeight
 @Composable
 fun ProgressDots(count: Int, current: Int, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
-    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)) {
+    Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, Alignment.CenterHorizontally)) {
         repeat(count) { i ->
             Box(Modifier.size(if (i == current) 18.dp else 6.dp, 6.dp).background(if (i == current) c.accent else c.hair, CircleShape))
         }

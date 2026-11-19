@@ -37,6 +37,8 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /**
  * 诊断信息的预览:整段文字先给用户看,点「复制」才进剪贴板,点「分享」才交给系统的分享面板;什么都不会自己发出去。
@@ -53,21 +55,21 @@ fun DiagnosticsSheet(load: () -> String, onDismiss: () -> Unit) {
             runCatching(load).getOrElse { Diagnostics.sanitize("${Diagnostics.HEADER}\n(failed to collect: ${it.javaClass.simpleName})\n") }
         }
     }
-    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = c.surface, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = 16.dp, end = 16.dp, bottom = 16.dp).testTag("diagnostics-sheet")) {
+    ModalBottomSheet(onDismissRequest = onDismiss, containerColor = c.surface, shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16).testTag("diagnostics-sheet")) {
             Text(AboutCopy.DIAGNOSTICS_TITLE, style = MikaType.Title, color = c.ink)
             Text(AboutCopy.DIAGNOSTICS_NOTE, Modifier.padding(top = 2.dp), style = MikaType.Caption, color = c.ink3)
             Box(
-                Modifier.padding(top = 12.dp).fillMaxWidth().heightIn(min = 120.dp, max = 360.dp)
-                    .background(c.fill, RoundedCornerShape(12.dp)).verticalScroll(rememberScrollState())
-                    .horizontalScroll(rememberScrollState()).padding(12.dp),
+                Modifier.padding(top = MikaSpace.S12).fillMaxWidth().heightIn(min = 120.dp, max = 360.dp)
+                    .background(c.fill, RoundedCornerShape(MikaRadius.Md)).verticalScroll(rememberScrollState())
+                    .horizontalScroll(rememberScrollState()).padding(MikaSpace.S12),
             ) {
                 Text(
                     text ?: AboutCopy.DIAGNOSTICS_LOADING, Modifier.testTag("diagnostics-text"),
-                    fontFamily = FontFamily.Monospace, fontSize = 12.sp, lineHeight = 17.sp, color = if (text == null) c.ink3 else c.ink2,
+                    fontFamily = FontFamily.Monospace, style = MikaType.Hint, color = if (text == null) c.ink3 else c.ink2,
                 )
             }
-            Row(Modifier.fillMaxWidth().padding(top = 14.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 val ready = text != null
                 MikaButton(
                     AboutCopy.DIAGNOSTICS_COPY, { text?.let { copyDiagnostics(context, it) } },

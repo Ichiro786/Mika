@@ -16,6 +16,7 @@ import com.wangzan101.mika.ui.components.MikaDialog
 import com.wangzan101.mika.ui.components.RadioRow
 import com.wangzan101.mika.ui.theme.MikaTheme
 import java.text.NumberFormat
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 设置与运行记录里都显示完整数字，避免紧凑格式把预算四舍五入成另一个值。 */
 internal fun tokenBudgetNumber(value: Long): String = NumberFormat.getIntegerInstance().format(value)
@@ -38,7 +39,7 @@ internal fun TokenBudgetDialog(
         title = { Text(title) },
         text = {
             Column {
-                Text(description, Modifier.padding(bottom = 8.dp))
+                Text(description, Modifier.padding(bottom = MikaSpace.S8))
                 RadioRow(
                     stringResource(R.string.settings_token_budget_unlimited),
                     selected = current == null, onClick = { onPick(null) }, first = true,
@@ -50,7 +51,7 @@ internal fun TokenBudgetDialog(
                     value = custom, onValueChange = onCustom, singleLine = true,
                     label = { Text(stringResource(R.string.settings_token_budget_custom)) },
                     isError = custom.isNotEmpty() && customValue == null,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                 )
                 if (custom.isNotEmpty() && customValue == null) {
                     Text(
@@ -58,10 +59,10 @@ internal fun TokenBudgetDialog(
                             R.string.settings_token_budget_invalid,
                             tokenBudgetNumber(TokenBudgetLimits.MIN), tokenBudgetNumber(TokenBudgetLimits.MAX),
                         ),
-                        Modifier.padding(top = 4.dp),
+                        Modifier.padding(top = MikaSpace.S4),
                     )
                 }
-                saveError?.let { Text(it, Modifier.padding(top = 4.dp), color = MikaTheme.colors.bad) }
+                saveError?.let { Text(it, Modifier.padding(top = MikaSpace.S4), color = MikaTheme.colors.bad) }
             }
         },
         confirmButton = {

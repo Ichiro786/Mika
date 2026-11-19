@@ -38,6 +38,7 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import android.content.Intent
 import android.net.Uri
 import kotlinx.coroutines.launch
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 设置 › MCP 服务器:连接外部 MCP server(outbound),和「连接电脑」的 inbound 设置分开。 */
 @Composable
@@ -74,7 +75,7 @@ fun McpServersScreen(store: McpServerStore, onBack: () -> Unit) {
                 }
             }
         }
-        Row(Modifier.padding(top = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.padding(top = MikaSpace.S12), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
             MikaButton(stringResource(R.string.mcp_servers_add), { adding = true }, size = ButtonSize.Small)
             MikaButton(
                 stringResource(if (refreshing) R.string.mcp_servers_testing else R.string.mcp_servers_refresh_all),
@@ -92,7 +93,7 @@ fun McpServersScreen(store: McpServerStore, onBack: () -> Unit) {
         GroupLabel(stringResource(R.string.mcp_servers_help))
         Text(
             stringResource(R.string.mcp_servers_help_text),
-            Modifier.padding(horizontal = 16.dp),
+            Modifier.padding(horizontal = MikaSpace.S16),
         )
     }
 
@@ -174,23 +175,23 @@ private fun McpServerDialog(
                     options = transportLabels,
                     selected = transportIds.indexOf(transport).coerceAtLeast(0),
                     onSelect = { transport = transportIds[it] },
-                    modifier = Modifier.padding(top = 8.dp),
+                    modifier = Modifier.padding(top = MikaSpace.S8),
                 )
                 if (transport == "stdio") {
                     OutlinedTextField(
                         command, { command = it },
                         label = { Text(stringResource(R.string.mcp_servers_command)) },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                     )
-                    Text(stringResource(R.string.mcp_servers_stdio_help), Modifier.padding(top = 4.dp))
+                    Text(stringResource(R.string.mcp_servers_stdio_help), Modifier.padding(top = MikaSpace.S4))
                 } else {
-                    OutlinedTextField(url, { url = it }, label = { Text(stringResource(R.string.mcp_servers_url)) }, singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                    OutlinedTextField(url, { url = it }, label = { Text(stringResource(R.string.mcp_servers_url)) }, singleLine = true, modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8))
                     if (!oauth) {
                         OutlinedTextField(
                             token, { token = it }, label = { Text(stringResource(R.string.mcp_servers_token)) },
                             singleLine = true, visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                         )
                     }
                 }
@@ -198,7 +199,7 @@ private fun McpServerDialog(
                     allowlist, { allowlist = it },
                     label = { Text(stringResource(R.string.mcp_servers_allowlist)) },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                 )
                 if (transport != "stdio") ToggleRow(stringResource(R.string.mcp_servers_use_oauth), oauth) { oauth = it }
                 if (oauth && transport != "stdio") {
@@ -228,9 +229,9 @@ private fun McpServerDialog(
                 }
                 if (transport != "stdio") ToggleRow(stringResource(R.string.mcp_servers_allow_local_http), allowLocal) { allowLocal = it }
                 ToggleRow(stringResource(R.string.mcp_servers_trust_annotations), trustAnnotations) { trustAnnotations = it }
-                error?.let { Text(it, Modifier.padding(top = 6.dp)) }
-                if (testing) Text(stringResource(R.string.mcp_servers_testing), Modifier.padding(top = 6.dp))
-                if (signingIn) Text(stringResource(R.string.mcp_servers_signing_in), Modifier.padding(top = 6.dp))
+                error?.let { Text(it, Modifier.padding(top = MikaSpace.S8)) }
+                if (testing) Text(stringResource(R.string.mcp_servers_testing), Modifier.padding(top = MikaSpace.S8))
+                if (signingIn) Text(stringResource(R.string.mcp_servers_signing_in), Modifier.padding(top = MikaSpace.S8))
                 if (initial != null) TextButton({ store.remove(initial.id); onChanged() }) { Text(stringResource(R.string.mcp_servers_delete)) }
             }
         },
@@ -258,8 +259,8 @@ private fun McpServerDialog(
 
 @Composable
 private fun ToggleRow(title: String, checked: Boolean, onChecked: (Boolean) -> Unit) {
-    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(top = 6.dp)) {
+    androidx.compose.foundation.layout.Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S8)) {
         Checkbox(checked, onCheckedChange = onChecked)
-        Text(title, Modifier.padding(start = 4.dp))
+        Text(title, Modifier.padding(start = MikaSpace.S4))
     }
 }

@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * 页面底:干净的近白(深色下近黑),不加渐变。
@@ -123,7 +124,7 @@ fun MikaCard(modifier: Modifier = Modifier, shape: Shape = MikaShapes.Card, cont
  */
 @Composable
 fun GroupCard(modifier: Modifier = Modifier, content: @Composable ColumnScope.() -> Unit) {
-    MikaCard(modifier.padding(bottom = 12.dp), content = content)
+    MikaCard(modifier.padding(bottom = MikaSpace.S12), content = content)
 }
 
 /** 状态卡:左边圆形图标,右边标题和说明。用于页面顶上的总状态。 */
@@ -137,11 +138,11 @@ fun StateCard(
     trailing: @Composable RowScope.() -> Unit = {},
 ) {
     val c = MikaTheme.colors
-    MikaCard(modifier.padding(bottom = 12.dp)) {
+    MikaCard(modifier.padding(bottom = MikaSpace.S12)) {
         Row(
-            Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 14.dp),
+            Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             val (bg, fg) = tone.colors(c)
             Box(Modifier.size(36.dp).background(bg, CircleShape), contentAlignment = Alignment.Center) {
@@ -210,9 +211,9 @@ fun GlassBar(
     GlassShell(modifier, backdrop, shape, if (frosted && backdrop != null) FrostBlur else GlassBlur) {
         Row(
             Modifier.fillMaxWidth().then(surface)
-                .heightIn(min = MikaSize.Composer).padding(6.dp),
+                .heightIn(min = MikaSize.Composer).padding(MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
             content = content,
         )
     }
@@ -238,7 +239,7 @@ fun SmokedGlassPanel(
     )
     GlassShell(modifier, backdrop, shape, SmokeBlur) {
         Column(
-            Modifier.background(fill).border(0.75.dp, rim, shape).padding(vertical = 8.dp),
+            Modifier.background(fill).border(0.75.dp, rim, shape).padding(vertical = MikaSpace.S8),
             content = content,
         )
     }

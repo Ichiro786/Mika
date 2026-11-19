@@ -27,6 +27,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneId
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
 
 @Composable
 internal fun CallInstructionsScreen(runtime: CallRuntime, onBack: () -> Unit) {
@@ -65,7 +67,7 @@ internal fun CallInstructionsScreen(runtime: CallRuntime, onBack: () -> Unit) {
         if (rules.isEmpty()) {
             FooterNote(stringResource(R.string.call_instructions_empty))
             GroupLabel(stringResource(R.string.call_instructions_presets))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 TextButton(onClick = { draft = CallInstruction("", deliveryTitle, deliveryWhen, deliveryReply) }) { Text(deliveryTitle) }
                 TextButton(onClick = { draft = CallInstruction("", businessTitle, businessWhen, businessReply) }) { Text(businessTitle) }
             }
@@ -73,13 +75,13 @@ internal fun CallInstructionsScreen(runtime: CallRuntime, onBack: () -> Unit) {
         rules.forEach { rule ->
             MikaCard(Modifier.fillMaxWidth()) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                    Text(rule.title, Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                    Text(rule.title, Modifier.weight(1f), style = MikaType.Title)
                     Switch(rule.enabled, { value -> mutate { store.setEnabled(rule.id, value) } })
                 }
                 if (rule.expiresAtMs?.let { it <= System.currentTimeMillis() } == true) {
                     Text(stringResource(R.string.call_instructions_expired), color = MaterialTheme.colorScheme.error)
                 }
-                Text(rule.situation, style = MaterialTheme.typography.labelLarge)
+                Text(rule.situation, style = MikaType.Label)
                 SelectionContainer { Text(rule.response) }
                 Row {
                     TextButton(onClick = { draft = rule }) { Text(stringResource(R.string.call_instructions_edit)) }
@@ -124,14 +126,14 @@ private fun InstructionEditor(row: CallInstruction, saveError: String?, onDismis
                 withFrameNanos { }
                 keyboard?.show()
             }
-            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                 OutlinedTextField(title, { title = it.take(64) }, label = { Text(stringResource(R.string.call_instructions_heading)) },
                     modifier = Modifier.focusRequester(titleFocus).testTag("call-instruction-title-input"), singleLine = true)
                 OutlinedTextField(situation, { situation = it.take(200) }, label = { Text(stringResource(R.string.call_instructions_situation)) }, maxLines = 3)
                 OutlinedTextField(response, { response = it }, label = { Text(stringResource(R.string.call_instructions_response)) },
                     supportingText = { Text(response.length.toString() + " / 800") }, isError = response.length > 800, minLines = 3, maxLines = 7)
-                Text(stringResource(R.string.call_instructions_expiry), style = MaterialTheme.typography.labelLarge)
-                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(stringResource(R.string.call_instructions_expiry), style = MikaType.Label)
+                Row(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
                     FilterChip(expiry == null, { expiry = null }, label = { Text(stringResource(R.string.call_instructions_forever)) })
                     FilterChip(expiry == LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli(), { expiry = LocalDate.now().plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli() },
                         label = { Text(stringResource(R.string.call_instructions_today)) })
@@ -139,7 +141,7 @@ private fun InstructionEditor(row: CallInstruction, saveError: String?, onDismis
                 TextButton(onClick = { expiry = System.currentTimeMillis() + 2 * 60 * 60 * 1_000L }) {
                     Text(stringResource(R.string.call_instructions_two_hours))
                 }
-                expiry?.let { Text(java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it)), style = MaterialTheme.typography.bodySmall) }
+                expiry?.let { Text(java.text.DateFormat.getDateTimeInstance().format(java.util.Date(it)), style = MikaType.Hint) }
                 if (response.length > 800) Text(stringResource(R.string.call_instructions_review_limit))
                 saveError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
             }

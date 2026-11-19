@@ -26,6 +26,7 @@ import com.wangzan101.mika.ui.components.MikaCard
 import com.wangzan101.mika.ui.components.SubPage
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 许可证页上第三方组件的数据;与仓库 licenses/THIRD_PARTY_NOTICES.md 的条目一一对应(LicensesTest 核对)。 */
 object Licenses {
@@ -96,9 +97,9 @@ fun LicensesScreen(onBack: () -> Unit) {
     val thirdParty = Licenses.ENTRIES.filter { it.name != "Mika" } + runtime
     SubPage(AboutCopy.LICENSE_TITLE, onBack) {
         if (licenseText.isNotEmpty()) {
-            MikaCard(Modifier.padding(bottom = 12.dp).testTag("license-text")) {
+            MikaCard(Modifier.padding(bottom = MikaSpace.S12).testTag("license-text")) {
                 Text(
-                    licenseText.trimEnd(), Modifier.padding(16.dp),
+                    licenseText.trimEnd(), Modifier.padding(MikaSpace.S16),
                     style = MikaType.Hint.copy(fontFamily = FontFamily.Monospace, fontSize = 11.5.sp, lineHeight = 19.sp),
                     color = MikaTheme.colors.ink2,
                 )
@@ -109,7 +110,7 @@ fun LicensesScreen(onBack: () -> Unit) {
             thirdParty.forEachIndexed { i, e ->
                 Column {
                     ListRow(null, e.name, e.license, first = i == 0)
-                    Text(e.note, Modifier.padding(start = 16.dp, end = 16.dp, bottom = 12.dp), style = MikaType.Hint, color = MikaTheme.colors.ink2)
+                    Text(e.note, Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12), style = MikaType.Hint, color = MikaTheme.colors.ink2)
                 }
             }
         }

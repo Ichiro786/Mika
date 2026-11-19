@@ -152,7 +152,7 @@ private fun StopButton(onStop: () -> Unit) {
         contentAlignment = Alignment.Center,
     ) {
         Text(
-            label, Modifier.background(c.fill, MikaShapes.Pill).padding(horizontal = MikaSpace.S12, vertical = 6.dp),
+            label, Modifier.background(c.fill, MikaShapes.Pill).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
             style = MikaType.Label, color = c.ink,
         )
     }
@@ -266,11 +266,11 @@ private fun StepRow(step: PlanStep, first: Boolean, last: Boolean, open: Boolean
             StepMark(step.status, Modifier.size(MarkSize))
         }
         Spacer(Modifier.width(MikaSpace.S8))
-        Column(Modifier.weight(1f).padding(vertical = 5.dp)) {
+        Column(Modifier.weight(1f).padding(vertical = MikaSpace.S4)) {
             Row(verticalAlignment = Alignment.Top) {
                 step.tag?.let { t ->
                     Text(
-                        t, Modifier.padding(top = 2.dp, end = 6.dp).background(c.accentSoft, MikaShapes.Tile).padding(horizontal = 5.dp),
+                        t, Modifier.padding(top = 2.dp, end = MikaSpace.S8).background(c.accentSoft, MikaShapes.Tile).padding(horizontal = MikaSpace.S4),
                         style = MikaType.Hint, color = c.accent, maxLines = 1,
                     )
                 }
@@ -426,7 +426,7 @@ fun LivePlanPill(plan: LivePlan, onExpand: (() -> Unit)?, modifier: Modifier = M
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        PlanRing(plan, Modifier.size(16.dp))
+        PlanRing(plan, Modifier.size(MikaSize.SmallIcon))
         Text(now, style = MikaType.Caption, color = textColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }

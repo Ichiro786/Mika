@@ -288,4 +288,5 @@
     <string name="plan_step_needs_approval">Perlu persetujuan Anda</string>
     <string name="plan_step_stopped">Dihentikan</string>
     <string name="plan_step_of">Langkah %1$d dari %2$d</string>
+    <string name="chat_jump_latest">Lompat ke terbaru</string>
 </resources>

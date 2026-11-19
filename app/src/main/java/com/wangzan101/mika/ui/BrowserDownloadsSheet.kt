@@ -54,6 +54,8 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /**
  * 下载面板:系统下载里的这个 App 的下载,最新的在前;每秒刷新一次。
@@ -81,16 +83,16 @@ fun DownloadsSheet(downloads: BrowserDownloads, onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         containerColor = c.surface,
-        shape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp),
+        shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl),
     ) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("browser-downloads")) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("browser-downloads")) {
             Text(
-                tr(R.string.browser_downloads), Modifier.padding(start = 20.dp, end = 20.dp, top = 4.dp, bottom = 10.dp),
+                tr(R.string.browser_downloads), Modifier.padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S4, bottom = MikaSpace.S12),
                 style = MikaType.Title, color = c.ink,
             )
             if (loaded && items.isEmpty()) {
                 Text(
-                    tr(R.string.browser_download_empty), Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 16.dp),
+                    tr(R.string.browser_download_empty), Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S16),
                     style = MikaType.Body, color = c.ink3,
                 )
             }
@@ -109,7 +111,7 @@ fun DownloadsSheet(downloads: BrowserDownloads, onDismiss: () -> Unit) {
                     )
                 }
             }
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(MikaSpace.S4))
         }
     }
 
@@ -143,9 +145,9 @@ private fun DownloadRow(
     Column(
         Modifier.fillMaxWidth()
             .then(if (item.done) Modifier.clickable(role = Role.Button, onClick = onOpen) else Modifier)
-            .padding(start = 20.dp, end = 12.dp, top = 12.dp, bottom = 12.dp),
+            .padding(start = MikaSpace.S24, end = MikaSpace.S12, top = MikaSpace.S12, bottom = MikaSpace.S12),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             Column(Modifier.weight(1f)) {
                 Text(item.title, style = MikaType.Body, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(
@@ -164,7 +166,7 @@ private fun DownloadRow(
         }
         val percent = item.percent
         if (percent != null) {
-            Box(Modifier.fillMaxWidth().padding(top = 8.dp).height(3.dp).clip(RoundedCornerShape(2.dp)).background(c.fill)) {
+            Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S8).height(3.dp).clip(RoundedCornerShape(MikaRadius.Xs)).background(c.fill)) {
                 Box(Modifier.fillMaxHeight().fillMaxWidth(percent / 100f).background(c.accent))
             }
         }

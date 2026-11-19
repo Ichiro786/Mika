@@ -62,6 +62,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 private val SEGMENT_TAGS = Segment.entries.map { "segment-${it.name}" }
 
@@ -136,7 +137,7 @@ fun MemoryScreen(
         }) else null,
     ) {
         ui.brokenNotice?.let {
-            GroupCard { Text(stringResource(R.string.memory_unreadable), Modifier.padding(16.dp), style = MikaType.Caption, color = MikaTheme.colors.warn) }
+            GroupCard { Text(stringResource(R.string.memory_unreadable), Modifier.padding(MikaSpace.S16), style = MikaType.Caption, color = MikaTheme.colors.warn) }
         }
 
         val pendingLabel = if (ui.pendingCount > 0) stringResource(R.string.memory_pending_n, ui.pendingCount) else stringResource(R.string.memory_pending)
@@ -316,7 +317,7 @@ private fun MemoryRow(r: Row, first: Boolean, onClick: (() -> Unit)?) {
 
 @Composable
 internal fun Link(text: String, onClick: () -> Unit) {
-    Text(text, Modifier.clickable(onClick = onClick).padding(horizontal = 6.dp, vertical = 2.dp), style = MikaType.Hint, fontWeight = FontWeight.Medium, color = MikaTheme.colors.accent)
+    Text(text, Modifier.clickable(onClick = onClick).padding(horizontal = MikaSpace.S8, vertical = 2.dp), style = MikaType.Hint, fontWeight = FontWeight.Medium, color = MikaTheme.colors.accent)
 }
 
 @Composable
@@ -332,9 +333,9 @@ private fun EditDialog(
         title = { Text(title) },
         text = {
             KeyboardDismissArea { Column {
-                if (withKind) SegmentedControl(KIND_NAMES, kind, { kind = it }, Modifier.padding(bottom = 8.dp), tags = listOf("memory-kind-fact", "memory-kind-preference", "memory-kind-procedure"))
+                if (withKind) SegmentedControl(KIND_NAMES, kind, { kind = it }, Modifier.padding(bottom = MikaSpace.S8), tags = listOf("memory-kind-fact", "memory-kind-preference", "memory-kind-procedure"))
                 OutlinedTextField(text, { text = it }, Modifier.fillMaxWidth().keepsKeyboard().testTag("memory-content"), label = { Text(stringResource(R.string.memory_content)) })
-                OutlinedTextField(words, { words = it }, Modifier.fillMaxWidth().padding(top = 8.dp).keepsKeyboard().testTag("memory-keywords"), label = { Text(stringResource(R.string.memory_keywords)) })
+                OutlinedTextField(words, { words = it }, Modifier.fillMaxWidth().padding(top = MikaSpace.S8).keepsKeyboard().testTag("memory-keywords"), label = { Text(stringResource(R.string.memory_keywords)) })
             } }
         },
         confirmButton = { TextButton({ onSave(text, words.split(Regex("\\s+")).filter { it.isNotBlank() }, KIND_GROUPS[kind].first) }, Modifier.testTag("memory-save")) { Text(stringResource(R.string.save)) } },

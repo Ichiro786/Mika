@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.settings.OrbitIdentityMode
+import com.wangzan101.mika.ui.theme.MikaSize
 
 internal data class OrbitIdentityPalette(val orb: Color, val wave: Color, val glow: Color)
 
@@ -28,7 +29,7 @@ internal fun orbitIdentityPalette(mode: OrbitIdentityMode, dark: Boolean): Orbit
 fun MikaMark(modifier: Modifier = Modifier, dark: Boolean = MikaTheme.colors.isDark) {
     val mode = MikaTheme.identity
     val palette = orbitIdentityPalette(mode, dark)
-    Canvas(modifier.size(40.dp)) {
+    Canvas(modifier.size(MikaSize.IconButton)) {
         val unit = size.minDimension / 100f
         val x = (size.width - unit * 100f) / 2f
         val y = (size.height - unit * 100f) / 2f

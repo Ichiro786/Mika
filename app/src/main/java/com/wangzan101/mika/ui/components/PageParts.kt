@@ -35,6 +35,9 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaShapes
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
+import androidx.compose.foundation.layout.heightIn
 
 /**
  * 二级页的骨架:页面底 + 顶栏(左上角返回)+ 下面可滚动的内容(左右各 16)。
@@ -53,7 +56,7 @@ fun SubPage(
             TopBar(title, MikaIcons.Back, onBack, stringResource(R.string.back), right = right)
             Column(
                 modifier.fillMaxSize().verticalScroll(rememberScrollState()).navigationBarsPadding()
-                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 24.dp),
+                    .padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S8, bottom = MikaSpace.S24),
                 content = content,
             )
         }
@@ -65,9 +68,9 @@ fun SubPage(
 @Composable
 fun RowActions(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     FlowRow(
-        modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S12),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) { content() }
 }
 
@@ -82,11 +85,11 @@ fun SearchField(
 ) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().height(40.dp).keepsKeyboard().background(c.fill, MikaShapes.Button).padding(horizontal = 12.dp),
+        Modifier.fillMaxWidth().heightIn(min = 40.dp).keepsKeyboard().background(c.fill, MikaShapes.Button).padding(horizontal = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        Icon(MikaIcons.Search, null, Modifier.size(18.dp), tint = c.ink3)
+        Icon(MikaIcons.Search, null, Modifier.size(MikaSize.TileIcon), tint = c.ink3)
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
             if (value.isEmpty()) Text(placeholder, style = MikaType.Body, color = c.ink3)
             BasicTextField(
@@ -103,7 +106,7 @@ fun SearchField(
 @Composable
 fun EmptyNote(text: String, modifier: Modifier = Modifier) {
     Text(
-        text, modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 28.dp),
+        text, modifier.fillMaxWidth().padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S32),
         style = MikaType.Body, color = MikaTheme.colors.ink3, textAlign = TextAlign.Center,
     )
 }

@@ -102,6 +102,7 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.animationsOff
 import com.wangzan101.mika.ui.theme.appearanceDark
 import com.wangzan101.mika.ui.theme.systemBarsFor
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 class MainActivity : ComponentActivity() {
     private lateinit var monitor: SystemStatusMonitor
@@ -574,7 +575,7 @@ private fun MikaRoot(
                 scaleX = scale
                 scaleY = scale
                 translationX = (if (backFromLeft) 1f else -1f) * 24.dp.toPx() * p
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp * p)
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(MikaRadius.Xxl * p)
                 clip = true
             }
         },

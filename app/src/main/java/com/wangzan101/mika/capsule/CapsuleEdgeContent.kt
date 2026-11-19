@@ -19,12 +19,13 @@ import androidx.compose.ui.unit.dp
 import com.wangzan101.mika.R
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** A genuinely half-width window: the invisible half cannot block the app underneath. */
 @Composable
 fun CapsuleEdgeContent(side: DockSide, alpha: Float, onReveal: () -> Unit) {
     val colors = MikaTheme.colors
-    Box(Modifier.width(20.dp).padding(vertical = 8.dp).height(40.dp)
+    Box(Modifier.width(20.dp).padding(vertical = MikaSpace.S8).height(40.dp)
         .testTag("capsule-edge").clipToBounds().alpha(alpha)
         .clickable(role = Role.Button, onClickLabel = stringResource(R.string.capsule_edge_reveal), onClick = onReveal),
         contentAlignment = Alignment.Center) {

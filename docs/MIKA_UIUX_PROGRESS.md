@@ -333,3 +333,22 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - New strings were added in all 9 languages.
 - **Not done (needs approval):** a cheap "plan" tool the model updates, so the card can show the whole plan up front. This needs a new tool in `:core`'s agent tool set, which `AGENTS.md` protects. The model already has a `total` field ready for it.
 - **Not yet verified:** on-device rendering, TalkBack, 200% font, and the capsule device tests (compiled but not run; no emulator in the container).
+
+## Orbit UI/UX program, Stage 3: shared style on every screen, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. Device checks still need doing.
+
+- **Spacing.** Every padding, gap, spacer and `PaddingValues` in the app now uses the 4/8/12/16/24/32 scale (1,643 values). Off-scale values were snapped to the nearest step, rounding up for roominess, e.g. 10 to 12, 14 to 16, 20 to 24. Hairlines of 2dp or less and layout values above 40dp were left as they are.
+- **Corners.** Every rounded corner uses the new radius scale: Xs 6, Sm 9, Md 12, Lg 16, Xl 20, Xxl 28. Exact icon, touch-target and tile sizes use the existing size tokens.
+- **Type.** There is one type scale, `MikaType`. It gained these steps: Headline, Reading, Button, Callout, CalloutStrong, LabelStrong, HintStrong, Micro and Overline.
+  - Moved onto it: the private text styles in chat, drawer, capsule, card, settings, welcome and the shared components, plus 98 inline or simple text styles elsewhere.
+  - All 37 `MaterialTheme.typography` uses (the call screens) are gone.
+  - Raw sp values went from 325 to 55. The rest are monospace codes, letter-spaced codes and Markdown internals.
+- **Colours.** Chat, capsule, settings, tasks and the call hang-up button now take their colours from the theme: the settings tile palette plus new indicator, shimmer, attention/error ink, media scrim and hang-up colours.
+  - What remains is artwork palettes: hub card glows, the update-glass material, space colours, the Orbit mark and terminal colours.
+- **Chat.**
+  - Orbit's replies are bubbles at most 85% of the column wide.
+  - A frosted jump-to-latest arrow appears above the message bar when you scroll up. It uses the shared enter/exit motion and press scale, and has a 48dp target and a translated label.
+- **200% font.** The shared button, chip, segmented control and search field use minimum heights instead of fixed ones. The settings stepper −/+ now has 48dp targets and a button role.
+- **Guard.** `TokenRatchetTest` with `app/src/test/resources/token-ratchet.txt` holds each file to its raw dp/sp/hex count, which may only go down. Files not listed must have none. Regenerate with `tools/ui/token_baseline.py`.
+- **Not yet verified:** every screen at 200% font and in TalkBack, and how the snapped spacing looks on a device. There is no emulator in the container.

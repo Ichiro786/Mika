@@ -36,6 +36,7 @@ import com.wangzan101.mika.ui.components.MikaSwitch
 import com.wangzan101.mika.ui.components.SelectChip
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 网页搜索设置里要的文字;不碰界面,单测直接测。 */
 internal object WebSearchCopy {
@@ -117,25 +118,25 @@ fun WebSearchDialog(initial: WebSearchConfig, onDismiss: () -> Unit, onSave: (We
                     Text(stringResource(R.string.web_search_enabled), Modifier.weight(1f))
                     MikaSwitch(enabled, { enabled = it }, Modifier.testTag("web-search-enabled"))
                 }
-                GroupLabel(stringResource(R.string.web_search_provider), Modifier.padding(top = 4.dp))
+                GroupLabel(stringResource(R.string.web_search_provider), Modifier.padding(top = MikaSpace.S4))
                 FlowRow(
                     Modifier.fillMaxWidth().testTag("web-search-provider"),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
+                    verticalArrangement = Arrangement.spacedBy(MikaSpace.S8),
                 ) {
                     WebSearchProvider.entries.forEach { p ->
                         SelectChip(WebSearchCopy.name(p), p == provider, { provider = p; tried = false }, Modifier.testTag("web-search-provider-${p.wire}"))
                     }
                 }
                 Text(
-                    WebSearchCopy.note(provider), Modifier.padding(top = 8.dp).testTag("web-search-note"),
+                    WebSearchCopy.note(provider), Modifier.padding(top = MikaSpace.S8).testTag("web-search-note"),
                     style = MikaType.Hint, color = MikaTheme.colors.ink3,
                 )
                 if (provider.needsEndpoint) {
                     val error = shows(WebSearchProvider.Problem.Endpoint)
                     OutlinedTextField(
                         entry.endpoint, { entries[provider] = entry.copy(endpoint = it); touched[provider to WebSearchProvider.Problem.Endpoint] = true },
-                        Modifier.fillMaxWidth().padding(top = 8.dp).focusRequester(endpointFocus).testTag("web-search-endpoint"),
+                        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).focusRequester(endpointFocus).testTag("web-search-endpoint"),
                         singleLine = true, isError = error,
                         label = { Text(WebSearchCopy.endpointLabel()) }, placeholder = { Text(WebSearchCopy.ENDPOINT_PLACEHOLDER) },
                         supportingText = if (error) ({ Text(WebSearchCopy.problem(provider, WebSearchProvider.Problem.Endpoint)) }) else null,
@@ -145,7 +146,7 @@ fun WebSearchDialog(initial: WebSearchConfig, onDismiss: () -> Unit, onSave: (We
                     val error = shows(WebSearchProvider.Problem.Key)
                     OutlinedTextField(
                         entry.apiKey, { entries[provider] = entry.copy(apiKey = it); touched[provider to WebSearchProvider.Problem.Key] = true },
-                        Modifier.fillMaxWidth().padding(top = 8.dp).focusRequester(keyFocus).testTag("web-search-key"),
+                        Modifier.fillMaxWidth().padding(top = MikaSpace.S8).focusRequester(keyFocus).testTag("web-search-key"),
                         singleLine = true, visualTransformation = PasswordVisualTransformation(),
                         isError = error,
                         label = { Text(WebSearchCopy.keyLabel(provider)) },
@@ -158,7 +159,7 @@ fun WebSearchDialog(initial: WebSearchConfig, onDismiss: () -> Unit, onSave: (We
                 }
                 // 原来那段说明里要紧的两点:密钥加密存在本机、结果按不可信内容处理
                 Text(
-                    stringResource(R.string.web_search_privacy), Modifier.padding(top = 8.dp).testTag("web-search-privacy"),
+                    stringResource(R.string.web_search_privacy), Modifier.padding(top = MikaSpace.S8).testTag("web-search-privacy"),
                     style = MikaType.Hint, color = MikaTheme.colors.ink3,
                 )
             }

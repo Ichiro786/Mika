@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 private const val MIN_PASSWORD = 8
 
@@ -94,11 +95,11 @@ internal fun BackupSettingsGroup() {
             text = {
                 Column {
                     Text(stringResource(R.string.backup_password_hint))
-                    OutlinedTextField(first, { first = it }, Modifier.padding(top = 12.dp), singleLine = true,
+                    OutlinedTextField(first, { first = it }, Modifier.padding(top = MikaSpace.S12), singleLine = true,
                         label = { Text(stringResource(R.string.backup_password)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))
-                    OutlinedTextField(second, { second = it }, Modifier.padding(top = 8.dp), singleLine = true,
+                    OutlinedTextField(second, { second = it }, Modifier.padding(top = MikaSpace.S8), singleLine = true,
                         label = { Text(stringResource(R.string.backup_password_repeat)) },
                         isError = mismatch,
                         supportingText = if (mismatch) ({ Text(stringResource(R.string.backup_password_mismatch)) }) else null,
@@ -125,7 +126,7 @@ internal fun BackupSettingsGroup() {
             text = {
                 Column {
                     Text(stringResource(R.string.backup_import_dialog_body))
-                    OutlinedTextField(password, { password = it }, Modifier.padding(top = 12.dp), singleLine = true,
+                    OutlinedTextField(password, { password = it }, Modifier.padding(top = MikaSpace.S12), singleLine = true,
                         label = { Text(stringResource(R.string.backup_password)) },
                         visualTransformation = PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password))

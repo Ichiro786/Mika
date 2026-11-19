@@ -54,6 +54,9 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.SettingsTint
 
 /** The live call engine's short name, for the Settings row. */
 @Composable
@@ -240,7 +243,7 @@ fun PromptEditorScreen(file: PromptFile, onBack: () -> Unit) {
     PageScaffold(file.fileName, onBack) {
         val label = file.fileName
         Column(
-            Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(20.dp)).padding(16.dp),
+            Modifier.fillMaxWidth().background(c.surface, RoundedCornerShape(MikaRadius.Xl)).padding(MikaSpace.S16),
         ) {
             if (text.isEmpty()) Text(stringResource(R.string.prompts_instructions_placeholder),
                 style = MikaType.Body.copy(fontFamily = FontFamily.Monospace, fontSize = 13.sp), color = c.ink3)
@@ -251,7 +254,7 @@ fun PromptEditorScreen(file: PromptFile, onBack: () -> Unit) {
                 cursorBrush = SolidColor(c.accent),
             )
         }
-        Row(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp), horizontalArrangement = Arrangement.End) {
+        Row(Modifier.fillMaxWidth().padding(top = MikaSpace.S12, bottom = MikaSpace.S8), horizontalArrangement = Arrangement.End) {
             MikaButton(stringResource(R.string.prompts_reset), onClick = {
                 files.reset(file); dirty = false; text = files.read(file)
             }, kind = ButtonKind.Tonal, size = ButtonSize.Small)

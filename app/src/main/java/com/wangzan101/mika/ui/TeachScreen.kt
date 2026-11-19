@@ -52,6 +52,8 @@ import androidx.compose.ui.semantics.semantics
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /**
  * Teach Orbit: the goal form, the live demonstration controls, step review and the saved draft.
@@ -63,7 +65,7 @@ fun TeachScreen(runtime: TeachRuntime, onBack: () -> Unit, onOpenDrafts: () -> U
     val session = ui.session
     Column(Modifier.fillMaxSize().background(MikaTheme.colors.bg)) {
         TopBar(stringResource(R.string.teach_title), MikaIcons.Back, onBack, stringResource(R.string.back))
-        Notice(ui.notice, Modifier.padding(horizontal = 20.dp, vertical = 4.dp))
+        Notice(ui.notice, Modifier.padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S4))
         when (session?.phase) {
             null, TeachPhase.Idle, TeachPhase.Ready -> GoalForm(runtime, ui.hint)
             TeachPhase.Recording, TeachPhase.Paused -> Live(runtime, session.phase, session.steps.size)
@@ -90,10 +92,10 @@ private fun Notice(notice: TeachNotice?, modifier: Modifier = Modifier) {
     }
     val c = MikaTheme.colors
     Row(
-        modifier.fillMaxWidth().background(c.warnSoft, OrbitFieldShape).padding(horizontal = 16.dp, vertical = 12.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier.fillMaxWidth().background(c.warnSoft, OrbitFieldShape).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Icon(MikaIcons.Exclaim, null, Modifier.padding(top = 1.dp).size(18.dp), tint = c.warn)
+        Icon(MikaIcons.Exclaim, null, Modifier.padding(top = 1.dp).size(MikaSize.TileIcon), tint = c.warn)
         Text(text, Modifier.weight(1f), style = MikaType.Caption, color = c.ink)
     }
 }
@@ -108,13 +110,13 @@ private fun TeachFrame(
     Column(Modifier.fillMaxSize().imePadding().navigationBarsPadding()) {
         Column(
             modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState())
-                .padding(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
+                .padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S12, bottom = MikaSpace.S16),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S16),
             content = content,
         )
         Column(
-            Modifier.fillMaxWidth().padding(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            Modifier.fillMaxWidth().padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S8, bottom = MikaSpace.S16),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
             content = actions,
         )
     }
@@ -124,7 +126,7 @@ private fun TeachFrame(
 private fun TeachHeading(title: String, body: String? = null) {
     Column {
         Text(title, style = MikaType.Title.copy(fontSize = 24.sp, lineHeight = 30.sp), color = MikaTheme.colors.ink, modifier = Modifier.semantics { heading() })
-        if (body != null) Text(body, Modifier.padding(top = 6.dp), style = MikaType.Body, color = MikaTheme.colors.ink2)
+        if (body != null) Text(body, Modifier.padding(top = MikaSpace.S8), style = MikaType.Body, color = MikaTheme.colors.ink2)
     }
 }
 
@@ -177,10 +179,10 @@ private fun GoalForm(runtime: TeachRuntime, hint: String?) {
         } else {
             Text(stringResource(R.string.teach_ready_body), style = MikaType.Body, color = MikaTheme.colors.ink2)
             MikaCard {
-                Row(Modifier.fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp),
+                Row(Modifier.fillMaxWidth().padding(MikaSpace.S16), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
                     verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(34.dp).background(MikaTheme.colors.fill, CircleShape), contentAlignment = Alignment.Center) {
-                        Icon(MikaIcons.Spark, null, Modifier.size(18.dp), tint = MikaTheme.colors.ink2)
+                        Icon(MikaIcons.Spark, null, Modifier.size(MikaSize.TileIcon), tint = MikaTheme.colors.ink2)
                     }
                     Text(goal, Modifier.weight(1f), style = MikaType.BodyStrong, color = MikaTheme.colors.ink)
                 }
@@ -213,8 +215,8 @@ private fun Live(runtime: TeachRuntime, phase: TeachPhase, steps: Int) {
 private fun StepCount(steps: Int) {
     val c = MikaTheme.colors
     MikaCard {
-        Row(Modifier.fillMaxWidth().padding(16.dp), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        Row(Modifier.fillMaxWidth().padding(MikaSpace.S16), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
             Box(Modifier.size(10.dp).background(c.accent, CircleShape))
             Text(steps.toString(), style = MikaType.LargeTitle, color = c.ink)
         }
@@ -262,8 +264,8 @@ private fun StepEditor(runtime: TeachRuntime, step: TeachStep, number: Int) {
     var explanation by remember(step.id, step.explanation) { mutableStateOf(step.explanation.orEmpty()) }
     val c = MikaTheme.colors
     MikaCard {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Column(Modifier.fillMaxWidth().padding(MikaSpace.S16), verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 Box(Modifier.size(24.dp).background(c.fill, CircleShape), contentAlignment = Alignment.Center) {
                     Text(number.toString(), style = MikaType.Hint, color = c.ink2)
                 }

@@ -56,6 +56,7 @@ import com.wangzan101.mika.voice.probeLiveAsr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 选择页上的动作。 */
 class SpeechPickActions(
@@ -205,7 +206,7 @@ fun SpeechModelContent(
     val systemSelected = system.usable && (choice == SpeechChoice.System || choice == SpeechChoice.Auto)
     Page(tr(R.string.role_speech), onBack) {
         Text(
-            tr(R.string.speech_hint), Modifier.padding(top = 4.dp, bottom = 12.dp), fontSize = 14.5.sp, lineHeight = 22.sp, color = c.ink2,
+            tr(R.string.speech_hint), Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S12), style = MikaType.Callout, color = c.ink2,
         )
         GroupCard {
             RadioRow(
@@ -264,7 +265,7 @@ fun SpeechModelContent(
                 testing && rows.isNotEmpty() -> FooterNote(ModelSetupCopy.TESTING, Modifier.testTag("speech-pick-running"))
             }
         }
-        FooterNote(tr(R.string.speech_footer), Modifier.padding(top = 8.dp))
+        FooterNote(tr(R.string.speech_footer), Modifier.padding(top = MikaSpace.S8))
     }
 }
 
@@ -317,12 +318,12 @@ fun DoubaoSetupPage(choice: SpeechChoice, configured: Boolean, actions: SpeechPi
     val credentials = DoubaoCredentials(if (legacy) "" else key.trim(), if (legacy) appId.trim() else "", if (legacy) token.trim() else "")
     val unchanged = key.isBlank() && appId.isBlank() && token.isBlank()
     Page(tr(R.string.speech_doubao_model), onBack) {
-        Text(tr(R.string.speech_doubao_setup_hint), Modifier.padding(top = 4.dp, bottom = 4.dp), fontSize = 14.5.sp, lineHeight = 22.sp, color = c.ink2)
+        Text(tr(R.string.speech_doubao_setup_hint), Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S4), style = MikaType.Callout, color = c.ink2)
         GroupLabel(tr(R.string.speech_doubao_credentials))
         SegmentedControl(
             listOf(tr(R.string.speech_doubao_new), tr(R.string.speech_doubao_legacy)), if (legacy) 1 else 0,
             onSelect = { legacy = it == 1; key = ""; appId = ""; token = "" },
-            Modifier.padding(bottom = 8.dp),
+            Modifier.padding(bottom = MikaSpace.S8),
         )
         GroupCard {
             if (legacy) {
@@ -343,7 +344,7 @@ fun DoubaoSetupPage(choice: SpeechChoice, configured: Boolean, actions: SpeechPi
                 onClick = { resource = DoubaoProtocol.CONCURRENT }, subtitle = tr(R.string.speech_doubao_concurrent_note),
             )
         }
-        FooterNote(tr(R.string.speech_doubao_privacy), Modifier.padding(top = 8.dp))
+        FooterNote(tr(R.string.speech_doubao_privacy), Modifier.padding(top = MikaSpace.S8))
         MikaButton(
             tr(R.string.speech_doubao_save),
             onClick = {
@@ -353,15 +354,15 @@ fun DoubaoSetupPage(choice: SpeechChoice, configured: Boolean, actions: SpeechPi
                 }.isFailure
                 key = ""; appId = ""; token = ""
             },
-            Modifier.fillMaxWidth().padding(top = 8.dp).testTag("speech-doubao-save"),
+            Modifier.fillMaxWidth().padding(top = MikaSpace.S8).testTag("speech-doubao-save"),
             enabled = credentials.valid || configured && unchanged,
         )
-        if (failed) FooterNote(tr(R.string.speech_doubao_save_failed), Modifier.padding(top = 8.dp), color = c.bad)
+        if (failed) FooterNote(tr(R.string.speech_doubao_save_failed), Modifier.padding(top = MikaSpace.S8), color = c.bad)
         if (configured) {
-            Box(Modifier.fillMaxWidth().padding(top = 6.dp), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxWidth().padding(top = MikaSpace.S8), contentAlignment = Alignment.Center) {
                 Text(
                     tr(R.string.speech_doubao_remove),
-                    Modifier.clip(MikaShapes.Pill).clickable(onClick = actions.clearDoubao).padding(horizontal = 16.dp, vertical = 12.dp)
+                    Modifier.clip(MikaShapes.Pill).clickable(onClick = actions.clearDoubao).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12)
                         .testTag("speech-doubao-remove"),
                     style = MikaType.Body, color = c.bad,
                 )

@@ -32,6 +32,7 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /**
  * Orbit: run tasks on the user's Gemini subscription through Google's Antigravity server set up on the phone.
@@ -69,7 +70,7 @@ internal fun GeminiPlanSection() {
                         ?: if (p == null) stringResource(R.string.gemini_setup_note) else null,
                     detailColor = if (setupError != null) c.bad else c.ink3,
                 )
-                if (p == null) Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
+                if (p == null) Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16)) {
                     MikaButton(stringResource(R.string.gemini_setup), engine::startSetup, Modifier.fillMaxWidth().testTag("gemini-setup"),
                         size = ButtonSize.Medium)
                 }
@@ -82,7 +83,7 @@ internal fun GeminiPlanSection() {
                     detail = signInError?.let { stringResource(R.string.gemini_sign_in_failed, it) },
                     detailColor = c.bad,
                 )
-                Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 14.dp)) {
+                Column(Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S16)) {
                     MikaButton(
                         stringResource(if (signingIn) R.string.gemini_open_link else R.string.gemini_sign_in),
                         engine::startSignIn, Modifier.fillMaxWidth().testTag("gemini-sign-in"), size = ButtonSize.Medium,

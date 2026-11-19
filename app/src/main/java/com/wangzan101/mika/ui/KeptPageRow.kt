@@ -32,8 +32,11 @@ import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import kotlinx.coroutines.delay
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
-private val RowShape = RoundedCornerShape(14.dp)
+private val RowShape = RoundedCornerShape(MikaRadius.Lg)
 
 /** 一轮下面留页的那一行该怎么显示:还开着(绿色那一行,能关)、已经关了(一句灰字)、或这一轮没留页。 */
 sealed interface KeptRow {
@@ -60,7 +63,7 @@ internal fun LazyListScope.keptPageRow(index: Int, ex: Exchange, live: KeptPage?
         when (row) {
             is KeptRow.Live -> KeptLine(row.page, onClose)
             is KeptRow.Closed -> Text(
-                KeptPageCopy.closedNote(row.reason), Modifier.fillMaxWidth().padding(start = 4.dp, end = 4.dp, bottom = 10.dp).testTag("kept-closed"),
+                KeptPageCopy.closedNote(row.reason), Modifier.fillMaxWidth().padding(start = MikaSpace.S4, end = MikaSpace.S4, bottom = MikaSpace.S12).testTag("kept-closed"),
                 style = MikaType.Hint, color = MikaTheme.colors.ink3,
             )
         }
@@ -78,12 +81,12 @@ fun KeptLine(page: KeptPage, onClose: () -> Unit) {
         }
     }
     Row(
-        Modifier.fillMaxWidth().padding(bottom = 10.dp).testTag("kept-row").clip(RowShape).background(c.okSoft, RowShape)
-            .border(1.dp, c.ok.copy(alpha = 0.25f), RowShape).padding(horizontal = 12.dp, vertical = 10.dp),
+        Modifier.fillMaxWidth().padding(bottom = MikaSpace.S12).testTag("kept-row").clip(RowShape).background(c.okSoft, RowShape)
+            .border(1.dp, c.ok.copy(alpha = 0.25f), RowShape).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Icon(MikaIcons.Globe, null, Modifier.size(18.dp), tint = c.ok)
+        Icon(MikaIcons.Globe, null, Modifier.size(MikaSize.TileIcon), tint = c.ok)
         Column(Modifier.weight(1f)) {
             Text(stringResource(R.string.kept_row_title), style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold), color = c.ok)
             Text(
@@ -92,8 +95,8 @@ fun KeptLine(page: KeptPage, onClose: () -> Unit) {
             )
         }
         Box(
-            Modifier.testTag("kept-close").clip(RoundedCornerShape(8.dp)).background(c.surface)
-                .clickable(role = Role.Button, onClick = onClose).padding(horizontal = 10.dp, vertical = 5.dp),
+            Modifier.testTag("kept-close").clip(RoundedCornerShape(MikaRadius.Sm)).background(c.surface)
+                .clickable(role = Role.Button, onClick = onClose).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S4),
         ) {
             Text(stringResource(R.string.kept_row_close), style = MikaType.Label.copy(fontWeight = FontWeight.SemiBold), color = c.bad)
         }

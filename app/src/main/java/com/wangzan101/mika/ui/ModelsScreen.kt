@@ -94,6 +94,7 @@ import com.wangzan101.mika.ui.theme.MikaTheme
 import com.wangzan101.mika.ui.theme.MikaType
 import com.wangzan101.mika.voice.SpeechChoice
 import com.wangzan101.mika.voice.SpeechOptions
+import com.wangzan101.mika.ui.theme.MikaSpace
 
 /** 设置 › 模型:和上手时的配置模型是同一页([ModelSetupScreen]),不在引导流程里。 */
 @Composable
@@ -107,7 +108,7 @@ internal fun Page(title: String, onBack: () -> Unit, content: @Composable () -> 
     PageBackground {
         Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars).windowInsetsPadding(WindowInsets.ime)) {
             TopBar(title, MikaIcons.Back, onBack, stringResource(R.string.back))
-            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 24.dp)) {
+            Column(Modifier.weight(1f).verticalScroll(rememberScrollState()).padding(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S24)) {
                 content()
             }
         }
@@ -121,16 +122,16 @@ internal fun RoleCard(icon: ImageVector, label: String, line: ModelsCopy.RoleLin
     Column {
         if (!first) Hairline(start = 0.dp)
         Row(
-            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag(tag).padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
+            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag(tag).padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S16),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
         ) {
-            Box(Modifier.size(40.dp).background(c.neutralSoft, RoleTileShape), contentAlignment = Alignment.Center) {
+            Box(Modifier.size(MikaSize.IconButton).background(c.neutralSoft, RoleTileShape), contentAlignment = Alignment.Center) {
                 Icon(icon, null, Modifier.size(21.dp), tint = c.ink)
             }
             Column(Modifier.weight(1f)) {
-                Text(label, fontSize = 12.5.sp, lineHeight = 17.sp, color = c.ink3)
+                Text(label, style = MikaType.Hint, color = c.ink3)
                 Text(
-                    line.title, Modifier.padding(top = 1.dp), fontSize = 16.sp, lineHeight = 22.sp, fontWeight = FontWeight.SemiBold,
+                    line.title, Modifier.padding(top = 1.dp), style = MikaType.Button,
                     fontFamily = if (line.isModel) FontFamily.Monospace else null, color = if (line.unset) c.ink3 else c.ink,
                     maxLines = 1, overflow = TextOverflow.Ellipsis,
                 )
@@ -146,7 +147,7 @@ internal fun RoleCard(icon: ImageVector, label: String, line: ModelsCopy.RoleLin
     }
 }
 
-private val RoleTileShape = RoundedCornerShape(12.dp)
+private val RoleTileShape = RoundedCornerShape(MikaRadius.Md)
 
 /** 服务商一行:左边是名字首字的图标块;[warning] 是要提醒的一句(用提醒色另起一行)。 */
 @Composable
@@ -155,11 +156,11 @@ internal fun ProviderRow(p: Provider, line: String, first: Boolean, warning: Str
     Column {
         if (!first) Hairline()
         Row(
-            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag("provider-${p.name}").padding(horizontal = 16.dp).padding(vertical = 11.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp),
+            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag("provider-${p.name}").padding(horizontal = MikaSpace.S16).padding(vertical = MikaSpace.S12),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S16),
         ) {
             Box(Modifier.size(MikaSize.Tile).background(c.neutralSoft, MikaShapes.Tile), contentAlignment = Alignment.Center) {
-                Text(p.name.take(1).uppercase(), fontSize = 13.sp, fontWeight = FontWeight.Bold, color = c.ink)
+                Text(p.name.take(1).uppercase(), style = MikaType.LabelStrong, color = c.ink)
             }
             Column(Modifier.weight(1f)) {
                 Text(ModelsCopy.providerName(p), style = MikaType.Body, color = c.ink, maxLines = 1)
@@ -202,7 +203,7 @@ fun RolePickerContent(ui: ModelSetupUi, role: ModelRole, actions: RolePickerActi
     val total = groups.sumOf { it.second.size }
     val q = filter.trim()
     Page(ModelsCopy.roleName(role), onBack) {
-        Text(ModelsCopy.roleHint(role), Modifier.padding(top = 4.dp, bottom = 12.dp), fontSize = 14.5.sp, lineHeight = 22.sp, color = c.ink2)
+        Text(ModelsCopy.roleHint(role), Modifier.padding(top = MikaSpace.S4, bottom = MikaSpace.S12), style = MikaType.Callout, color = c.ink2)
         val fixed = fixedChoices(role)
         if (fixed.isNotEmpty()) {
             GroupCard {
@@ -215,8 +216,8 @@ fun RolePickerContent(ui: ModelSetupUi, role: ModelRole, actions: RolePickerActi
             }
         }
         if (total > FILTER_FROM) {
-            GroupLabel(ModelsCopy.PICK_FROM, Modifier.padding(top = 8.dp))
-            Box(Modifier.padding(bottom = 4.dp)) {
+            GroupLabel(ModelsCopy.PICK_FROM, Modifier.padding(top = MikaSpace.S8))
+            Box(Modifier.padding(bottom = MikaSpace.S4)) {
                 SearchField(filter, { filter = it }, ModelsCopy.FILTER_HINT, Modifier.testTag("model-filter"))
             }
         }
@@ -250,7 +251,7 @@ fun RolePickerContent(ui: ModelSetupUi, role: ModelRole, actions: RolePickerActi
         }
         if (q.isNotEmpty() && !anyShown) FooterNote(ModelsCopy.NO_MATCH)
         if (ui.providers.isEmpty()) FooterNote(ModelsCopy.ROLE_EMPTY)
-        GroupCard(Modifier.padding(top = 8.dp)) {
+        GroupCard(Modifier.padding(top = MikaSpace.S8)) {
             ListRow(MikaIcons.Plus, ModelsCopy.ADD_PROVIDER, first = true, titleColor = c.accent, tone = TileTone.Accent, onClick = actions.addProvider)
         }
         FooterNote(ModelsCopy.PICKER_NOTE)
@@ -267,7 +268,7 @@ internal fun ManualModel(p: Provider, state: ListState?, first: Boolean, onUse: 
     InputRow(ModelsCopy.MODEL_NAME, name, { name = it }, example, first = first, modifier = Modifier.testTag("manual-model")) {
         Text(
             if (running) ModelSetupCopy.TESTING else ModelsCopy.USE, Modifier.clickable(enabled = enabled) { onUse(name.trim()) }.testTag("manual-model-use"),
-            fontSize = 13.sp, fontWeight = FontWeight.Medium, color = if (enabled) MikaTheme.colors.accent else MikaTheme.colors.ink3,
+            style = MikaType.Label, color = if (enabled) MikaTheme.colors.accent else MikaTheme.colors.ink3,
         )
     }
 }
@@ -380,7 +381,7 @@ fun ProviderDetailContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetail
             val retest = ui.retest[p.id]
             MikaButton(
                 if (retest == ListState.Running) ModelSetupCopy.TESTING else ModelsCopy.RETEST, actions.retest,
-                Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("provider-retest"),
+                Modifier.fillMaxWidth().padding(bottom = MikaSpace.S8).testTag("provider-retest"),
                 kind = ButtonKind.Secondary, size = ButtonSize.Medium, enabled = retest != ListState.Running,
             )
             (retest as? ListState.Failed)?.let { FooterNote(it.message, Modifier.testTag("provider-retest-failed"), color = c.bad) }
@@ -391,7 +392,7 @@ fun ProviderDetailContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetail
             p.models == null && list.isEmpty() && state != ListState.Running -> FooterNote(ModelsCopy.NOT_LISTED)
         }
 
-        GroupCard(Modifier.padding(top = 8.dp)) {
+        GroupCard(Modifier.padding(top = MikaSpace.S8)) {
             ListRow(MikaIcons.Trash, ModelsCopy.DELETE, titleColor = c.bad, tone = TileTone.Bad, first = true, onClick = { confirmDelete = true })
         }
     }
@@ -416,7 +417,7 @@ fun ProviderDetailContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetail
             title = { Text(ModelsCopy.CHANGE_KEY) },
             text = {
                 KeyboardDismissArea {
-                    Box(Modifier.fillMaxWidth().keepsKeyboard().background(c.fill, MikaShapes.Button).padding(12.dp)) {
+                    Box(Modifier.fillMaxWidth().keepsKeyboard().background(c.fill, MikaShapes.Button).padding(MikaSpace.S12)) {
                         if (key.isEmpty()) Text(ModelsCopy.NEW_KEY_HINT, style = MikaType.Body, color = c.ink3)
                         BasicTextField(
                             key, { key = it }, Modifier.fillMaxWidth().testTag("new-key"), singleLine = true,
@@ -543,7 +544,7 @@ fun AllModelsContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetailActio
             TopBar(ModelsCopy.allModelsTitle(ModelsCopy.providerName(p)), MikaIcons.Back, onBack, stringResource(R.string.back), right = {
                 BarIconButton(MikaIcons.Refresh, ModelsCopy.REFRESH, actions.refresh, enabled = state != ListState.Running)
             })
-            Box(Modifier.padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 10.dp)) {
+            Box(Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S4, bottom = MikaSpace.S12)) {
                 SearchField(filter, { filter = it }, ModelsCopy.FILTER_HINT, Modifier.testTag("all-models-filter"))
             }
             when (state) {
@@ -551,7 +552,7 @@ fun AllModelsContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetailActio
                 is ListState.Failed -> FooterNote(ModelSetupCopy.failed(state.message), color = c.bad)
                 else -> Unit
             }
-            LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(start = 16.dp, end = 16.dp, bottom = 24.dp)) {
+            LazyColumn(Modifier.weight(1f).fillMaxWidth(), contentPadding = PaddingValues(start = MikaSpace.S16, end = MikaSpace.S16, bottom = MikaSpace.S24)) {
                 itemsIndexed(shown, key = { _, o -> o.id }) { i, o ->
                     Box(Modifier.fillMaxWidth().clip(rowShape(i, shown.size)).background(c.surface)) {
                         ModelRow(o, ui.rolesOf(p.id, o.id), first = i == 0) { using = o }
@@ -560,7 +561,7 @@ fun AllModelsContent(ui: ModelSetupUi, p: Provider, actions: ProviderDetailActio
                 item {
                     FooterNote(
                         if (q.isNotEmpty() && shown.isEmpty()) ModelsCopy.NO_MATCH else ModelsCopy.allModelsNote(all.size),
-                        Modifier.padding(top = 10.dp),
+                        Modifier.padding(top = MikaSpace.S12),
                     )
                 }
             }
@@ -582,12 +583,12 @@ private fun ModelRow(o: ModelOption, roles: List<ModelRole>, first: Boolean, onC
     Column {
         if (!first) Hairline(start = 16.dp)
         Row(
-            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag("model-${o.id}").padding(horizontal = 16.dp, vertical = 11.dp),
-            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp),
+            Modifier.fillMaxWidth().clickable(onClick = onClick).testTag("model-${o.id}").padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S12),
+            verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
             Column(Modifier.weight(1f)) {
                 Text(o.id, style = ModelIdStyle, color = MikaTheme.colors.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                Box(Modifier.padding(top = 4.dp)) { Tags(o, accent = false) }
+                Box(Modifier.padding(top = MikaSpace.S4)) { Tags(o, accent = false) }
             }
             roles.forEach { StatusPill(ModelsCopy.roleName(it), PillTone.Accent) }
             RowChevron()
@@ -603,10 +604,10 @@ private fun ModelRow(o: ModelOption, roles: List<ModelRole>, first: Boolean, onC
 @Composable
 private fun UseAsSheet(ui: ModelSetupUi, p: Provider, model: String, onUse: (ModelRole) -> Unit, onVision: (Boolean) -> Unit, onDismiss: () -> Unit) {
     val c = MikaTheme.colors
-    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.surface, shape = RoundedCornerShape(topStart = 20.dp, topEnd = 20.dp)) {
-        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = 8.dp).testTag("use-as")) {
-            Text(model, Modifier.padding(horizontal = 16.dp), style = ModelIdStyle, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            Text(ModelsCopy.useAsSubtitle(ModelsCopy.providerName(p)), Modifier.padding(start = 16.dp, end = 16.dp, top = 2.dp, bottom = 6.dp), style = MikaType.Caption, color = c.ink3)
+    ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true), containerColor = c.surface, shape = RoundedCornerShape(topStart = MikaRadius.Xl, topEnd = MikaRadius.Xl)) {
+        Column(Modifier.fillMaxWidth().navigationBarsPadding().padding(bottom = MikaSpace.S8).testTag("use-as")) {
+            Text(model, Modifier.padding(horizontal = MikaSpace.S16), style = ModelIdStyle, color = c.ink, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            Text(ModelsCopy.useAsSubtitle(ModelsCopy.providerName(p)), Modifier.padding(start = MikaSpace.S16, end = MikaSpace.S16, top = 2.dp, bottom = MikaSpace.S8), style = MikaType.Caption, color = c.ink3)
             ModelRole.entries.forEachIndexed { i, role ->
                 val on = ui.picked(role, p.id, model)
                 RadioRow(

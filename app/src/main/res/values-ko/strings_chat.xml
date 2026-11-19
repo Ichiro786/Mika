@@ -288,4 +288,5 @@
     <string name="plan_step_needs_approval">승인이 필요해요</string>
     <string name="plan_step_stopped">중지됨</string>
     <string name="plan_step_of">%2$d단계 중 %1$d단계</string>
+    <string name="chat_jump_latest">최신으로 이동</string>
 </resources>

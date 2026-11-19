@@ -131,6 +131,8 @@ import java.time.format.TextStyle as DateTextStyle
 import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import com.wangzan101.mika.i18n.uiLocale
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
 
 /** 侧栏里的一条对话。[id] 为 null 是还没存进对话列表的当前对话。 */
 data class DrawerConversation(
@@ -451,19 +453,19 @@ fun ChatDrawer(
         val (state, ok) = readiness(check)
         val fix = onFixStatus.takeIf { !ok }
         Row(
-            Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 8.dp),
+            Modifier.fillMaxWidth().padding(start = MikaSpace.S16, end = MikaSpace.S8, top = MikaSpace.S12, bottom = MikaSpace.S8),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             MikaLogo(40.dp, corner = 12.dp)
             // The status under the title is a way in: when phone control needs setting up, a tap goes there.
             Column(
                 Modifier.weight(1f).clip(NavShape)
                     .then(if (fix != null) Modifier.clickable(role = Role.Button, onClickLabel = stringResource(R.string.drawer_status_fix), onClick = fix) else Modifier)
-                    .padding(horizontal = 4.dp, vertical = 2.dp).testTag("drawer-status"),
+                    .padding(horizontal = MikaSpace.S4, vertical = 2.dp).testTag("drawer-status"),
             ) {
                 Text(stringResource(R.string.app_name), style = MikaType.Title, color = c.ink)
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4)) {
                     Box(Modifier.size(7.dp).background(if (ok) c.ok else c.warnSolid, CircleShape))
                     Text(state, style = MikaType.Hint, fontWeight = FontWeight.Medium, color = if (fix != null) c.ink2 else c.ink3, maxLines = 1)
                     if (fix != null) DirectionalIcon(MikaIcons.Chevron, null, Modifier.size(10.dp), tint = c.ink3)
@@ -474,9 +476,9 @@ fun ChatDrawer(
         }
         if (!selecting && !archivedView) {
             Row(
-                Modifier.fillMaxWidth().padding(start = 12.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
+                Modifier.fillMaxWidth().padding(start = MikaSpace.S12, end = MikaSpace.S8, top = 2.dp, bottom = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
             ) {
                 if (canSearch) DrawerSearchField(query, onQueryChange, Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
                 if (!sideHistoryView && !everythingView) ComposeButton(canSwitch, onNewSideChat)
@@ -487,7 +489,7 @@ fun ChatDrawer(
         // One card on top: Everything, then Main chat.
         if (!searchActive && !selecting && !archivedView && !sideHistoryView && !everythingView) {
             Column(
-                Modifier.padding(horizontal = 12.dp, vertical = 8.dp).fillMaxWidth()
+                Modifier.padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8).fillMaxWidth()
                     .cardSurface(c, DrawerCardShape).clip(DrawerCardShape)
                     .testTag("drawer-primary"),
             ) {
@@ -534,7 +536,7 @@ fun ChatDrawer(
                 if (!canSwitch) {
                     item("search-busy") {
                         Text(
-                            stringResource(R.string.drawer_busy), Modifier.padding(start = 24.dp, end = 24.dp, bottom = 6.dp),
+                            stringResource(R.string.drawer_busy), Modifier.padding(start = MikaSpace.S24, end = MikaSpace.S24, bottom = MikaSpace.S8),
                             style = MikaType.Hint, color = c.ink3,
                         )
                     }
@@ -631,7 +633,7 @@ fun ChatDrawer(
                     if (!canSwitch) {
                         item("busy") {
                             Text(
-                                stringResource(R.string.drawer_busy), Modifier.padding(start = 24.dp, end = 24.dp, bottom = 6.dp),
+                                stringResource(R.string.drawer_busy), Modifier.padding(start = MikaSpace.S24, end = MikaSpace.S24, bottom = MikaSpace.S8),
                                 style = MikaType.Hint, color = c.ink3,
                             )
                         }
@@ -673,9 +675,9 @@ fun ChatDrawer(
             // Settings and About stay at the foot however long the list gets: round buttons on the right.
             Row(
                 Modifier.fillMaxWidth().drawBehind { drawLine(c.hair, Offset(0f, 0f), Offset(size.width, 0f), 0.5.dp.toPx()) }
-                    .padding(horizontal = 12.dp, vertical = 6.dp).testTag("drawer-footer"),
+                    .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8).testTag("drawer-footer"),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
             ) {
                 Spacer(Modifier.weight(1f))
                 FooterButton(MikaIcons.Info, AboutCopy.TITLE, "drawer-about", dot = aboutDot, onClick = onAbout)
@@ -688,23 +690,23 @@ fun ChatDrawer(
 /** 侧栏顶上的小按钮:平时的「多选」和多选中的「取消」。 */
 @Composable
 private fun HeaderAction(text: String, tag: String, color: Color, onClick: () -> Unit) {
-    TextButton(onClick = onClick, modifier = Modifier.testTag(tag), contentPadding = PaddingValues(horizontal = 10.dp)) {
+    TextButton(onClick = onClick, modifier = Modifier.testTag(tag), contentPadding = PaddingValues(horizontal = MikaSpace.S12)) {
         Text(text, style = MikaType.Label, color = color)
     }
 }
 
 @Composable
 private fun SideChatsHeader(onSeeAll: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().padding(end = MikaSpace.S12), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.drawer_recent)) }
         // A small arrow, not a "See all" label: it opens the clean full list of side chats.
         Box(
-            Modifier.size(40.dp).clip(CircleShape)
+            Modifier.size(MikaSize.IconButton).clip(CircleShape)
                 .clickable(role = Role.Button, onClickLabel = stringResource(R.string.orbit_side_all), onClick = onSeeAll)
                 .testTag("side-chats-see-all"),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(MikaIcons.Chevron, stringResource(R.string.orbit_side_all), Modifier.size(16.dp), tint = MikaTheme.colors.ink2)
+            Icon(MikaIcons.Chevron, stringResource(R.string.orbit_side_all), Modifier.size(MikaSize.SmallIcon), tint = MikaTheme.colors.ink2)
         }
     }
 }
@@ -713,11 +715,11 @@ private fun SideChatsHeader(onSeeAll: () -> Unit) {
 private fun SideHistoryHeader(onBack: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().height(48.dp).clickable(role = Role.Button, onClick = onBack)
-            .padding(horizontal = 24.dp).testTag("side-chats-back"),
+            .padding(horizontal = MikaSpace.S24).testTag("side-chats-back"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
-        Icon(MikaIcons.Back, null, Modifier.size(16.dp), tint = MikaTheme.colors.ink2)
+        Icon(MikaIcons.Back, null, Modifier.size(MikaSize.SmallIcon), tint = MikaTheme.colors.ink2)
         Text(stringResource(R.string.orbit_side_chats), style = SectionText, color = MikaTheme.colors.ink3)
     }
 }
@@ -728,12 +730,12 @@ private fun ArchiveHeader(count: Int, onBack: () -> Unit) {
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().clip(NavShape).clickable(role = Role.Button, onClick = onBack)
-            .padding(start = 12.dp, end = 20.dp, top = 8.dp, bottom = 4.dp)
+            .padding(start = MikaSpace.S12, end = MikaSpace.S24, top = MikaSpace.S8, bottom = MikaSpace.S4)
             .testTag("drawer-archive-back"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
     ) {
-        Icon(MikaIcons.Back, null, Modifier.size(16.dp), tint = c.ink2)
+        Icon(MikaIcons.Back, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink2)
         Text(stringResource(R.string.drawer_archived), Modifier.weight(1f), style = SectionText, color = c.ink3)
         if (count > 0) {
             Text(stringResource(R.string.drawer_archived_count, count), style = MikaType.Hint, color = c.ink3, maxLines = 1, softWrap = false)
@@ -759,14 +761,14 @@ private fun ArchiveEmpty(onBack: () -> Unit) {
 private fun ArchiveEntry(count: Int, onClick: () -> Unit) {
     val c = MikaTheme.colors
     Row(
-        Modifier.fillMaxWidth().padding(start = 12.dp, end = 12.dp, top = 6.dp)
+        Modifier.fillMaxWidth().padding(start = MikaSpace.S12, end = MikaSpace.S12, top = MikaSpace.S8)
             .clip(NavShape).clickable(role = Role.Button, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S12)
             .testTag("drawer-archive"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
-        Icon(MikaIcons.Archive, null, Modifier.size(16.dp), tint = c.ink3)
+        Icon(MikaIcons.Archive, null, Modifier.size(MikaSize.SmallIcon), tint = c.ink3)
         Text(stringResource(R.string.drawer_archived), Modifier.weight(1f), style = MikaType.Body, color = c.ink2, maxLines = 1)
         Text("$count", Modifier.testTag("drawer-archive-count"), style = MikaType.Hint, color = c.ink3, maxLines = 1, softWrap = false)
         DirectionalIcon(MikaIcons.Chevron, null, Modifier.size(10.dp), tint = c.ink3)
@@ -782,7 +784,7 @@ private fun SelectBar(
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().drawBehind { drawLine(c.hair, Offset(0f, 0f), Offset(size.width, 0f), 0.5.dp.toPx()) }
-            .padding(start = 20.dp, end = 8.dp, top = 2.dp, bottom = 2.dp).testTag("drawer-select-bar"),
+            .padding(start = MikaSpace.S24, end = MikaSpace.S8, top = 2.dp, bottom = 2.dp).testTag("drawer-select-bar"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
@@ -820,9 +822,9 @@ private fun ArchiveStatusBar(batch: ArchiveBatch) {
     }
     Row(
         Modifier.fillMaxWidth().drawBehind { drawLine(c.hair, Offset(0f, 0f), Offset(size.width, 0f), 0.5.dp.toPx()) }
-            .padding(horizontal = 20.dp, vertical = 10.dp).testTag("drawer-archive-status"),
+            .padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S12).testTag("drawer-archive-status"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Icon(MikaIcons.Archive, null, Modifier.size(14.dp), tint = if (batch.archived > 0) c.ok else c.ink3)
         Text(text, style = MikaType.Hint, color = c.ink2, maxLines = 2)
@@ -835,9 +837,9 @@ private fun ArchiveUndoBar(undo: ArchiveUndo, onUndo: () -> Unit) {
     val c = MikaTheme.colors
     Row(
         Modifier.fillMaxWidth().drawBehind { drawLine(c.hair, Offset(0f, 0f), Offset(size.width, 0f), 0.5.dp.toPx()) }
-            .padding(start = 20.dp, end = 8.dp, top = 2.dp, bottom = 2.dp).testTag("drawer-archive-undo"),
+            .padding(start = MikaSpace.S24, end = MikaSpace.S8, top = 2.dp, bottom = 2.dp).testTag("drawer-archive-undo"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         Icon(MikaIcons.Archive, null, Modifier.size(14.dp), tint = c.ink3)
         Text(
@@ -862,9 +864,9 @@ private fun DeleteStatusBar(batch: DeleteBatch) {
     }
     Row(
         Modifier.fillMaxWidth().drawBehind { drawLine(c.hair, Offset(0f, 0f), Offset(size.width, 0f), 0.5.dp.toPx()) }
-            .padding(horizontal = 20.dp, vertical = 10.dp).testTag("drawer-delete-status"),
+            .padding(horizontal = MikaSpace.S24, vertical = MikaSpace.S12).testTag("drawer-delete-status"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         if (batch.finished) {
             Icon(
@@ -880,13 +882,13 @@ private fun DeleteStatusBar(batch: DeleteBatch) {
 @Composable
 private fun RunningLabel(onScreens: () -> Unit) {
     val c = MikaTheme.colors
-    Row(Modifier.fillMaxWidth().padding(end = 12.dp), verticalAlignment = Alignment.Bottom) {
+    Row(Modifier.fillMaxWidth().padding(end = MikaSpace.S12), verticalAlignment = Alignment.Bottom) {
         Box(Modifier.weight(1f)) { SectionLabel(stringResource(R.string.drawer_running)) }
         Row(
             Modifier.clip(NavShape).clickable(role = Role.Button, onClick = onScreens)
-                .padding(start = 10.dp, end = 6.dp, top = 8.dp, bottom = 4.dp).testTag("drawer-screens"),
+                .padding(start = MikaSpace.S12, end = MikaSpace.S8, top = MikaSpace.S8, bottom = MikaSpace.S4).testTag("drawer-screens"),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S4),
         ) {
             Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink3)
             Text(stringResource(R.string.drawer_screens), style = MikaType.Hint, color = c.ink2)
@@ -899,7 +901,7 @@ private fun RunningLabel(onScreens: () -> Unit) {
 private fun SectionLabel(text: String) {
     val locale = androidx.compose.ui.platform.LocalConfiguration.current.locales[0]
     Text(
-        text.uppercase(locale), Modifier.padding(start = 24.dp, end = 24.dp, top = 18.dp, bottom = 6.dp),
+        text.uppercase(locale), Modifier.padding(start = MikaSpace.S24, end = MikaSpace.S24, top = MikaSpace.S16, bottom = MikaSpace.S8),
         style = SectionText, color = MikaTheme.colors.ink3,
     )
 }
@@ -935,7 +937,7 @@ internal fun ConversationEntry(
     val bounds = remember { mutableStateOf(Rect.Zero) }
     val row: @Composable () -> Unit = {
         Column(
-            Modifier.padding(horizontal = 12.dp).fillMaxWidth()
+            Modifier.padding(horizontal = MikaSpace.S12).fillMaxWidth()
                 .onGloballyPositioned { bounds.value = Rect(it.positionInWindow(), it.size.toSize()) }
                 // 侧滑时前景必须遮住归档底层，不能让按钮透过标题和时间。
                 .background(c.bg, NavShape)
@@ -958,9 +960,9 @@ internal fun ConversationEntry(
                 )
                 .testTag("conversation-row")
                 .alpha(if (item.enabled || selectable) 1f else 0.45f)
-                .heightIn(min = 48.dp).padding(horizontal = 12.dp, vertical = 9.dp),
+                .heightIn(min = 48.dp).padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8),
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                 if (selectable) SelectMark(selected)
                 leading?.invoke()
                 Box(Modifier.weight(1f)) { ConversationRowContent(item, terms, showArchivedMark) }
@@ -983,12 +985,12 @@ internal fun ConversationEntry(
             backgroundContent = {
                 if (dismiss.dismissDirection == SwipeToDismissBoxValue.EndToStart) {
                     Box(
-                        Modifier.fillMaxSize().padding(horizontal = 12.dp).clip(NavShape).background(c.accentSoft)
-                            .padding(horizontal = 20.dp).testTag("conversation-archive-swipe"),
+                        Modifier.fillMaxSize().padding(horizontal = MikaSpace.S12).clip(NavShape).background(c.accentSoft)
+                            .padding(horizontal = MikaSpace.S24).testTag("conversation-archive-swipe"),
                         contentAlignment = Alignment.CenterEnd,
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                            Icon(MikaIcons.Archive, null, Modifier.size(16.dp), tint = c.accent)
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
+                            Icon(MikaIcons.Archive, null, Modifier.size(MikaSize.SmallIcon), tint = c.accent)
                             Text(stringResource(R.string.drawer_archive), style = MikaType.Label, color = c.accent)
                         }
                     }
@@ -1024,7 +1026,7 @@ internal fun ConversationRowContent(
     val c = MikaTheme.colors
     val title = remember(item.title, terms, c.accent) { highlighted(item.title, terms, c.accent) }
     Column {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             if (item.running) Box(Modifier.size(7.dp).background(c.accent, CircleShape))
             if (item.pinned) Icon(MikaIcons.Pin, stringResource(R.string.drawer_pinned_mark), Modifier.size(14.dp).testTag("conversation-pin"), tint = c.ink3)
             if (item.branch) Icon(MikaIcons.Route, stringResource(R.string.chat_branch_origin), Modifier.size(14.dp).testTag("conversation-branch"), tint = c.ink3)
@@ -1032,13 +1034,13 @@ internal fun ConversationRowContent(
             Text(title, Modifier.weight(1f, fill = item.site == null), style = ConversationTitle, color = c.ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
             if (item.site != null) {
                 Text(
-                    PageAskCopy.WEB, Modifier.background(c.accentSoft, RoundedCornerShape(6.dp)).padding(horizontal = 6.dp).testTag("conversation-web"),
+                    PageAskCopy.WEB, Modifier.background(c.accentSoft, RoundedCornerShape(MikaRadius.Xs)).padding(horizontal = MikaSpace.S8).testTag("conversation-web"),
                     style = ConversationTag, color = c.accent, maxLines = 1,
                 )
                 Box(Modifier.weight(1f))
             }
             if (item.time.isNotEmpty()) {
-                Text(item.time, Modifier.padding(start = 5.dp).testTag("conversation-time"), style = ConversationTime, color = c.ink3, maxLines = 1, softWrap = false)
+                Text(item.time, Modifier.padding(start = MikaSpace.S4).testTag("conversation-time"), style = ConversationTime, color = c.ink3, maxLines = 1, softWrap = false)
             }
         }
         val sub = item.subtitle.ifEmpty { item.site.orEmpty() }
@@ -1065,7 +1067,7 @@ private fun ChannelEditor(
         title = { Text(stringResource(if (creating) R.string.orbit_channel_create else R.string.orbit_channel_edit)) },
         text = {
             KeyboardDismissArea {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(MikaSpace.S12)) {
                     OutlinedTextField(name, { if (it.length <= 80) name = it }, Modifier.fillMaxWidth().keepsKeyboard().testTag("channel-name"),
                         label = { Text(stringResource(R.string.orbit_channel_name)) }, singleLine = true)
                     OutlinedTextField(description, { if (it.length <= 2000) description = it }, Modifier.fillMaxWidth().keepsKeyboard().testTag("channel-description"),
@@ -1167,13 +1169,13 @@ internal fun DeleteManyConversationsDialog(
 }
 
 private val DrawerWidth = 320.dp
-private val DrawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
-internal val NavShape = RoundedCornerShape(12.dp)
-private val SectionText = TextStyle(fontSize = 11.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp)
-private val NavGroupShape = RoundedCornerShape(18.dp)
-private val ConversationTitle = TextStyle(fontSize = 14.5.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
-private val ConversationTime = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
-private val ConversationTag = TextStyle(fontSize = 10.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium)
+private val DrawerShape = RoundedCornerShape(topEnd = MikaRadius.Xxl, bottomEnd = MikaRadius.Xxl)
+internal val NavShape = RoundedCornerShape(MikaRadius.Md)
+private val SectionText = MikaType.Overline
+private val NavGroupShape = RoundedCornerShape(MikaRadius.Xl)
+private val ConversationTitle = MikaType.Callout.copy(fontWeight = FontWeight.Medium)
+private val ConversationTime = MikaType.Hint
+private val ConversationTag = MikaType.Micro
 
 /**
  * 对话页和它的侧栏:左上角菜单从左边滑出侧栏,外面一层遮罩;点遮罩、往左滑、按返回都关上。

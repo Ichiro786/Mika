@@ -82,6 +82,9 @@ import androidx.compose.animation.core.VisibilityThreshold
 import com.wangzan101.mika.ui.plan.LivePlan
 import com.wangzan101.mika.ui.plan.LivePlanCard
 import com.wangzan101.mika.ui.plan.PlanRing
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaRadius
+import com.wangzan101.mika.ui.theme.MikaSize
 
 /**
  * How a running task shows while Orbit works in the background. Nothing floats over the chat any more:
@@ -142,7 +145,7 @@ fun AgentPip(
             pip.visible && pip.closed && pip.mode != PipMode.Done, Modifier.align(Alignment.BottomCenter),
             enter = motion.enter(TransformOrigin(0.5f, 1f)), exit = motion.exit(TransformOrigin(0.5f, 1f)),
         ) {
-            ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + 10.dp), onReopen, onAttention)
+            ClosedPip(needsYou, reduceMotion, Modifier.padding(bottom = bottom + MikaSpace.S12), onReopen, onAttention)
         }
 
         // The pill pops up from the bottom edge: a playful moment, so the one bouncy spring.
@@ -161,7 +164,7 @@ fun AgentPip(
                 meta = if (needsYou) label else meta,
                 reduceMotion = reduceMotion,
                 plan = plan,
-                modifier = Modifier.padding(bottom = bottom + 10.dp, start = 16.dp, end = 16.dp),
+                modifier = Modifier.padding(bottom = bottom + MikaSpace.S12, start = MikaSpace.S16, end = MikaSpace.S16),
                 onClick = { if (needsYou) onAttention() else onExpand() },
             )
         }
@@ -245,12 +248,12 @@ private fun AgentPill(
                 .clip(shape)
                 .clickable(role = Role.Button, onClick = onClick)
                 .alpha(if (mode == PipMode.Done) 0.85f else 1f)
-                .padding(start = 5.dp, end = 14.dp, top = 5.dp, bottom = 5.dp)
+                .padding(start = MikaSpace.S4, end = MikaSpace.S16, top = MikaSpace.S4, bottom = MikaSpace.S4)
                 .testTag("pip-pill"),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
         ) {
-            val thumb = RoundedCornerShape(9.dp)
+            val thumb = RoundedCornerShape(MikaRadius.Sm)
             Box(
                 Modifier.size(28.dp).clip(thumb).background(c.surface).border(1.5.dp, tone.copy(alpha = 0.55f), thumb),
                 contentAlignment = Alignment.Center,
@@ -263,7 +266,7 @@ private fun AgentPill(
                 }
             }
             // The compact plan: its ring (spinning while working, amber when it needs you) beside the current step.
-            if (plan != null) PlanRing(plan, Modifier.size(16.dp))
+            if (plan != null) PlanRing(plan, Modifier.size(MikaSize.SmallIcon))
             else Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
             if (title.isNotBlank()) {
                 Text(
@@ -301,7 +304,7 @@ private fun LiveSheet(
     val drag = remember { Animatable(0f) }
     val hideAt = with(density) { 120.dp.toPx() }
     val dragState = rememberDraggableState { delta -> scope.launch { drag.snapTo((drag.value + delta).coerceAtLeast(0f)) } }
-    val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val shape = RoundedCornerShape(topStart = MikaRadius.Xxl, topEnd = MikaRadius.Xxl)
     val needsYou = pip.mode == PipMode.NeedsYou
     val tone = if (needsYou) c.warnSolid else c.ok
     val glow = breath(needsYou, reduceMotion, 0.5f, "sheetBreath")
@@ -318,10 +321,10 @@ private fun LiveSheet(
             .clip(shape)
             // Swallow taps so they don't reach the scrim behind
             .clickable(interactionSource = remember { MutableInteractionSource() }, indication = null) {}
-            .padding(start = 14.dp, end = 14.dp, top = 10.dp)
-            .padding(bottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() } + 12.dp)
+            .padding(start = MikaSpace.S16, end = MikaSpace.S16, top = MikaSpace.S12)
+            .padding(bottom = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() } + MikaSpace.S12)
             .testTag("pip-sheet"),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
     ) {
         // Grab handle and header: drag down to hide
         Column(
@@ -334,12 +337,12 @@ private fun LiveSheet(
                     },
                 )
                 .semantics { contentDescription = swipeHint },
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(MikaSpace.S12),
         ) {
             Box(Modifier.align(Alignment.CenterHorizontally).size(width = 36.dp, height = 4.dp).background(c.ink3.copy(alpha = 0.6f), CircleShape))
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Box(Modifier.size(7.dp).alpha(glow).background(tone, CircleShape))
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(MikaSpace.S8))
                 Text(
                     title, style = MikaType.BodyStrong, color = if (needsYou) c.warn else c.ink, maxLines = 1,
                     overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
@@ -351,9 +354,9 @@ private fun LiveSheet(
         if (plan != null && plan.steps.isNotEmpty()) LivePlanCard(plan, showHeader = false, maxStepsHeight = SheetStepsMax)
 
         // The live screen with a soft glow instead of a hard border
-        val liveShape = RoundedCornerShape(20.dp)
+        val liveShape = RoundedCornerShape(MikaRadius.Xl)
         Box(Modifier.fillMaxWidth().weight(1f)) {
-            Box(Modifier.matchParentSize().padding(6.dp).alpha(0.5f * glow).blur(18.dp).background(tone.copy(alpha = 0.35f), liveShape))
+            Box(Modifier.matchParentSize().padding(MikaSpace.S8).alpha(0.5f * glow).blur(18.dp).background(tone.copy(alpha = 0.35f), liveShape))
             BoxWithConstraints(
                 Modifier.matchParentSize().clip(liveShape).background(c.surface)
                     .border(1.dp, tone.copy(alpha = 0.3f + 0.2f * glow), liveShape)
@@ -372,7 +375,7 @@ private fun LiveSheet(
                 } else {
                     Icon(MikaIcons.Screens, stringResource(R.string.pip_screen), Modifier.size(28.dp), tint = c.ink3)
                 }
-                Row(Modifier.align(Alignment.TopStart).padding(8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(Modifier.align(Alignment.TopStart).padding(MikaSpace.S8), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
                     if (operateInput != null) {
                         PipButton(MikaIcons.Back, stringResource(R.string.pip_back), { scope.launch { operateInput.back() } }, "pip-back")
                     }
@@ -382,7 +385,7 @@ private fun LiveSheet(
             }
         }
 
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8)) {
             if (onTakeControl != null) SheetAction(stringResource(R.string.action_take_over), c.warnSoft, c.warn, "pip-take-control", onTakeControl)
             SheetAction(stringResource(R.string.hide), c.fill, c.ink, "pip-hide", onCollapse)
             if (onStop != null) SheetAction(stringResource(R.string.chat_stop), c.badSoft, c.bad, "pip-stop", onStop)
@@ -415,10 +418,10 @@ private fun ClosedPip(needsYou: Boolean, reduceMotion: Boolean, modifier: Modifi
             .border(if (needsYou) 1.5.dp else 0.5.dp, if (needsYou) c.warnSolid.copy(alpha = glow) else c.glassEdge, shape)
             .clip(shape)
             .clickable(onClickLabel = label, role = Role.Button) { if (needsYou) onAttention() else onReopen() }
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = MikaSpace.S12, vertical = MikaSpace.S8)
             .testTag("pip-closed"),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8),
     ) {
         if (needsYou) Box(Modifier.size(7.dp).alpha(glow).background(c.warnSolid, CircleShape))
         else Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)

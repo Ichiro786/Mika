@@ -55,6 +55,8 @@ import kotlinx.coroutines.withContext
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import com.wangzan101.mika.ui.theme.MikaSpace
+import com.wangzan101.mika.ui.theme.MikaType
 
 /** 展示现有连接状态,不把启用开关或监听端口当作电脑已连接。刷新仍只在本页,沿用两秒间隔。 */
 @Composable
@@ -141,12 +143,12 @@ internal fun ComputerAccessPage(
         ConnectionStatus(ui)
         GroupLabel(stringResource(R.string.mcp_choose_client))
         SegmentedControl(listOf("CLI / Skill", "MCP"), client, { client = it },
-            Modifier.padding(bottom = 12.dp), tags = listOf("computer-cli", "computer-mcp"))
+            Modifier.padding(bottom = MikaSpace.S12), tags = listOf("computer-cli", "computer-mcp"))
         GroupLabel(stringResource(R.string.mcp_choose_transport))
         val remoteChoice = relayGuide != null
         SegmentedControl(listOf(stringResource(R.string.mcp_transport_usb), stringResource(R.string.mcp_transport_network)) +
             if (remoteChoice) listOf(stringResource(R.string.relay_transport)) else emptyList(),
-            transport, { transport = it }, Modifier.padding(bottom = 12.dp),
+            transport, { transport = it }, Modifier.padding(bottom = MikaSpace.S12),
             tags = listOf("computer-usb", "computer-network") + if (remoteChoice) listOf("computer-remote") else emptyList())
         if (client == 0) CliInstallGuide(onCopy)
         when {
@@ -205,7 +207,7 @@ private fun PortDialog(current: Int, onPick: (Int) -> Unit, onDismiss: () -> Uni
         title = { Text(stringResource(R.string.mcp_port_title)) },
         text = {
             Column {
-                Text(stringResource(R.string.mcp_port_dialog_sub), Modifier.padding(bottom = 8.dp))
+                Text(stringResource(R.string.mcp_port_dialog_sub), Modifier.padding(bottom = MikaSpace.S8))
                 RadioRow(stringResource(R.string.mcp_port_default, McpSettings.DEFAULT_PORT), selected = current == McpSettings.DEFAULT_PORT,
                     onClick = { onPick(McpSettings.DEFAULT_PORT) }, first = true)
                 OutlinedTextField(
@@ -215,10 +217,10 @@ private fun PortDialog(current: Int, onPick: (Int) -> Unit, onDismiss: () -> Uni
                     label = { Text(stringResource(R.string.mcp_port_custom)) },
                     isError = custom.isNotEmpty() && value == null,
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    modifier = Modifier.fillMaxWidth().padding(top = MikaSpace.S8),
                 )
                 if (custom.isNotEmpty() && value == null) {
-                    Text(stringResource(R.string.mcp_port_invalid), Modifier.padding(top = 4.dp))
+                    Text(stringResource(R.string.mcp_port_invalid), Modifier.padding(top = MikaSpace.S4))
                 }
             }
         },
@@ -339,8 +341,8 @@ private fun GuideStep(title: String, body: String, button: String, onClick: () -
 
 @Composable
 internal fun CommandText(text: String, modifier: Modifier = Modifier) {
-    Text(text, modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
-        fontFamily = FontFamily.Monospace, fontSize = 14.sp, lineHeight = 20.sp, color = MikaTheme.colors.ink)
+    Text(text, modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S8),
+        fontFamily = FontFamily.Monospace, style = MikaType.Callout, color = MikaTheme.colors.ink)
 }
 
 private fun clock(ms: Long): String =

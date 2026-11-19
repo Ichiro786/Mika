@@ -302,4 +302,5 @@
     <string name="plan_step_needs_approval">Needs your approval</string>
     <string name="plan_step_stopped">Stopped</string>
     <string name="plan_step_of">Step %1$d of %2$d</string>
+    <string name="chat_jump_latest">Jump to latest</string>
 </resources>
