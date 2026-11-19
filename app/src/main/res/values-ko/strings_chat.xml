@@ -281,4 +281,11 @@
     <string name="chat_reaction_orbit">Orbit이 %1$s 반응함</string>
     <string name="chat_replying_to">내 메시지에 대한 답장: %1$s</string>
     <string name="chat_swipe_reply">밀어서 답장</string>
+    <string name="plan_step_pending">시작 전</string>
+    <string name="plan_step_running">진행 중</string>
+    <string name="plan_step_done">완료</string>
+    <string name="plan_step_waiting">기다리는 중</string>
+    <string name="plan_step_needs_approval">승인이 필요해요</string>
+    <string name="plan_step_stopped">중지됨</string>
+    <string name="plan_step_of">%2$d단계 중 %1$d단계</string>
 </resources>

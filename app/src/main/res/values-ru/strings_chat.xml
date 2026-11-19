@@ -323,4 +323,11 @@
     <string name="chat_reaction_orbit">Реакция Orbit: %1$s</string>
     <string name="chat_replying_to">Ответ на ваше сообщение: %1$s</string>
     <string name="chat_swipe_reply">Смахните, чтобы ответить</string>
+    <string name="plan_step_pending">Не начато</string>
+    <string name="plan_step_running">Выполняется</string>
+    <string name="plan_step_done">Готово</string>
+    <string name="plan_step_waiting">Ждёт вас</string>
+    <string name="plan_step_needs_approval">Нужно ваше одобрение</string>
+    <string name="plan_step_stopped">Остановлено</string>
+    <string name="plan_step_of">Шаг %1$d из %2$d</string>
 </resources>

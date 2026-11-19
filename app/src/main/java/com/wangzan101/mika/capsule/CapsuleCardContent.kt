@@ -107,8 +107,6 @@ import com.wangzan101.mika.ui.components.ButtonKind
 import com.wangzan101.mika.ui.components.ButtonSize
 import com.wangzan101.mika.ui.components.MikaButton
 import com.wangzan101.mika.ui.components.MikaLogo
-import com.wangzan101.mika.ui.components.StepItem
-import com.wangzan101.mika.ui.components.StepState
 import com.wangzan101.mika.ui.theme.MikaIcons
 import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.MikaShapes
@@ -117,6 +115,11 @@ import com.wangzan101.mika.voice.HoldToTalk
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeoutOrNull
+import com.wangzan101.mika.ui.plan.LivePlan
+import com.wangzan101.mika.ui.plan.LivePlanCard
+import com.wangzan101.mika.ui.plan.PlanStep
+import com.wangzan101.mika.ui.plan.PlanStepStatus
+import com.wangzan101.mika.ui.plan.PlanPhase
 
 private val CardShape = RoundedCornerShape(22.dp)
 private val ScreenShape = RoundedCornerShape(14.dp)
@@ -640,7 +643,7 @@ private fun Detail(
             Column(Modifier.weight(1f)) {
                 val content = card.content
                 // 干活中的步骤单独排(自己滚、最多和小画面一样高),没有要你点的按钮
-                if (content is CardContent.Working) Steps(content.steps, stepsMax) else {
+                if (content is CardContent.Working) Steps(content.steps, stepsMax, plan = content.plan) else {
                     // 文字放不下就在这一段里滚;要你点的按钮放在下面,不跟着滚走
                     Column(
                         Modifier.testTag("capsule-scroll").weight(1f, fill = false).verticalScroll(rememberScrollState()),
@@ -915,61 +918,21 @@ private val ThreadThumbWidth = 78.dp
 private const val END_OFFSET = 1_000_000
 
 /**
- * 干活中的步骤(旧的在上):按内容高、最多 [max] 高。放不下时最新一步留在底下,旧的在上面截掉、顶上淡出,往上滚看更早的;
- * 来了新的一步时,本来就在底部才跟着往下,往上翻着看时不拽回去(同 [ThreadList])。
- * [tags] 和 [steps] 一一对应:那一步在哪(「网页」「App」),写成步骤前面的小标签;没有为 null。
+ * 干活中的步骤:共用的实时计划卡片([LivePlanCard])的步骤部分,最多 [max] 高,自己滚,在底部时跟着最新一步,往上翻着看时不拽回去。
+ * 有 [plan] 时按它画(每一步的真实状态);只有文字时最后一步算在做、前面算做完。[tags] 和 [steps] 一一对应(「网页」「App」)。
  */
 @Composable
-internal fun Steps(steps: List<String>, max: Dp, tags: List<String?> = emptyList()) {
-    val c = MikaTheme.colors
-    // 倒着排:第 0 项是最新一步,贴在底下
-    val state = rememberLazyListState()
-    var following by remember { mutableStateOf(true) }
-    LaunchedEffect(state) {
-        var wasScrolling = false
-        snapshotFlow { state.isScrollInProgress to !state.canScrollBackward }.collect { (scrolling, atEnd) ->
-            if (scrolling || wasScrolling) following = atEnd
-            wasScrolling = scrolling
-        }
-    }
-    LaunchedEffect(steps.size) {
-        if (following && !state.isScrollInProgress) state.scrollToItem(0)
-    }
-    val fade = with(LocalDensity.current) { FadeEdge.toPx() }
-    LazyColumn(
-        Modifier.testTag("capsule-steps").fillMaxWidth().heightIn(max = max)
-            .graphicsLayer(compositingStrategy = CompositingStrategy.Offscreen)
-            .drawWithContent {
-                drawContent()
-                // 上面还有更早的步骤:顶上淡出
-                if (state.canScrollForward) drawRect(Brush.verticalGradient(0f to Color.Transparent, 1f to Color.Black, endY = fade), blendMode = BlendMode.DstIn)
-            },
-        state = state,
-        reverseLayout = true,
-    ) {
-        // 按从旧到新的序号作 key:往上翻着看时来了新的一步,看着的那几步留在原处
-        items(steps.size, key = { steps.lastIndex - it }) { j ->
-            val i = steps.lastIndex - j
-            val current = j == 0
-            StepItem(if (current) StepState.Current else StepState.Done, first = i == 0, last = current, dotY = 11.dp) {
-                Row(verticalAlignment = Alignment.Top) {
-                    tags.getOrNull(i)?.let { t ->
-                        Text(
-                            t, Modifier.padding(top = 3.dp, end = 5.dp).background(c.accentSoft, RoundedCornerShape(6.dp)).padding(horizontal = 5.dp),
-                            style = TextStyle(fontSize = 10.5.sp, lineHeight = 15.sp, fontWeight = FontWeight.Medium), color = c.accent, maxLines = 1,
-                        )
-                    }
-                    Text(
-                        steps[i], Modifier.padding(vertical = 2.dp), style = if (current) Step.copy(fontWeight = FontWeight.Medium) else Step,
-                        color = if (current) c.ink else c.ink2, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                    )
-                }
-            }
-        }
-    }
+internal fun Steps(steps: List<String>, max: Dp, tags: List<String?> = emptyList(), plan: LivePlan? = null) {
+    val shown = plan?.takeIf { tags.isEmpty() } ?: LivePlan(
+        title = "",
+        steps = steps.mapIndexed { i, s ->
+            PlanStep(i, s, if (i == steps.lastIndex) PlanStepStatus.Running else PlanStepStatus.Done, tag = tags.getOrNull(i))
+        },
+        phase = PlanPhase.Running,
+    )
+    LivePlanCard(shown, Modifier.testTag("capsule-steps"), maxStepsHeight = max, showHeader = false)
 }
 
-private val FadeEdge = 28.dp
 
 @Composable
 private fun Action(text: String, kind: ButtonKind, onClick: () -> Unit) {

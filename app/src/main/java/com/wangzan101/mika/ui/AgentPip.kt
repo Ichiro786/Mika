@@ -79,6 +79,9 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.VisibilityThreshold
+import com.wangzan101.mika.ui.plan.LivePlan
+import com.wangzan101.mika.ui.plan.LivePlanCard
+import com.wangzan101.mika.ui.plan.PlanRing
 
 /**
  * How a running task shows while Orbit works in the background. Nothing floats over the chat any more:
@@ -120,6 +123,8 @@ fun AgentPip(
     onStop: (() -> Unit)? = null,
     /** Take over the step Orbit is waiting on; shown only while it needs you. */
     onTakeControl: (() -> Unit)? = null,
+    /** The shared live plan: the pill shows its ring, the sheet its steps. Null keeps the plain status dot. */
+    plan: LivePlan? = null,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -155,6 +160,7 @@ fun AgentPip(
                 title = if (needsYou) stringResource(R.string.pip_closed_needs_you) else label,
                 meta = if (needsYou) label else meta,
                 reduceMotion = reduceMotion,
+                plan = plan,
                 modifier = Modifier.padding(bottom = bottom + 10.dp, start = 16.dp, end = 16.dp),
                 onClick = { if (needsYou) onAttention() else onExpand() },
             )
@@ -189,6 +195,7 @@ fun AgentPip(
                 onUnmute = onUnmute,
                 onStop = onStop,
                 onTakeControl = if (needsYou) onTakeControl else null,
+                plan = plan,
             )
         }
     }
@@ -208,6 +215,7 @@ private fun AgentPill(
     reduceMotion: Boolean,
     modifier: Modifier,
     onClick: () -> Unit,
+    plan: LivePlan? = null,
 ) {
     val c = MikaTheme.colors
     val shape = RoundedCornerShape(50)
@@ -254,7 +262,9 @@ private fun AgentPill(
                     Icon(MikaIcons.Screens, null, Modifier.size(14.dp), tint = c.ink2)
                 }
             }
-            Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
+            // The compact plan: its ring (spinning while working, amber when it needs you) beside the current step.
+            if (plan != null) PlanRing(plan, Modifier.size(16.dp))
+            else Box(Modifier.size(7.dp).alpha(if (mode == PipMode.Running) 0.55f + 0.45f * live else glow).background(tone, CircleShape))
             if (title.isNotBlank()) {
                 Text(
                     title, style = MikaType.Label, color = if (needsYou) c.warn else c.ink, maxLines = 1,
@@ -283,6 +293,7 @@ private fun LiveSheet(
     onUnmute: () -> Unit,
     onStop: (() -> Unit)?,
     onTakeControl: (() -> Unit)?,
+    plan: LivePlan? = null,
 ) {
     val c = MikaTheme.colors
     val density = LocalDensity.current
@@ -336,6 +347,8 @@ private fun LiveSheet(
                 if (meta.isNotBlank()) Text(meta, style = MikaType.Caption, color = c.ink2, maxLines = 1)
             }
         }
+        // Every step so far, the current one kept in view; Stop stays with the sheet's own buttons below.
+        if (plan != null && plan.steps.isNotEmpty()) LivePlanCard(plan, showHeader = false, maxStepsHeight = SheetStepsMax)
 
         // The live screen with a soft glow instead of a hard border
         val liveShape = RoundedCornerShape(20.dp)
@@ -460,3 +473,6 @@ private fun operateInputModifier(input: PipInput, scope: CoroutineScope): Modifi
         }
     }
 }
+
+/** How tall the step list in the live sheet may grow before it scrolls; the screen keeps the rest. */
+private val SheetStepsMax = 136.dp

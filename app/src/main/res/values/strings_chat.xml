@@ -295,4 +295,11 @@
     <string name="chat_reaction_orbit">Orbit reacted %1$s</string>
     <string name="chat_replying_to">Replying to your message: %1$s</string>
     <string name="chat_swipe_reply">Swipe to reply</string>
+    <string name="plan_step_pending">Not started</string>
+    <string name="plan_step_running">In progress</string>
+    <string name="plan_step_done">Done</string>
+    <string name="plan_step_waiting">Waiting for you</string>
+    <string name="plan_step_needs_approval">Needs your approval</string>
+    <string name="plan_step_stopped">Stopped</string>
+    <string name="plan_step_of">Step %1$d of %2$d</string>
 </resources>

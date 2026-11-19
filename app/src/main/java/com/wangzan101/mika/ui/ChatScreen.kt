@@ -182,6 +182,9 @@ import kotlin.math.sin
 import com.wangzan101.mika.ui.theme.rememberMikaPhase
 import com.wangzan101.mika.ui.theme.motion
 import androidx.compose.animation.core.VisibilityThreshold
+import com.wangzan101.mika.ui.plan.LivePlans
+import com.wangzan101.mika.ui.plan.LivePlanCard
+import com.wangzan101.mika.ui.plan.LivePlanSteps
 
 /**
  * 对话页:顶栏(左边打开侧栏、中间对话标题和此刻在做什么、右边新对话),对话在顶栏和玻璃输入栏之间滚动。
@@ -672,10 +675,11 @@ fun ChatScreen(
             onReopen = vm::reopenPip,
             onUnmute = vm::unmutePip,
             label = last?.let { ChatCopy.progressLine(it) }.orEmpty(),
-            steps = last?.steps?.size ?: 0,
+            steps = last?.let { LivePlans.from(it).stepNumber } ?: 0,
             startedAt = last?.startedAt ?: 0L,
             onStop = vm::cancel,
             onTakeControl = vm::takeOver,
+            plan = last?.takeIf { it.status.isActive() }?.let { remember(it) { LivePlans.from(it) } },
             // 要你处理时点小窗:收起,滚到要你处理的那张卡片(在最后一问一答里,它后面只可能还有文件卡片和去设置那一行)
             onAttention = {
                 vm.attendPip()
@@ -900,7 +904,7 @@ private fun LazyListScope.exchange(
     if (active) {
         // Only thinking so far: the plain "Thinking" line below says it, so no second indicator above it.
         val onlyThinking = ex.status == ExchangeStatus.Working && ex.waitingForModel && ex.steps.isEmpty() && !backgroundNote
-        if (!answering && !onlyThinking) chatItem(reduceMotion, "s$index") { WorkBlock(ex, reduceMotion, backgroundNote, openRun) }
+        if (!answering && !onlyThinking) chatItem(reduceMotion, "s$index") { WorkBlock(ex, vm, backgroundNote, openRun) }
     } else if (ex.steps.isNotEmpty() || ex.runId != null) {
         chatItem(reduceMotion, "s$index") { DoneLine(ex, reduceMotion, openRun, tokens) }
     }
@@ -1202,41 +1206,16 @@ private fun Modifier.answerSurface(): Modifier =
 // ---------- 进度 ----------
 
 /**
- * 进行中:一行状态和用时;步骤按需展开,停下来等你时当前步是橙点。
- * 在后台操作手机时最下面一行小字。
+ * In progress: the shared live plan card (task, step, elapsed time, Stop, every step with its state), then the
+ * link into the run timeline and, while Orbit works the phone in the background, a small note.
  */
 @Composable
-private fun WorkBlock(ex: Exchange, reduceMotion: Boolean, backgroundNote: Boolean, openRun: (String) -> Unit) {
+private fun WorkBlock(ex: Exchange, vm: ChatViewModel, backgroundNote: Boolean, openRun: (String) -> Unit) {
     val c = MikaTheme.colors
-    val paused = ChatCopy.paused(ex.status)
-    val elapsed = rememberElapsed(ex.startedAt)
-    var showSteps by rememberSaveable { mutableStateOf(false) }
+    val plan = remember(ex) { LivePlans.from(ex) }
     // No card behind it: it sits in the chat like the "Thinking" line does.
     Column(Modifier.fillMaxWidth().padding(bottom = 6.dp).padding(horizontal = 4.dp, vertical = 2.dp)) {
-        Row(
-            Modifier.fillMaxWidth().heightIn(min = 28.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            Spinner(
-                Modifier.size(16.dp), spinning = !paused && !reduceMotion,
-                track = if (paused) c.warnSoft else c.accentSoft, head = if (paused) c.warnSolid else c.accent,
-            )
-            Text(
-                ChatCopy.progressLine(ex), Modifier.weight(1f), style = NowText, color = c.ink,
-                maxLines = 2, overflow = TextOverflow.Ellipsis,
-            )
-            if (elapsed != null) Text(ChatCopy.clock(elapsed), style = ClockText, color = c.ink3)
-        }
-        if (ex.steps.isNotEmpty()) {
-            Text(
-                stringResource(if (showSteps) R.string.chat_collapse_steps else R.string.chat_expand_steps),
-                Modifier.clip(MikaShapes.Pill).clickable(role = Role.Button) { showSteps = !showSteps }
-                    .heightIn(min = 48.dp).padding(horizontal = 8.dp, vertical = 8.dp),
-                style = MikaType.Caption, color = c.ink2,
-            )
-            if (showSteps) StepLine(ex.steps, ex.stepActions, live = true, paused = paused)
-        }
+        LivePlanCard(plan, onStop = vm::cancel, showTitle = false)
         // 跑的时候就能进运行过程(页面按秒接着长);结束后收进「做了 N 步 · 查看过程」那一行
         ex.runId?.let { id ->
             Text(
@@ -1269,120 +1248,6 @@ internal fun rememberElapsed(startedAt: Long): Long? {
         }
     }
     return (now - startedAt).coerceAtLeast(0L)
-}
-
-private enum class Dot { Done, Current, Paused, Dim }
-
-/**
- * 竖线步骤。[live] 时最后一步按任务此刻的状态标蓝点或橙点;在跑时只列最近 [ChatCopy.VISIBLE_STEPS] 步,
- * 前面的收成一行,点开看全部。
- */
-@Composable
-private fun StepLine(steps: List<StepRow>, actions: Map<Int, List<StepAction>>, live: Boolean, paused: Boolean) {
-    val c = MikaTheme.colors
-    var all by rememberSaveable { mutableStateOf(!live) }
-    // 哪几步点开了:按这一屏里的序号记,列表变长也不乱
-    val expanded = remember { mutableStateMapOf<Int, Boolean>() }
-    val hidden = if (all) 0 else (steps.size - ChatCopy.VISIBLE_STEPS).coerceAtLeast(0)
-    Column(
-        Modifier.padding(top = 6.dp).fillMaxWidth().drawBehind {
-            val x = StepRail.toPx()
-            drawLine(c.hair, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1.5.dp.toPx())
-        },
-    ) {
-        if (hidden > 0) {
-            StepItem(ChatCopy.earlierSteps(hidden), "", Dot.Dim, current = false, link = true, onClick = { all = true })
-        }
-        steps.drop(hidden).forEachIndexed { i, row ->
-            val key = hidden + i
-            val isLast = key == steps.lastIndex
-            val dot = when {
-                live && isLast && paused -> Dot.Paused
-                live && isLast && row.state == StepState.Run -> Dot.Current
-                row.state == StepState.Dim -> Dot.Dim
-                else -> Dot.Done
-            }
-            val open = expanded[key] == true
-            val detail = actions[row.step].orEmpty()
-            StepItem(
-                row.text, row.subtitle, dot, current = dot == Dot.Current || dot == Dot.Paused,
-                actions = detail, open = open,
-                // 有具体动作才点得开:点开看这一步实际做了什么、对什么、结果如何
-                onClick = if (detail.isEmpty()) null else ({ expanded[key] = !open }),
-            )
-        }
-    }
-}
-
-@Composable
-private fun StepItem(
-    text: String, subtitle: String, dot: Dot, current: Boolean, link: Boolean = false, onClick: (() -> Unit)? = null,
-    actions: List<StepAction> = emptyList(), open: Boolean = false,
-) {
-    val c = MikaTheme.colors
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
-    Row(
-        Modifier.fillMaxWidth()
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable(onClickLabel = stringResource(if (open) R.string.collapse else R.string.chat_expand_steps), onClick = onClick)
-                } else Modifier,
-            )
-            .heightIn(min = 28.dp).padding(vertical = 3.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.width(StepRail * 2), contentAlignment = Alignment.Center) { StepDot(dot) }
-        Spacer(Modifier.width(9.dp))
-        Column(Modifier.weight(1f)) {
-            Text(
-                text, style = if (current) StepCurrentText else StepText,
-                color = when {
-                    link -> c.accent
-                    current -> c.ink
-                    else -> c.ink2
-                },
-                maxLines = 2, overflow = TextOverflow.Ellipsis,
-            )
-            if (subtitle.isNotEmpty()) Text(subtitle, style = MikaType.Hint, color = c.ink3, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            // 点开:这一步实际做的几件事,一件一行「做了什么 · 对什么 · 结果」,说法和运行过程页一样
-            if (open) actions.forEach { a ->
-                Text(
-                    ChatCopy.actionLine(a), Modifier.padding(top = 2.dp),
-                    style = MikaType.Hint, color = if (a.failed) c.bad else c.ink3, maxLines = 2, overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        // 能点开的只有有动作的那些:右边一个小箭头,点开时朝下
-        if (actions.isNotEmpty()) DirectionalIcon(
-            MikaIcons.Chevron, null,
-            Modifier.padding(start = 6.dp).size(12.dp).graphicsLayer { rotationZ = if (open) if (rtl) -90f else 90f else 0f },
-            tint = c.ink3,
-        )
-    }
-}
-
-/** 步骤点:8dp 实心;当前步外面一圈 3dp 的淡色光环。 */
-@Composable
-private fun StepDot(dot: Dot) {
-    val c = MikaTheme.colors
-    val (fill, ring) = when (dot) {
-        Dot.Done -> c.ink3 to null
-        Dot.Dim -> c.hair to null
-        Dot.Current -> c.accent to c.accentSoft
-        Dot.Paused -> c.warnSolid to c.warnSoft
-    }
-    // 底色先盖住竖线,点才是干净的
-    val bg = c.bg
-    Box(
-        Modifier.size(14.dp).drawBehind {
-            val center = Offset(size.width / 2, size.height / 2)
-            if (ring != null) {
-                drawCircle(bg, 7.dp.toPx(), center)
-                drawCircle(ring, 7.dp.toPx(), center)
-            }
-            drawCircle(fill, 4.dp.toPx(), center)
-        },
-    )
 }
 
 /**
@@ -1462,7 +1327,9 @@ private fun DoneLine(ex: Exchange, reduceMotion: Boolean, openRun: (String) -> U
                 )
             }
         }
-        Reveal(open && ex.steps.isNotEmpty(), reduceMotion) { StepLine(ex.steps, ex.stepActions, live = false, paused = false) }
+        Reveal(open && ex.steps.isNotEmpty(), reduceMotion) {
+            LivePlanSteps(remember(ex) { LivePlans.from(ex) }, Modifier.padding(top = 6.dp))
+        }
     }
 }
 
@@ -2024,7 +1891,6 @@ private val HeaderFade = 44.dp
 private const val JUMP_HIGHLIGHT_MS = 1_800L
 
 /** 竖线的位置(从左边算起);步骤点、转圈的中心都在这条线上。 */
-private val StepRail = 8.dp
 
 private val FileTileShape = RoundedCornerShape(10.dp)
 private val EmptyLead = TextStyle(fontSize = 15.sp, lineHeight = 21.sp)
@@ -2032,10 +1898,6 @@ private val ExampleText = TextStyle(fontSize = 15.sp, lineHeight = 21.sp)
 private val BubbleText = TextStyle(fontSize = 15.5.sp, lineHeight = 22.5.sp)
 /** 回答:正文字号,行距放宽到 1.7。 */
 private val AnswerText = TextStyle(fontSize = 15.5.sp, lineHeight = 26.sp)
-private val NowText = TextStyle(fontSize = 15.sp, lineHeight = 20.sp, fontWeight = FontWeight.Medium)
-private val ClockText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp, fontFeatureSettings = "tnum")
-private val StepText = TextStyle(fontSize = 14.sp, lineHeight = 19.sp)
-private val StepCurrentText = TextStyle(fontSize = 14.sp, lineHeight = 19.sp, fontWeight = FontWeight.Medium)
 private val NoteText = TextStyle(fontSize = 12.5.sp, lineHeight = 17.sp)
 private val DoneText = TextStyle(fontSize = 13.sp, lineHeight = 18.sp)
 private val NeedTitle = TextStyle(fontSize = 15.sp, lineHeight = 21.sp, fontWeight = FontWeight.SemiBold)

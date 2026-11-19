@@ -74,6 +74,7 @@ import com.wangzan101.mika.ui.theme.MikaMotion
 import com.wangzan101.mika.ui.theme.motion
 import com.wangzan101.mika.ui.theme.rememberMikaPulse
 import com.wangzan101.mika.ui.theme.rememberMikaPhase
+import com.wangzan101.mika.ui.plan.RingSpinner
 
 /** 胶囊外面留给阴影的边:浮层窗口按内容大小,阴影画在窗口里面;留得越少,窗口挡住下面 App 的透明边越窄。 */
 internal val CapsuleShadowRoom = 8.dp
@@ -229,7 +230,7 @@ private fun PillRow(view: CapsuleView.Shown, end: Boolean, need: Boolean) {
     }
 }
 
-/** 文字前面的状态标记:要你处理是呼吸点,办好了是勾,没办成是叹号,已停止是停止,后台网页运行中是绿点。 */
+/** 文字前面的状态标记:干活中是实时计划的小圈,要你处理是呼吸点,办好了是勾,没办成是叹号,已停止是停止,后台网页运行中是绿点。 */
 @Composable
 private fun Leading(kind: CapsuleKind) {
     val c = MikaTheme.colors
@@ -239,6 +240,8 @@ private fun Leading(kind: CapsuleKind) {
         kind == CapsuleKind.Failed -> Icon(MikaIcons.Exclaim, null, Modifier.size(16.dp), tint = c.ink3)
         kind == CapsuleKind.Cancelled -> Icon(MikaIcons.Stop, null, Modifier.size(16.dp), tint = c.ink3)
         kind == CapsuleKind.KeptPage -> LiveDot(c)
+        // Working: the live plan's compact ring beside the current step (the pill's text); tap opens the card.
+        kind == CapsuleKind.Running -> RingSpinner(Modifier.size(14.dp).testTag("capsule-plan-ring"), c.accent, c.accentSoft, spinning = true)
         else -> Unit
     }
 }

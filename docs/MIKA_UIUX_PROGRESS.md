@@ -304,3 +304,32 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
   - `MotionGuardTest` fails the build if any source outside `Motion.kt` creates a `tween`, `spring`, `keyframes` or `infiniteRepeatable`, or uses an untokened default enter/exit.
   - `MotionSpecsTest` checks the token values and that reduce-motion snaps every spec.
 - **Not yet verified:** on-device frame pacing during streaming, TalkBack, and 200% font. No emulator is available in the container (no KVM). Screenshots come from the CI emulator capture.
+
+## Orbit UI/UX program, Stage 2: one live plan card, 2026-11-19
+
+**Status:** implemented. Builds and unit tests pass locally. Device checks still need doing.
+
+- New `ui/plan/LivePlanModel.kt` holds the `LivePlan` model and the `LivePlans.from(Exchange)` mapper. The mapper only uses the task's real steps and its current action. Nothing is invented.
+  - It does not claim a total ("Step 3", not "3 of 5") until a plan length is known.
+- New `ui/plan/LivePlanCard.kt` is the one card used on every surface.
+  - Header: ring, task, "Step N" and elapsed time, and a Stop button with a 48dp touch target.
+  - Every step shows while running:
+    - pending: a dim dot;
+    - running: a spinning ring;
+    - done: a check that draws itself on the spatial spring;
+    - failed: a red mark with a one-line reason;
+    - waiting or needs approval: amber, saying what it is waiting for.
+  - New steps animate in with the shared enter; rows already there do not.
+  - The bounded form scrolls by itself, keeps the current step in view while you are at the bottom, and fades older steps at the top.
+  - `LivePlanSteps` is the expanded list under a finished task's one-line summary.
+  - `PlanRing` and `LivePlanPill` are the compact form.
+- The four old views are replaced:
+  1. Chat: `WorkBlock` and `StepLine` now use the card. Steps no longer hide behind "Show steps". `DoneLine` expands into `LivePlanSteps`.
+  2. Floating card and browser page: `Steps` is now a thin adapter onto the card. The existing `capsule-steps` tag and its follow/scroll behaviour are kept.
+  3. Capsule pill: a running task shows the shared ring next to the current step. Tapping still opens the card.
+  4. Mini view: the AgentPip pill shows `PlanRing`, and the LiveSheet lists the steps (bounded at 136dp).
+- Approval stays only on the existing keyed confirmation card. The plan step turns amber and names the action, but has no approve control.
+- Accessibility: each step row has a translated `stateDescription`, the current step is a polite live region, and the title is a heading.
+- New strings were added in all 9 languages.
+- **Not done (needs approval):** a cheap "plan" tool the model updates, so the card can show the whole plan up front. This needs a new tool in `:core`'s agent tool set, which `AGENTS.md` protects. The model already has a `total` field ready for it.
+- **Not yet verified:** on-device rendering, TalkBack, 200% font, and the capsule device tests (compiled but not run; no emulator in the container).

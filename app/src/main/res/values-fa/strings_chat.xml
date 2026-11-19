@@ -295,4 +295,11 @@
     <string name="chat_reaction_orbit">Orbit با %1$s واکنش داد</string>
     <string name="chat_replying_to">در پاسخ به پیامت: %1$s</string>
     <string name="chat_swipe_reply">برای پاسخ بکشید</string>
+    <string name="plan_step_pending">شروع نشده</string>
+    <string name="plan_step_running">در حال انجام</string>
+    <string name="plan_step_done">انجام شد</string>
+    <string name="plan_step_waiting">منتظر شما</string>
+    <string name="plan_step_needs_approval">نیاز به تأیید شما</string>
+    <string name="plan_step_stopped">متوقف شد</string>
+    <string name="plan_step_of">مرحله %1$d از %2$d</string>
 </resources>
