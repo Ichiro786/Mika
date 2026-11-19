@@ -82,4 +82,5 @@
     <string name="tool_profile">プロフィールを更新</string>
     <string name="tool_history">以前のメッセージを読む</string>
     <string name="tool_user_screen">あなたの画面を見る</string>
+    <string name="tool_update_plan">計画を更新</string>
 </resources>

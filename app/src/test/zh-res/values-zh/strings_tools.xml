@@ -82,4 +82,5 @@
     <string name="tool_profile">修改个人资料</string>
     <string name="tool_history">读取之前的消息</string>
     <string name="tool_user_screen">看你的屏幕</string>
+    <string name="tool_update_plan">更新计划</string>
 </resources>

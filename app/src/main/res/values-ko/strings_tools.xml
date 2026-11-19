@@ -82,4 +82,5 @@
     <string name="tool_profile">프로필 업데이트</string>
     <string name="tool_history">이전 메시지 읽기</string>
     <string name="tool_user_screen">화면 보기</string>
+    <string name="tool_update_plan">계획 업데이트</string>
 </resources>

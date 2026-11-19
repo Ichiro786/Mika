@@ -82,4 +82,5 @@
     <string name="tool_profile">تحديث ملفك الشخصي</string>
     <string name="tool_history">قراءة الرسائل السابقة</string>
     <string name="tool_user_screen">النظر إلى شاشتك</string>
+    <string name="tool_update_plan">تحديث الخطة</string>
 </resources>

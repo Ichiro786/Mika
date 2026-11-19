@@ -8,6 +8,7 @@ import com.wangzan101.mika.ui.StepAction
 import com.wangzan101.mika.ui.StepState
 import com.wangzan101.mika.ui.isActive
 import com.wangzan101.mika.ui.liveLine
+import com.wangzan101.mika.core.record.RunEvent
 
 /** How one step of a task stands. */
 enum class PlanStepStatus { Pending, Running, Waiting, NeedsApproval, Done, Failed, Stopped }
@@ -83,6 +84,7 @@ object LivePlans {
      */
     fun from(ex: Exchange, now: String?): LivePlan {
         val phase = phase(ex.status)
+        planned(ex, phase)?.let { return it }
         val approval = (ex.status as? ExchangeStatus.NeedsConfirmation)?.title
         val out = ex.steps.mapIndexed { i, row ->
             val failed = row.subtitle.isNotBlank()
@@ -116,6 +118,42 @@ object LivePlans {
             phase = phase,
             startedAt = ex.startedAt,
             elapsedMs = ex.elapsedMs,
+            runId = ex.runId,
+        )
+    }
+
+    /**
+     * The plan the agent published with update_plan, newest first: its steps with the ones before the current
+     * step done, the current one following the task, the rest still to come. Null when it published none.
+     */
+    fun planned(ex: Exchange, phase: PlanPhase = phase(ex.status)): LivePlan? {
+        val rec = ex.activities.lastOrNull { it.kind == RunEvent.PLAN_ACTIVITY } ?: return null
+        val steps = rec.title?.lines()?.map(String::trim)?.filter(String::isNotBlank)?.takeIf { it.size >= 2 } ?: return null
+        val current = ((rec.target?.toIntOrNull() ?: 1) - 1).coerceIn(0, steps.lastIndex)
+        val here = when (phase) {
+            PlanPhase.Running -> PlanStepStatus.Running
+            PlanPhase.Waiting -> PlanStepStatus.Waiting
+            PlanPhase.NeedsApproval -> PlanStepStatus.NeedsApproval
+            PlanPhase.Done -> PlanStepStatus.Done
+            PlanPhase.Failed -> PlanStepStatus.Failed
+            PlanPhase.Stopped -> PlanStepStatus.Stopped
+        }
+        val failedNote = (ex.status as? ExchangeStatus.Failed)?.reason?.lineSequence()?.firstOrNull().orEmpty()
+        return LivePlan(
+            title = ex.goal.trim(),
+            steps = steps.mapIndexed { i, text ->
+                val status = when {
+                    phase == PlanPhase.Done -> PlanStepStatus.Done
+                    i < current -> PlanStepStatus.Done
+                    i == current -> here
+                    else -> PlanStepStatus.Pending
+                }
+                PlanStep(i, text, status, note = if (status == PlanStepStatus.Failed) failedNote else "")
+            },
+            phase = phase,
+            startedAt = ex.startedAt,
+            elapsedMs = ex.elapsedMs,
+            total = steps.size,
             runId = ex.runId,
         )
     }

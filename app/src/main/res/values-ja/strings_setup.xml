@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">支払いや取り消せない操作は、あなたが「許可」を長押しするまで待ちます。</string>
     <string name="onboarding_privacy_memory">記憶はあなたが管理</string>
     <string name="onboarding_privacy_memory_body">Orbit が覚えた内容は設定で確認、編集、オフにできます。</string>
+    <string name="helper_drop_title">スマホ操作が切断されました</string>
+    <string name="helper_drop_stopped">ヘルパーが停止しました。アプリを使うタスクは復帰まで待ちます。</string>
+    <string name="helper_drop_wireless_off">ワイヤレスデバッグがオフです。オンにすると Orbit が再接続します。</string>
+    <string name="helper_drop_needs_setup">アプリを使うには、ヘルパーの再設定が必要です。</string>
+    <string name="helper_drop_reconnecting">ヘルパーに再接続しています…</string>
+    <string name="helper_reconnect">再接続</string>
+    <string name="helper_turn_on">オンにする</string>
+    <string name="helper_fix">修正</string>
 </resources>

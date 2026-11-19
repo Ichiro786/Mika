@@ -2221,7 +2221,7 @@ class ChatViewModel(
 
         /** 按步号归好的动作明细:点开一步时列出来。 */
         private fun actionsOf(activities: List<RunEvent.Activity>, appLabel: (String) -> String, toolLabel: (String) -> String) =
-            activities.groupBy { it.step }.mapValues { (_, list) ->
+            activities.filter { it.kind != RunEvent.PLAN_ACTIVITY }.groupBy { it.step }.mapValues { (_, list) ->
                 // 用工具的界面说法(和运行过程页同一份),不把工具名露给用户
                 list.map { a -> StepAction(toolLabel(a.label), a.target?.let { where(it, appLabel) }, a.effect, a.failed) }
             }
@@ -2278,6 +2278,8 @@ class ChatViewModel(
             val out = mutableListOf<StepRow>()
             val said = mutableSetOf<Int>()
             for (a in ex.activities) {
+                // The plan is shown as the plan (see LivePlans), not as a step it took.
+                if (a.kind == RunEvent.PLAN_ACTIVITY) continue
                 val where = a.target?.let { where(it, appLabel) }
                 if (a.kind == "observe") {
                     // 读成功了却不知道读的是哪里:不列;没读成的照样列出来
@@ -2502,6 +2504,7 @@ class ToolLabels(private val tools: ToolIndex, private val legacy: LegacyNames =
             "view_past_screens" to R.string.tool_observe,
             "view_user_screen" to R.string.tool_user_screen,
             "wait" to R.string.tool_wait,
+            "update_plan" to R.string.tool_update_plan,
             "web_back" to R.string.tool_back,
             "web_capture" to R.string.tool_network,
             "web_clear_text" to R.string.tool_clear,

@@ -33,7 +33,7 @@ enum class Verb {
     RootCommand,
     CallState, CallDial, CallAnswer, CallHangup, CallTakeover,
     WhatsappChats, WhatsappRead, WhatsappSend,
-    Wait, AskUser, RequestConfirmation, HandToUser, HandleObstacle, EndNotDone,
+    Wait, AskUser, RequestConfirmation, HandToUser, HandleObstacle, EndNotDone, UpdatePlan,
     KnowledgeSearch, KnowledgeRead, SkillSearch, SkillRead, SkillSave, MemorySearch, MemorySave, MemoryEdit, ProfileEdit, HistoryRead, WebSearch,
     TaskMemorySearch, TaskMemoryTimeline, TaskMemoryStep,
     ScheduleTask,

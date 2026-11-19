@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">Pembayaran, atau apa pun yang tidak bisa dibatalkan, menunggu Anda menahan Izinkan.</string>
     <string name="onboarding_privacy_memory">Memori Anda yang atur</string>
     <string name="onboarding_privacy_memory_body">Lihat, ubah, atau matikan apa yang diingat Orbit di Setelan.</string>
+    <string name="helper_drop_title">Kontrol ponsel terputus</string>
+    <string name="helper_drop_stopped">Helper berhenti. Tugas yang memakai aplikasi menunggu sampai tersambung lagi.</string>
+    <string name="helper_drop_wireless_off">Debugging nirkabel nonaktif. Aktifkan dan Orbit tersambung lagi.</string>
+    <string name="helper_drop_needs_setup">Helper perlu diatur ulang agar tugas bisa memakai aplikasi.</string>
+    <string name="helper_drop_reconnecting">Menyambungkan ulang ke helper…</string>
+    <string name="helper_reconnect">Sambungkan ulang</string>
+    <string name="helper_turn_on">Aktifkan</string>
+    <string name="helper_fix">Perbaiki</string>
 </resources>

@@ -12,6 +12,8 @@ import kotlinx.serialization.json.contentOrNull
 
 /** 从真实执行结果生成活动,避免由模型的进度文字猜测做了什么。 */
 internal object ActivityRecord {
+    /** Activity kind of a recorded plan (see [com.wangzan101.mika.core.general.UpdatePlan]); not a step the user sees. */
+    const val PLAN_KIND = RunEvent.PLAN_ACTIVITY
     private val controls = setOf(
         Verb.Wait, Verb.AskUser, Verb.RequestConfirmation, Verb.HandToUser,
         Verb.HandleObstacle, Verb.EndNotDone,
@@ -25,6 +27,17 @@ internal object ActivityRecord {
     ): RunEvent.Activity? {
         val verb = tools.verb(tool)
         if (verb in controls) return null
+        // The plan isn't an action: it is recorded so the progress card can show every step up front.
+        if (verb == Verb.UpdatePlan) {
+            if (exec.content["ok"] == JsonPrimitive(false)) return null
+            val steps = (args["steps"] as? kotlinx.serialization.json.JsonArray)?.mapNotNull { (it as? JsonPrimitive)?.contentOrNull?.trim() }
+                ?.filter(String::isNotBlank) ?: return null
+            val current = (args["current"] as? JsonPrimitive)?.contentOrNull?.toIntOrNull() ?: return null
+            return RunEvent.Activity(
+                atMs, step, PLAN_KIND, tool, current.toString(), "completed", emptyList(), source, callId,
+                RunEvent.clip(Redactor.text(com.wangzan101.mika.core.general.UpdatePlan.encode(steps))),
+            )
+        }
         val target = RunEvent.placeLabel(exec.place)
             ?: targetKeys.firstNotNullOfOrNull { (args[it] as? JsonPrimitive)?.contentOrNull?.takeIf(String::isNotBlank) }
         val content = exec.content

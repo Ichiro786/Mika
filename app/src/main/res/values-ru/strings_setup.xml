@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">Оплата и всё необратимое ждут, пока вы удержите «Разрешить».</string>
     <string name="onboarding_privacy_memory">Память под вашим контролем</string>
     <string name="onboarding_privacy_memory_body">Смотрите, меняйте или отключайте то, что помнит Orbit, в настройках.</string>
+    <string name="helper_drop_title">Управление телефоном отключено</string>
+    <string name="helper_drop_stopped">Помощник остановился. Задачи с приложениями подождут, пока он вернётся.</string>
+    <string name="helper_drop_wireless_off">Отладка по Wi-Fi выключена. Включите её, и Orbit переподключится.</string>
+    <string name="helper_drop_needs_setup">Помощника нужно настроить заново, чтобы задачи могли работать с приложениями.</string>
+    <string name="helper_drop_reconnecting">Переподключение к помощнику…</string>
+    <string name="helper_reconnect">Переподключить</string>
+    <string name="helper_turn_on">Включить</string>
+    <string name="helper_fix">Исправить</string>
 </resources>

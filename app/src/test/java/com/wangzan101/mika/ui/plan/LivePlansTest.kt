@@ -9,6 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import com.wangzan101.mika.core.record.RunEvent
 
 class LivePlansTest {
     private fun row(i: Int, text: String, state: StepState = StepState.Ok, failed: String = "") =
@@ -71,5 +72,28 @@ class LivePlansTest {
         val plan = LivePlans.from(ex(ExchangeStatus.Working, row(1, "a"), row(2, "b"), row(3, "c", StepState.Run)), now = "c")
             .copy(total = 4)
         assertEquals(0.5f, plan.progress!!, 0.001f)
+    }
+
+    private fun plan(steps: List<String>, current: Int) =
+        RunEvent.Activity(1L, 1, RunEvent.PLAN_ACTIVITY, "update_plan", current.toString(), "completed", title = steps.joinToString("\n"))
+
+    @Test fun publishedPlanShowsEveryStepUpFront() {
+        val e = ex(ExchangeStatus.Working, row(1, "Open Maps")).copy(activities = listOf(plan(listOf("Open Maps", "Search", "Book", "Confirm"), 2)))
+        val p = LivePlans.from(e, now = "Search")
+        assertEquals(listOf("Open Maps", "Search", "Book", "Confirm"), p.steps.map { it.text })
+        assertEquals(listOf(PlanStepStatus.Done, PlanStepStatus.Running, PlanStepStatus.Pending, PlanStepStatus.Pending), p.steps.map { it.status })
+        assertEquals(4, p.total)
+        assertEquals(2, p.stepNumber)
+        assertEquals(0.25f, p.progress!!, 0.001f)
+    }
+
+    @Test fun planWaitingForApprovalMarksTheCurrentStep() {
+        val e = ex(ExchangeStatus.NeedsConfirmation("Pay 12 USD", "b", 3)).copy(activities = listOf(plan(listOf("Fill", "Pay"), 2)))
+        assertEquals(PlanStepStatus.NeedsApproval, LivePlans.from(e, null).steps[1].status)
+    }
+
+    @Test fun finishedPlanIsAllDone() {
+        val e = ex(ExchangeStatus.Done("ok", null)).copy(activities = listOf(plan(listOf("a", "b", "c"), 2)))
+        assertTrue(LivePlans.from(e, null).steps.all { it.status == PlanStepStatus.Done })
     }
 }

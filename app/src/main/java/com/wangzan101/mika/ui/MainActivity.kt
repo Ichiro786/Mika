@@ -713,6 +713,11 @@ private fun MikaRoot(
                                 onOpenFiles = { filesFromDrawer = false; filesConversation = app.chat.ui.value.conversationId; nav.push(Route.Files) },
                                 openSettings = { nav.push(Route.Settings) },
                                 openRun = { runId = it; nav.push(Route.Run) },
+                                // Set up before (paired) and now not running: the drop banner says so with a one-tap fix.
+                                helperDropped = status.builtinShell.takeIf {
+                                    it != BuiltinShellStatus.Running && it != BuiltinShellStatus.NotPaired && !phoneSetupNeeded
+                                },
+                                onReconnectHelper = { onFix(Fix.RetryPhoneHelper) },
                                 phoneSetupNeeded = phoneSetupNeeded && status.builtinShell != BuiltinShellStatus.Running,
                                 openPhoneSetup = { onFix(Fix.OpenPhoneSetup) },
                                 loadSource = { id ->

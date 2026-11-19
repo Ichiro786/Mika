@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">الدفع أو أي شيء لا يمكن التراجع عنه ينتظر حتى تضغط مطولًا على السماح.</string>
     <string name="onboarding_privacy_memory">ذاكرة تتحكم بها</string>
     <string name="onboarding_privacy_memory_body">اطّلع على ما يتذكره Orbit أو عدّله أو أوقفه من الإعدادات.</string>
+    <string name="helper_drop_title">انقطع التحكم في الهاتف</string>
+    <string name="helper_drop_stopped">توقف المساعد. تنتظر المهام التي تستخدم التطبيقات حتى يعود.</string>
+    <string name="helper_drop_wireless_off">تصحيح الأخطاء اللاسلكي متوقف. شغّله وسيعيد Orbit الاتصال.</string>
+    <string name="helper_drop_needs_setup">يجب إعداد المساعد مجددًا لتتمكن المهام من استخدام التطبيقات.</string>
+    <string name="helper_drop_reconnecting">جارٍ إعادة الاتصال بالمساعد…</string>
+    <string name="helper_reconnect">إعادة الاتصال</string>
+    <string name="helper_turn_on">تشغيل</string>
+    <string name="helper_fix">إصلاح</string>
 </resources>

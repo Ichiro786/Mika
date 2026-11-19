@@ -197,6 +197,9 @@ import com.wangzan101.mika.ui.theme.shimmerShine
 import com.wangzan101.mika.ui.theme.attentionInk
 import com.wangzan101.mika.ui.theme.errorInk
 import com.wangzan101.mika.ui.components.HoldToAllowButton
+import com.wangzan101.mika.core.shell.BuiltinShellStatus
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
 
 /**
  * 对话页:顶栏(左边打开侧栏、中间对话标题和此刻在做什么、右边新对话),对话在顶栏和玻璃输入栏之间滚动。
@@ -222,6 +225,9 @@ fun ChatScreen(
     openRun: (String) -> Unit = {},
     /** 任务要用手机而手机操作没准备好:最后一轮下面放一行去设置。 */
     phoneSetupNeeded: Boolean = false,
+    /** The phone-control helper's status when it has dropped after being set up; null while it runs or was never set up. */
+    helperDropped: BuiltinShellStatus? = null,
+    onReconnectHelper: () -> Unit = {},
     openPhoneSetup: () -> Unit = {},
     /** 按运行记录取依据的来处(「来源」胶囊和点开后的截图);读盘的活由调用方放到后台线程。 */
     loadSource: suspend (runId: String) -> EvidenceSource? = { null },
@@ -604,6 +610,19 @@ fun ChatScreen(
                 subtitleColor = subColor,
                 background = Color.Transparent,
             )
+            // The phone-control helper dropped after it had been set up: say so plainly with one tap to reconnect,
+            // instead of tasks quietly failing with "phone unavailable".
+            // Only after it has stayed down a moment: the helper reconnects by itself at launch, and that must not flash.
+            val dropSettled by produceState(false, helperDropped != null) {
+                value = false
+                if (helperDropped != null) { delay(HELPER_DROP_GRACE_MS); value = true }
+            }
+            AnimatedVisibility(
+                helperDropped != null && dropSettled, enter = MikaTheme.motion.enter(TransformOrigin(0.5f, 0f)),
+                exit = MikaTheme.motion.exit(TransformOrigin(0.5f, 0f)),
+            ) {
+                helperDropped?.let { HelperDropBanner(it, onReconnectHelper, openPhoneSetup) }
+            }
         }
 
         // Files can go with a new task, a queued next task, or a message to the running task.
@@ -2001,3 +2020,50 @@ private fun JumpToLatest(onClick: () -> Unit) {
         ) { Icon(MikaIcons.Down, null, Modifier.size(MikaSize.SmallIcon + MikaSpace.S4), tint = c.ink) }
     }
 }
+
+/**
+ * Phone control dropped (the wireless-debugging helper stopped or lost its connection). One line says what
+ * happened and one button fixes it: Reconnect when a retry can do it, Turn on when wireless debugging is off,
+ * otherwise Fix (phone setup). While it reconnects, a ring turns in place of the button.
+ */
+@Composable
+private fun HelperDropBanner(status: BuiltinShellStatus, onReconnect: () -> Unit, openSetup: () -> Unit) {
+    val c = MikaTheme.colors
+    val connecting = status == BuiltinShellStatus.Connecting
+    val retry = status == BuiltinShellStatus.WirelessDebuggingOff ||
+        (status as? BuiltinShellStatus.Failed)?.fix == com.wangzan101.mika.core.shell.BuiltinShellFix.Retry
+    val body = stringResource(
+        when {
+            connecting -> R.string.helper_drop_reconnecting
+            status == BuiltinShellStatus.WirelessDebuggingOff -> R.string.helper_drop_wireless_off
+            retry -> R.string.helper_drop_stopped
+            else -> R.string.helper_drop_needs_setup
+        },
+    )
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = MikaSpace.S16, vertical = MikaSpace.S4)
+            .cardSurface(c, MikaShapes.Card).padding(start = MikaSpace.S16, end = MikaSpace.S8, top = MikaSpace.S8, bottom = MikaSpace.S8)
+            .semantics(mergeDescendants = true) { liveRegion = LiveRegionMode.Polite }
+            .testTag("helper-drop-banner"),
+        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(MikaSpace.S12),
+    ) {
+        Box(Modifier.size(MikaSpace.S8).background(c.warnSolid, CircleShape))
+        Column(Modifier.weight(1f)) {
+            Text(stringResource(R.string.helper_drop_title), style = MikaType.LabelStrong, color = c.ink)
+            Text(body, style = MikaType.Hint, color = c.ink2)
+        }
+        if (connecting) {
+            Spinner(Modifier.padding(MikaSpace.S12).size(MikaSize.SmallIcon), spinning = !MikaTheme.reduceMotion, track = c.accentSoft, head = c.accent)
+        } else {
+            val label = stringResource(when {
+                status == BuiltinShellStatus.WirelessDebuggingOff -> R.string.helper_turn_on
+                retry -> R.string.helper_reconnect
+                else -> R.string.helper_fix
+            })
+            MikaButton(label, if (retry) onReconnect else openSetup, Modifier.testTag("helper-reconnect"), size = ButtonSize.Small)
+        }
+    }
+}
+
+/** How long the helper must stay down before the drop banner shows. */
+private const val HELPER_DROP_GRACE_MS = 3_000L

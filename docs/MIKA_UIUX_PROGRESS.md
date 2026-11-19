@@ -357,7 +357,7 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 
 **Status:** implemented. Builds and unit tests pass locally (`:app` and `:core`).
 
-- **Tool names.** ToolLabels now maps every one of the agent's 112 tools by its stable English name. Before, 112 tools went through a map keyed on their Chinese declared labels, and the gaps fell back to showing that Chinese label.
+- **Tool names.** ToolLabels now maps every agent tool by its stable English name. Before, tools went through a map keyed on their Chinese declared labels, and the gaps fell back to showing that Chinese label.
   - The old label map stays only for run records that stored a label.
   - An unknown or new tool reads as its name made readable ("phone_brand_new_thing" → "Brand new thing"). It can never show Chinese.
   - 5 new strings for the tools that had none, in all 9 languages.
@@ -405,3 +405,30 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - 18 new strings in 9 languages. OnboardingTest and the welcome device test are updated for the new flow.
 - **Difference from the mockup:** screens 4 and 5 are the existing model and phone setup screens rather than new layouts. Rebuilding them would touch provider authentication, which is protected.
 - **Not yet verified on a device:** the welcome entrance, swiping the cards, and 200% font on the new pages.
+
+## Orbit UI/UX program, Stage 6: reliability that shows, and the plan tool, 2026-11-19
+
+**Status:** implemented with the owner's go-ahead for protected areas. Builds and unit tests pass locally (`:core` and `:app`).
+
+- **Tap verification and retry: already in place, verified rather than rewritten.**
+  - AndroidScreen.tapRef and tapXY already wait for a change after each tap, through ChangeWait.
+  - When nothing changed, they retry once by the other route: accessibility click ↔ gesture, and the gesture itself falls back to a tap injected by the shell helper.
+  - ClickFallback already refuses that retry for send, submit, pay, delete, confirm and toggle-like buttons.
+  - No change was needed. Rewriting it would only have put working phone control at risk.
+- **Settled screen: already event-driven, verified.** ChangeWait waits for accessibility events to go quiet, then compares the element tree and frame signatures (two similar frames for self-drawn screens). It has a 2.5s cap and a single probe for the fallback route. No change was needed.
+- **Helper drop banner (new).**
+  - When phone control was set up before and the wireless-debugging helper is no longer running, chat shows a frosted banner under the header. It appears after 3s, so the reconnect at launch doesn't flash it.
+  - The banner says what happened and offers one action:
+    - Reconnect (the existing RetryPhoneHelper fix) when a retry can fix it;
+    - Turn on when wireless debugging is off;
+    - otherwise Fix, which opens phone setup.
+  - While reconnecting it shows a spinner, and it is a polite live region for TalkBack.
+  - First-time setup keeps its existing line. 8 new strings in 9 languages.
+- **Plan tool (new, approved).**
+  - `update_plan` in `:core` is read-only, in the always-offered base group. It takes 2–12 short steps and the current step, and its prompt says when to use it.
+  - It is recorded as a run activity of kind "plan": steps in the title, the current step in the target.
+  - StopSummary and TaskMemoryRecorder skip plan activities, and chat step rows and step actions skip them too.
+  - When a plan exists, the live plan card shows every planned step up front, with "Step 2 of 5" and a determinate ring.
+  - Prompt and loop snapshots were regenerated with -PupdateSnapshots; the only change in them is `update_plan` added to the tool lists.
+  - Tests: UpdatePlanTest, ToolGroupsTest updated, and LivePlansTest covers the plan cases.
+- **Not yet verified:** a model actually calling update_plan on device, and the banner when the helper really drops on a phone.

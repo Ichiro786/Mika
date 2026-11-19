@@ -19,7 +19,7 @@ object TaskMemoryRecorder {
         label: (String) -> String = { it },
         appLabel: (String) -> String = { it },
     ): TaskMemory? {
-        val acts = events.filterIsInstance<RunEvent.Activity>()
+        val acts = events.filterIsInstance<RunEvent.Activity>().filter { it.kind != com.wangzan101.mika.core.action.ActivityRecord.PLAN_KIND }
         // 没做过任何动作(控制类动作已在记录时排除),或只是草草看了一眼:不记
         if (acts.none { it.kind != "observe" } && acts.size < 2) return null
 

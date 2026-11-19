@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">Pagar, o cualquier cosa que no se pueda deshacer, espera a que mantengas pulsado Permitir.</string>
     <string name="onboarding_privacy_memory">Memoria bajo tu control</string>
     <string name="onboarding_privacy_memory_body">Mira, edita o desactiva lo que Orbit recuerda en Ajustes.</string>
+    <string name="helper_drop_title">Control del teléfono desconectado</string>
+    <string name="helper_drop_stopped">El asistente se detuvo. Las tareas con apps esperan a que vuelva.</string>
+    <string name="helper_drop_wireless_off">La depuración inalámbrica está desactivada. Actívala y Orbit se reconecta.</string>
+    <string name="helper_drop_needs_setup">Hay que volver a configurar el asistente para que las tareas usen apps.</string>
+    <string name="helper_drop_reconnecting">Reconectando con el asistente…</string>
+    <string name="helper_reconnect">Reconectar</string>
+    <string name="helper_turn_on">Activar</string>
+    <string name="helper_fix">Arreglar</string>
 </resources>

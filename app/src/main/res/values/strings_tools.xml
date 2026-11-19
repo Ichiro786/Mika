@@ -82,4 +82,5 @@
     <string name="tool_profile">Update your profile</string>
     <string name="tool_history">Read earlier messages</string>
     <string name="tool_user_screen">Look at your screen</string>
+    <string name="tool_update_plan">Update the plan</string>
 </resources>

@@ -103,4 +103,12 @@
     <string name="onboarding_privacy_hold_body">پرداخت یا هر کار برگشت‌ناپذیر منتظر می‌ماند تا «اجازه» را نگه دارید.</string>
     <string name="onboarding_privacy_memory">حافظه در اختیار شما</string>
     <string name="onboarding_privacy_memory_body">آنچه Orbit به خاطر می‌سپارد را در تنظیمات ببینید، ویرایش یا خاموش کنید.</string>
+    <string name="helper_drop_title">کنترل گوشی قطع شد</string>
+    <string name="helper_drop_stopped">دستیار متوقف شد. کارهایی که از برنامه‌ها استفاده می‌کنند تا برگشتن آن صبر می‌کنند.</string>
+    <string name="helper_drop_wireless_off">اشکال‌زدایی بی‌سیم خاموش است. روشنش کنید تا Orbit دوباره وصل شود.</string>
+    <string name="helper_drop_needs_setup">برای استفادهٔ کارها از برنامه‌ها، دستیار باید دوباره راه‌اندازی شود.</string>
+    <string name="helper_drop_reconnecting">در حال اتصال دوباره به دستیار…</string>
+    <string name="helper_reconnect">اتصال دوباره</string>
+    <string name="helper_turn_on">روشن کردن</string>
+    <string name="helper_fix">رفع</string>
 </resources>

@@ -82,4 +82,5 @@
     <string name="tool_profile">Atualizar seu perfil</string>
     <string name="tool_history">Ler mensagens anteriores</string>
     <string name="tool_user_screen">Ver sua tela</string>
+    <string name="tool_update_plan">Atualizar o plano</string>
 </resources>
