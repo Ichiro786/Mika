@@ -297,9 +297,9 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
 - "Remove animations" now has a single source. `MikaTheme` reads `rememberAnimationsOff()`, which watches `ANIMATOR_DURATION_SCALE` live. `MotionSpecs.Reduced` then turns every spec into `snap()`. Activities and overlay windows no longer pass the flag themselves.
 - Animation sites moved onto the tokens:
   - Chat, drawer, VoiceHold, capsule (pill, morph, card, voice), AgentPip, page/tab transitions, OrbitHub, presence avatar, call screen, update capsule, attachments, message swipe, switches, scrollbar, recommendations, Make toggle and browser wiggle.
-  - Overlay window snapping is a View `ValueAnimator`. It now uses the 200 ms token and an emphasized-decelerate `PathInterpolator`.
+  - Overlay window snapping is a View `ValueAnimator`. It now uses the 200 ms token and an emphasized-decelerate PathInterpolator.
 - Chat rows keep their stable keys and now fade in with `animateItem`. They have no placement animation, so rows below a streaming reply never lag behind it.
-- `MikaButton`, `BarIconButton` and `SelectChip` now use the shared press-scale feedback.
+- MikaButton, BarIconButton and SelectChip now use the shared press-scale feedback.
 - Guard tests:
   - `MotionGuardTest` fails the build if any source outside `Motion.kt` creates a `tween`, `spring`, `keyframes` or `infiniteRepeatable`, or uses an untokened default enter/exit.
   - `MotionSpecsTest` checks the token values and that reduce-motion snaps every spec.
@@ -321,13 +321,13 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
     - waiting or needs approval: amber, saying what it is waiting for.
   - New steps animate in with the shared enter; rows already there do not.
   - The bounded form scrolls by itself, keeps the current step in view while you are at the bottom, and fades older steps at the top.
-  - `LivePlanSteps` is the expanded list under a finished task's one-line summary.
-  - `PlanRing` and `LivePlanPill` are the compact form.
+  - LivePlanSteps is the expanded list under a finished task's one-line summary.
+  - PlanRing and LivePlanPill are the compact form.
 - The four old views are replaced:
-  1. Chat: `WorkBlock` and `StepLine` now use the card. Steps no longer hide behind "Show steps". `DoneLine` expands into `LivePlanSteps`.
+  1. Chat: WorkBlock and `StepLine` now use the card. Steps no longer hide behind "Show steps". DoneLine expands into LivePlanSteps.
   2. Floating card and browser page: `Steps` is now a thin adapter onto the card. The existing `capsule-steps` tag and its follow/scroll behaviour are kept.
   3. Capsule pill: a running task shows the shared ring next to the current step. Tapping still opens the card.
-  4. Mini view: the AgentPip pill shows `PlanRing`, and the LiveSheet lists the steps (bounded at 136dp).
+  4. Mini view: the AgentPip pill shows PlanRing, and the LiveSheet lists the steps (bounded at 136dp).
 - Approval stays only on the existing keyed confirmation card. The plan step turns amber and names the action, but has no approve control.
 - Accessibility: each step row has a translated `stateDescription`, the current step is a polite live region, and the title is a heading.
 - New strings were added in all 9 languages.

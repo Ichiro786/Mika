@@ -138,8 +138,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
-          android_cli="$ANDROID_HOME/cmdline-tools/latest/bin/android"
-          "$android_cli" --sdk="$ANDROID_HOME" emulator create medium_phone
+          # The old "android" CLI no longer ships with cmdline-tools; avdmanager creates the same phone.
+          echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n medium_phone \
+            -k 'system-images;android-35;google_apis;x86_64' -d medium_phone --force
           "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx medium_phone
           "$ANDROID_HOME/emulator/emulator" -avd medium_phone -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/mika-emulator.log 2>&1 &
           timeout 240 adb wait-for-device || { cat /tmp/mika-emulator.log; exit 1; }
