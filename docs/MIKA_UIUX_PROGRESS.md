@@ -432,3 +432,11 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
   - Prompt and loop snapshots were regenerated with -PupdateSnapshots; the only change in them is `update_plan` added to the tool lists.
   - Tests: UpdatePlanTest, ToolGroupsTest updated, and LivePlansTest covers the plan cases.
 - **Not yet verified:** a model actually calling update_plan on device, and the banner when the helper really drops on a phone.
+
+### Emulator check after Stage 6 (CI run 44628711686, commit e619cf1)
+
+- **ApprovalCardTest: all four pass on the emulator.** That includes a tap or early release never approving. The earlier failure was the test framework fast-forwarding its clock while a hold was in progress; the test now drives the clock by hand.
+- **Open regression:** all three ChatSearchTest cases time out in their first setContent (drawer plus chat, Chinese UI rule, no MikaTheme). The error is "Compose busy, possibly infinite recomposition".
+  - At 026ec11 the same step went idle.
+  - The cause is not yet found. It needs device runs of the commits in between.
+- The remaining failures assert Chinese text that the app no longer ships; they were failing before this work.
