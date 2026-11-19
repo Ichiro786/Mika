@@ -138,10 +138,15 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
           sdkmanager 'emulator' 'system-images;android-35;google_apis;x86_64'
-          # The old "android" CLI no longer ships with cmdline-tools; avdmanager creates the same phone.
+          # The old "android" CLI no longer ships with cmdline-tools; avdmanager creates the phone. The runner's
+          # avdmanager predates the "medium_phone" profile, so use pixel_6 (same 1080x2400 class), and give the
+          # emulator and avdmanager one AVD folder so they find each other.
+          export ANDROID_AVD_HOME="$HOME/.android/avd"
+          echo "ANDROID_AVD_HOME=$ANDROID_AVD_HOME" >> "$GITHUB_ENV"
+          mkdir -p "$ANDROID_AVD_HOME"
           echo no | "$ANDROID_HOME/cmdline-tools/latest/bin/avdmanager" create avd -n medium_phone \
-            -k 'system-images;android-35;google_apis;x86_64' -d medium_phone --force
-          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx medium_phone
+            -k 'system-images;android-35;google_apis;x86_64' -d pixel_6 -p "$ANDROID_AVD_HOME/medium_phone.avd" --force
+          "$ANDROID_HOME/emulator/emulator" -list-avds | grep -Fx medium_phone || { ls -la "$ANDROID_AVD_HOME"; exit 1; }
           "$ANDROID_HOME/emulator/emulator" -avd medium_phone -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect -no-snapshot > /tmp/mika-emulator.log 2>&1 &
           timeout 240 adb wait-for-device || { cat /tmp/mika-emulator.log; exit 1; }
           timeout 240 bash -c 'until [[ "$(adb shell getprop sys.boot_completed | tr -d "\r")" == 1 ]]; do sleep 2; done' || { cat /tmp/mika-emulator.log; exit 1; }
