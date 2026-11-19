@@ -85,4 +85,22 @@
     <string name="model_probe_tried">Se probó %1$s; ninguno pasó la prueba.</string>
     <string name="model_probe_fallback">%1$s, que se probó primero, no pasó la prueba: %2$s. El modelo principal es “%3$s”, que sí la pasó.</string>
     <string name="model_pick_main">Elegir modelo principal</string>
+    <string name="onboarding_back">Atrás</string>
+    <string name="onboarding_next">Siguiente</string>
+    <string name="onboarding_agree">Me parece bien</string>
+    <string name="onboarding_can_title">Lo que puedo hacer</string>
+    <string name="onboarding_can_hint">Desliza las tarjetas. Son tareas de ejemplo.</string>
+    <string name="onboarding_example">Ejemplo</string>
+    <string name="onboarding_card_position">Tarjeta %1$d de %2$d</string>
+    <string name="onboarding_example_files">Convierte en hoja de cálculo el extracto PDF que te compartí.</string>
+    <string name="onboarding_example_schedule">Cada día laborable a las 7, dime si va a llover.</string>
+    <string name="onboarding_privacy_title">Tuyo, en este teléfono</string>
+    <string name="onboarding_privacy_keys">Las claves se quedan aquí</string>
+    <string name="onboarding_privacy_keys_body">Tus claves de modelos se guardan cifradas en este teléfono.</string>
+    <string name="onboarding_privacy_provider">Tú eliges quién ve cada petición</string>
+    <string name="onboarding_privacy_provider_body">Lo que pides se envía al proveedor de modelos que elijas. Puedes cambiarlo cuando quieras en Modelos.</string>
+    <string name="onboarding_privacy_hold">Nada se paga sin ti</string>
+    <string name="onboarding_privacy_hold_body">Pagar, o cualquier cosa que no se pueda deshacer, espera a que mantengas pulsado Permitir.</string>
+    <string name="onboarding_privacy_memory">Memoria bajo tu control</string>
+    <string name="onboarding_privacy_memory_body">Mira, edita o desactiva lo que Orbit recuerda en Ajustes.</string>
 </resources>

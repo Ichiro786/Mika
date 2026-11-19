@@ -85,4 +85,22 @@
     <string name="model_probe_tried">Sudah mencoba %1$s; tidak satu pun lulus pengujian.</string>
     <string name="model_probe_fallback">%1$s, yang dicoba pertama, tidak lulus pengujian: %2$s. Model utamanya “%3$s”, yang lulus.</string>
     <string name="model_pick_main">Pilih model utama</string>
+    <string name="onboarding_back">Kembali</string>
+    <string name="onboarding_next">Berikutnya</string>
+    <string name="onboarding_agree">Oke</string>
+    <string name="onboarding_can_title">Yang bisa saya lakukan</string>
+    <string name="onboarding_can_hint">Geser kartunya. Ini contoh tugas.</string>
+    <string name="onboarding_example">Contoh</string>
+    <string name="onboarding_card_position">Kartu %1$d dari %2$d</string>
+    <string name="onboarding_example_files">Ubah rekening koran PDF yang saya bagikan jadi spreadsheet.</string>
+    <string name="onboarding_example_schedule">Setiap hari kerja jam 7, beri tahu saya apakah akan hujan.</string>
+    <string name="onboarding_privacy_title">Milik Anda, di ponsel ini</string>
+    <string name="onboarding_privacy_keys">Kunci tetap di sini</string>
+    <string name="onboarding_privacy_keys_body">Kunci model Anda disimpan terenkripsi di ponsel ini.</string>
+    <string name="onboarding_privacy_provider">Anda yang memilih siapa yang melihat permintaan</string>
+    <string name="onboarding_privacy_provider_body">Permintaan Anda dikirim ke penyedia model yang Anda pilih. Bisa diganti kapan saja di Model.</string>
+    <string name="onboarding_privacy_hold">Tidak ada pembayaran tanpa Anda</string>
+    <string name="onboarding_privacy_hold_body">Pembayaran, atau apa pun yang tidak bisa dibatalkan, menunggu Anda menahan Izinkan.</string>
+    <string name="onboarding_privacy_memory">Memori Anda yang atur</string>
+    <string name="onboarding_privacy_memory_body">Lihat, ubah, atau matikan apa yang diingat Orbit di Setelan.</string>
 </resources>

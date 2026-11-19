@@ -32,9 +32,17 @@ object Onboarding {
         OnboardingStep.Phone -> null
     }
 
-    /** 底部分页点:三步里的第几步。 */
-    fun dot(step: OnboardingStep): Int = step.ordinal
-    const val DOTS = 3
+    /**
+     * Which progress dot a step lights. Welcome holds three pages (hello, what Orbit can do, privacy) on dots
+     * 0-2, so choosing a model is dot 3 and phone control dot 4.
+     */
+    fun dot(step: OnboardingStep): Int = when (step) {
+        OnboardingStep.Welcome -> 0
+        OnboardingStep.Model -> WELCOME_PAGES
+        OnboardingStep.Phone -> WELCOME_PAGES + 1
+    }
+    const val WELCOME_PAGES = 3
+    const val DOTS = WELCOME_PAGES + 2
 }
 
 /** 上手流程里「配置模型」做完没有;存在本机。 */

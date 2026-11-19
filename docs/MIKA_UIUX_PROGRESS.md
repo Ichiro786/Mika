@@ -388,3 +388,20 @@ While Orbit is working on a reply and nothing has streamed yet, the answer's pla
   - The widget refreshes when the skills list changes.
   - New strings in 9 languages. SkillLauncherTest covers which skills the widget shows.
 - **Not yet verified:** the haptic feel on device, pinning on different launchers, and how the widget renders on various launchers.
+
+## Orbit UI/UX program, Stage 5b: onboarding, 2026-11-19
+
+**Status:** implemented after the owner approved the mockups. Builds and unit tests pass locally.
+
+- The Welcome route now holds three pages, moving forward and back with the shared spring and sideways slide. System back steps back through the pages.
+  - **Hello:** the Orbit presence mark arrives on the spatial spring, and the title and promise rise after it, 30ms apart.
+  - **What Orbit can do:** a HorizontalPager of four peeking cards (apps, web, files, schedules). Each card has an example request, labelled Example, with spring progress dots.
+  - **Privacy:** four facts that are already true of Orbit: keys encrypted on the phone, requests go to the chosen provider, hold to allow for payments, memory you control.
+- After that, the existing Choose a model screen (its real Test and save check) and Phone setup screen (its live status checks) follow, unchanged, so provider sign-in and setup logic were not touched.
+  - The dots now count 5 steps.
+  - Going back from the model step lands on the privacy page.
+- When onboarding shows is unchanged: only with no model and no completed setup, as before.
+- The progress dots stretch on the spatial spring.
+- 18 new strings in 9 languages. OnboardingTest and the welcome device test are updated for the new flow.
+- **Difference from the mockup:** screens 4 and 5 are the existing model and phone setup screens rather than new layouts. Rebuilding them would touch provider authentication, which is protected.
+- **Not yet verified on a device:** the welcome entrance, swiping the cards, and 200% font on the new pages.

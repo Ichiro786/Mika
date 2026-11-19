@@ -33,6 +33,7 @@ class OnboardingTest {
     }
 
     @Test fun dotsFollowSteps() {
-        assertEquals(listOf(0, 1, 2), OnboardingStep.entries.map(Onboarding::dot))
+        assertEquals(listOf(0, 3, 4), OnboardingStep.entries.map(Onboarding::dot))
+        assertEquals(5, Onboarding.DOTS)
     }
 }

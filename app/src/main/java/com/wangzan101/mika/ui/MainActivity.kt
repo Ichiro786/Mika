@@ -423,6 +423,8 @@ private fun MikaRoot(
     var setupRepair by rememberSaveable { mutableStateOf(false) }
     // 首次上手正在走哪一步;为空时不在上手流程里。配置模型页从哪儿来就回哪儿去
     var onboarding by rememberSaveable { mutableStateOf<OnboardingStep?>(null) }
+    /** Coming back from choosing a model lands on the last welcome page (privacy), not the first. */
+    var welcomeFromBack by rememberSaveable { mutableStateOf(false) }
     val onFix: (Fix) -> Unit = { fix ->
         when (fix) {
             Fix.AddModel -> nav.push(Route.Models)
@@ -594,12 +596,15 @@ private fun MikaRoot(
             phoneSetup.markGuideSeen()
             if (onboarding == OnboardingStep.Phone) goOnboarding(null) else nav.back()
         }
-        Route.Welcome -> WelcomeScreen { goOnboarding(OnboardingStep.Model) }
+        Route.Welcome -> WelcomeScreen(startPage = if (welcomeFromBack) Onboarding.WELCOME_PAGES - 1 else 0) {
+            welcomeFromBack = false
+            goOnboarding(OnboardingStep.Model)
+        }
         Route.ModelSetup -> {
             val inOnboarding = onboarding == OnboardingStep.Model
             ModelSetupScreen(
                 store, onboarding = inOnboarding,
-                onBack = { if (inOnboarding) goOnboarding(OnboardingStep.Welcome) else nav.back() },
+                onBack = { if (inOnboarding) { welcomeFromBack = true; goOnboarding(OnboardingStep.Welcome) } else nav.back() },
                 onDone = {
                     if (inOnboarding) {
                         onboardingState.markModelSetupDone()

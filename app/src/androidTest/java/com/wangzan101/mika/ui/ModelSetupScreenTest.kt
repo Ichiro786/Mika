@@ -73,7 +73,11 @@ class ModelSetupScreenTest {
     @Test fun welcomeStarts() {
         compose.setContent { MikaTheme { WelcomeScreen { calls += "start" } } }
         compose.onNodeWithText(WelcomeCopy.TITLE).assertIsDisplayed()
+        // Three pages now: hello, what Orbit can do, privacy; only the last one moves on.
         compose.onNodeWithTag("welcome-start").performClick()
+        compose.onNodeWithTag("onboarding-abilities").assertIsDisplayed()
+        compose.onNodeWithTag("onboarding-abilities-next").performClick()
+        compose.onNodeWithTag("onboarding-privacy-next").performClick()
         assertEquals(listOf("start"), calls)
     }
 

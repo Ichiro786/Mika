@@ -61,7 +61,7 @@ ui/UpdateReadyCapsule.kt 7 0 5
 ui/UsageScreen.kt 12 2 0
 ui/VoiceHold.kt 12 2 0
 ui/VoicePromptSettings.kt 1 3 0
-ui/WelcomeScreen.kt 3 0 0
+ui/WelcomeScreen.kt 1 0 0
 ui/WhatsappSettings.kt 1 3 0
 ui/components/Controls.kt 14 0 1
 ui/components/Dialog.kt 1 0 0

@@ -64,6 +64,8 @@ import com.wangzan101.mika.ui.theme.pressScale
 import com.wangzan101.mika.ui.theme.MikaSpace
 import com.wangzan101.mika.ui.theme.MikaRadius
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.animation.core.animateDpAsState
+import com.wangzan101.mika.ui.theme.motion
 
 // ---------- 开关 ----------
 
@@ -384,8 +386,12 @@ private val TagText = MikaType.Micro
 fun ProgressDots(count: Int, current: Int, modifier: Modifier = Modifier) {
     val c = MikaTheme.colors
     Row(modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(MikaSpace.S8, Alignment.CenterHorizontally)) {
+        val motion = MikaTheme.motion
         repeat(count) { i ->
-            Box(Modifier.size(if (i == current) 18.dp else 6.dp, 6.dp).background(if (i == current) c.accent else c.hair, CircleShape))
+            // The current dot stretches into a pill on the spatial spring as you move between pages.
+            val width by animateDpAsState(if (i == current) 18.dp else 6.dp, motion.spatialDefault(), label = "dot")
+            val tint by animateColorAsState(if (i == current) c.accent else c.hair, motion.effectsDefault(), label = "dot-tint")
+            Box(Modifier.size(width, 6.dp).background(tint, CircleShape))
         }
     }
 }
